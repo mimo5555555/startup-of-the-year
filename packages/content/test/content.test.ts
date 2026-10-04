@@ -198,3 +198,15 @@ describe('slots, signs and lesson', () => {
     }
   });
 });
+
+describe('resolved lines', () => {
+  it('capitalise a translation that starts with a filled-in word', async () => {
+    const { resolveLine } = await import('../src');
+    const l = resolveLine({ ja: '{item}|です|ね。', en: '{item}, got it.', ar: '{item}، حسنًا.' }, LEXICON, {
+      item: { ja: 'コーヒー', gloss: { en: 'coffee', ar: 'قهوة' } },
+    });
+    expect(l.en).toBe('Coffee, got it.');
+    expect(l.ar).toBe('قهوة، حسنًا.');
+    expect(l.written).toBe('コーヒーですね。');
+  });
+});

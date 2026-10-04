@@ -14,7 +14,11 @@ export interface TtsPort {
   available(): boolean;
   /** is there a Japanese voice installed? */
   hasJapaneseVoice(): boolean;
+  /** true once the device has reported its voices, so a missing Japanese voice is a fact, not a race */
+  voicesReady(): boolean;
   speak(text: string, opts?: SpeakOptions): Promise<void>;
+  /** call from a user gesture: some browsers only allow speech after one */
+  unlock(): void;
   cancel(): void;
   speaking(): boolean;
 }
@@ -52,11 +56,14 @@ export class WebSpeechTts implements TtsPort {
   private current: { resolve: () => void } | null = null;
   private timer: ReturnType<typeof setTimeout> | null = null;
   private keep: SpeechSynthesisUtterance[] = [];
+  private anyVoices = false;
 
   constructor() {
     if (hasSynthesis()) {
       const load = () => {
-        this.voices = speechSynthesis.getVoices().filter((v) => v.lang.toLowerCase().replace('_', '-').startsWith('ja'));
+        const all = speechSynthesis.getVoices();
+        this.anyVoices = all.length > 0;
+        this.voices = all.filter((v) => v.lang.toLowerCase().replace('_', '-').startsWith('ja'));
       };
       load();
       try {
@@ -73,6 +80,21 @@ export class WebSpeechTts implements TtsPort {
 
   hasJapaneseVoice() {
     return this.voices.length > 0;
+  }
+
+  voicesReady() {
+    return this.anyVoices;
+  }
+
+  unlock() {
+    if (!hasSynthesis()) return;
+    try {
+      const u = new SpeechSynthesisUtterance(' ');
+      u.volume = 0;
+      speechSynthesis.speak(u);
+    } catch {
+      /* optional */
+    }
   }
 
   speaking() {
@@ -202,10 +224,14 @@ export class NullTts implements TtsPort {
   hasJapaneseVoice() {
     return false;
   }
+  voicesReady() {
+    return false;
+  }
   speaking() {
     return false;
   }
   cancel() {}
+  unlock() {}
   async speak(text: string, o: SpeakOptions = {}) {
     this.spoken.push(text);
     o.onStart?.();

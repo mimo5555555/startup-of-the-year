@@ -117,13 +117,16 @@ export function fillGloss(text: string, vars: Vars, lang: 'en' | 'ar'): string {
   });
 }
 
+const capitalise = (s: string) => s.replace(/^\p{Ll}/u, (m) => m.toUpperCase());
+
 export function resolveLine(line: Line, lex: Lexicon, vars: Vars = {}) {
   const { tokens } = tokenize(line.ja, lex, vars);
   return {
     tokens,
     plain: line.tts ? line.tts : speakableText(tokens),
     written: plainText(tokens),
-    en: fillGloss(line.en, vars, 'en'),
+    // a filled-in word can land at the start of the sentence ("{item}, got it.")
+    en: capitalise(fillGloss(line.en, vars, 'en')),
     ar: fillGloss(line.ar, vars, 'ar'),
   };
 }

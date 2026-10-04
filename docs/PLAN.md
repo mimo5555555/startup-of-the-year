@@ -1,6 +1,6 @@
 # Language World — Project Plan (draft for approval)
 
-> **Status: plan only. No application code has been written yet.**
+> **Status: Phases 0–1 are built as an interactive sample (Tokyo / Japanese). See [SAMPLE.md](./SAMPLE.md). The rest of this plan is unchanged unless noted in “Implementation notes” at the end.**
 > Drafted 2026-10-04 on branch `claude/language-learning-app-bt05qe`.
 > The existing repo contents (a static landing page) are left untouched; the app will live in new `apps/`, `packages/` and `tools/` folders.
 
@@ -424,3 +424,25 @@ Every template is covered by the eval harness (golden cases per language and lev
 - [Expo: on-device AI with React Native ExecuTorch](https://expo.dev/blog/how-to-run-ai-models-with-react-native-executorch)
 - [NekoSpeak (offline TTS on Android: Kokoro/Piper)](https://github.com/siva-sub/NekoSpeak)
 - [OPUS-MT / Bergamot offline translation](https://github.com/Helsinki-NLP/OPUS-MT-app)
+
+
+---
+
+## 18. Implementation notes (added after the first sample)
+
+Decisions made while building the sample, with the reason:
+
+1. **Plain Three.js behind a thin React wrapper, not react-three-fiber.** The world is an imperative game loop (input, camera,
+   collisions, animation); R3F would add weight without helping. The scene uses merged vertex-coloured geometry (one draw call
+   per material), which is what keeps it at ~36 draw calls.
+2. **npm workspaces instead of pnpm**, to avoid an extra tool in the sandbox. Packages are consumed as TypeScript source.
+3. **Characters and city are generated in code** (procedural avatars with hair styles, outfits and accessories; modular shops).
+   An artist can still replace them later; nothing depends on the look.
+4. **Scripted dialogue + phrasebook + rule feedback** stand in for the on-device model. They sit behind the same shapes
+   (`ConversationSession`, `translatePhrase`, `evaluateSession`) that the model-backed engines will implement, so Phase 2 swaps
+   adapters rather than rewriting the UI.
+5. **Assisted lines are tracked separately from the learner's own lines** from day one (plan §10), including in XP, accuracy
+   and the "phrases you learned" list.
+6. **Browser speech APIs are used only as sample conveniences.** Chrome's recognizer is cloud-based, so it is not part of the
+   local-first story (see SAMPLE.md).
+7. **Capacitor is not generated yet.** The web build is what a Capacitor shell will wrap; native engines come in Phase 2.
