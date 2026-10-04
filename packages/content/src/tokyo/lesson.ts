@@ -1,4 +1,5 @@
 import type { Lesson, SignDef } from '../types';
+import { EXTRA_LESSONS } from './lessons-extra';
 
 export const GREETINGS: Lesson = {
   id: 'greetings',
@@ -19,7 +20,7 @@ export const GREETINGS: Lesson = {
   ],
 };
 
-export const LESSONS: Lesson[] = [GREETINGS];
+export const LESSONS: Lesson[] = [GREETINGS, ...EXTRA_LESSONS];
 export const lessonById = (id: string) => LESSONS.find((l) => l.id === id);
 
 export const SIGNS: SignDef[] = [

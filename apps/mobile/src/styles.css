@@ -2389,3 +2389,205 @@ html[lang='ar'] .option {
     scroll-behavior: auto !important;
   }
 }
+
+/* ---------- audio check (Settings) ---------- */
+.au {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 6px;
+}
+.au-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 17px;
+}
+.au-sub {
+  margin-top: -6px;
+}
+.au-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: 2px;
+  transition: opacity 0.15s;
+}
+.au-rows.busy {
+  opacity: 0.6;
+}
+.au-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  min-height: 56px;
+}
+.au-row:last-child {
+  border-bottom: 0;
+}
+.au-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.au-text small {
+  color: var(--fg-2);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.au-text strong {
+  font-size: 15px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.au-ico {
+  flex: none;
+  width: 26px;
+  height: 26px;
+  margin-top: 2px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  background: var(--line);
+  color: #fff;
+}
+.au-ico b {
+  font-size: 15px;
+  line-height: 1;
+}
+.au-ico.ok {
+  background: var(--good);
+}
+.au-ico.bad {
+  background: var(--bad);
+}
+.au-ico.warn {
+  background: #d98e0b;
+}
+.au-fix {
+  min-height: 96px;
+  background: var(--bg-2);
+  border-radius: 16px;
+  padding: 12px 14px;
+}
+.au-fix h4 {
+  margin: 0 0 8px;
+  font-size: 14px;
+  margin-bottom: 6px;
+}
+.au-fix ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.au-fix li {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.au-fix li .au-ico {
+  width: 22px;
+  height: 22px;
+  margin-top: 0;
+}
+.au-fix li em {
+  display: block;
+  margin-top: 4px;
+  font-style: normal;
+  color: var(--fg-2);
+}
+.au-ok {
+  font-size: 14px;
+  color: var(--fg-2);
+}
+.au-actions {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+.au-actions .btn {
+  min-height: 48px;
+  padding: 0 12px;
+  font-size: 15px;
+  text-align: center;
+}
+.au-out {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.au-line {
+  font-size: 14px;
+  line-height: 1.45;
+  color: var(--fg-2);
+  min-height: 21px;
+}
+.au-line.hide {
+  visibility: hidden;
+  min-height: 0;
+  height: 0;
+}
+.au-line.good {
+  color: var(--good);
+  font-weight: 700;
+}
+.au-line.bad {
+  color: var(--bad);
+  font-weight: 700;
+}
+.au-line.au-mictest {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-height: 84px;
+}
+.au-heard {
+  display: block;
+  font-family: var(--font-ja);
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--fg);
+  quotes: none;
+  min-height: 32px;
+}
+.au-line.au-mictest small {
+  color: var(--fg-2);
+  font-size: 13px;
+}
+.mic-row.has-fix {
+  flex-wrap: wrap;
+  row-gap: 0;
+  padding-bottom: 4px;
+}
+.mic-row.has-fix .mic-msg {
+  order: 3;
+  flex: 1 1 100%;
+}
+.mic-row.has-fix .mic-fix {
+  margin-inline-start: auto;
+}
+.au-actions .btn.rec {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+.mic-fix {
+  flex: none;
+  min-height: 44px;
+  margin-block: -10px;
+  padding: 0 10px;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font: 800 13px var(--font-body);
+  text-decoration: underline;
+  cursor: pointer;
+}

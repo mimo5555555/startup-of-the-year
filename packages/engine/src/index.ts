@@ -5,3 +5,4 @@ export * from './input';
 export * from './dialogue';
 export * from './feedback';
 export * from './speech';
+export * from './audio-diagnostics';

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
+import { AUDIO_CHECK_ID, AudioCheck, takeAudioCheckFocus } from '../components/AudioCheck';
 import { Icon } from '../components/Icon';
 import { useStore } from '../store';
 import { useT } from '../hooks';
@@ -28,6 +29,12 @@ export function Settings() {
   const setLevel = useStore((s) => s.setLevel);
   const reset = useStore((s) => s.reset);
   const [confirm, setConfirm] = useState(false);
+  const audioRef = useRef<HTMLElement>(null);
+
+  // arriving from 'Check audio' elsewhere: bring the check into view
+  useEffect(() => {
+    if (takeAudioCheckFocus()) audioRef.current?.scrollIntoView({ block: 'start' });
+  }, []);
 
   return (
     <div className="panel" dir={dir}>
@@ -70,9 +77,10 @@ export function Settings() {
           <Switch on={settings.autoTranslate} onChange={(v) => update({ autoTranslate: v })} label={t('st.autoTranslate')} />
         </section>
 
-        <section className="group">
+        <section className="group" id={AUDIO_CHECK_ID} ref={audioRef}>
           <h2 className="h2">{t('st.speech')}</h2>
           <Switch on={settings.autoSpeak} onChange={(v) => update({ autoSpeak: v })} label={t('st.autoSpeak')} />
+          <AudioCheck />
         </section>
 
         <section className="group">

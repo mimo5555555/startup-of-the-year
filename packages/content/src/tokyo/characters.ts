@@ -1,6 +1,6 @@
 import type { Character } from '../types';
 
-export const CHARACTERS: Character[] = [
+export const CORE_CHARACTERS: Character[] = [
   {
     id: 'yuki',
     name: { ja: 'ゆき', reading: 'ゆき', en: 'Yuki', ar: 'يوكي' },
@@ -149,4 +149,3 @@ export const CHARACTERS: Character[] = [
   },
 ];
 
-export const characterById = (id: string) => CHARACTERS.find((c) => c.id === id);

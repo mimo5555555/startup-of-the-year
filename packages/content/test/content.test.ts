@@ -4,6 +4,8 @@ import {
   CHARACTERS,
   LEXICON,
   LEXICON_ENTRIES,
+  LEXICON_PARTS,
+  SLOT_OWNERS,
   PHRASEBOOK,
   SCENARIOS,
   SIGNS,
@@ -191,7 +193,8 @@ describe('slots, signs and lesson', () => {
     expect(errors).toEqual([]);
   });
   it('characters are complete', () => {
-    expect(CHARACTERS).toHaveLength(6);
+    expect(CHARACTERS.length).toBeGreaterThanOrEqual(6);
+    expect(new Set(CHARACTERS.map((c) => c.id)).size).toBe(CHARACTERS.length);
     for (const c of CHARACTERS) {
       expect(c.name.en && c.name.ar && c.name.ja).toBeTruthy();
       expect(c.interests.length).toBeGreaterThanOrEqual(2);
@@ -208,5 +211,38 @@ describe('resolved lines', () => {
     expect(l.en).toBe('Coffee, got it.');
     expect(l.ar).toBe('قهوة، حسنًا.');
     expect(l.written).toBe('コーヒーですね。');
+  });
+});
+
+describe('content modules', () => {
+  it('no lexicon surface clashes between modules (different reading or meaning)', () => {
+    const first = new Map<string, { mod: string; r?: string }>();
+    const bad: string[] = [];
+    for (const [mod, entries] of Object.entries(LEXICON_PARTS)) {
+      for (const e of entries) {
+        const prev = first.get(e.s);
+        if (!prev) first.set(e.s, { mod, r: e.r });
+        else if ((prev.r ?? '') !== (e.r ?? '')) bad.push(`${e.s}: ${prev.mod} reads ${prev.r ?? '-'}, ${mod} reads ${e.r ?? '-'}`);
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+  it('no duplicate surfaces inside one module', () => {
+    const bad: string[] = [];
+    for (const [mod, entries] of Object.entries(LEXICON_PARTS)) {
+      const seen = new Set<string>();
+      for (const e of entries) {
+        if (seen.has(e.s)) bad.push(`${mod}: ${e.s}`);
+        seen.add(e.s);
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+  it('every slot is defined by exactly one module', () => {
+    const bad = Object.entries(SLOT_OWNERS).filter(([, mods]) => mods.length > 1).map(([n, m]) => `${n}: ${m.join(',')}`);
+    expect(bad).toEqual([]);
+  });
+  it('scenario and character ids are unique', () => {
+    expect(new Set(SCENARIOS.map((s) => s.id)).size).toBe(SCENARIOS.length);
   });
 });

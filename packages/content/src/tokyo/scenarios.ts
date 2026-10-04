@@ -1,14 +1,6 @@
-import type { IntentDef, Line, SayVariant, Scenario, SceneNode, Suggestion } from '../types';
+import type { IntentDef, Line, Scenario } from '../types';
 
-// ---------- authoring helpers ----------
-const L = (ja: string, en: string, ar: string, tts?: string): Line => ({ ja, en, ar, tts });
-const S = (ja: string, en: string, ar: string): Suggestion => ({ ja, en, ar });
-const say = (line: Line, when?: SayVariant['when']): SayVariant => ({ line, when });
-const node = (n: SceneNode): SceneNode => n;
-const asRecord = (nodes: SceneNode[]) => Object.fromEntries(nodes.map((n) => [n.id, n]));
-
-const REPEAT_S = S('もう一度|お願いします。', 'One more time, please.', 'مرة أخرى من فضلك.');
-const PAY_ANY = ['げんきん', '現金', 'かーど', 'カード', 'どうぞ', 'はい', 'おねがい', 'くれじっと'];
+import { L, S, say, node, asRecord, REPEAT_S, PAY_ANY } from './dsl';
 
 // ---------- 1. Sakura Café ----------
 const CAFE_DRINKS = ['coffee', 'blackTea', 'greenTea', 'latte', 'juice'];
@@ -507,8 +499,7 @@ export const PARK: Scenario = {
   ]),
 };
 
-export const SCENARIOS: Scenario[] = [CAFE, KONBINI, STATION, RAMEN, PARK];
-export const scenarioById = (id: string) => SCENARIOS.find((s) => s.id === id);
+export const CORE_SCENARIOS: Scenario[] = [CAFE, KONBINI, STATION, RAMEN, PARK];
 
 // Reactions that work at any point in a conversation.
 export const REACTIONS = {

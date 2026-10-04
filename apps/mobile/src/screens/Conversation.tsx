@@ -3,7 +3,7 @@ import { LEXICON, resolveLine, type Token } from '@lw/content';
 import { normJa } from '@lw/core';
 import {
   ConversationSession,
-  SttError,
+  explainSttError,
   classifyInput,
   evaluateSession,
   type ResolvedSuggestion,
@@ -14,11 +14,13 @@ import {
 } from '@lw/engine';
 import { useT, useWorld } from '../hooks';
 import { useStore } from '../store';
+import { requestAudioCheckFocus } from '../components/AudioCheck';
 import { Icon } from '../components/Icon';
 import { JaText } from '../components/JaText';
 import { Portrait } from '../components/Portrait';
 import { characterById, displayName, scenarioForCharacter } from '../content';
 import { blip, haptic, stt, tts } from '../services';
+import type { StringKey } from '../i18n';
 import { useUi } from '../ui';
 
 interface Assist {
@@ -27,7 +29,7 @@ interface Assist {
   heard?: { text: string; score: number };
 }
 
-type MicState = { listening: boolean; msg?: string; lang: 'ja' | 'l1' };
+type MicState = { listening: boolean; msg?: string; fix?: boolean; lang: 'ja' | 'l1' };
 
 function similarity(a: string, b: string): number {
   const x = normJa(a);
@@ -80,8 +82,16 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
   const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const speakToken = useRef(0);
+  const speechGen = useRef(0);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const micSession = useRef<{ stop(): void } | null>(null);
+  const micSession = useRef<{ stop(): void; abort(): void } | null>(null);
+  /** cancel speech and drop any follow-up line a pending speakTurn was about to say */
+  const stopSpeech = () => {
+    speechGen.current++;
+    tts.cancel();
+  };
+  /** release the mic now (leaving, pausing, answering by tap): stop() would still deliver a late result */
+  const dropMic = () => micSession.current?.abort();
   const later = (fn: () => void, ms: number) => {
     timers.current.push(setTimeout(fn, ms));
   };
@@ -104,14 +114,16 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
       done();
       return;
     }
-    if (tts.voicesReady() && !tts.hasJapaneseVoice()) setNoVoice(true);
     await tts.speak(text, { rate: sp.rate * (o.slow ? 0.58 : 1), pitch: sp.pitch, voice: sp.voice });
+    if (tts.lastError()?.code === 'no-voice') setNoVoice(true); // checked after speaking: voices may only be reported by now
     done();
   };
 
   const speakTurn = async (turn: Turn, forceAudio = false) => {
     world.setEmotion(characterId, turn.emotion ?? 'neutral');
+    const gen = speechGen.current;
     await speak(turn.line.plain, { talk: forceAudio });
+    if (gen !== speechGen.current) return; // cancelled (left, replayed, answered): do not say the follow-up
     if (turn.followUp) await speak(turn.followUp.plain, { slow: true, talk: forceAudio });
   };
 
@@ -127,8 +139,8 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
     }, 1050);
     return () => {
       timers.current.forEach(clearTimeout);
-      micSession.current?.stop();
-      tts.cancel();
+      micSession.current?.abort();
+      stopSpeech();
       world.setSpeaker(characterId, false);
       world.setPlayerTalking(false);
       world.exitConversation();
@@ -184,7 +196,8 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
 
   const run = (inp: SubmitInput) => {
     if (busy || session.ended) return;
-    tts.cancel();
+    stopSpeech();
+    dropMic();
     afterSubmit(session.submit(inp));
   };
 
@@ -207,34 +220,42 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
 
   const pick = (i: number) => {
     if (busy) return;
-    tts.cancel();
+    stopSpeech();
+    dropMic();
     afterSubmit(session.pickSuggestion(i));
   };
 
   // ---------- voice ----------
   const listen = (target: 'ja' | 'l1', onText: (text: string) => void) => {
     if (!stt.available()) {
-      setMic((m) => ({ ...m, msg: t('c.mic.off') }));
+      setMic((m) => ({ ...m, msg: t('audio.mic.err.unsupported'), fix: true }));
       return;
     }
-    tts.cancel();
+    stopSpeech();
     const code = target === 'ja' ? 'ja-JP' : l1 === 'ar' ? 'ar-SA' : 'en-US';
     const s = stt.listen(code, (interim) => setInput(interim));
     micSession.current = s;
-    setMic((m) => ({ ...m, listening: true, msg: t('c.mic.listening') }));
+    setMic((m) => ({ ...m, listening: true, msg: t('c.mic.listening'), fix: false }));
     world.setPlayerTalking(true);
+    const mine = () => micSession.current === s; // a newer listen() replaced this one: its handlers own the UI now
     s.result
       .then((r) => {
+        if (!mine()) return;
         setMic((m) => ({ ...m, listening: false, msg: undefined }));
         onText(r.text);
       })
       .catch((e: unknown) => {
-        const code2 = e instanceof SttError ? e.code : 'unknown';
-        const msg = code2 === 'not-allowed' ? t('c.mic.denied') : code2 === 'no-speech' ? t('c.mic.silent') : t('c.mic.off');
-        setMic((m) => ({ ...m, listening: false, msg }));
+        if (!mine()) return;
+        const id = explainSttError(e);
+        const fix = id !== 'silent' && id !== 'cancelled' && id !== 'timeout' && id !== 'network';
+        setMic((m) => ({ ...m, listening: false, msg: id === 'cancelled' ? undefined : t(`audio.mic.err.${id}` as StringKey), fix }));
         setInput('');
       })
-      .finally(() => world.setPlayerTalking(false));
+      .finally(() => {
+        if (!mine()) return;
+        micSession.current = null;
+        world.setPlayerTalking(false);
+      });
   };
 
   const toggleMic = () => {
@@ -251,7 +272,8 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
   const replay = (slow: boolean) => {
     const turn = lastChar();
     if (!turn) return;
-    tts.cancel();
+    stopSpeech();
+    dropMic(); // the speaker would otherwise be heard as the player's answer
     void speak(turn.line.plain, { slow, talk: true });
   };
   const askHint = () => {
@@ -262,7 +284,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
 
   // ---------- finishing ----------
   const finish = () => {
-    tts.cancel();
+    stopSpeech();
     const report = evaluateSession(session);
     const turns = session.turns.map((x) => ({ id: x.id, speaker: x.speaker, written: x.line.written, en: x.line.en, ar: x.line.ar, assisted: x.assisted, tokens: x.line.tokens }));
     useStore.getState().recordLoop({ scenarioId: scenario.id, report, turns });
@@ -271,7 +293,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
   };
 
   const leave = () => {
-    tts.cancel();
+    stopSpeech();
     onClose();
   };
 
@@ -299,7 +321,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
             <small dir="auto">{character.job[lang]}</small>
           </div>
         </div>
-        <button className="icon-btn ghost" onClick={() => { tts.cancel(); setPaused(true); world.setPaused(true); }} aria-label={t('c.pause')}>
+        <button className="icon-btn ghost" onClick={() => { stopSpeech(); dropMic(); setPaused(true); world.setPaused(true); }} aria-label={t('c.pause')}>
           <Icon name="pause" size={20} />
         </button>
         <div className="goals" aria-label={t('c.goals')}>
@@ -349,7 +371,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
                   <div className="msg-meta">
                     {isChar && (
                       <>
-                        <button className="mini" onClick={() => { tts.cancel(); void speak(turn.line.plain, { talk: true }); }} aria-label={t('c.replay')}>
+                        <button className="mini" onClick={() => { stopSpeech(); dropMic(); void speak(turn.line.plain, { talk: true }); }} aria-label={t('c.replay')}>
                           <Icon name="volume" size={15} />
                         </button>
                         <button
@@ -528,7 +550,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
                 <Icon name="send" size={20} />
               </button>
             </form>
-            <div className="mic-row">
+            <div className={`mic-row ${mic.fix || (!mic.msg && !stt.available()) ? 'has-fix' : ''}`}>
               <button
                 type="button"
                 className="seg"
@@ -538,7 +560,12 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
                 <span className={mic.lang === 'l1' ? 'on' : ''}>{l1 === 'ar' ? 'العربية' : 'English'}</span>
                 <span className={mic.lang === 'ja' ? 'on' : ''}>日本語</span>
               </button>
-              {mic.msg && <small className="mic-msg" dir="auto">{mic.msg}</small>}
+              {(mic.msg || !stt.available()) && <small className="mic-msg" dir="auto">{mic.msg ?? t('audio.mic.err.unsupported')}</small>}
+              {(mic.fix || (!mic.msg && !stt.available())) && (
+                <button type="button" className="mic-fix" onClick={() => { requestAudioCheckFocus(); go('settings'); }}>
+                  {t('audio.mic.checkBtn')}
+                </button>
+              )}
             </div>
           </div>
         )}

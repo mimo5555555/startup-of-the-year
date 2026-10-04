@@ -1,18 +1,11 @@
-import type { PhraseEntry } from './types';
+import type { PhraseEntry } from '../types';
+import { P } from './helpers';
 
 // The sample's stand-in for the on-device translation model: a hand-written phrasebook that maps
 // English and Arabic sentences onto natural Japanese. Anything outside it is reported as "not covered".
 // English is written in expanded form (no contractions); the matcher normalises input the same way.
 
-const P = (
-  id: string,
-  ja: string,
-  en: string[],
-  ar: string[],
-  extra: Partial<PhraseEntry> = {},
-): PhraseEntry => ({ id, ja, en, ar, ...extra });
-
-export const PHRASEBOOK: PhraseEntry[] = [
+export const BASE_PHRASES: PhraseEntry[] = [
   // ---- everyday ----
   P('greet', 'こんにちは。', ['hello', 'hi', 'hey', 'good afternoon', 'hello there'], ['مرحبا', 'اهلا', 'أهلا', 'السلام عليكم', 'مرحبا بك', 'اهلا وسهلا', 'هلا', 'سلام']),
   P('morning', 'おはようございます。', ['good morning', 'morning'], ['صباح الخير', 'صباح النور']),

@@ -1,14 +1,23 @@
-import { WebSpeechStt, WebSpeechTts, type SpeakOptions } from '@lw/engine';
+import { WebSpeechStt, WebSpeechTts, collectAudioReport, requestMicrophone, type SpeakOptions } from '@lw/engine';
 
 // One speech stack for the whole app. Native builds replace these with on-device engines.
 export const tts = new WebSpeechTts();
 export const stt = new WebSpeechStt();
 
+/** Single facade for the audio self-check and test buttons; the UI maps issue ids and error codes to strings. */
+export const audio = {
+  report: () => collectAudioReport(),
+  requestMic: () => requestMicrophone(),
+  speakSample: () => tts.speakSample(),
+  tts,
+  stt,
+};
+
 export function speakJa(text: string, o: SpeakOptions = {}) {
   return tts.speak(text, o);
 }
 
-let audio: AudioContext | null = null;
+let uiCtx: AudioContext | null = null;
 
 /** Tiny UI sounds made with the Web Audio API, so no audio files ship. */
 export function blip(kind: 'tap' | 'good' | 'bad' | 'level' = 'tap', enabled = true) {
@@ -16,8 +25,8 @@ export function blip(kind: 'tap' | 'good' | 'bad' | 'level' = 'tap', enabled = t
   try {
     const Ctx = (globalThis as any).AudioContext ?? (globalThis as any).webkitAudioContext;
     if (!Ctx) return;
-    audio ??= new Ctx();
-    const ctx = audio!;
+    uiCtx ??= new Ctx();
+    const ctx = uiCtx!;
     if (ctx.state === 'suspended') void ctx.resume();
     const notes: Record<string, number[]> = { tap: [660], good: [660, 880], bad: [220], level: [523, 659, 784, 1046] };
     const now = ctx.currentTime;
@@ -46,17 +55,23 @@ export function haptic(ms = 10) {
   }
 }
 
-/** Browsers only start speech and audio after a gesture; do the unlocking on the first touch. */
+/** Browsers only start speech and audio after a gesture; do the unlocking on the first one (tts.unlock also resumes speechSynthesis). */
 export function unlockOnFirstGesture() {
+  // only events that count as user activation: a touch pointerdown does not, so unlocking there would be wasted (iOS)
+  const events = ['pointerup', 'touchend', 'click', 'keydown'] as const;
+  let done = false;
   const unlock = () => {
+    if (done) return;
+    done = true;
+    events.forEach((ev) => window.removeEventListener(ev, unlock));
     tts.unlock();
-    blip('tap', false);
     try {
-      (globalThis as any).AudioContext && (audio ??= new (globalThis as any).AudioContext());
-      void audio?.resume();
+      const Ctx = (globalThis as any).AudioContext ?? (globalThis as any).webkitAudioContext;
+      if (Ctx) uiCtx ??= new Ctx();
+      void uiCtx?.resume();
     } catch {
       /* optional */
     }
   };
-  window.addEventListener('pointerdown', unlock, { once: true, passive: true });
+  events.forEach((ev) => window.addEventListener(ev, unlock, { passive: true }));
 }
