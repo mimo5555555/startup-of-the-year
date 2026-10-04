@@ -1,0 +1,7 @@
+node_modules/
+dist/
+dist-artifact/
+.vite/
+*.log
+tools/e2e/shots/
+.DS_Store
