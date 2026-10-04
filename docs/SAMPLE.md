@@ -8,7 +8,7 @@ characters, say things in English or Arabic and have them turned into Japanese, 
 ```bash
 npm install
 npm run dev            # http://localhost:5173 (open it on a phone via the "Network" URL)
-npm test               # 126 unit tests
+npm test               # 138 unit tests
 npm run typecheck
 npm run e2e            # drives the app in headless Chromium and saves screenshots (dev server must be running)
 npm run build:artifact # single-file build in apps/mobile/dist-artifact/page.html

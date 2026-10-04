@@ -550,7 +550,7 @@ export function buildCity(): City {
     solid.boxB(x, 0, z, w, 0.9, d, '#4f9a5c', { jitter: 0.12 });
     solid.boxB(x, 0.9, z, w * 0.96, 0.18, d * 0.9, '#5fae6b', { jitter: 0.12 });
     collide(x, z, w, d);
-    occlude({ x0: x - w / 2, x1: x + w / 2, z0: z - d / 2, z1: z + d / 2, y1: 3.4 });
+    occlude({ x0: x - w / 2, x1: x + w / 2, z0: z - d / 2, z1: z + d / 2, y1: 1.7 });
   };
   hedge(-24, 9.5, 20, 0.9);
   hedge(0, 9.5, 20, 0.9);
@@ -627,7 +627,7 @@ export function buildCity(): City {
     for (let i = 0; i < 6; i++) solid.disc(x + (R() - 0.5) * 5 * s, 0.05, z + (R() - 0.5) * 5 * s, 0.4 + R() * 0.5, '#f7b5cb', { seg: 8 });
     collide(x, z, 0.9 * s, 0.9 * s);
     occlude({ x0: x - 0.5, x1: x + 0.5, z0: z - 0.5, z1: z + 0.5, y1: 3 });
-    occlude({ x0: x - 2.7 * s, x1: x + 2.7 * s, z0: z - 2.7 * s, z1: z + 2.7 * s, y0: 2.2 * s, y1: 6.4 * s });
+    occlude({ x0: x - 2.2 * s, x1: x + 2.2 * s, z0: z - 2.2 * s, z1: z + 2.2 * s, y0: 2.4 * s, y1: 6.2 * s });
     if (idx < 6) pickAt('sakura', x, 4.2 * s, z, 2.4 * s);
   });
   // a few green and gold trees for contrast
@@ -817,10 +817,8 @@ export function buildCity(): City {
   }
 
   // ============ street furniture ============
-  for (let x = -42; x <= 62; x += 14) {
-    lamp(x, -6, 5.2);
-    lamp(x + 7, 6, 5.2);
-  }
+  for (const x of [-44, -34, -20, -4, 12, 28, 52, 62]) lamp(x, -6, 5.2);
+  for (const x of [-38, -24, -9.5, 2, 16, 34, 46, 60]) lamp(x, 6, 5.2);
   // utility poles with sagging wires
   const polesX = [-40, -16, 8, 32, 56];
   const wireMat = new THREE.LineBasicMaterial({ color: '#3a3a44' });

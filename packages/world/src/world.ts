@@ -3,6 +3,7 @@ import type { AvatarSpec, Character, Emotion } from '@lw/content';
 import { Avatar, DEFAULT_PLAYER } from './avatar';
 import { toonRamp } from './batch';
 import { buildCity, type City } from './city';
+import { clamp, clampToBounds, clipDistance, resolveCircle } from './collision';
 import { BOUNDS, NPC_SPAWNS, PLAYER_START, WALKERS } from './layout';
 import { COLORS } from './palette';
 import { bubbleTexture, labelTexture, sparkleTexture, watchFonts, blobTexture } from './textures';
@@ -37,7 +38,6 @@ const PLAYER_RADIUS = 0.42;
 const WALK_SPEED = 4.1;
 const RUN_SPEED = 6.6;
 
-const clamp = (v: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, v));
 const damp = (a: number, b: number, rate: number, dt: number) => a + (b - a) * (1 - Math.exp(-rate * dt));
 const angleDiff = (a: number, b: number) => Math.atan2(Math.sin(b - a), Math.cos(b - a));
 const easeInOut = (x: number) => x * x * (3 - 2 * x);
@@ -743,8 +743,12 @@ export class TokyoWorld {
       n.badge.visible = n.badgeKind !== 'none' && !this.conv && d < 45;
       const bob = Math.sin(t * 2.4 + n.home.x) * 0.07;
       n.badge.position.set(n.home.x, 2.62 + n.home.y + bob, n.home.z);
-      n.badge.scale.setScalar(clampScale(d));
       n.label.position.set(n.home.x, 2.24 + n.home.y, n.home.z);
+      // sprites are sized in metres, so scale them with camera distance to keep a steady size on screen
+      const cd = this.camera.position.distanceTo(n.label.position);
+      n.badge.scale.setScalar(clamp(0.5 + cd * 0.075, 0.7, 1.6));
+      const k = clamp(cd / 10, 0.45, 1.5);
+      n.label.scale.set(1.9 * k, 0.48 * k, 1);
     }
   }
 
@@ -777,11 +781,13 @@ export class TokyoWorld {
     for (let i = 0; i < this.sparkles.length; i++) {
       const s = this.sparkles[i];
       const d = Math.hypot(s.sprite.position.x - this.playerPos.x, s.sprite.position.z - this.playerPos.z);
-      const show = !this.discovered.has(s.id) && d < 17 && !this.conv;
+      const cd = this.camera.position.distanceTo(s.sprite.position);
+      // hidden once found, when far away, during conversations, or when it would fill the lens
+      const show = !this.discovered.has(s.id) && d < 17 && !this.conv && cd > 2.6;
       s.sprite.visible = show;
       if (show) {
-        const pulse = 0.38 + 0.07 * Math.sin(t * 3 + i);
-        s.sprite.scale.set(pulse, pulse, 1);
+        const size = clamp(cd * 0.05, 0.22, 0.46) * (0.92 + 0.08 * Math.sin(t * 3 + i));
+        s.sprite.scale.set(size, size, 1);
         s.sprite.position.y = s.base + Math.sin(t * 2 + i) * 0.08;
       }
     }
@@ -803,38 +809,11 @@ export class TokyoWorld {
   // ---------------- collisions ----------------
 
   private resolveBounds(p: THREE.Vector3) {
-    p.x = clamp(p.x, BOUNDS.x0, BOUNDS.x1);
-    p.z = clamp(p.z, BOUNDS.z0, BOUNDS.z1);
+    clampToBounds(p, BOUNDS);
   }
 
   private resolveCollisions(p: THREE.Vector3) {
-    this.resolveBounds(p);
-    for (const r of this.city.colliders) {
-      const cx = clamp(p.x, r.x0, r.x1);
-      const cz = clamp(p.z, r.z0, r.z1);
-      const dx = p.x - cx;
-      const dz = p.z - cz;
-      const d2 = dx * dx + dz * dz;
-      if (d2 < PLAYER_RADIUS * PLAYER_RADIUS) {
-        if (d2 > 1e-8) {
-          const d = Math.sqrt(d2);
-          p.x = cx + (dx / d) * PLAYER_RADIUS;
-          p.z = cz + (dz / d) * PLAYER_RADIUS;
-        } else {
-          // centre is inside the box: push out along the shortest side
-          const left = p.x - r.x0;
-          const right = r.x1 - p.x;
-          const top = p.z - r.z0;
-          const bottom = r.z1 - p.z;
-          const m = Math.min(left, right, top, bottom);
-          if (m === left) p.x = r.x0 - PLAYER_RADIUS;
-          else if (m === right) p.x = r.x1 + PLAYER_RADIUS;
-          else if (m === top) p.z = r.z0 - PLAYER_RADIUS;
-          else p.z = r.z1 + PLAYER_RADIUS;
-        }
-      }
-    }
-    this.resolveBounds(p);
+    resolveCircle(p, PLAYER_RADIUS, this.city.colliders, BOUNDS);
   }
 
   // ---------------- camera ----------------
@@ -859,31 +838,7 @@ export class TokyoWorld {
   }
 
   private clipDistance(origin: THREE.Vector3, dir: THREE.Vector3, maxD: number) {
-    let best = maxD;
-    for (const r of this.city.occluders) {
-      const pad = 0.35;
-      const x0 = r.x0 - pad;
-      const x1 = r.x1 + pad;
-      const z0 = r.z0 - pad;
-      const z1 = r.z1 + pad;
-      let tmin = 0;
-      let tmax = best;
-      const slab = (o: number, dd: number, lo: number, hi: number) => {
-        if (Math.abs(dd) < 1e-6) return o >= lo && o <= hi;
-        let t1 = (lo - o) / dd;
-        let t2 = (hi - o) / dd;
-        if (t1 > t2) [t1, t2] = [t2, t1];
-        tmin = Math.max(tmin, t1);
-        tmax = Math.min(tmax, t2);
-        return tmin <= tmax;
-      };
-      // buildings are tall; treat the ray as hitting if its horizontal footprint crosses the box below roof height
-      if (slab(origin.x, dir.x, x0, x1) && slab(origin.z, dir.z, z0, z1) && tmin > 0.01) {
-        const yAt = origin.y + dir.y * tmin;
-        if (yAt > (r.y0 ?? 0) - 0.4 && yAt < (r.y1 ?? 9) + 0.4) best = Math.min(best, Math.max(1.8, tmin - 0.3));
-      }
-    }
-    return best;
+    return clipDistance(origin, dir, maxD, this.city.occluders);
   }
 
   /** Over-the-shoulder framing: pick whichever side of the learner has a clear line of sight. */
@@ -901,7 +856,7 @@ export class TokyoWorld {
       const dir = cand.clone().sub(eye);
       const full = dir.length();
       dir.divideScalar(full);
-      const clear = this.clipDistance(eye, dir, full);
+      const clear = clipDistance(eye, dir, full, this.city.occluders, 0.35, 1.6);
       if (clear > bestClear + 0.01 || (sgn === 1 && bestClear < 0)) {
         bestClear = clear;
         bestPos = eye.clone().addScaledVector(dir, Math.max(1.4, clear));
@@ -964,8 +919,4 @@ export class TokyoWorld {
       if (avg > 0.034) this.setQuality('low');
     }
   }
-}
-
-function clampScale(d: number) {
-  return clamp(0.95 + d * 0.012, 0.95, 1.5);
 }
