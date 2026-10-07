@@ -9,6 +9,12 @@ import * as social from './strings/social';
 import * as jobs from './strings/jobs';
 import * as culture from './strings/culture';
 import * as audio from './strings/audio';
+import * as hud from './strings/hud';
+import * as debrief from './strings/debrief';
+import * as prepare from './strings/prepare';
+import * as phone from './strings/phone';
+import * as home from './strings/home';
+import * as story from './strings/story';
 
 type Key =
   | keyof typeof core.en
@@ -17,9 +23,16 @@ type Key =
   | keyof typeof social.en
   | keyof typeof jobs.en
   | keyof typeof culture.en
-  | keyof typeof audio.en;
+  | keyof typeof audio.en
+  | keyof typeof hud.en
+  | keyof typeof debrief.en
+  | keyof typeof prepare.en
+  | keyof typeof phone.en
+  | keyof typeof home.en
+  | keyof typeof story.en;
 
-const MODULES = [core, wallet, quests, social, jobs, culture, audio];
+/** One module per key prefix (docs/GAME_DESIGN.md §7.6); each owner edits only its own file. */
+const MODULES = [core, wallet, quests, social, jobs, culture, audio, hud, debrief, prepare, phone, home, story];
 const merge = (lang: UiLang) => Object.assign({}, ...MODULES.map((m) => m[lang])) as Record<Key, string>;
 export const STRINGS: Record<UiLang, Record<Key, string>> = { en: merge('en'), ar: merge('ar') };
 export type StringKey = Key;

@@ -20,9 +20,29 @@ import {
 import type { AvatarSpec, Gloss, L1, Lesson } from '@lw/content';
 import { LEXICON, romajiText, tokenize, GREETINGS } from '@lw/content';
 import type { FeedbackReport } from '@lw/engine';
+import type { ConversationFacts } from '@lw/game';
 import type { UiLang } from './i18n';
+import { useGame } from './game/gameStore';
+import { useUi } from './ui';
 
-export type Screen = 'onboarding' | 'world' | 'feedback' | 'vocab' | 'stats' | 'settings' | 'lesson';
+/** The closed set of routes; the game's screens (docs/GAME_DESIGN.md §15.4 row 2A) are stubs until their owners fill them. */
+export type Screen =
+  | 'onboarding'
+  | 'world'
+  | 'feedback'
+  | 'vocab'
+  | 'stats'
+  | 'settings'
+  | 'lesson'
+  | 'quests'
+  | 'friends'
+  | 'phone'
+  | 'shift'
+  | 'prepare'
+  | 'wallet'
+  | 'letter'
+  | 'culture'
+  | 'beat';
 
 export interface Profile {
   name: string;
@@ -42,7 +62,9 @@ export interface VocabItem {
   r?: string;
   rom: string;
   meaning: Partial<Gloss>;
-  source: 'sign' | 'conversation' | 'lesson' | 'phrase' | 'starter';
+  source: 'sign' | 'conversation' | 'lesson' | 'phrase' | 'starter' | 'goal' | 'correction' | 'prepare' | 'echo';
+  /** the pack's id for a card made from game data (a pocket line id, a culture card id), so `GameView` can match it; absent = `s` */
+  key?: string;
   example?: { ja: string; en: string; ar: string };
   savedAt: string;
   card: SrsCard;
@@ -108,7 +130,8 @@ interface State extends Persisted {
   updateSettings(p: Partial<Settings>): void;
   completeOnboarding(p: Profile): void;
   setLevel(level: 'A1' | 'A2'): void;
-  saveWord(item: Omit<VocabItem, 'id' | 'savedAt' | 'card'>): VocabItem;
+  /** `dueInMin`: the card first comes due that many minutes from now instead of at once (cards made by game goals) */
+  saveWord(item: Omit<VocabItem, 'id' | 'savedAt' | 'card'>, opts?: { dueInMin?: number }): VocabItem;
   removeWord(id: string): void;
   reviewWord(id: string, grade: Grade): void;
   discover(id: string): boolean;
@@ -117,10 +140,15 @@ interface State extends Persisted {
     scenarioId: string;
     report: FeedbackReport;
     turns: ReportData['turns'];
+    /** the settled conversation (agent 2C builds it with the engine's `facts()`); present = also sent to the game as `conversation_done` */
+    facts?: ConversationFacts;
   }): ReportData;
   completeLesson(id: string, xp: number): void;
   say(text: string, tone?: 'good' | 'info'): void;
   setPendingTalk(id: string | null): void;
+  /** clears only the game save (wallet, chapter, friends...), keeping vocabulary, XP and settings (§14.7) */
+  resetGameProgress(): void;
+  /** clears both stores */
   reset(): void;
 }
 
@@ -171,6 +199,15 @@ function starterWords(): Array<Omit<VocabItem, 'id' | 'savedAt' | 'card'>> {
 let nextToast = 1;
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
+/**
+ * Where a settled conversation's facts go. `bridge.init` installs `bridge.dispatch` here (the bridge imports this store, so the
+ * store cannot import the bridge); until then, or without facts, `recordLoop` only does the v1 bookkeeping.
+ */
+let onLoopFacts: ((facts: ConversationFacts) => void) | null = null;
+export const setLoopFactsHook = (fn: ((facts: ConversationFacts) => void) | null) => {
+  onLoopFacts = fn;
+};
+
 export const useStore = create<State>()((set, get) => ({
   ...initialPersisted(),
   ready: false,
@@ -213,10 +250,12 @@ export const useStore = create<State>()((set, get) => ({
     if (p) set({ profile: { ...p, level } });
   },
 
-  saveWord(item) {
+  saveWord(item, opts) {
     const existing = get().vocab.find((v) => v.s === item.s);
     if (existing) return existing;
-    const created: VocabItem = { ...item, id: uid('w_'), savedAt: new Date().toISOString(), card: newSrsCard() };
+    const card = newSrsCard();
+    if (opts?.dueInMin) card.due = new Date(Date.now() + opts.dueInMin * 60_000).toISOString();
+    const created: VocabItem = { ...item, id: uid('w_'), savedAt: new Date().toISOString(), card };
     const today = localDate();
     const day = { ...(get().days[today] ?? emptyDay()) };
     day.words += 1;
@@ -251,7 +290,7 @@ export const useStore = create<State>()((set, get) => ({
     set({ xp: s.xp + n, days: { ...s.days, [today]: day }, streak: touchStreak(s.streak).state });
   },
 
-  recordLoop({ scenarioId, report, turns }) {
+  recordLoop({ scenarioId, report, turns, facts }) {
     const s = get();
     const st = report.stats;
     const xp = xpForLoop({ goalDone: st.goalDone, goalTotal: st.goalTotal, independentTurns: st.independent, assistedTurns: st.assisted, durationSec: st.durationSec });
@@ -286,6 +325,9 @@ export const useStore = create<State>()((set, get) => ({
     });
     const data: ReportData = { report, scenarioId, xp, levelBefore, levelAfter, turns };
     set({ report: data });
+    // E10: the report is about to show, so what it is based on is on disk first
+    flushNow();
+    if (facts) onLoopFacts?.(facts);
     return data;
   },
 
@@ -304,32 +346,53 @@ export const useStore = create<State>()((set, get) => ({
     set({ pendingTalk: id });
   },
 
+  resetGameProgress() {
+    useGame.getState().resetGame();
+    useUi.getState().clearRequests();
+  },
+
   reset() {
+    // both stores, so the two never disagree (§14.7)
+    useGame.getState().resetGame();
+    useUi.getState().clearRequests();
     store.remove(KEY);
     set({ ...initialPersisted(), ready: true, screen: 'onboarding', report: null, lessonId: null, pendingTalk: null, toast: null });
   },
 }));
+
+function snapshot(s: State): Persisted {
+  return {
+    profile: s.profile,
+    vocab: s.vocab,
+    xp: s.xp,
+    streak: s.streak,
+    days: s.days,
+    loops: s.loops,
+    completed: s.completed,
+    lessonsDone: s.lessonsDone,
+    discovered: s.discovered,
+    errors: s.errors,
+    settings: s.settings,
+    uiLang: s.uiLang,
+  };
+}
+
+/** Writes the legacy save now (a settled conversation, `pagehide`, `visibilitychange: hidden`). */
+export function flushNow() {
+  const s = useStore.getState();
+  if (!s.ready) return;
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = null;
+  saveJson(store, KEY, snapshot(s));
+}
 
 // Save a moment after anything changes. Storage can be blocked (private windows, embeds); SafeLocalStore copes.
 useStore.subscribe((s) => {
   if (!s.ready) return;
   if (saveTimer) clearTimeout(saveTimer);
   saveTimer = setTimeout(() => {
-    const p: Persisted = {
-      profile: s.profile,
-      vocab: s.vocab,
-      xp: s.xp,
-      streak: s.streak,
-      days: s.days,
-      loops: s.loops,
-      completed: s.completed,
-      lessonsDone: s.lessonsDone,
-      discovered: s.discovered,
-      errors: s.errors,
-      settings: s.settings,
-      uiLang: s.uiLang,
-    };
-    saveJson(store, KEY, p);
+    saveTimer = null;
+    saveJson(store, KEY, snapshot(useStore.getState()));
   }, 250);
 });
 

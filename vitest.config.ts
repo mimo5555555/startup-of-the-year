@@ -9,6 +9,7 @@ export default defineConfig({
       '@lw/core': p('./packages/core/src/index.ts'),
       '@lw/content': p('./packages/content/src/index.ts'),
       '@lw/engine': p('./packages/engine/src/index.ts'),
+      '@lw/game': p('./packages/game/src/index.ts'),
       '@lw/world': p('./packages/world/src/index.ts'),
     },
   },

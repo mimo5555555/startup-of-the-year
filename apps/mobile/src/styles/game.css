@@ -1,0 +1,12 @@
+/* Index of the per-agent stylesheets of the game (docs/GAME_DESIGN.md §15.1 rule 5). Each file has exactly one owner; imported once in main.tsx. */
+@import './hud.css';
+@import './debrief.css';
+@import './prepare.css';
+@import './quests.css';
+@import './panels.css';
+@import './wallet.css';
+@import './friends.css';
+@import './phone.css';
+@import './shift.css';
+@import './culture.css';
+@import './home.css';

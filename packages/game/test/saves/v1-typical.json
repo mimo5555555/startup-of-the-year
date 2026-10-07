@@ -1,0 +1,598 @@
+{
+ "v": 1,
+ "packId": "jp",
+ "clock": {
+  "dayIndex": 1,
+  "lastLocalDate": "2030-01-16",
+  "lastSeenAt": 1894795200000,
+  "activeDays": 2,
+  "lastActiveDay": 1
+ },
+ "wallet": {
+  "cash": 9005,
+  "ic": 1000,
+  "points": 1
+ },
+ "totals": {
+  "earned": 7165,
+  "spent": 160,
+  "checksum": {
+   "cash": 9005,
+   "ic": 1000,
+   "points": 1
+  }
+ },
+ "ledger": [
+  {
+   "id": "loop:k1",
+   "at": 1894708800000,
+   "kind": "loop",
+   "delta": 1345,
+   "pocket": "cash",
+   "ref": "konbini"
+  },
+  {
+   "id": "star:konbini:1",
+   "at": 1894708800000,
+   "kind": "star",
+   "delta": 200,
+   "pocket": "cash",
+   "ref": "konbini"
+  },
+  {
+   "id": "star:konbini:2",
+   "at": 1894708800000,
+   "kind": "star",
+   "delta": 400,
+   "pocket": "cash",
+   "ref": "konbini"
+  },
+  {
+   "id": "star:konbini:3",
+   "at": 1894708800000,
+   "kind": "star",
+   "delta": 600,
+   "pocket": "cash",
+   "ref": "konbini"
+  },
+  {
+   "id": "phrase:d0:0",
+   "at": 1894708800000,
+   "kind": "phrase",
+   "delta": 20,
+   "pocket": "cash",
+   "ref": "konbini:i0"
+  },
+  {
+   "id": "phrase:d0:1",
+   "at": 1894708800000,
+   "kind": "phrase",
+   "delta": 20,
+   "pocket": "cash",
+   "ref": "konbini:i1"
+  },
+  {
+   "id": "phrase:d0:2",
+   "at": 1894708800000,
+   "kind": "phrase",
+   "delta": 20,
+   "pocket": "cash",
+   "ref": "konbini:i2"
+  },
+  {
+   "id": "phrase:d0:3",
+   "at": 1894708800000,
+   "kind": "phrase",
+   "delta": 20,
+   "pocket": "cash",
+   "ref": "konbini:i3"
+  },
+  {
+   "id": "chapter:1",
+   "at": 1894708800000,
+   "kind": "chapter",
+   "delta": 2500,
+   "pocket": "cash",
+   "ref": "ch1"
+  },
+  {
+   "id": "purchase:p1:1",
+   "at": 1894708800000,
+   "kind": "purchase",
+   "delta": -160,
+   "pocket": "cash",
+   "ref": "konbini:onigiri"
+  },
+  {
+   "id": "purchase:p1:1:earn",
+   "at": 1894708800000,
+   "kind": "purchase",
+   "delta": 1,
+   "pocket": "points",
+   "ref": "konbini:onigiri"
+  },
+  {
+   "id": "topup:t1:cash",
+   "at": 1894708800000,
+   "kind": "topup",
+   "delta": -1000,
+   "pocket": "cash",
+   "ref": "t1"
+  },
+  {
+   "id": "topup:t1",
+   "at": 1894708800000,
+   "kind": "topup",
+   "delta": 1000,
+   "pocket": "ic",
+   "ref": "t1"
+  },
+  {
+   "id": "goal:d0:g_lesson",
+   "at": 1894708800000,
+   "kind": "goal",
+   "delta": 100,
+   "pocket": "cash",
+   "ref": "goal:d0:g_lesson"
+  },
+  {
+   "id": "loop:k2",
+   "at": 1894795200000,
+   "kind": "loop",
+   "delta": 1080,
+   "pocket": "cash",
+   "ref": "cafe"
+  },
+  {
+   "id": "star:cafe:1",
+   "at": 1894795200000,
+   "kind": "star",
+   "delta": 200,
+   "pocket": "cash",
+   "ref": "cafe"
+  },
+  {
+   "id": "star:cafe:2",
+   "at": 1894795200000,
+   "kind": "star",
+   "delta": 400,
+   "pocket": "cash",
+   "ref": "cafe"
+  },
+  {
+   "id": "phrase:d1:4",
+   "at": 1894795200000,
+   "kind": "phrase",
+   "delta": 20,
+   "pocket": "cash",
+   "ref": "cafe:i0"
+  },
+  {
+   "id": "phrase:d1:5",
+   "at": 1894795200000,
+   "kind": "phrase",
+   "delta": 20,
+   "pocket": "cash",
+   "ref": "cafe:i1"
+  },
+  {
+   "id": "phrase:d1:6",
+   "at": 1894795200000,
+   "kind": "phrase",
+   "delta": 20,
+   "pocket": "cash",
+   "ref": "cafe:i2"
+  },
+  {
+   "id": "goal:d1:g_newphrase2",
+   "at": 1894795200000,
+   "kind": "goal",
+   "delta": 100,
+   "pocket": "cash",
+   "ref": "goal:d1:g_newphrase2"
+  },
+  {
+   "id": "goal:d0:g_conv2",
+   "at": 1894795200000,
+   "kind": "goal",
+   "delta": 100,
+   "pocket": "cash",
+   "ref": "goal:d0:g_conv2"
+  }
+ ],
+ "seen": [
+  "loop:k1",
+  "star:konbini:1",
+  "star:konbini:2",
+  "star:konbini:3",
+  "phrase:d0:0",
+  "phrase:d0:1",
+  "phrase:d0:2",
+  "phrase:d0:3",
+  "chapter:1",
+  "purchase:p1:1",
+  "purchase:p1:1:earn",
+  "topup:t1:cash",
+  "topup:t1",
+  "lesson:greetings:d0",
+  "goal:d0:g_lesson",
+  "loop:k2",
+  "star:cafe:1",
+  "star:cafe:2",
+  "phrase:d1:4",
+  "phrase:d1:5",
+  "phrase:d1:6",
+  "goal:d1:g_newphrase2",
+  "goal:d0:g_conv2",
+  "loop:m1"
+ ],
+ "pay": {
+  "day": "d1",
+  "langToday": 1740,
+  "firstPhraseToday": 60,
+  "echoToday": 0,
+  "echoSession": null,
+  "scenarioToday": {
+   "cafe": 1
+  },
+  "lastPaid": {
+   "konbini": "d0",
+   "cafe": "d1"
+  },
+  "shiftsToday": {},
+  "seenIntents": [
+   "konbini:i0",
+   "konbini:i1",
+   "konbini:i2",
+   "konbini:i3",
+   "cafe:i0",
+   "cafe:i1",
+   "cafe:i2",
+   "smalltalk_mio:i0",
+   "smalltalk_mio:i1",
+   "smalltalk_mio:i2"
+  ],
+  "pointsToday": 0,
+  "perkToday": 0,
+  "haggleToday": [],
+  "perkFreeToday": []
+ },
+ "runs": {
+  "konbini": {
+   "count": 1,
+   "complete": true,
+   "stars": 3,
+   "bestIndependent": 4,
+   "bestShare": 0.8,
+   "bestR": 0.8699999999999999,
+   "steps": []
+  },
+  "cafe": {
+   "count": 1,
+   "complete": true,
+   "stars": 2,
+   "bestIndependent": 3,
+   "bestShare": 0.6,
+   "bestR": 0.74,
+   "steps": []
+  },
+  "smalltalk_mio": {
+   "count": 1,
+   "complete": true,
+   "stars": 2,
+   "bestIndependent": 3,
+   "bestShare": 0.75,
+   "bestR": 0.8375,
+   "steps": []
+  }
+ },
+ "stats": {
+  "purchases": 1,
+  "spentOnPurchases": 160,
+  "gifts": {
+   "n": 0,
+   "liked": 0,
+   "loved": 0
+  },
+  "chats": {
+   "n": 0,
+   "friends": {}
+  },
+  "hangouts": {},
+  "visits": [
+   "park"
+  ],
+  "spots": [
+   "pond"
+  ],
+  "tickets": 0,
+  "sayNew": 10,
+  "srsReviews": 0,
+  "cultureSaid": [],
+  "perksUsed": [],
+  "perkBuys": {}
+ },
+ "owned": {
+  "konbini:onigiri": {
+   "qty": 1,
+   "day": "d0"
+  }
+ },
+ "outfit": {
+  "equipped": [],
+  "colours": {}
+ },
+ "home": {
+  "tier": "dorm",
+  "placed": {}
+ },
+ "tickets": {},
+ "chapter": {
+  "n": 2,
+  "done": {
+   "c1_1": "d0",
+   "c1_3": "d0",
+   "c1_4": "d0",
+   "c1_2": "d0",
+   "c1_5": "d0",
+   "c2_1": "d1"
+  },
+  "completed": [
+   1
+  ],
+  "flags": [
+   "ch1_closed"
+  ],
+  "easier": [],
+  "tries": {
+   "c1_5": 1,
+   "c2_1": 1
+  },
+  "began": {
+   "dayIndex": 0,
+   "activeDays": 1
+  }
+ },
+ "dream": {
+  "id": "phone_pal",
+  "steps": {},
+  "done": false
+ },
+ "daily": {
+  "day": 1,
+  "goals": [
+   {
+    "id": "g_newphrase2",
+    "slot": "speak",
+    "counter": "new_intents",
+    "target": 2,
+    "day": 1,
+    "done": true,
+    "paid": true
+   },
+   {
+    "id": "g_buy",
+    "slot": "do",
+    "counter": "purchase",
+    "target": 1,
+    "day": 1,
+    "done": false,
+    "paid": false
+   },
+   {
+    "id": "g_culture",
+    "slot": "review",
+    "counter": "culture_new",
+    "target": 1,
+    "day": 1,
+    "done": false,
+    "paid": false
+   }
+  ],
+  "carried": [
+   {
+    "id": "g_conv2",
+    "slot": "speak",
+    "counter": "conv_distinct",
+    "target": 2,
+    "day": 0,
+    "done": true,
+    "paid": true
+   },
+   {
+    "id": "g_shift",
+    "slot": "do",
+    "counter": "shift_good",
+    "target": 1,
+    "day": 0,
+    "done": false,
+    "paid": false
+   }
+  ],
+  "counters": {
+   "0": {
+    "indep_lines": 4,
+    "friend_contact": 1,
+    "new_intents": 4,
+    "culture_new": 3,
+    "conv_distinct": 1,
+    "places_distinct": 1,
+    "purchase": 1,
+    "lesson": 1
+   },
+   "1": {
+    "indep_lines": 6,
+    "friend_contact": 2,
+    "new_intents": 6,
+    "conv_distinct": 2,
+    "places_distinct": 2
+   }
+  },
+  "sets": {
+   "0": {
+    "conv_distinct": [
+     "konbini"
+    ],
+    "places_distinct": [
+     "place_konbini"
+    ]
+   },
+   "1": {
+    "conv_distinct": [
+     "cafe",
+     "smalltalk_mio"
+    ],
+    "places_distinct": [
+     "place_cafe",
+     "mio"
+    ]
+   }
+  },
+  "swapUsed": false,
+  "allPaid": false,
+  "streakPaid": false,
+  "recent": [
+   "g_conv2",
+   "g_shift",
+   "g_lesson"
+  ]
+ },
+ "friends": {
+  "tanaka": {
+   "ap": 35,
+   "met": true,
+   "apDay": 1,
+   "apToday": 7,
+   "chatApToday": 0,
+   "unread": 0,
+   "threads": [],
+   "chatRecent": [],
+   "facts": {},
+   "learned": [],
+   "gold": [],
+   "callbacks": {},
+   "topicDay": {},
+   "events": [],
+   "flags": [],
+   "giftHistory": [],
+   "gifts": 0,
+   "giftsLiked": 0,
+   "giftsLoved": 0,
+   "talkDay": 1,
+   "lastContactDay": 1
+  },
+  "mio": {
+   "ap": 28,
+   "met": true,
+   "apDay": 1,
+   "apToday": 28,
+   "chatApToday": 0,
+   "unread": 0,
+   "threads": [],
+   "chatRecent": [],
+   "facts": {},
+   "learned": [],
+   "gold": [],
+   "callbacks": {},
+   "topicDay": {},
+   "events": [],
+   "flags": [],
+   "giftHistory": [],
+   "gifts": 0,
+   "giftsLiked": 0,
+   "giftsLoved": 0,
+   "talkDay": 1,
+   "lastContactDay": 1
+  }
+ },
+ "jobs": {},
+ "prep": {
+  "p_konbini_1": {
+   "s": "ready",
+   "at": 0
+  },
+  "p_konbini_2": {
+   "s": "seen",
+   "at": 0
+  }
+ },
+ "culture": {
+  "cc_irasshaimase": "d0",
+  "cc_konbini": "d0",
+  "cc_bow": "d0"
+ },
+ "titles": [
+  "t_newcomer"
+ ],
+ "activeTitle": null,
+ "stickers": [
+  "st_first"
+ ],
+ "keepsakes": [
+  "k_first_hello"
+ ],
+ "beats": [
+  "b_ch1_open",
+  "b_ch1_close"
+ ],
+ "words": {
+  "said": [
+   "wkonbini0",
+   "wkonbini1",
+   "wkonbini2",
+   "wkonbini3",
+   "wcafe0",
+   "wcafe1",
+   "wcafe2",
+   "wsmalltalk_mio0",
+   "wsmalltalk_mio1",
+   "wsmalltalk_mio2"
+  ]
+ },
+ "diary": [],
+ "letter": [],
+ "income": [
+  {
+   "day": 0,
+   "net": 5065
+  },
+  {
+   "day": 1,
+   "net": 1940
+  }
+ ],
+ "coach": {
+  "recent": [
+   {
+    "day": 0,
+    "scenarioId": "konbini",
+    "r": 0.8699999999999999,
+    "fallbacks": 0
+   },
+   {
+    "day": 1,
+    "scenarioId": "cafe",
+    "r": 0.74,
+    "fallbacks": 0
+   },
+   {
+    "day": 1,
+    "scenarioId": "smalltalk_mio",
+    "r": 0.8375,
+    "fallbacks": 0
+   }
+  ],
+  "realFor": [],
+  "sinceChange": 3
+ },
+ "audio": {
+  "sttConsent": "allowed",
+  "micPref": "auto",
+  "listenPref": "on"
+ },
+ "me": {
+  "nameKana": "アリ"
+ },
+ "flags": {},
+ "seeded": false
+}

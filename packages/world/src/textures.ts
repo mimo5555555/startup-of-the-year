@@ -138,12 +138,12 @@ export function labelTexture(text: string, w = 384, h = 96) {
 }
 
 /** Speech-bubble icon floating above characters who have something to say. */
-export function bubbleTexture(kind: 'talk' | 'lesson' | 'done') {
+export function bubbleTexture(kind: 'talk' | 'lesson' | 'done' | 'locked') {
   const s = 128;
   const canvas = makeCanvas(s, s);
   return finish(canvas, (ctx) => {
     ctx.clearRect(0, 0, s, s);
-    const fill = kind === 'done' ? '#7bd88f' : kind === 'lesson' ? '#ffc94d' : '#ffffff';
+    const fill = kind === 'done' ? '#7bd88f' : kind === 'lesson' ? '#ffc94d' : kind === 'locked' ? '#d5d8e0' : '#ffffff';
     ctx.fillStyle = 'rgba(40,30,70,0.25)';
     roundRect(ctx, 14, 20, 100, 70, 30);
     ctx.fill();
@@ -156,8 +156,26 @@ export function bubbleTexture(kind: 'talk' | 'lesson' | 'done') {
     ctx.lineTo(62, 80);
     ctx.closePath();
     ctx.fill();
-    ctx.fillStyle = kind === 'done' ? '#1f6b34' : '#5b4b8a';
-    if (kind === 'done') {
+    ctx.fillStyle = kind === 'done' ? '#1f6b34' : kind === 'locked' ? '#6b7080' : '#5b4b8a';
+    if (kind === 'locked') {
+      // padlock: shackle arc over a rounded body (a closed shop or a door that is not open yet)
+      ctx.lineWidth = 9;
+      ctx.lineCap = 'round';
+      ctx.strokeStyle = '#6b7080';
+      ctx.beginPath();
+      ctx.arc(62, 38, 14, Math.PI, 0);
+      ctx.lineTo(76, 46);
+      ctx.moveTo(48, 38);
+      ctx.lineTo(48, 46);
+      ctx.stroke();
+      roundRect(ctx, 40, 44, 44, 28, 7);
+      ctx.fill();
+      ctx.fillStyle = fill;
+      ctx.beginPath();
+      ctx.arc(62, 55, 4.5, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.fillRect(60, 56, 4, 9);
+    } else if (kind === 'done') {
       ctx.lineWidth = 12;
       ctx.lineCap = 'round';
       ctx.lineJoin = 'round';

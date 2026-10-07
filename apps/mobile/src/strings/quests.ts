@@ -1,5 +1,49 @@
-// UI strings for quests, goals, chapters and daily goals. Every key needs an English and an Arabic string; keys are prefixed 'quests.'.
+// UI strings for quests, goals, chapters and daily goals. Every key needs an English and an Arabic string; keys are prefixed 'dream.' and 'quests.'.
 
-export const en = {} as const;
+export const en = {
+  'dream.title': 'Your dream',
+  'dream.pick': 'What do you want to achieve here?',
+  'dream.later': 'Decide later',
+  'dream.change': 'Change dream',
+  'dream.step': 'Next step',
+  'dream.locked': 'Opens in Chapter {n}',
+  'dream.done': 'Dream complete!',
+  'quests.tab.dream': 'Dream',
+  'quests.tab.story': 'Story',
+  'quests.tab.today': 'Today',
+  'quests.tab.friends': 'Friends',
+  'quests.tab.culture': 'Culture',
+  'quests.chapter': 'Chapter {n}',
+  'quests.chapterDone': 'Chapter complete',
+  'quests.trio': 'All three done: +¥{n}',
+  'quests.swap': 'Swap one goal',
+  'quests.locked': 'Opens in Chapter {n}',
+  'quests.waitDays': 'Done! The next chapter opens after {n} more days of practice',
+  'quests.easier': 'Make it easier',
+  'quests.fromYesterday': 'From yesterday',
+  'quests.hintFriends': 'Make sure two friends are at 2 hearts',
+} as const;
 
-export const ar: Record<keyof typeof en, string> = {};
+export const ar: Record<keyof typeof en, string> = {
+  'dream.title': 'حلمك',
+  'dream.pick': 'ماذا تريد أن تحقق هنا؟',
+  'dream.later': 'قرّر لاحقًا',
+  'dream.change': 'غيّر الحلم',
+  'dream.step': 'الخطوة التالية',
+  'dream.locked': 'يُفتح في الفصل {n}',
+  'dream.done': 'اكتمل الحلم!',
+  'quests.tab.dream': 'الحلم',
+  'quests.tab.story': 'القصة',
+  'quests.tab.today': 'اليوم',
+  'quests.tab.friends': 'الأصدقاء',
+  'quests.tab.culture': 'الثقافة',
+  'quests.chapter': 'الفصل {n}',
+  'quests.chapterDone': 'اكتمل الفصل',
+  'quests.trio': 'أنجزت الثلاثة: +¥{n}',
+  'quests.swap': 'بدّل أحد الأهداف',
+  'quests.locked': 'يُفتح في الفصل {n}',
+  'quests.waitDays': 'أنجزت! يُفتح الفصل التالي بعد {n} أيام أخرى من التدريب',
+  'quests.easier': 'اجعلها أسهل',
+  'quests.fromYesterday': 'من الأمس',
+  'quests.hintFriends': 'تأكد أن صديقين وصلا إلى قلبين',
+};

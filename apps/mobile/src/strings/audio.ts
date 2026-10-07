@@ -94,6 +94,12 @@ export const en = {
   'audio.mic.err.timeout': 'Listening timed out. Tap and speak right away.',
   'audio.mic.err.unknown': 'Voice input did not work. Try again, or type instead.',
   'audio.mic.checkBtn': 'Check audio',
+
+  // consent, adult gate and the listening waiver (docs/GAME_DESIGN.md §7.6)
+  'audio.consent': 'On Chrome, voice recognition sends your audio to Google. Typing never leaves your device. Allow voice input?',
+  'audio.consentKids': 'Voice input is off. A grown-up can turn it on in Settings.',
+  'audio.parentGate': 'Grown-ups only: what is {a} + {b}?',
+  'audio.listenOff': "I can't listen: show text, no penalty",
 } as const;
 
 export const ar: Record<keyof typeof en, string> = {
@@ -185,4 +191,9 @@ export const ar: Record<keyof typeof en, string> = {
   'audio.mic.err.timeout': 'انتهت مهلة الاستماع. المس وتحدّث فورًا.',
   'audio.mic.err.unknown': 'لم يعمل الإدخال الصوتي. حاول مجددًا أو اكتب.',
   'audio.mic.checkBtn': 'فحص الصوت',
+
+  'audio.consent': 'في Chrome يرسل التعرّف على الصوت تسجيلك إلى Google. الكتابة لا تغادر جهازك أبدًا. هل تسمح بالإدخال الصوتي؟',
+  'audio.consentKids': 'الإدخال الصوتي متوقف. يمكن لشخص بالغ تفعيله من الإعدادات.',
+  'audio.parentGate': 'للبالغين فقط: كم يساوي {a} + {b}؟',
+  'audio.listenOff': 'لا أستطيع الاستماع: أظهر النص دون خصم',
 };

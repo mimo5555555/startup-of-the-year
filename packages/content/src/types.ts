@@ -53,7 +53,7 @@ export interface SlotOption {
 }
 
 export type HairStyle = 'short' | 'bob' | 'ponytail' | 'bun' | 'spiky' | 'long' | 'bald';
-export type Accessory = 'apron' | 'glasses' | 'headband' | 'cap' | 'scarf' | 'backpack' | 'camera' | 'tie' | 'mask' | 'beanie';
+export type Accessory = 'apron' | 'glasses' | 'headband' | 'cap' | 'scarf' | 'backpack' | 'camera' | 'tie' | 'mask' | 'beanie' | 'helmet';
 
 export interface AvatarSpec {
   skin: string;
@@ -95,6 +95,9 @@ export interface Suggestion {
   tts?: string;
 }
 
+/** What an intent asks of the game's economy hooks (`SessionGameHooks.intent`, docs/GAME_DESIGN.md §6.2). */
+export type IntentEcon = 'say_total' | 'ask_total' | 'haggle' | 'use_points' | 'ask_taxfree' | 'accept_delivery';
+
 export interface IntentDef {
   id: string;
   /** every group must match: any alternative inside a group is enough */
@@ -104,6 +107,8 @@ export interface IntentDef {
   /** none may match */
   none?: string[];
   slot?: string;
+  /** extra slots filled opportunistically from the same utterance (「コーヒーをふたつ」 fills `item` and `qty`); they never block the turn */
+  alsoSlots?: string[];
   /** limit which slot options count for this intent */
   slotOptions?: string[];
   slotRequired?: boolean;
@@ -118,11 +123,16 @@ export interface IntentDef {
   request?: boolean;
   /** a model answer for corrections */
   ideal?: Line;
+  /** asks the game hook (`SessionGameHooks.intent`); `ok: false` routes to `nextIfNo` */
+  econ?: IntentEcon;
+  nextIfNo?: string;
+  /** keeps what the learner said as a fact the friend remembers: the slot option id, the captured text or a literal */
+  remember?: { fact: string; from: 'slot' | 'capture' | 'literal'; value?: string };
 }
 
 export interface SayVariant {
   line: Line;
-  when?: { slot: string; in: string[] };
+  when?: { slot: string; in: string[] } | { flag: string };
 }
 
 export interface SceneNode {
@@ -136,6 +146,9 @@ export interface SceneNode {
   intents: IntentDef[];
   step?: string;
   end?: boolean;
+  /** entering the node charges the learner (`SessionGameHooks.charge`); when the money is not there the engine enters `onShort` instead */
+  econ?: 'charge';
+  onShort?: string;
 }
 
 export interface Scenario {

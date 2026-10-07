@@ -1,4 +1,5 @@
-import { WebSpeechStt, WebSpeechTts, collectAudioReport, requestMicrophone, type SpeakOptions } from '@lw/engine';
+import { WebSpeechStt, WebSpeechTts, collectAudioReport, requestMicrophone, speechNormalize, type SpeakOptions } from '@lw/engine';
+import { parseNumbers, setSpeechNormalizer } from '@lw/content';
 
 // One speech stack for the whole app. Native builds replace these with on-device engines.
 export const tts = new WebSpeechTts();
@@ -74,4 +75,9 @@ export function unlockOnFirstGesture() {
     }
   };
   events.forEach((ev) => window.addEventListener(ev, unlock, { passive: true }));
+}
+
+/** Once at app start: the pack's language plugin falls back to a basic normaliser until the engine's richer one (1G) is registered. */
+export function initGameServices() {
+  setSpeechNormalizer((text) => speechNormalize(text, { parseNumbers }));
 }

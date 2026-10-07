@@ -1,0 +1,133 @@
+{
+ "v": 1,
+ "packId": "jp",
+ "clock": {
+  "dayIndex": 0,
+  "lastLocalDate": "2030-01-15",
+  "lastSeenAt": 1894708800000,
+  "activeDays": 0,
+  "lastActiveDay": -1
+ },
+ "wallet": {
+  "cash": 3000,
+  "ic": 0,
+  "points": 0
+ },
+ "totals": {
+  "earned": 0,
+  "spent": 0,
+  "checksum": {
+   "cash": 3000,
+   "ic": 0,
+   "points": 0
+  }
+ },
+ "ledger": [],
+ "seen": [],
+ "pay": {
+  "day": "d0",
+  "langToday": 0,
+  "firstPhraseToday": 0,
+  "echoToday": 0,
+  "echoSession": null,
+  "scenarioToday": {},
+  "lastPaid": {},
+  "shiftsToday": {},
+  "seenIntents": [],
+  "pointsToday": 0,
+  "perkToday": 0,
+  "haggleToday": [],
+  "perkFreeToday": []
+ },
+ "runs": {},
+ "stats": {
+  "purchases": 0,
+  "spentOnPurchases": 0,
+  "gifts": {
+   "n": 0,
+   "liked": 0,
+   "loved": 0
+  },
+  "chats": {
+   "n": 0,
+   "friends": {}
+  },
+  "hangouts": {},
+  "visits": [],
+  "spots": [],
+  "tickets": 0,
+  "sayNew": 0,
+  "srsReviews": 0,
+  "cultureSaid": [],
+  "perksUsed": [],
+  "perkBuys": {}
+ },
+ "owned": {},
+ "outfit": {
+  "equipped": [],
+  "colours": {}
+ },
+ "home": {
+  "tier": "dorm",
+  "placed": {}
+ },
+ "tickets": {},
+ "chapter": {
+  "n": 1,
+  "done": {},
+  "completed": [],
+  "flags": [],
+  "easier": [],
+  "tries": {},
+  "began": {
+   "dayIndex": 0,
+   "activeDays": 0
+  }
+ },
+ "dream": {
+  "id": null,
+  "steps": {},
+  "done": false
+ },
+ "daily": {
+  "day": 0,
+  "goals": [],
+  "carried": [],
+  "counters": {},
+  "sets": {},
+  "swapUsed": false,
+  "allPaid": false,
+  "streakPaid": false,
+  "recent": []
+ },
+ "friends": {},
+ "jobs": {},
+ "prep": {},
+ "culture": {},
+ "titles": [],
+ "activeTitle": null,
+ "stickers": [],
+ "keepsakes": [],
+ "beats": [],
+ "words": {
+  "said": []
+ },
+ "diary": [],
+ "letter": [],
+ "income": [],
+ "coach": {
+  "recent": [],
+  "realFor": [],
+  "sinceChange": 0
+ },
+ "audio": {
+  "sttConsent": "unset",
+  "micPref": "auto",
+  "listenPref": "on"
+ },
+ "me": {
+  "nameKana": ""
+ },
+ "flags": {},
+ "seeded": false
+}

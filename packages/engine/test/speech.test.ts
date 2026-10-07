@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { BALANCE } from '@lw/game';
 import {
   SttError,
   WebSpeechStt,
@@ -738,5 +739,88 @@ describe('explainSttError', () => {
     expect(explainSttError(err, env({ top: 'other' }))).toBe('blocked');
     expect(explainSttError(err, env({ top: 'throws' }))).toBe('blocked');
     expect(explainSttError({ code: 'no-speech' }, env({ top: 'other' }))).toBe('silent');
+  });
+});
+
+describe('WebSpeechStt n-best (§12.4)', () => {
+  /** one recognised segment with several ranked hypotheses */
+  const segment = (alts: Array<[string, number]>, isFinal = true) => Object.assign(alts.map(([transcript, confidence]) => ({ transcript, confidence })), { isFinal });
+  const hear = (rec: FakeRec, ...segments: ReturnType<typeof segment>[]) => rec.onresult?.({ results: segments });
+
+  beforeEach(() => {
+    g.webkitSpeechRecognition = FakeRec;
+  });
+
+  it('asks the engine for BALANCE.speech.maxAlternatives (3) hypotheses by default, or the option', () => {
+    new WebSpeechStt().listen('ja-JP');
+    expect(FakeRec.last.maxAlternatives).toBe(BALANCE.speech.maxAlternatives);
+    expect(BALANCE.speech.maxAlternatives).toBe(3);
+    new WebSpeechStt({ maxAlternatives: 5 }).listen('ja-JP');
+    expect(FakeRec.last.maxAlternatives).toBe(5);
+    new WebSpeechStt({ maxAlternatives: 0 }).listen('ja-JP');
+    expect(FakeRec.last.maxAlternatives).toBe(1);
+  });
+
+  it('returns the alternatives best first, with text and confidence still those of the first', async () => {
+    const s = new WebSpeechStt().listen('ja-JP');
+    const rec = FakeRec.last;
+    hear(rec, segment([['よんひゃくえん', 0.62], ['よんじゅうえん', 0.31], ['よんひゃくえん です', 0.2]]));
+    rec.onend?.();
+    const r = await s.result;
+    expect(r.text).toBe('よんひゃくえん');
+    expect(r.confidence).toBe(0.62);
+    expect(r.alternatives).toEqual([
+      { text: 'よんひゃくえん', confidence: 0.62 },
+      { text: 'よんじゅうえん', confidence: 0.31 },
+      { text: 'よんひゃくえん です', confidence: 0.2 },
+    ]);
+  });
+
+  it('a single hypothesis keeps the old shape exactly (no alternatives key)', async () => {
+    const s = new WebSpeechStt().listen('ja-JP');
+    hear(FakeRec.last, segment([['こんにちは', 0.9]]));
+    FakeRec.last.onend?.();
+    expect(await s.result).toEqual({ text: 'こんにちは', confidence: 0.9 });
+  });
+
+  it('drops duplicate and blank hypotheses', async () => {
+    const s = new WebSpeechStt({ maxAlternatives: 5 }).listen('ja-JP');
+    hear(FakeRec.last, segment([['りんご', 0.8], ['りんご', 0.5], ['', 0.4], ['みかん', 0.3]]));
+    FakeRec.last.onend?.();
+    const r = await s.result;
+    expect(r.alternatives?.map((a) => a.text)).toEqual(['りんご', 'みかん']);
+  });
+
+  it('never returns more hypotheses than were asked for', async () => {
+    const s = new WebSpeechStt({ maxAlternatives: 2 }).listen('ja-JP');
+    hear(FakeRec.last, segment([['あ', 0.9], ['い', 0.8], ['う', 0.7]]));
+    FakeRec.last.onend?.();
+    expect((await s.result).alternatives).toHaveLength(2);
+  });
+
+  it('joins a multi-segment utterance rank by rank, a segment with fewer hypotheses repeating its best', async () => {
+    const s = new WebSpeechStt().listen('ja-JP');
+    hear(FakeRec.last, segment([['これを', 0.9], ['これお', 0.4]]), segment([['ください', 0.8]]));
+    FakeRec.last.onend?.();
+    const r = await s.result;
+    expect(r.text).toBe('これをください');
+    expect(r.alternatives?.map((a) => a.text)).toEqual(['これをください', 'これおください']);
+    expect(r.confidence).toBeCloseTo(0.85);
+  });
+
+  it('an engine that reports no confidence gets a neutral 0.5, so it lands in the confirm bucket', async () => {
+    const s = new WebSpeechStt().listen('ja-JP');
+    hear(FakeRec.last, segment([['すみません', 0]]));
+    FakeRec.last.onend?.();
+    const r = await s.result;
+    expect(r.confidence).toBe(0.5);
+  });
+
+  it('stop() on an interim result keeps its alternatives', async () => {
+    const s = new WebSpeechStt().listen('ja-JP');
+    hear(FakeRec.last, segment([['ごひゃく', 0.5], ['ごじゅう', 0.4]], false));
+    s.stop();
+    const r = await s.result;
+    expect(r.alternatives?.map((a) => a.text)).toEqual(['ごひゃく', 'ごじゅう']);
   });
 });

@@ -6,6 +6,7 @@
       "@lw/core": ["packages/core/src/index.ts"],
       "@lw/content": ["packages/content/src/index.ts"],
       "@lw/engine": ["packages/engine/src/index.ts"],
+      "@lw/game": ["packages/game/src/index.ts"],
       "@lw/world": ["packages/world/src/index.ts"]
     }
   },

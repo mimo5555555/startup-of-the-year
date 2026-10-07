@@ -1,4 +1,5 @@
 import { hasKanji, kanaToRomaji } from '@lw/core';
+import { NUMERAL_TOKEN, readNumeralTokens } from './lexicon/numbers';
 import type { Gloss, LexEntry, Line, Token, Vars } from './types';
 
 const PUNCT_CHARS = '。、！？!?,.「」『』…・（）()';
@@ -95,8 +96,21 @@ export function tokenize(markup: string, lex: Lexicon, vars: Vars = {}): Tokeniz
 
 export const plainText = (tokens: Token[]) => tokens.map((t) => t.s).join('');
 /** Text for the speech engine: user-supplied Arabic-script names are left out. */
-export const speakableText = (tokens: Token[]) =>
-  tokens.filter((t) => !(t.raw && /[\u0600-\u06ff]/.test(t.s))).map((t) => t.s).join('');
+export function speakableText(tokens: Token[]): string {
+  const out: string[] = [];
+  const spoken = tokens.filter((t) => !(t.raw && /[\u0600-\u06ff]/.test(t.s)));
+  for (let i = 0; i < spoken.length; i++) {
+    // a run of numeral tokens that ends in 円 is a price: read it by kana so 八百 / 六百 / 三千 / 四円 come out right (§14.4);
+    // a run in front of a counter (九時, 十四日) stays as written because the counter picks its own reading
+    let j = i;
+    while (j < spoken.length && !spoken[j].raw && NUMERAL_TOKEN.test(spoken[j].s)) j++;
+    if (j > i && spoken[j - 1].s === '円') {
+      out.push(readNumeralTokens(spoken.slice(i, j).map((t) => t.s)));
+      i = j - 1;
+    } else out.push(spoken[i].s);
+  }
+  return out.join('');
+}
 export const readingText = (tokens: Token[]) => tokens.map((t) => (t.r ?? t.s)).join('');
 /** Space-separated romaji with punctuation attached to the preceding word. */
 export function romajiText(tokens: Token[]): string {

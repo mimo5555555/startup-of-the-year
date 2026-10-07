@@ -95,7 +95,8 @@ export class Avatar {
     const skin = spec.skin;
     const skinShade = shade(skin, 0.9);
     const hairC = spec.hair.color;
-    const acc = new Set(spec.accessories);
+    // widened to string: the 'helmet' accessory is added to the content type by the engine/content slice
+    const acc = new Set<string>(spec.accessories);
 
     // ---- legs ----
     for (const side of [-1, 1] as const) {
@@ -195,6 +196,18 @@ export class Avatar {
     if (acc.has('beanie')) {
       h.cap(0, cy + 0.03, 0, 0.33, Math.PI * 0.52, spec.accent, { sy: 0.95 });
       h.torus(0, cy + 0.13, 0, 0.31, 0.04, shade(spec.accent, 0.85), { rx: Math.PI / 2 });
+    }
+    if (acc.has('helmet')) {
+      // bike helmet: shell larger than the hair cap, rim above the brows (the eyes sit at z 0.272 and must stay clear)
+      const shell = shade(spec.accent, 1.0);
+      h.cap(0, cy + 0.02, 0, 0.345, 1.28, shell, { sy: 0.95 });
+      h.torus(0, cy + 0.12, 0, 0.33, 0.026, shade(shell, 0.78), { rx: Math.PI / 2 });
+      h.box(0, cy + 0.34, 0, 0.07, 0.03, 0.5, shade(shell, 1.18), { jitter: 0 });
+      for (const s of [-1, 1]) {
+        h.box(s * 0.12, cy + 0.3, 0.02, 0.045, 0.025, 0.34, shade(shell, 0.85), { jitter: 0 });
+        h.box(s * 0.3, cy - 0.04, 0.02, 0.03, 0.3, 0.07, shade(shell, 0.78), { jitter: 0 }); // chin strap
+      }
+      h.box(0, cy + 0.13, 0.35, 0.34, 0.025, 0.1, shade(shell, 0.78), { rx: -0.1, jitter: 0 });
     }
     if (acc.has('mask')) h.box(0, cy - 0.11, 0.255, 0.26, 0.15, 0.07, '#f3f3f6', { jitter: 0 });
     const headMesh = this.mesh(h, material);

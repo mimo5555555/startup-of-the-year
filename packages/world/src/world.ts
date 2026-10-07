@@ -2,20 +2,25 @@ import * as THREE from 'three';
 import type { AvatarSpec, Character, Emotion } from '@lw/content';
 import { Avatar, DEFAULT_PLAYER } from './avatar';
 import { toonRamp } from './batch';
+import { buildRide, type RideKind } from './buildings';
 import { buildCity, type City } from './city';
 import { clamp, clampToBounds, clipDistance, resolveCircle } from './collision';
-import { BOUNDS, NPC_SPAWNS, PLAYER_START, WALKERS } from './layout';
+import { TOKYO_DISTRICT, type District } from './district';
+import { buildFestival, DAY_LIGHTING, DUSK_LIGHTING, FESTIVAL_FADE_S, mixLighting, newLighting, type FestivalHandle } from './festival';
+import { PLAYER_START, shopRect, spotsAt, type NpcSpawn, type ShopDef, type SpotId } from './layout';
 import { COLORS } from './palette';
 import { bubbleTexture, labelTexture, sparkleTexture, watchFonts, blobTexture } from './textures';
 
-export type Badge = 'none' | 'new' | 'lesson' | 'done';
+export type Badge = 'none' | 'new' | 'lesson' | 'done' | 'locked';
 export type Quality = 'high' | 'low';
 
 export type WorldEvent =
   | { type: 'nearby'; id: string | null }
   | { type: 'pick'; id: string; x: number; y: number }
   | { type: 'ready' }
-  | { type: 'quality'; quality: Quality };
+  | { type: 'quality'; quality: Quality }
+  /** the player walked into one of the district's spots (once per entry; leaving and coming back fires again) */
+  | { type: 'spot'; id: SpotId };
 
 export interface WorldOptions {
   canvas: HTMLCanvasElement;
@@ -24,6 +29,8 @@ export interface WorldOptions {
   quality?: Quality | 'auto';
   /** label shown over each NPC, by id (falls back to the Japanese name) */
   labels?: Record<string, string>;
+  /** the place to build; a second country pack passes its own (default: Tokyo) */
+  district?: District;
 }
 
 export interface WorldSnapshot {
@@ -37,6 +44,18 @@ export interface WorldSnapshot {
 const PLAYER_RADIUS = 0.42;
 const WALK_SPEED = 4.1;
 const RUN_SPEED = 6.6;
+/**
+ * One movement sub-step never exceeds this (§6.4): colliders are 0.5 m thick, and a x2.5 ride with the 0.05 s frame
+ * cap would otherwise move 0.8 m per frame and step through them. The world package is pure rendering with no
+ * dependency on the game package, so the value lives here rather than in BALANCE.
+ */
+export const MAX_STEP = 0.25;
+/** A spot is left only once the player is this far outside its radius, so standing on the edge cannot re-fire it. */
+const SPOT_EXIT_MARGIN = 0.3;
+const MULT_RANGE = { min: 0.25, max: 10 };
+/** quality-dependent light levels; the festival preset scales them */
+const HEMI_LEVEL = { high: 1.95, low: 2.3 };
+const SUN_LEVEL = { high: 2.2, low: 1.2 };
 
 const damp = (a: number, b: number, rate: number, dt: number) => a + (b - a) * (1 - Math.exp(-rate * dt));
 const angleDiff = (a: number, b: number) => Math.atan2(Math.sin(b - a), Math.cos(b - a));
@@ -53,6 +72,10 @@ interface Npc {
   label: THREE.Sprite;
   badgeKind: Badge;
   facing: number;
+  /** the shop whose shutter hides this NPC (null for a character who stands in the open) */
+  shop: string | null;
+  /** shop closed: the avatar and label are hidden, the badge shows a padlock and the minimap dot is gone */
+  hidden: boolean;
 }
 
 interface Walker {
@@ -61,6 +84,19 @@ interface Walker {
   index: number;
   speed: number;
   loop: boolean;
+}
+
+/**
+ * Which shop's shutter hides this spawn: its declared `site` (Aiko's stall is the 'aiko' shop), else the shop diorama
+ * it stands inside, else none (Hanako's lesson spot and Mio in the park never close).
+ */
+export function shopIdOf(spawn: Pick<NpcSpawn, 'x' | 'z' | 'site'>, shops: readonly ShopDef[]): string | null {
+  if (spawn.site) return spawn.site === 'aiko_stall' ? 'aiko' : spawn.site;
+  for (const s of shops) {
+    const r = shopRect(s);
+    if (spawn.x >= r.x0 && spawn.x <= r.x1 && spawn.z >= r.z0 && spawn.z <= r.z1) return s.id;
+  }
+  return null;
 }
 
 export class TokyoWorld {
@@ -83,6 +119,19 @@ export class TokyoWorld {
   private sparkles: Array<{ id: string; sprite: THREE.Sprite; base: number }> = [];
   private discovered = new Set<string>();
   private labelCache = new Map<string, THREE.Texture>();
+  private badgeCache = new Map<string, THREE.Texture>();
+  private readonly district: District;
+
+  // game seams: shutters, speed boosts, rides, festival
+  private closedShops = new Set<string>();
+  private moveMult = 1;
+  private ride: RideKind | null = null;
+  private rideMesh: THREE.Object3D | null = null;
+  private festivalTarget = 0;
+  private festivalBlend = 0;
+  private festivalScenery: FestivalHandle | null = null;
+  private readonly lighting = newLighting();
+  private inSpots = new Set<SpotId>();
 
   // input
   private keys = new Set<string>();
@@ -124,6 +173,7 @@ export class TokyoWorld {
 
   constructor(private opts: WorldOptions) {
     const { canvas } = opts;
+    this.district = opts.district ?? TOKYO_DISTRICT;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', alpha: false });
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setClearColor(COLORS.fog);
@@ -151,7 +201,7 @@ export class TokyoWorld {
     this.sun.shadow.normalBias = 0.05;
     this.scene.add(this.sun, this.sun.target);
 
-    this.city = buildCity();
+    this.city = buildCity(this.district);
     this.scene.add(this.city.group);
 
     // player
@@ -160,14 +210,16 @@ export class TokyoWorld {
 
     // NPCs
     const sparkleTex = sparkleTexture();
-    for (const spawn of NPC_SPAWNS) {
+    for (const spawn of this.district.npcSpawns) {
       const ch = opts.characters.find((c) => c.id === spawn.id);
       if (!ch) continue;
+      // a new shop's NPC appears only when its building was built (a stub builder leaves the site empty)
+      if (spawn.site && !this.city.built.has(spawn.site)) continue;
       const avatar = new Avatar(ch.avatar, this.toon, this.blobMat);
       avatar.root.position.set(spawn.x, spawn.y ?? 0, spawn.z);
       avatar.root.rotation.y = spawn.face;
       this.scene.add(avatar.root);
-      const badge = new THREE.Sprite(new THREE.SpriteMaterial({ map: bubbleTexture('talk'), transparent: true, depthWrite: false, depthTest: false, fog: false }));
+      const badge = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.badgeTexture('talk'), transparent: true, depthWrite: false, depthTest: false, fog: false }));
       badge.renderOrder = 20;
       badge.scale.set(0.95, 0.95, 1);
       badge.position.set(spawn.x, 2.55 + (spawn.y ?? 0), spawn.z);
@@ -188,8 +240,10 @@ export class TokyoWorld {
         badge,
         label,
         badgeKind: spawn.kind === 'lesson' ? 'lesson' : 'new',
+        shop: shopIdOf(spawn, this.district.shops),
+        hidden: false,
       });
-      (badge.material as THREE.SpriteMaterial).map = bubbleTexture(spawn.kind === 'lesson' ? 'lesson' : 'talk');
+      (badge.material as THREE.SpriteMaterial).map = this.badgeTexture(spawn.kind === 'lesson' ? 'lesson' : 'talk');
     }
 
     // ambient walkers share the character look-alikes
@@ -200,7 +254,7 @@ export class TokyoWorld {
       { skin: '#f8dcc6', hair: { style: 'ponytail', color: '#6b3f2e' }, top: '#6bc7a6', bottom: '#2f3a57', shoes: '#ffffff', accent: '#f08fa8', accessories: ['camera'] },
       { skin: '#e8bd98', hair: { style: 'spiky', color: '#1f1b1d' }, top: '#3b3f5c', bottom: '#2a2d3e', shoes: '#d8433f', accent: '#f4f4f4', accessories: ['beanie'] },
     ];
-    for (const w of WALKERS) {
+    for (const w of this.district.walkers) {
       const avatar = new Avatar(walkerSpecs[w.spec % walkerSpecs.length], this.toon, this.blobMat);
       const pts = w.route.points.map(([x, z]) => new THREE.Vector3(x, 0, z));
       avatar.root.position.copy(pts[0]);
@@ -295,9 +349,7 @@ export class TokyoWorld {
     const n = this.npcs.find((x) => x.id === id);
     if (!n) return;
     n.badgeKind = badge;
-    const m = n.badge.material as THREE.SpriteMaterial;
-    if (badge !== 'none') m.map = bubbleTexture(badge === 'done' ? 'done' : badge === 'lesson' ? 'lesson' : 'talk');
-    m.needsUpdate = true;
+    this.refreshBadge(n);
   }
 
   setNpcLabels(labels: Record<string, string>) {
@@ -308,6 +360,72 @@ export class TokyoWorld {
       m.map = this.labelFor(text);
       m.needsUpdate = true;
     }
+  }
+
+  /**
+   * Open or close a shop's shutter. Closed: the 準備中 shutter shows, its NPC and label are hidden, the badge turns into
+   * a padlock, the NPC cannot be talked to or tapped and `snapshot()` leaves it out (no minimap dot inside a closed
+   * shop). Shops start open. Ids are shop ids (konbini, cafe, school, ramen, station, fukufuku, denki, motors) and
+   * 'aiko'; a close while the learner is mid-conversation with that NPC takes effect when the conversation ends.
+   */
+  setShopOpen(shopId: string, open: boolean) {
+    if (open) this.closedShops.delete(shopId);
+    else this.closedShops.add(shopId);
+    this.syncShop(shopId);
+  }
+  isShopOpen(shopId: string) {
+    return !this.closedShops.has(shopId);
+  }
+
+  /**
+   * Speed boost (bike x1.5, e-bike x1.8, car x2.5). Movement integrates in sub-steps of at most MAX_STEP metres,
+   * so no multiplier can carry the player through a collider.
+   */
+  setMoveMultiplier(n: number) {
+    this.moveMult = Number.isFinite(n) ? clamp(n, MULT_RANGE.min, MULT_RANGE.max) : 1;
+  }
+  getMoveMultiplier() {
+    return this.moveMult;
+  }
+
+  /** Mount a ride prop under the player (null or 'none' dismounts). It does not change speed: that is setMoveMultiplier. */
+  setRide(kind: RideKind | 'none' | null) {
+    const next = kind === 'none' ? null : kind;
+    if (next === this.ride) return;
+    this.ride = next;
+    if (this.rideMesh) {
+      this.scene.remove(this.rideMesh);
+      this.disposeObject(this.rideMesh);
+      this.rideMesh = null;
+    }
+    if (!next) return;
+    this.rideMesh = buildRide(next, this.city.materials);
+    if (this.rideMesh) {
+      this.rideMesh.position.copy(this.playerPos);
+      this.rideMesh.rotation.y = this.playerHeading;
+      this.scene.add(this.rideMesh);
+    }
+  }
+  getRide() {
+    return this.ride;
+  }
+
+  /**
+   * Festival night: fades the sky, fog and lights to the dusk preset (and back) and shows the festival scenery.
+   * `instant` skips the fade (tests, restoring a saved state).
+   */
+  setFestival(on: boolean, instant = false) {
+    this.festivalTarget = on ? 1 : 0;
+    if (on && !this.festivalScenery) {
+      this.festivalScenery = buildFestival(this.city.materials);
+      this.festivalScenery.group.visible = false;
+      this.scene.add(this.festivalScenery.group);
+    }
+    if (instant) this.festivalBlend = this.festivalTarget;
+    this.applyLighting();
+  }
+  isFestival() {
+    return this.festivalTarget === 1;
   }
 
   setDiscovered(ids: Iterable<string>) {
@@ -339,8 +457,7 @@ export class TokyoWorld {
     this.player?.setBlob(!high);
     for (const n of this.npcs) n.avatar.setBlob(!high);
     for (const w of this.walkers) w.avatar.setBlob(!high);
-    this.hemi.intensity = high ? 1.95 : 2.3;
-    this.sun.intensity = high ? 2.2 : 1.2;
+    this.applyLighting();
     this.renderer.setSize(this.width, this.height, false);
     if (!silent) this.emit({ type: 'quality', quality: q });
   }
@@ -388,6 +505,7 @@ export class TokyoWorld {
     this.vel.set(0, 0, 0);
     this.snapCamera();
     this.updateNearby();
+    this.updateSpots();
   }
 
   /** walk to a spot automatically (tap-to-move for the UI's "take me there") */
@@ -407,7 +525,7 @@ export class TokyoWorld {
 
   enterConversation(id: string) {
     const npc = this.npcs.find((n) => n.id === id);
-    if (!npc || this.conv) return;
+    if (!npc || npc.hidden || this.conv) return;
     this.conv = { npc, t: 0, playerBowed: false };
     this.moveTarget = null;
     this.stick.set(0, 0);
@@ -425,6 +543,7 @@ export class TokyoWorld {
     npc.avatar.bow();
     this.player.bow();
     this.conv = null;
+    if (npc.shop) this.syncShop(npc.shop);
   }
 
   setSpeaker(id: string, talking: boolean) {
@@ -449,7 +568,7 @@ export class TokyoWorld {
       player: { x: this.playerPos.x, z: this.playerPos.z, heading: this.playerHeading },
       camYaw: this.yaw,
       nearby: this.nearbyId,
-      npcs: this.npcs.map((n) => ({ id: n.id, x: n.home.x, z: n.home.z })),
+      npcs: this.npcs.filter((n) => !n.hidden).map((n) => ({ id: n.id, x: n.home.x, z: n.home.z })),
       inConversation: !!this.conv,
     };
   }
@@ -467,12 +586,76 @@ export class TokyoWorld {
     this.npcs.forEach((n) => n.avatar.dispose());
     this.walkers.forEach((w) => w.avatar.dispose());
     this.labelCache.forEach((t) => t.dispose());
+    this.badgeCache.forEach((t) => t.dispose());
+    if (this.rideMesh) this.disposeObject(this.rideMesh);
+    this.festivalScenery?.dispose();
     this.toon.dispose();
     this.ramp.dispose();
     this.renderer.dispose();
   }
 
   // ---------------- internals ----------------
+
+  private badgeTexture(kind: 'talk' | 'lesson' | 'done' | 'locked') {
+    let t = this.badgeCache.get(kind);
+    if (!t) {
+      t = bubbleTexture(kind);
+      this.badgeCache.set(kind, t);
+    }
+    return t;
+  }
+
+  /** the bubble over an NPC: a padlock while the shop is closed, else its own badge */
+  private refreshBadge(n: Npc) {
+    const m = n.badge.material as THREE.SpriteMaterial;
+    const kind = n.hidden ? 'locked' : n.badgeKind;
+    if (kind !== 'none') m.map = this.badgeTexture(kind === 'done' ? 'done' : kind === 'lesson' ? 'lesson' : kind === 'locked' ? 'locked' : 'talk');
+    m.needsUpdate = true;
+  }
+
+  /** put a shop's shutter and NPCs in line with `closedShops` */
+  private syncShop(shopId: string) {
+    const closed = this.closedShops.has(shopId);
+    // mid-conversation the shutter would stand between the camera and the NPC: wait for exitConversation
+    if (closed && this.conv?.npc.shop === shopId) return;
+    this.city.setShopOpen(shopId, !closed);
+    for (const n of this.npcs) {
+      if (n.shop !== shopId || n.hidden === closed) continue;
+      n.hidden = closed;
+      n.avatar.root.visible = !closed;
+      if (closed) {
+        n.avatar.setTalking(false);
+        if (this.nearbyId === n.id) this.updateNearby();
+      }
+      this.refreshBadge(n);
+    }
+  }
+
+  private disposeObject(o: THREE.Object3D) {
+    o.traverse((c) => {
+      const m = c as THREE.Mesh;
+      m.geometry?.dispose();
+    });
+  }
+
+  /** sky, fog, lights and sun direction for the current day/dusk blend and quality */
+  private applyLighting() {
+    const L = mixLighting(this.lighting, DAY_LIGHTING, DUSK_LIGHTING, this.festivalBlend);
+    const sky = (this.city.sky.material as THREE.ShaderMaterial).uniforms;
+    sky.top.value.copy(L.skyTop);
+    sky.mid.value.copy(L.skyMid);
+    sky.bottom.value.copy(L.skyBottom);
+    (this.scene.background as THREE.Color).copy(L.fog);
+    this.renderer.setClearColor(L.fog);
+    (this.scene.fog as THREE.Fog).color.copy(L.fog);
+    this.hemi.color.copy(L.hemiSky);
+    this.hemi.groundColor.copy(L.hemiGround);
+    this.sun.color.copy(L.sun);
+    this.hemi.intensity = HEMI_LEVEL[this.quality] * L.hemiK;
+    this.sun.intensity = SUN_LEVEL[this.quality] * L.sunK;
+    this.city.sunDir.copy(L.sunDir);
+    if (this.festivalScenery) this.festivalScenery.group.visible = this.festivalBlend > 0 || this.festivalTarget > 0;
+  }
 
   private labelFor(text: string) {
     let t = this.labelCache.get(text);
@@ -558,7 +741,7 @@ export class TokyoWorld {
     const ray = this.raycaster.ray;
 
     // characters first
-    const bodies: THREE.Object3D[] = this.npcs.map((n) => n.avatar.root);
+    const bodies: THREE.Object3D[] = this.npcs.filter((n) => !n.hidden).map((n) => n.avatar.root); // a raycast ignores `visible`
     const hits = this.raycaster.intersectObjects(bodies, true);
     let nearestObj = Infinity;
     let npcHit: Npc | null = null;
@@ -630,6 +813,7 @@ export class TokyoWorld {
       this.updateNpcs(dt, t);
       this.updateWalkers(dt);
     }
+    this.updateFestival(dt, t);
     this.updateCamera(dt);
 
     // keep the sun's shadow window on the player
@@ -649,7 +833,8 @@ export class TokyoWorld {
     const conv = this.conv;
     const input = this.inputVector();
     let wish = new THREE.Vector3();
-    let speed = (this.keys.has('shift') ? RUN_SPEED : WALK_SPEED) * Math.min(1, input.length() * 1.15);
+    const mult = this.moveMult;
+    let speed = (this.keys.has('shift') ? RUN_SPEED : WALK_SPEED) * Math.min(1, input.length() * 1.15) * mult;
 
     if (!conv) {
       if (input.lengthSq() > 0.01) {
@@ -660,11 +845,13 @@ export class TokyoWorld {
       } else if (this.moveTarget) {
         const to = this.moveTarget.clone().sub(this.playerPos).setY(0);
         const d = to.length();
-        if (d < 0.25) {
+        // the stop distance and the slow-down ramp scale with the boost, or a fast ride would overshoot the target
+        const reach = Math.max(1, mult);
+        if (d < 0.25 * reach) {
           this.moveTarget = null;
         } else {
           wish.copy(to).divideScalar(d);
-          speed = WALK_SPEED * 1.15 * Math.min(1, d / 0.6 + 0.35);
+          speed = WALK_SPEED * 1.15 * Math.min(1, d / (0.6 * reach) + 0.35) * mult;
         }
       }
     }
@@ -673,9 +860,15 @@ export class TokyoWorld {
     this.vel.x = damp(this.vel.x, targetVel.x, 14, dt);
     this.vel.z = damp(this.vel.z, targetVel.z, 14, dt);
     const before = this.playerPos.clone();
-    this.playerPos.x += this.vel.x * dt;
-    this.playerPos.z += this.vel.z * dt;
-    this.resolveCollisions(this.playerPos);
+    // sub-steps: resolve collisions every MAX_STEP metres so a boosted frame cannot jump through a thin collider
+    const sx = this.vel.x * dt;
+    const sz = this.vel.z * dt;
+    const steps = Math.max(1, Math.ceil(Math.hypot(sx, sz) / MAX_STEP));
+    for (let i = 0; i < steps; i++) {
+      this.playerPos.x += sx / steps;
+      this.playerPos.z += sz / steps;
+      this.resolveCollisions(this.playerPos);
+    }
     const moved = this.playerPos.distanceTo(before) / Math.max(dt, 1e-4);
 
     if (this.moveTarget) {
@@ -695,6 +888,10 @@ export class TokyoWorld {
 
     this.player.root.position.copy(this.playerPos);
     this.player.root.rotation.y = this.playerHeading;
+    if (this.rideMesh) {
+      this.rideMesh.position.copy(this.playerPos);
+      this.rideMesh.rotation.y = this.playerHeading;
+    }
     this.player.setWalking(conv ? 0 : moved);
     this.player.update(dt, this.time);
 
@@ -706,12 +903,36 @@ export class TokyoWorld {
       }
     }
     this.updateNearby();
+    this.updateSpots();
+  }
+
+  /** emits `spot` once when the player enters a spot circle; it re-arms after they walk out */
+  private updateSpots() {
+    const spots = this.district.spots;
+    for (const s of spots) {
+      if (this.inSpots.has(s.id) && Math.hypot(this.playerPos.x - s.x, this.playerPos.z - s.z) > s.r + SPOT_EXIT_MARGIN) this.inSpots.delete(s.id);
+    }
+    for (const s of spotsAt(this.playerPos.x, this.playerPos.z, spots)) {
+      if (this.inSpots.has(s.id)) continue;
+      this.inSpots.add(s.id);
+      this.emit({ type: 'spot', id: s.id });
+    }
+  }
+
+  private updateFestival(dt: number, t: number) {
+    if (this.festivalBlend !== this.festivalTarget) {
+      const k = dt / FESTIVAL_FADE_S;
+      this.festivalBlend = this.festivalTarget > this.festivalBlend ? Math.min(this.festivalTarget, this.festivalBlend + k) : Math.max(this.festivalTarget, this.festivalBlend - k);
+      this.applyLighting();
+    }
+    if (this.festivalScenery?.group.visible) this.festivalScenery.update?.(dt, t, this.playerPos);
   }
 
   private updateNearby() {
     let best: Npc | null = null;
     let bd = Infinity;
     for (const n of this.npcs) {
+      if (n.hidden) continue;
       const d = Math.hypot(n.home.x - this.playerPos.x, n.home.z - this.playerPos.z);
       if (d < n.radius && d < bd) {
         best = n;
@@ -731,6 +952,15 @@ export class TokyoWorld {
       const dx = this.playerPos.x - n.home.x;
       const dz = this.playerPos.z - n.home.z;
       const d = Math.hypot(dx, dz);
+      if (n.hidden) {
+        // a closed shop: only the padlock bubble over the door
+        n.label.visible = false;
+        n.badge.visible = !this.conv && d < 45;
+        n.badge.position.set(n.home.x, 2.62 + n.home.y, n.home.z);
+        const cd = this.camera.position.distanceTo(n.badge.position);
+        n.badge.scale.setScalar(clamp(0.5 + cd * 0.075, 0.7, 1.6));
+        continue;
+      }
       const talking = this.conv?.npc === n;
       // face the learner during a conversation, otherwise drift back to the home pose
       const targetFace = talking || (d < 6 && n.kind === 'lesson') ? Math.atan2(dx, dz) : n.face;
@@ -809,11 +1039,11 @@ export class TokyoWorld {
   // ---------------- collisions ----------------
 
   private resolveBounds(p: THREE.Vector3) {
-    clampToBounds(p, BOUNDS);
+    clampToBounds(p, this.district.bounds);
   }
 
   private resolveCollisions(p: THREE.Vector3) {
-    resolveCircle(p, PLAYER_RADIUS, this.city.colliders, BOUNDS);
+    resolveCircle(p, PLAYER_RADIUS, this.city.colliders, this.district.bounds);
   }
 
   // ---------------- camera ----------------

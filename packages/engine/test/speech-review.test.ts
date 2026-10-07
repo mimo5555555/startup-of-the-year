@@ -216,3 +216,39 @@ describe('requestMicrophone when the prompt is never answered (Firefox)', () => 
     expect(vi.getTimerCount()).toBe(0);
   });
 });
+
+describe('WebSpeechStt n-best: engine quirks', () => {
+  class Rec {
+    static last: Rec;
+    maxAlternatives = 0;
+    onstart: (() => void) | null = null;
+    onresult: ((e: any) => void) | null = null;
+    onerror: ((e: any) => void) | null = null;
+    onend: (() => void) | null = null;
+    constructor() {
+      Rec.last = this;
+    }
+    start() {
+      this.onstart?.();
+    }
+    stop() {}
+    abort() {}
+  }
+  const seg = (alts: Array<[string, number]>, isFinal = true) => Object.assign(alts.map(([transcript, confidence]) => ({ transcript, confidence })), { isFinal });
+
+  it('an empty best hypothesis is no result yet (the engine is warming up), whatever the alternatives say', async () => {
+    g.webkitSpeechRecognition = Rec;
+    const s = new WebSpeechStt().listen('ja-JP');
+    Rec.last.onresult?.({ results: [seg([['', 0], ['ほげ', 0.4]], false)] });
+    Rec.last.onend?.();
+    await expect(s.result).rejects.toMatchObject({ code: 'no-speech' });
+  });
+
+  it('a result whose entries are not arrays of hypotheses (older engines) still works', async () => {
+    g.webkitSpeechRecognition = Rec;
+    const s = new WebSpeechStt().listen('ja-JP');
+    Rec.last.onresult?.({ results: [Object.assign([{ transcript: 'はい', confidence: 0.7 }], { isFinal: true })] });
+    Rec.last.onend?.();
+    await expect(s.result).resolves.toEqual({ text: 'はい', confidence: 0.7 });
+  });
+});

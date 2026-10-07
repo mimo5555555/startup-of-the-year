@@ -1,5 +1,6 @@
 // Speech ports and their browser adapters. Native builds add on-device engines
 // (whisper.cpp for recognition, OS/sherpa-onnx voices for speech) behind the same interfaces.
+import { DEFAULT_SPEECH_POLICY, type SpeechAlternative } from './speechScore';
 
 export interface SpeakOptions {
   rate?: number;
@@ -77,6 +78,8 @@ export type SttErrorId = 'unsupported' | 'denied' | 'blocked' | 'silent' | 'no-m
 export interface SttResult {
   text: string;
   confidence: number;
+  /** n-best hypotheses (§12.4), best first; `[0]` is `text`. Present only when the recogniser offered more than one distinct text. */
+  alternatives?: SpeechAlternative[];
 }
 
 export interface SttSession {
@@ -548,6 +551,44 @@ export interface WebSpeechSttOptions {
   startGuardMs?: number;
   /** after a final result, settle even if 'end' never fires (iOS) (ms) */
   finalGraceMs?: number;
+  /** hypotheses requested from the engine (default `BALANCE.speech.maxAlternatives`, 3) */
+  maxAlternatives?: number;
+}
+
+const MEAN_UNKNOWN = 0.5; // engines that report no confidence (0) get a neutral one
+
+/**
+ * Joins the recognised segments into one text per hypothesis rank: rank k takes each segment's k-th alternative
+ * (its best when it has fewer), so a one-segment utterance yields its alternatives as they came.
+ */
+function collectHypotheses(results: ArrayLike<any>, max: number): { final: boolean; hyps: SpeechAlternative[] } {
+  let final = true;
+  const parts: Array<{ text: string; conf: number }[]> = [];
+  for (let i = 0; i < results.length; i++) {
+    const r = results[i];
+    if (!r?.[0]) continue;
+    if (!r.isFinal) final = false;
+    parts.push(Array.from({ length: Math.max(1, Math.min(max, r.length ?? 1)) }, (_, k) => ({ text: String(r[k]?.transcript ?? ''), conf: Number(r[k]?.confidence) })));
+  }
+  const hyps: SpeechAlternative[] = [];
+  const rank = Math.max(0, ...parts.map((p) => p.length));
+  for (let k = 0; k < rank; k++) {
+    let text = '';
+    let conf = 0;
+    let n = 0;
+    for (const p of parts) {
+      const a = p[k] ?? p[0];
+      text += a.text;
+      if (a.conf > 0) {
+        conf += a.conf;
+        n++;
+      }
+    }
+    text = text.trim();
+    if (!text && k === 0) return { final, hyps: [] }; // an empty best hypothesis is no result (the engine is still warming up)
+    if (text && !hyps.some((h) => h.text === text)) hyps.push({ text, confidence: n ? conf / n : MEAN_UNKNOWN });
+  }
+  return { final, hyps };
 }
 
 export class WebSpeechStt implements SttPort {
@@ -556,12 +597,14 @@ export class WebSpeechStt implements SttPort {
   private readonly stopGraceMs: number;
   private readonly startGuardMs: number;
   private readonly finalGraceMs: number;
+  private readonly maxAlternatives: number;
 
   constructor(opts: WebSpeechSttOptions = {}) {
     this.maxListenMs = opts.maxListenMs ?? 30000;
     this.stopGraceMs = opts.stopGraceMs ?? 1500;
     this.startGuardMs = opts.startGuardMs ?? 60000;
     this.finalGraceMs = opts.finalGraceMs ?? 800;
+    this.maxAlternatives = Math.max(1, opts.maxAlternatives ?? DEFAULT_SPEECH_POLICY.maxAlternatives);
   }
 
   available() {
@@ -579,7 +622,7 @@ export class WebSpeechStt implements SttPort {
       rec = new Ctor();
       rec.lang = lang;
       rec.interimResults = true;
-      rec.maxAlternatives = 1;
+      rec.maxAlternatives = this.maxAlternatives;
       rec.continuous = false;
     } catch {
       return { result: Promise.reject(new SttError('unknown')), stop() {}, abort() {} };
@@ -654,25 +697,11 @@ export class WebSpeechStt implements SttPort {
       }, this.maxListenMs);
     };
     rec.onresult = (e: any) => {
-      let text = '';
-      let final = true;
-      let conf = 0;
-      let n = 0;
-      for (let i = 0; i < e.results.length; i++) {
-        const r = e.results[i];
-        const a = r?.[0];
-        if (!a) continue;
-        text += a.transcript;
-        if (!r.isFinal) final = false;
-        if (typeof a.confidence === 'number' && a.confidence > 0) {
-          conf += a.confidence;
-          n++;
-        }
-      }
-      text = text.trim();
-      if (!text) return;
-      last = { text, confidence: n ? conf / n : 0.5 };
-      if (!final) onInterim?.(text);
+      const { final, hyps } = collectHypotheses(e.results, this.maxAlternatives);
+      if (!hyps.length) return;
+      last = { text: hyps[0].text, confidence: hyps[0].confidence };
+      if (hyps.length > 1) last.alternatives = hyps;
+      if (!final) onInterim?.(last.text);
       else later(() => settleBest('no-speech'), this.finalGraceMs); // 'end' normally follows at once
     };
     rec.onerror = (e: any) => {

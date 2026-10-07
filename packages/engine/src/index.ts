@@ -6,3 +6,6 @@ export * from './dialogue';
 export * from './feedback';
 export * from './speech';
 export * from './audio-diagnostics';
+export * from './scoring';
+export * from './speechNormalize';
+export * from './speechScore';
