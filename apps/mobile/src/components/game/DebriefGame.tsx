@@ -134,7 +134,7 @@ export function DebriefPay({ data }: { data: DebriefData }) {
   const good = rows.filter((l) => l.yen > 0);
   const notes = rows.filter((l) => l.yen < 0 && (l.reason === 'repeat' || l.reason === 'softCap'));
   const practice = rows.find((l) => l.reason === 'practiceOnly');
-  const reasons = practice ? [practice] : s.total > 0 ? [...good, ...notes] : [{ reason: 'practiceOnly' as const, yen: 0 }];
+  const reasons = practice ? [practice] : s.total > 0 ? [...good, ...notes] : notes.length ? notes : [{ reason: 'practiceOnly' as const, yen: 0 }];
 
   // the honest nudge: the same formula at r = 1, today's repeat factor and cap applied
   const next = (r: number) => estimatePay(PACK, getGame(), data.facts.scenarioId, r, data.facts.mode === 'real', { prepared: data.facts.prepared });

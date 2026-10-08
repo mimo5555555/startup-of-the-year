@@ -1,7 +1,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { CHARACTERS, scenarioById } from '@lw/content';
 import { ConversationSession, evaluateSession } from '@lw/engine';
-import { dueCount, useStore, type Profile } from '../src/store';
+import { dueCount, repairPersisted, useStore, type Profile } from '../src/store';
 
 const profile: Profile = {
   name: 'Sam',
@@ -83,5 +83,58 @@ describe('store', () => {
     expect(s.profile).toBeNull();
     expect(s.vocab).toHaveLength(0);
     expect(s.screen).toBe('onboarding');
+  });
+});
+
+describe('a damaged legacy save is repaired, never trusted', () => {
+  const persisted = () => {
+    const s = useStore.getState();
+    return { profile: s.profile, vocab: s.vocab, xp: s.xp, streak: s.streak, days: s.days, loops: s.loops, completed: s.completed, lessonsDone: s.lessonsDone, discovered: s.discovered, errors: s.errors, settings: s.settings, uiLang: s.uiLang };
+  };
+
+  it('a good save comes back as it was', () => {
+    useStore.getState().completeOnboarding(profile);
+    useStore.getState().discover('sakura');
+    useStore.getState().completeLesson('greetings', 25);
+    const good = JSON.parse(JSON.stringify(persisted()));
+    expect(repairPersisted(good, persisted())).toEqual(good);
+  });
+
+  it('wrong types fall back to fresh values and unreadable items are dropped, so no screen reads a null list or a card without a due date', () => {
+    useStore.getState().completeOnboarding(profile);
+    const base = persisted();
+    const word = base.vocab[0]!;
+    const fixed = repairPersisted(
+      {
+        profile: 'x',
+        vocab: [null, 5, { id: 'a', s: '' }, { ...word, card: undefined }, { ...word, id: word.id }, word],
+        xp: -4,
+        streak: null,
+        days: [],
+        loops: 'no',
+        completed: { konbini: { count: 2, best: 90 }, broken: 3 },
+        lessonsDone: null,
+        discovered: ['a', 5, '', 'a'],
+        errors: 3,
+        settings: null,
+        uiLang: 'fr',
+      },
+      base,
+    );
+    expect(fixed.profile).toBeNull();
+    expect(fixed.vocab).toHaveLength(3);
+    expect(new Set(fixed.vocab.map((v) => v.id)).size).toBe(3);
+    for (const v of fixed.vocab) expect(Number.isFinite(Date.parse(v.card.due))).toBe(true);
+    expect(fixed.xp).toBe(0);
+    expect(fixed.streak).toEqual(base.streak);
+    expect(fixed.days).toEqual({});
+    expect(fixed.loops).toEqual([]);
+    expect(fixed.completed).toEqual({ konbini: { count: 2, best: 90 } });
+    expect(fixed.lessonsDone).toEqual([]);
+    expect(fixed.discovered).toEqual(['a']);
+    expect(fixed.errors).toEqual({});
+    expect(fixed.settings).toEqual(base.settings);
+    expect(fixed.uiLang).toBe(base.uiLang);
+    expect(repairPersisted('not an object', base).vocab).toEqual([]);
   });
 });

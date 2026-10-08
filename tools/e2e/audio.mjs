@@ -4,6 +4,7 @@ import { mkdirSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright-core';
 import { chromiumPath } from './browser.mjs';
+import { afterOnboarding } from './flow.mjs';
 
 const out = (process.env.SHOTS ?? '/tmp/claude-0/-home-user-startup-of-the-year/56fcd5ff-0c95-5d74-a25c-f57776da4375/scratchpad/shots').replace(/\/?$/, '/');
 mkdirSync(out, { recursive: true });
@@ -45,8 +46,7 @@ await page.locator('.chips.wrap .chip').nth(2).click();
 await page.locator('.chips.wrap .chip').nth(4).click();
 await page.locator('.chips.wrap .chip').nth(5).click();
 await next();
-await page.waitForFunction(() => !!window.__world, null, { timeout: 30000 });
-await sleep(1500);
+await afterOnboarding(page, { settleMs: 1500 });
 await page.locator('.tip .btn').click().catch(() => {});
 
 step('open settings');

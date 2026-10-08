@@ -403,6 +403,7 @@ export function migrate(persisted: unknown, from: number, pack: GamePack): GameS
   if (typeof a.lastMode === 'string') audio.lastMode = a.lastMode.slice(0, 32);
   if (typeof a.lastCheckedAt === 'number' && Number.isFinite(a.lastCheckedAt)) audio.lastCheckedAt = a.lastCheckedAt;
   const homeSrc = rec(src.home);
+  const holds = (id: string): boolean => (ownedSplit.keep[id]?.qty ?? 0) >= 1;
   const out: GameState = {
     v: 1,
     packId: pack.id,
@@ -429,8 +430,9 @@ export function migrate(persisted: unknown, from: number, pack: GamePack): GameS
       perkBuys: intMap(stats.perkBuys),
     },
     owned: ownedSplit.keep,
-    outfit: { equipped: uniq(strs(rec(src.outfit).equipped, 30).map(alias)), colours: strMap(rec(src.outfit).colours) },
-    home: { tier: homeSrc.tier === 'ono' ? 'ono' : 'dorm', placed: strMap(homeSrc.placed) },
+    // what is worn or placed must be owned (an item the pack dropped, or a hand-edited save, would otherwise wear or place a ghost)
+    outfit: { equipped: uniq(strs(rec(src.outfit).equipped, 30).map(alias)).filter(holds), colours: strMap(rec(src.outfit).colours) },
+    home: { tier: homeSrc.tier === 'ono' ? 'ono' : 'dorm', placed: Object.fromEntries(Object.entries(strMap(homeSrc.placed)).filter(([, id]) => holds(id))) },
     tickets: {
       ...(typeof rec(rec(src.tickets).ramen).flavor === 'string' ? { ramen: { flavor: rec(rec(src.tickets).ramen).flavor as string } } : {}),
       ...(typeof rec(rec(src.tickets).station).place === 'string' ? { station: { place: rec(rec(src.tickets).station).place as string } } : {}),
@@ -451,7 +453,7 @@ export function migrate(persisted: unknown, from: number, pack: GamePack): GameS
     prep: prepSplit.keep,
     culture: cultureSplit.keep,
     titles: titlesSplit.keep,
-    activeTitle: activeTitle !== null && (pack.titles.length === 0 || pack.titles.some((x) => x.id === activeTitle)) ? activeTitle : null,
+    activeTitle: activeTitle !== null && titlesSplit.keep.includes(activeTitle) && (pack.titles.length === 0 || pack.titles.some((x) => x.id === activeTitle)) ? activeTitle : null,
     stickers: uniq(strs(src.stickers)),
     keepsakes: uniq(strs(src.keepsakes)),
     beats: beatsSplit.keep,

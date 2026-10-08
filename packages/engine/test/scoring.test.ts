@@ -249,6 +249,19 @@ describe('a session classifies every learner turn', () => {
     expect(s.hintsUsed).toBe(1);
   });
 
+  it('tapping Hint again while it is open is the same hint: one use, not two (the button stays on screen)', () => {
+    const s = open('cafe');
+    s.hint();
+    s.hint();
+    s.hint();
+    expect(s.hintsUsed).toBe(1);
+    typed(s, 'ラテをください');
+    expect(cls(s).cls).toBe('S');
+    // a hint opened after that turn is a new one
+    s.hint();
+    expect(s.hintsUsed).toBe(2);
+  });
+
   it('peekSuggestions shows nothing: the chips stay out of the shown set', () => {
     const s = open('cafe');
     expect(s.peekSuggestions()).toHaveLength(3);
@@ -388,6 +401,44 @@ describe('a session classifies every learner turn', () => {
     expect(cls(s)).toMatchObject({ substantive: false });
     const facts = s.facts({ mode: 'guided', prepared: false });
     expect(facts.turns[0].intentId).toBeUndefined();
+  });
+
+  it('a thank-you said early (management) does not make the thank-you that completes the goal a duplicate', () => {
+    // review: management turns used to enter the "already said" list, so the later, step-completing ありがとう was not substantive and a fully completed goal paid ¥0
+    const s = open('sato_directions');
+    typed(s, 'ありがとうございます'); // understood anywhere, not a turn of the scenario
+    expect(last(s)).toMatchObject({ global: true });
+    typed(s, '出口はどこですか');
+    typed(s, '右です');
+    expect(s.node.id).toBe('ok');
+    typed(s, 'ありがとうございます');
+    expect(s.ended).toBe(true);
+    expect(cls(s)).toMatchObject({ cls: 'I', substantive: true });
+    const facts = s.facts({ mode: 'guided', prepared: false });
+    expect(facts).toMatchObject({ goalDone: 3, goalTotal: 3 });
+    expect(facts.turns.filter((t) => t.substantive)).toHaveLength(3);
+    const pack = mkPack({ scenarioMeta: [{ id: 'sato_directions', kind: 'talk', band: 'A2', register: 'polite', pay: 'full' }] });
+    const settled = settleLoop(facts, { ...mkState(), words: { said: [] } } as never, pack);
+    expect(settled.practiceOnly).toBe(false);
+    expect(settled.loopPay).toBeGreaterThan(0);
+  });
+
+  it('a thin one-word turn that completed nothing does not turn the same word into a duplicate where it completes the goal', () => {
+    // review: ramen's ごちそうさま is understood at the "delicious?" node (no step) and again at the bill, which ends the visit and completes `bill`
+    const s = open('ramen');
+    typed(s, 'みそラーメンをください');
+    typed(s, '辛くないのがいいです');
+    typed(s, 'おいしいです');
+    expect(s.node.id).toBe('bill_prompt');
+    typed(s, 'ごちそうさま');
+    expect(s.node.id).toBe('price');
+    expect(cls(s)).toMatchObject({ thin: true, substantive: false });
+    typed(s, 'ごちそうさま');
+    expect(s.ended).toBe(true);
+    expect(cls(s).substantive).toBe(true);
+    const facts = s.facts({ mode: 'guided', prepared: false });
+    expect(facts.goalDone).toBe(facts.goalTotal);
+    expect(facts.turns.filter((t) => t.substantive).length).toBeGreaterThanOrEqual(facts.goalTotal);
   });
 
   describe('six unmatched turns in a row end the conversation gently', () => {

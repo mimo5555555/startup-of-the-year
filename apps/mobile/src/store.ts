@@ -196,6 +196,62 @@ function starterWords(): Array<Omit<VocabItem, 'id' | 'savedAt' | 'card'>> {
   });
 }
 
+// ---------------------------------------------------------------------------------------------------------------
+// A damaged or hand-edited save is repaired, never trusted: every screen and the game's `GameView` read these fields without checks, so
+// one wrong type (a null list, a card without a due date) would be a blank screen with no way out but clearing the site data.
+// ---------------------------------------------------------------------------------------------------------------
+
+const isObj = (v: unknown): v is Record<string, unknown> => typeof v === 'object' && v !== null && !Array.isArray(v);
+const strList = (v: unknown): string[] => (Array.isArray(v) ? [...new Set(v.filter((x): x is string => typeof x === 'string' && x !== ''))] : []);
+const fin = (v: unknown, d: number): number => (typeof v === 'number' && Number.isFinite(v) && v >= 0 ? v : d);
+
+const validCard = (c: unknown): c is SrsCard =>
+  isObj(c) && typeof c.due === 'string' && Number.isFinite(Date.parse(c.due)) && ['stability', 'difficulty', 'reps', 'lapses', 'state'].every((k) => typeof c[k] === 'number' && Number.isFinite(c[k]));
+
+function repairVocab(v: unknown): VocabItem[] {
+  if (!Array.isArray(v)) return [];
+  const seen = new Set<string>();
+  const out: VocabItem[] = [];
+  for (const raw of v) {
+    if (!isObj(raw) || typeof raw.s !== 'string' || raw.s === '') continue;
+    const id = typeof raw.id === 'string' && raw.id !== '' && !seen.has(raw.id) ? raw.id : uid('w_');
+    seen.add(id);
+    out.push({
+      ...(raw as unknown as VocabItem),
+      id,
+      kind: raw.kind === 'phrase' ? 'phrase' : 'word',
+      rom: typeof raw.rom === 'string' ? raw.rom : '',
+      meaning: isObj(raw.meaning) ? (raw.meaning as VocabItem['meaning']) : {},
+      source: typeof raw.source === 'string' ? (raw.source as VocabItem['source']) : 'goal',
+      savedAt: typeof raw.savedAt === 'string' && Number.isFinite(Date.parse(raw.savedAt)) ? raw.savedAt : new Date().toISOString(),
+      card: validCard(raw.card) ? raw.card : newSrsCard(),
+    });
+  }
+  return out;
+}
+
+/** The saved value as a `Persisted`, with every field the right shape (what cannot be read falls back to a fresh value). */
+export function repairPersisted(saved: unknown, base: Persisted): Persisted {
+  const src = isObj(saved) ? saved : {};
+  const streak = isObj(src.streak) && typeof src.streak.days === 'number' && Number.isFinite(src.streak.days) ? ({ ...base.streak, ...src.streak } as StreakState) : base.streak;
+  const objMap = <T,>(v: unknown, ok: (x: unknown) => boolean): Record<string, T> =>
+    isObj(v) ? (Object.fromEntries(Object.entries(v).filter(([, x]) => ok(x))) as Record<string, T>) : {};
+  return {
+    profile: isObj(src.profile) && typeof src.profile.name === 'string' && isObj(src.profile.avatar) ? (src.profile as unknown as Profile) : null,
+    vocab: repairVocab(src.vocab),
+    xp: fin(src.xp, 0),
+    streak,
+    days: objMap<DayStat>(src.days, isObj),
+    loops: Array.isArray(src.loops) ? (src.loops.filter(isObj) as unknown as LoopRecord[]) : [],
+    completed: objMap<{ count: number; best: number }>(src.completed, (x) => isObj(x) && typeof x.count === 'number' && typeof x.best === 'number'),
+    lessonsDone: strList(src.lessonsDone),
+    discovered: strList(src.discovered),
+    errors: objMap<number>(src.errors, (x) => typeof x === 'number' && Number.isFinite(x)),
+    settings: { ...DEFAULT_SETTINGS, ...(isObj(src.settings) ? src.settings : {}) } as Settings,
+    uiLang: src.uiLang === 'ar' || src.uiLang === 'en' ? src.uiLang : base.uiLang,
+  };
+}
+
 let nextToast = 1;
 let saveTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -218,9 +274,9 @@ export const useStore = create<State>()((set, get) => ({
   toast: null,
 
   hydrate() {
-    const saved = loadJson<Partial<Persisted> | null>(store, KEY, null);
+    const saved = loadJson<unknown>(store, KEY, null);
     const base = initialPersisted();
-    const merged: Persisted = { ...base, ...(saved ?? {}), settings: { ...DEFAULT_SETTINGS, ...(saved?.settings ?? {}) } };
+    const merged: Persisted = repairPersisted(saved, base);
     set({ ...merged, ready: true, screen: merged.profile ? 'world' : 'onboarding' });
   },
 

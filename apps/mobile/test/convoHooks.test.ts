@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { CHARACTERS, JP_PACK, scenarioById } from '@lw/content';
 import { BALANCE, createGameState, reduce, type GameState, type GameView, type InputEvent, type ReduceResult } from '@lw/game';
 import { ConversationSession } from '@lw/engine';
-import { createConvoGame, mergeQuotes, twistFor, yenVar } from '../src/game/convoHooks';
+import { createConvoGame, leaveAction, mergeQuotes, twistFor, yenVar } from '../src/game/convoHooks';
 
 const NOW = new Date(2030, 0, 15, 12).getTime();
 
@@ -63,6 +63,19 @@ describe('twist flag (§6.2)', () => {
     const hits = Array.from({ length: 300 }, (_, i) => twistFor(i, 'konbini', 1 + (i % 7))).filter(Boolean).length;
     expect(hits).toBeGreaterThan(60);
     expect(hits).toBeLessThan(140);
+  });
+});
+
+describe('leaving a conversation (review)', () => {
+  it('a finished conversation is settled by the X, because its purchase was already charged at the end node; an open one asks first', () => {
+    const r = rig('cafe');
+    r.session.start();
+    expect(leaveAction(r.session.ended)).toBe('confirm');
+    tapThrough(r.session);
+    // the drink is paid for, and nothing but `conversation_done` pays the conversation
+    expect(r.events.filter((e) => e.t === 'purchase')).toHaveLength(1);
+    expect(r.session.ended).toBe(true);
+    expect(leaveAction(r.session.ended)).toBe('settle');
   });
 });
 

@@ -771,6 +771,14 @@ html[dir='rtl'] .talk-btn {
   gap: 4px;
   font-size: 15px;
 }
+/* a short (landscape) phone: the card sits at the bottom and scrolls rather than leaving through the top of the screen */
+@media (max-height: 520px) {
+  .tip {
+    bottom: calc(var(--safe-bottom) + 8px);
+    max-height: calc(100% - var(--safe-top) - var(--safe-bottom) - 16px);
+    overflow-y: auto;
+  }
+}
 
 /* ---------- scrims, modals, word sheet, toast ---------- */
 .scrim {
@@ -1300,6 +1308,9 @@ html[lang='ar'] .hint-card small {
   padding: 0 14px;
   overflow-x: auto;
   scrollbar-width: none;
+  /* room for the 44 px touch area of the chips (see .tool::after); the margin keeps the layout as it was */
+  padding-block: 5px;
+  margin-block: -5px;
 }
 .tools::-webkit-scrollbar {
   display: none;
@@ -1318,6 +1329,27 @@ html[lang='ar'] .hint-card small {
   font-size: 13px;
   cursor: pointer;
   white-space: nowrap;
+}
+.tool {
+  position: relative;
+}
+/* the chip looks 35 px tall; the tap area is 44 px (§2.5 touch targets) */
+.tool::after,
+.mini::after,
+.seg::after {
+  content: '';
+  position: absolute;
+  inset: -5px -2px;
+}
+.mini::after {
+  inset: -7px;
+}
+.seg::after {
+  inset: -7px 0;
+}
+.mini,
+.seg {
+  position: relative;
 }
 .tool:disabled {
   opacity: 0.45;
@@ -1556,6 +1588,10 @@ html[lang='ar'] .done-card strong {
   text-align: center;
   gap: 14px;
   flex: 1;
+}
+.center-col > .btn.wide {
+  flex: none;
+  align-self: stretch;
 }
 .lead {
   font-size: 17px;

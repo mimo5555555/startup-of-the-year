@@ -20,6 +20,7 @@ import { setLoopFactsHook, flushNow, useStore, type VocabItem } from '../store';
 import { useUi, type ConvoRequest, type ScreenArgs } from '../ui';
 import { PACK, beatById } from './pack';
 import { flushGameNow, getGame, useGame } from './gameStore';
+import { applyImplicitReview } from './srsHooks';
 import { gameView } from './selectors';
 
 /** The beat Hanako plays when the player comes back after BALANCE.nextGoal.awayDays or more (§11.7; no streak scolding). */
@@ -92,15 +93,19 @@ function wordFor(op: SrsOp): NewWord | null {
   return { kind: 'word', s: token.s, r: token.r, rom: token.rom, meaning: token.gloss ?? { en: entry.en, ar: entry.ar }, source, key: op.key };
 }
 
-/** Applies the reducer's card requests through the v1 store's own actions (`saveWord`, `reviewWord`). */
+/**
+ * Applies the reducer's card requests through the v1 store's own actions (`saveWord`, `reviewWord`). A `review` op is the implicit
+ * "use = review" of §11.5 (the only kind the reducer asks for): it goes through the gate, so only a due, unparked card that was not
+ * reviewed today moves, once a day (class S/T turns never ask).
+ */
 export function applySrsOps(ops: SrsOp[]): void {
   const st = useStore.getState();
   for (const op of ops) {
-    const have = st.vocab.find((v) => v.key === op.key || v.s === op.key);
     if (op.op === 'review') {
-      if (have) st.reviewWord(have.id, op.grade ?? 'good');
+      applyImplicitReview(op.key);
       continue;
     }
+    const have = st.vocab.find((v) => v.key === op.key || v.s === op.key);
     if (have) continue;
     const word = wordFor(op);
     if (word) st.saveWord(word, { dueInMin: op.dueInMin });
@@ -139,6 +144,34 @@ const flushAll = () => {
   flushGameNow();
 };
 
+/**
+ * Lessons, saved words and read signs live in the v1 store (§14.5 "Who dispatches"): the game is told the moment one is added, so the
+ * objective ticks, the toast shows and a finished chapter pays now, not at the next unrelated event. Only additions after this call.
+ */
+function watchLegacyProgress(): () => void {
+  let prev = useStore.getState();
+  return useStore.subscribe((s) => {
+    const was = prev;
+    prev = s;
+    if (!s.profile) return;
+    for (const id of s.lessonsDone) if (!was.lessonsDone.includes(id)) dispatch({ t: 'lesson_done', id });
+    if (s.vocab !== was.vocab) {
+      const known = new Set(was.vocab.map((v) => v.id));
+      for (const v of s.vocab) if (!known.has(v.id)) dispatch({ t: 'word_saved', key: v.key ?? v.s });
+    }
+    for (const id of s.discovered) if (!was.discovered.includes(id)) dispatch({ t: 'sign_found', id });
+  });
+}
+
+/**
+ * A lesson was played to its end (Lesson screen). The v1 store files a lesson once, so a replay adds nothing the watcher above can
+ * see; the game still counts the lesson once per day (`g_lesson`, §7.4). A first finish was already told by the watcher, and the
+ * reducer's per-day dedupe makes this second telling a no-op.
+ */
+export function lessonFinished(id: string): void {
+  if (useStore.getState().profile) dispatch({ t: 'lesson_done', id });
+}
+
 function listenToThePage(): () => void {
   if (typeof window === 'undefined' || typeof document === 'undefined') return () => {};
   const win = window;
@@ -173,7 +206,12 @@ export function init(): Promise<void> {
     useGame.setState({ hydrated: true });
     flushGameNow();
     setLoopFactsHook((facts) => void dispatch({ t: 'conversation_done', facts }));
-    removeListeners = listenToThePage();
+    const unlisten = listenToThePage();
+    const unwatch = watchLegacyProgress();
+    removeListeners = () => {
+      unlisten();
+      unwatch();
+    };
     // a handle for the e2e scripts and for QA in the console, as `window.__world` is for the 3D world
     if (typeof window !== 'undefined') Object.assign(window, { __lw: { dispatch, getGame, useGame, useStore, useUi } });
     observeDay();

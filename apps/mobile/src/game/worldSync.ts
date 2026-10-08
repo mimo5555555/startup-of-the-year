@@ -270,7 +270,13 @@ export function npcBadge(env: InteractionEnv, c: Character, completed: Record<st
 
 /** Which shops are open at the current chapter (`ShopDef.openChapter`, D36). A shop the pack does not describe is left as the world has it (open). */
 export function shopStates(pack: GamePack, state: GameState): Array<[string, boolean]> {
-  return pack.shops.map((s) => [s.id, state.chapter.n >= s.openChapter]);
+  const out: Array<[string, boolean]> = pack.shops.map((s) => [s.id, state.chapter.n >= s.openChapter]);
+  // a shop that no ShopDef describes yet (Fuku-Fuku, Aiko's stall... until their goods arrive) still has its shutter: it opens with the
+  // first chapter whose `opens` lists it, so Chapter 2 opens Fuku-Fuku even before the shop has a catalogue
+  const first = new Map<string, number>();
+  for (const c of pack.chapters) for (const o of c.opens) if (o.kind === 'shop' && !pack.shops.some((s) => s.id === o.id)) first.set(o.id, Math.min(first.get(o.id) ?? c.n, c.n));
+  for (const [id, n] of first) out.push([id, state.chapter.n >= n]);
+  return out;
 }
 
 /** Puts the 3D world in line with the game: shutters, NPC badges, ride and speed. Safe to call after every state change. */

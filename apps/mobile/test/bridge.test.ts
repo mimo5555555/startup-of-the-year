@@ -3,7 +3,7 @@ import { beforeEach, describe, expect, it } from 'vitest';
 import { CHARACTERS } from '@lw/content';
 import { BALANCE, type Beat, type ConversationFacts } from '@lw/game';
 import { putSaved, wipeSaved } from './_fakeStorage';
-import { WELCOME_BACK_BEAT, applySrsOps, completeBeat, dispatch, init, observeDay, openScreen, resetBridgeForTests, routeEffects } from '../src/game/bridge';
+import { WELCOME_BACK_BEAT, applySrsOps, completeBeat, dispatch, init, lessonFinished, observeDay, openScreen, resetBridgeForTests, routeEffects } from '../src/game/bridge';
 import { GAME_KEY, flushGameNow, getGame, useGame } from '../src/game/gameStore';
 import { PACK } from '../src/game/pack';
 import { flushNow, useStore, type Profile } from '../src/store';
@@ -41,6 +41,44 @@ beforeEach(async () => {
   wipeSaved();
   await init();
   useStore.getState().completeOnboarding(profile);
+});
+
+describe('progress made in the v1 store reaches the game at once (§14.5 "Who dispatches")', () => {
+  it('finishing a lesson, saving words and reading signs tick their objectives without any other event', () => {
+    expect(getGame().chapter.done.c1_1).toBeUndefined();
+    useStore.getState().completeLesson('greetings', 25);
+    expect(getGame().chapter.done.c1_1).toBeDefined();
+
+    for (const id of ['sakura', 'cat', 'bench']) useStore.getState().discover(id);
+    expect(getGame().chapter.done.c1_3).toBeUndefined();
+    useStore.getState().discover('pond');
+    expect(getGame().chapter.done.c1_3).toBeDefined();
+
+    expect(getGame().chapter.done.c1_4).toBeUndefined();
+    for (const s of ['猫', '犬', '鳥', '魚', '花']) useStore.getState().saveWord({ kind: 'word', s, rom: s, meaning: { en: s, ar: s }, source: 'sign' });
+    expect(getGame().chapter.done.c1_4).toBeDefined();
+  });
+});
+
+describe('a replayed lesson still counts for the day (g_lesson)', () => {
+  it('the v1 store files a lesson once, but finishing it again on a later day ticks that day\'s lesson counter, once', () => {
+    const day = (g = getGame()) => g.clock.dayIndex;
+    useStore.getState().completeLesson('greetings', 25);
+    const d0 = day();
+    expect(getGame().daily.counters[d0]?.lesson).toBe(1);
+    // the same day again changes nothing (no farming)
+    useStore.getState().completeLesson('greetings', 25);
+    lessonFinished('greetings');
+    expect(getGame().daily.counters[d0]?.lesson).toBe(1);
+    // tomorrow the v1 store adds nothing, and the game still counts it, once
+    observeDay(Date.now() + DAY);
+    const d1 = day();
+    expect(d1).toBe(d0 + 1);
+    useStore.getState().completeLesson('greetings', 25);
+    lessonFinished('greetings');
+    lessonFinished('greetings');
+    expect(getGame().daily.counters[d1]?.lesson).toBe(1);
+  });
 });
 
 describe('day_observed', () => {
@@ -208,11 +246,46 @@ describe('dispatch routes effects', () => {
     const card = v.find((x) => x.key === 'p_test')!;
     expect(card).toMatchObject({ kind: 'phrase', source: 'goal', s: 'これをください。' });
     expect(new Date(card.card.due).getTime()).toBeGreaterThan(Date.now() + 1400 * 60_000);
+    // a card that is not due yet is not reviewed by use (§11.5: a DUE card, once a day)
     applySrsOps([{ op: 'review', key: 'p_test', grade: 'good' }]);
-    expect(useStore.getState().vocab.find((x) => x.key === 'p_test')!.card.reps).toBe(1);
+    expect(useStore.getState().vocab.find((x) => x.key === 'p_test')!.card.reps).toBe(0);
     // an unknown word key is ignored, not a crash
     expect(() => applySrsOps([{ op: 'add', key: 'zzz-not-a-word', kind: 'word', source: 'sign' }])).not.toThrow();
     expect(useStore.getState().vocab.length).toBe(before + 1);
+  });
+});
+
+describe('use = review (§11.5)', () => {
+  const word = { kind: 'word' as const, s: 'テスト', rom: 'tesuto', meaning: { en: 'test', ar: 'اختبار' }, source: 'goal' as const, key: 'w_use_review' };
+  const reps = () => useStore.getState().vocab.find((x) => x.key === 'w_use_review')!.card.reps;
+
+  it('reviews a due card once a day, however many times the word is used, and never a card that is not due or is parked', () => {
+    useStore.getState().saveWord(word);
+    applySrsOps([{ op: 'review', key: 'w_use_review', kind: 'word', grade: 'good' }]);
+    expect(reps()).toBe(1);
+    // the same word again in the next conversation of the day: the card is no longer due and was reviewed today
+    applySrsOps([{ op: 'review', key: 'w_use_review', kind: 'word', grade: 'good' }]);
+    applySrsOps([{ op: 'review', key: 'w_use_review', kind: 'word', grade: 'good' }]);
+    expect(reps()).toBe(1);
+    // a parked card (no due date) stays parked
+    const id = useStore.getState().vocab.find((x) => x.key === 'w_use_review')!.id;
+    useStore.setState((st) => ({ vocab: st.vocab.map((v) => (v.id === id ? { ...v, card: { ...v.card, due: '9999-12-31T00:00:00.000Z', last_review: undefined } } : v)) }));
+    applySrsOps([{ op: 'review', key: 'w_use_review', kind: 'word', grade: 'good' }]);
+    expect(reps()).toBe(1);
+    expect(useStore.getState().vocab.find((x) => x.key === 'w_use_review')!.card.due).toBe('9999-12-31T00:00:00.000Z');
+  });
+
+  it('a class-I turn in a settled conversation reviews its due word cards through the real dispatch, once', () => {
+    useStore.getState().saveWord({ ...word, s: 'コーヒー', key: 'w_use_review' });
+    const f = (sessionId: string, norm: string): ConversationFacts => ({
+      sessionId, scenarioId: 'cafe', characterId: 'yuki', mode: 'guided', abandoned: false, durationSec: 60, goalDone: 4, goalTotal: 4,
+      turns: [{ id: 1, cls: 'I', credit: 1, substantive: true, contentTokens: 2, stepIds: ['order'], norm, newWords: [], words: ['コーヒー'] }],
+      fallbacks: 0, hintUses: 0, accuracy: 100, requestsPolite: true, prepared: false, remembered: {},
+    });
+    dispatch({ t: 'conversation_done', facts: f('s_ur1', 'a') });
+    expect(reps()).toBe(1);
+    dispatch({ t: 'conversation_done', facts: f('s_ur2', 'b') });
+    expect(reps()).toBe(1);
   });
 });
 

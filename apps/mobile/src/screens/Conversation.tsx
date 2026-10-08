@@ -29,7 +29,7 @@ import { ReceiptSheet } from '../components/game/ReceiptSheet';
 import { setDebrief, type KeepLine } from '../components/game/DebriefGame';
 import { characterById, displayName, scenarioForCharacter } from '../content';
 import { dispatch } from '../game/bridge';
-import { createConvoGame } from '../game/convoHooks';
+import { createConvoGame, leaveAction } from '../game/convoHooks';
 import { getGame } from '../game/gameStore';
 import { PACK } from '../game/pack';
 import { gameView } from '../game/selectors';
@@ -119,6 +119,8 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
   /** consecutive spoken lines that were not taken straight away (low confidence): after three the draft moves to the keyboard */
   const lowStreak = useRef(0);
   const finished = useRef(false);
+  /** set the moment a turn is submitted and cleared when the reply has appeared: `busy` below is React state and lags a tick, so two taps in one task would both get through */
+  const submitting = useRef(false);
 
   const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -225,6 +227,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
   };
 
   const afterSubmit = (result: SubmitResult) => {
+    submitting.current = true;
     const idx = session.turns.indexOf(result.learner);
     setVisible(idx + 1);
     setHint(null);
@@ -235,6 +238,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
     setTyping(true);
     if (!result.learner.matched) blip('bad', settings.autoSpeak);
     later(() => {
+      submitting.current = false;
       setTyping(false);
       setVisible(session.turns.length);
       force();
@@ -252,7 +256,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
   const busy = typing || phase !== 'play' || paused;
 
   const run = (inp: SubmitInput) => {
-    if (busy || session.ended) return;
+    if (busy || submitting.current || session.ended) return;
     stopSpeech();
     dropMic();
     afterSubmit(session.submit(inp));
@@ -308,7 +312,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
   };
 
   const pick = (i: number) => {
-    if (busy) return;
+    if (busy || submitting.current) return;
     stopSpeech();
     dropMic();
     afterSubmit(session.pickSuggestion(i));
@@ -447,6 +451,12 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
     onClose();
   };
 
+  /** The X and the pause menu's Leave: a finished conversation is settled (its purchase is already paid), an open one asks first. */
+  const requestLeave = () => {
+    if (leaveAction(session.ended) === 'settle') finish();
+    else setConfirmLeave(true);
+  };
+
   const shownTurns = session.turns.slice(0, visible);
   const lastTurn = session.turns[visible - 1];
   // Real mode never shows the chips (and never marks them shown: only the Hint text is, §11.2)
@@ -462,7 +472,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
   return (
     <div className="convo" dir={dir} ref={rootRef}>
       <header className="convo-head glass-bar">
-        <button className="icon-btn ghost" onClick={() => setConfirmLeave(true)} aria-label={t('c.leave')}>
+        <button className="icon-btn ghost" onClick={requestLeave} aria-label={t('c.leave')}>
           <Icon name="x" size={22} />
         </button>
         <div className="who">
@@ -767,7 +777,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
             <button className="btn primary wide" onClick={() => { setPaused(false); world?.setPaused(false); }}>
               <Icon name="play" size={18} /> {t('c.resume')}
             </button>
-            <button className="btn soft wide" onClick={() => { world?.setPaused(false); setConfirmLeave(true); setPaused(false); }}>
+            <button className="btn soft wide" onClick={() => { world?.setPaused(false); setPaused(false); requestLeave(); }}>
               {t('c.leave')}
             </button>
           </div>

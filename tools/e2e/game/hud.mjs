@@ -77,11 +77,14 @@ await assertNoHScroll(page, 'hud');
 await assertInside('hud');
 await assertTargets('.hud-wallet, .hud-track, .hud-dream, .hud .icon-btn', 'hud');
 
-t.step('one option: Talk starts the conversation directly');
+t.step('one option: Talk starts the conversation (through Prepare, which Skip leaves in one tap)');
 await page.evaluate(() => window.__world.teleportNear('tanaka'));
 await t.sleep(900);
 await t.shot('02-near-tanaka');
 await page.locator('.talk-btn').click();
+// the konbini has a pocket to study and Chapter 1 has not been prepared: Talk opens Prepare first (§11.1); Skip is one tap
+await page.waitForSelector('.msg.char, .prep', { timeout: 15000 });
+if (await page.locator('.prep').count()) await page.locator('.prep-foot .prep-link').click();
 await page.waitForSelector('.msg.char', { timeout: 15000 });
 assert.equal(await page.locator('.hud-sheet').count(), 0, 'no sheet for a character with one option');
 await assertNoHScroll(page, 'conversation');
@@ -163,9 +166,14 @@ assert.equal(await page.locator('.word-scrim').count(), 0, 'no word card the sec
 await closePanel();
 
 t.step('a door that is not open says so');
-await page.evaluate(() => window.__world.simulatePick('door:mio'));
-await t.sleep(400);
-assert.ok((await page.locator('.toast, [role=status]').allInnerTexts()).join(' ').includes('まだ入れません'), 'the tooltip says 「まだ入れません」');
+// one toast shows at a time and a game toast (an objective ticking) may take the place of this one: tap again, up to three times
+let doorToast = '';
+for (let i = 0; i < 3 && !doorToast.includes('まだ入れません'); i++) {
+  await page.evaluate(() => window.__world.simulatePick('door:mio'));
+  await t.sleep(500);
+  doorToast = (await page.locator('.toast, [role=status]').allInnerTexts()).join(' ');
+}
+assert.ok(doorToast.includes('まだ入れません'), 'the tooltip says 「まだ入れません」');
 
 t.step('menu: the game group above the three original entries');
 await page.locator('.icon-btn.glass').first().click();

@@ -12,7 +12,7 @@ import { Ltr, WalletPill } from '../src/components/game/WalletPill';
 import { useGame } from '../src/game/gameStore';
 import { resetBridgeForTests } from '../src/game/bridge';
 import { useStore, type Profile } from '../src/store';
-import { interactionRows, type InteractionEnv } from '../src/game/worldSync';
+import { goodsOf, interactionRows, type InteractionEnv } from '../src/game/worldSync';
 import { gameView } from '../src/game/selectors';
 
 // The HUD pieces rendered to static markup in both directions: no DOM needed, the stores are read as they are.
@@ -121,6 +121,22 @@ describe('sheets', () => {
     expect(out).toContain('準備中');
     expect(out).toContain('Opens in Chapter 4');
     expect(out).toContain('Hikari Denki');
+  });
+
+  it('the goods sheet shows furigana and romaji only when the settings ask for them', () => {
+    setLang('en');
+    const shop = JP_PACK.shops.find((x) => goodsOf(JP_PACK, x.id).some((g) => g.price >= 1));
+    expect(shop, 'a shop with goods').toBeTruthy();
+    const set = (furigana: boolean, romaji: boolean) => {
+      useStore.setState({ settings: { ...useStore.getState().settings, furigana, romaji } });
+      Object.assign(useStore.getInitialState(), useStore.getState());
+    };
+    const sheet = () => html(createElement(GoodsSheet, { shopId: shop!.id, onClose: () => {} }));
+    set(false, false);
+    expect(sheet()).not.toMatch(/class="rt"|class="rm"/);
+    set(true, true);
+    expect(sheet()).toMatch(/class="rt"/);
+    expect(sheet()).toMatch(/class="rm"/);
   });
 
   it('the goods sheet has an empty state (the shops are filled by slice 3) and never a dead end', () => {

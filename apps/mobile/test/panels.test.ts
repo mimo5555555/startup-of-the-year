@@ -364,6 +364,18 @@ describe('station ticket machine', () => {
   });
 });
 
+describe('the shipped pack sells at the station (integration regression: the app uses JP_PACK as it is)', () => {
+  it('JP_PACK itself lists the station counter and the vending machines, so the IC card and a drink can be priced and charged', () => {
+    expect(JP_PACK.shops.find((s) => s.id === 'station')?.sells).toContain('ic_card');
+    expect(JP_PACK.shops.find((s) => s.id === 'vending')?.sells).toContain('v_water');
+    const w = world({ cash: 3000, pack: JP_PACK });
+    const r = icHooks({ pack: JP_PACK, state: () => w.state, view: () => view, dispatch: w.dispatch, sessionId: 's-real' }).charge({ icService: 'card', chargeAmount: '1000' });
+    expect(r.ok).toBe(true);
+    expect(w.state.wallet).toMatchObject({ cash: 1500, ic: 1000 });
+    expect(hasIc(JP_PACK, w.state)).toBe(true);
+  });
+});
+
 describe('icHooks: the station_ic counter against the real reducer', () => {
   const hooksFor = (w: ReturnType<typeof world>, sessionId = 's1') => icHooks({ pack: w.pack, state: () => w.state, view: () => view, dispatch: w.dispatch, sessionId });
   const text = (v: { ja: string } | undefined) => (v ? plainText(tokenize(v.ja, LEXICON).tokens) : '');

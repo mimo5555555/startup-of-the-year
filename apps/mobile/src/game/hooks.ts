@@ -1,5 +1,5 @@
 // React hooks over the game store (docs/GAME_DESIGN.md §14.5). They only read; changes go through `bridge.dispatch`.
-import { useEffect, useMemo } from 'react';
+import { useEffect, useMemo, useSyncExternalStore } from 'react';
 import type { ChapterDef, ChapterStatus, DerivedFlags, Disclosure, DreamProgress, GameView, NextGoal, WalletState } from '@lw/game';
 import { useStore } from '../store';
 import { useUi } from '../ui';
@@ -12,14 +12,35 @@ export const useGameState = (): GameStore => useGame();
 /** True once `bridge.init` has hydrated and seeded the game store; nothing that needs `GameView` may render before. */
 export const useGameReady = (): boolean => useGame((s) => s.hydrated);
 
-/** Read-only data from the v1 store for the pure helpers (`nextBestGoal`, `disclosure`...). */
+// One shared timer for every `useGameView`: a card that falls due while the player walks around (the 10-minute echo cards) must show up
+// in the tracker without any other change to the vocabulary.
+const minuteListeners = new Set<() => void>();
+let minuteTimer: ReturnType<typeof setInterval> | null = null;
+const minuteNow = (): number => Math.floor(Date.now() / 60_000);
+function subscribeMinute(fn: () => void): () => void {
+  minuteListeners.add(fn);
+  minuteTimer ??= setInterval(() => minuteListeners.forEach((f) => f()), 20_000);
+  return () => {
+    minuteListeners.delete(fn);
+    if (minuteListeners.size === 0 && minuteTimer) {
+      clearInterval(minuteTimer);
+      minuteTimer = null;
+    }
+  };
+}
+
+/** Read-only data from the v1 store for the pure helpers (`nextBestGoal`, `disclosure`...). Re-read every minute so "due" stays true. */
 export function useGameView(): GameView {
   const vocab = useStore((s) => s.vocab);
   const discovered = useStore((s) => s.discovered);
   const lessonsDone = useStore((s) => s.lessonsDone);
   const streak = useStore((s) => s.streak);
   const profile = useStore((s) => s.profile);
-  return useMemo(() => gameView({ vocab, discovered, lessonsDone, streak, profile }), [vocab, discovered, lessonsDone, streak, profile]);
+  const minute = useSyncExternalStore(subscribeMinute, minuteNow, minuteNow);
+  return useMemo(
+    () => gameView({ vocab, discovered, lessonsDone, streak, profile }, Math.max(Date.now(), minute * 60_000)),
+    [vocab, discovered, lessonsDone, streak, profile, minute],
+  );
 }
 
 export const useWallet = (): WalletState => useGame((s) => s.wallet);

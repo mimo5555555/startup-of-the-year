@@ -7,6 +7,7 @@ import { Portrait } from '../components/Portrait';
 import { useStore } from '../store';
 import { useT } from '../hooks';
 import { characterById } from '../content';
+import { lessonFinished } from '../game/bridge';
 import { blip, speakJa, stt } from '../services';
 
 type Stage = 'intro' | 'cards' | 'quiz' | 'say' | 'done';
@@ -62,6 +63,8 @@ export function Lesson() {
   const finish = () => {
     for (const c of cards) saveWord({ kind: 'phrase', s: c.ja, rom: c.rom, meaning: { en: c.en, ar: c.ar }, source: 'lesson' });
     completeLesson(lessonId, 25 + score * 3);
+    // a replay is not a new lesson for the v1 store, but it still counts for today's goal
+    lessonFinished(lessonId);
     blip('level', settings.autoSpeak);
     setStage('done');
   };

@@ -29,6 +29,7 @@ export function GoodsSheet({ shopId, window: peek = false, onClose }: { shopId: 
   const game = useGameState();
   const age = useStore((s) => s.profile?.age ?? 'adults');
   const furigana = useStore((s) => s.settings.furigana);
+  const romaji = useStore((s) => s.settings.romaji);
   const openWord = useUi((s) => s.openWord);
   const shop = shopById(shopId);
   const goods = useMemo(() => goodsOf(PACK, shopId), [shopId]);
@@ -68,7 +69,7 @@ export function GoodsSheet({ shopId, window: peek = false, onClose }: { shopId: 
             return (
               <li key={g.id} className={`hud-good${locked || young ? ' locked' : ''}`}>
                 <div className="hud-good-main">
-                  <JaText tokens={[nameToken(g.name)]} furigana={furigana} romaji={false} size="md" onTap={(tok) => openWord({ token: tok, source: 'sign' })} />
+                  <JaText tokens={[nameToken(g.name)]} furigana={furigana} romaji={romaji} size="md" onTap={(tok) => openWord({ token: tok, source: 'sign' })} />
                   <span className="hud-good-mean" dir="auto">
                     {g.name[lang]}
                   </span>
@@ -100,7 +101,7 @@ export function GoodsSheet({ shopId, window: peek = false, onClose }: { shopId: 
                   {ja && (
                     <button className="hud-say" onClick={() => speakJa(ja.markup.replaceAll('|', ''), { rate: 0.8 })} aria-label={t('hud.sayPrice')}>
                       <Icon name="volume" size={16} />
-                      <JaText tokens={lineTokens(ja.markup)} furigana romaji={false} size="sm" />
+                      <JaText tokens={lineTokens(ja.markup)} furigana={furigana} romaji={romaji} size="sm" />
                     </button>
                   )}
                 </div>

@@ -12,6 +12,7 @@ import { resetBridgeForTests } from '../src/game/bridge';
 import { useGame } from '../src/game/gameStore';
 import { PACK } from '../src/game/pack';
 import { gameView } from '../src/game/selectors';
+import { Culture } from '../src/screens/Culture';
 import { Quests } from '../src/screens/Quests';
 import { StoryBeat, prefillKana } from '../src/screens/StoryBeat';
 import { useStore, type Profile } from '../src/store';
@@ -288,6 +289,19 @@ describe('strings of the quests module', () => {
     for (const key of ['quests.objectiveDone', 'quests.catchUp', 'quests.goalDone', 'quests.streak', 'quests.chapterDone', 'quests.trio', 'dream.stepDone', 'dream.done']) {
       expect(STRINGS.en[key as keyof typeof STRINGS.en], `en ${key}`).toBeTruthy();
       expect(STRINGS.ar[key as keyof typeof STRINGS.ar], `ar ${key}`).toMatch(/[؀-ۿ]/);
+    }
+  });
+});
+
+describe('the screen behind the Culture tab', () => {
+  // the tab is offered from Chapter 1 and the cards are authored in a later slice: its button must not lead to a blank page
+  it('says what will collect there, in both languages', () => {
+    for (const lang of ['en', 'ar'] as const) {
+      setLang(lang);
+      const out = html(createElement(Culture));
+      expect(out).toContain('data-culture-empty');
+      expect(text(out)).toContain(STRINGS[lang]['culture.empty']);
+      expect(text(out)).not.toMatch(/\bculture\.empty\b|quests\.cultureCount/);
     }
   });
 });

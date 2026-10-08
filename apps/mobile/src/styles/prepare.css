@@ -305,3 +305,17 @@
   padding: 10px 12px;
   font-size: 14px;
 }
+
+/* a short (landscape) phone: the footer buttons sit side by side so the card above keeps room */
+@media (max-height: 520px) {
+  .prep-foot {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px 10px;
+    padding-top: 6px;
+  }
+  .prep-foot > * {
+    flex: 1 1 auto;
+  }
+}

@@ -2,6 +2,7 @@
 import { mkdirSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { launch } from './browser.mjs';
+import { afterOnboarding, talkToConversation } from './flow.mjs';
 
 const out = new URL('./shots/', import.meta.url).pathname;
 mkdirSync(out, { recursive: true });
@@ -23,8 +24,7 @@ await next();
 await next();
 for (const i of [0, 1, 2]) await page.locator('.chips.wrap .chip').nth(i).click();
 await next();
-await page.waitForFunction(() => !!window.__world, null, { timeout: 30000 });
-await sleep(2000);
+await afterOnboarding(page, { settleMs: 2000 });
 await page.locator('.tip .btn').click();
 
 const a = await snap();

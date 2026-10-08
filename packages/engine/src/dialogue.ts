@@ -450,7 +450,9 @@ export class ConversationSession {
     // conversation management (もう一度, ありがとう) never counts as a turn of the scenario
     learner.score = management ? { ...c, substantive: false } : c;
     if (matched) {
-      this.said.push(normTurn(text));
+      // only a turn that counted can make a later repeat a duplicate: management (ありがとう) and a thin keyword that completed nothing
+      // are not turns of the scenario, so saying the same words again where they complete a goal step must still count
+      if (c.substantive && !management) this.said.push(normTurn(text));
       if (c.cls !== 'I') this.assistedSaid.push(text);
     }
     // a translation the learner asked for was on screen: copying it later is class T (this turn was judged first)
@@ -532,7 +534,8 @@ export class ConversationSession {
   hint(): ResolvedSuggestion | null {
     const s = this.peekSuggestions();
     if (!s.length) return null;
-    this.hintsUsed++;
+    // a Hint that is already open is the same hint: tapping the button again must not cost a second use
+    if (!this.hintArmed) this.hintsUsed++;
     this.hintArmed = true;
     addShown(this.shown, 'hints', s[0].written);
     return s[0];

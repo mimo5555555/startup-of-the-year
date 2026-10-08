@@ -3,6 +3,7 @@
 import { mkdirSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { launch } from './browser.mjs';
+import { afterOnboarding, talkToConversation } from './flow.mjs';
 
 const out = new URL('./shots/', import.meta.url).pathname;
 mkdirSync(out, { recursive: true });
@@ -47,15 +48,14 @@ await shot('05-onboarding-topics');
 await next();
 
 step('world');
-await page.waitForFunction(() => !!window.__world, null, { timeout: 30000 });
-await sleep(3000);
+await afterOnboarding(page, { settleMs: 3000 });
 await shot('06-world-start');
 assert.equal(await page.locator('.hud').count(), 1, 'HUD is shown');
 await page.locator('.tip .btn').click();
 await sleep(300);
 
 step('tap a sign');
-await page.evaluate(() => window.__world.simulatePick('vending'));
+await page.evaluate(() => window.__world.simulatePick('sakura'));
 await sleep(500);
 await shot('07-sign-card');
 await page.locator('.word-actions .btn.primary').click();
@@ -72,8 +72,7 @@ step('walk to the café and talk');
 await page.evaluate(() => window.__world.teleportNear('yuki'));
 await sleep(1500);
 await shot('09-near-yuki');
-await page.locator('.talk-btn').click();
-await page.waitForSelector('.msg.char', { timeout: 8000 });
+await talkToConversation(page);
 await sleep(1800);
 await shot('10-convo-start');
 

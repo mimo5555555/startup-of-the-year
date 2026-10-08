@@ -35,7 +35,10 @@ export function BeatGate() {
   const pendingTalk = useStore((s) => s.pendingTalk);
   const hasProfile = useStore((s) => !!s.profile);
   useEffect(() => {
-    if (queued && screen === 'world' && !convo && !pendingTalk && hasProfile) useStore.getState().go('beat');
+    if (!(queued && screen === 'world' && !convo && !pendingTalk && hasProfile)) return;
+    // a word card that is still open (the sign that finished the chapter) would sit on top of the beat and swallow its taps
+    useUi.getState().closeWord();
+    useStore.getState().go('beat');
   }, [queued, screen, convo, pendingTalk, hasProfile]);
   return null;
 }

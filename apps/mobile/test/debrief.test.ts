@@ -142,6 +142,14 @@ describe('DebriefPay (§2.5 compact vs full)', () => {
     expect(out).toContain('Finish every goal to earn a star.');
   });
 
+  it('a replay that pays nothing because it was played already today says so, not "practice only" (compact line)', () => {
+    const s = { ...settlement([{ reason: 'lines', yen: 1180 }, { reason: 'repeat', yen: -1180 }], 1), total: 0, newStars: [] };
+    const out = html(createElement(DebriefPay, { data: debrief(s) }));
+    expect(out).toContain('dbf-payline');
+    expect(out).toContain('Played already today');
+    expect(out).not.toContain('Practice only');
+  });
+
   it('Arabic: the yen is a left-to-right span inside the right-to-left line', () => {
     setLang('ar');
     const out = html(createElement(DebriefPay, { data: debrief(settlement(LINES)) }));

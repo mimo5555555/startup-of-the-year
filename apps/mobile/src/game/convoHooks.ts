@@ -32,6 +32,13 @@ const EXCLUSIVE_EXTRAS = ['giftItem'];
 /** The twist flag fires on a third of the plays from the second one on (§6.2: hash(dayIndex, scenarioId, playCount) % 3 === 0). */
 const TWIST_EVERY = 3;
 
+/**
+ * What the X of the conversation screen does. A conversation that reached its end node is settled (feedback and pay) instead of
+ * thrown away: its purchase was charged at the end node, so leaving without settling would take the money and pay nothing. One that is
+ * still open asks first (leaving mid-way pays nothing, E10).
+ */
+export const leaveAction = (ended: boolean): 'settle' | 'confirm' => (ended ? 'settle' : 'confirm');
+
 export function twistFor(dayIndex: number, scenarioId: string, plays: number): boolean {
   if (plays < 1) return false;
   let h = 2166136261;

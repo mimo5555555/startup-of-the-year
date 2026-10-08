@@ -2,6 +2,7 @@
 import { mkdirSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { launch } from './browser.mjs';
+import { afterOnboarding, talkToConversation } from './flow.mjs';
 
 const out = new URL('./shots/', import.meta.url).pathname;
 mkdirSync(out, { recursive: true });
@@ -23,8 +24,7 @@ await next();
 await next();
 for (const i of [0, 2, 18]) await page.locator('.chips.wrap .chip').nth(i).click();
 await next();
-await page.waitForFunction(() => !!window.__world, null, { timeout: 30000 });
-await sleep(2500);
+await afterOnboarding(page);
 await page.locator('.tip .btn').click();
 
 const info = await page.evaluate(() => {
@@ -36,8 +36,7 @@ console.log('render cost at the start:', JSON.stringify(info));
 for (const [id, name] of [['tanaka', 'konbini'], ['sato', 'station'], ['kenji', 'ramen'], ['mio', 'park']]) {
   await page.evaluate((c) => window.__world.teleportNear(c), id);
   await sleep(900);
-  await page.locator('.talk-btn').click();
-  await page.waitForSelector('.msg.char', { timeout: 8000 });
+  await talkToConversation(page);
   let guard = 0;
   while (!(await page.locator('.done-card').count()) && guard++ < 14) {
     await sleep(1700);

@@ -181,6 +181,27 @@ describe('migrate: renames, restoring, derived caches', () => {
     expect(late.wallet.ic).toBe(15_000);
   });
 
+  it('what is worn, placed or shown must be owned: a ghost item or title in a damaged save is dropped, owned ones stay', () => {
+    const base = saved('v1-empty') as object;
+    const s = migrate(
+      {
+        ...base,
+        owned: { bike_helmet: { qty: 1, at: 1 } },
+        outfit: { equipped: ['bike_helmet', 'ghost_hat'], colours: {} },
+        home: { tier: 'dorm', placed: { desk: 'bike_helmet', bed: 'ghost_bed' } },
+        titles: ['t_newcomer'],
+        activeTitle: 't_friend',
+      },
+      1,
+      pack,
+    );
+    expect(s.outfit.equipped).toEqual(['bike_helmet']);
+    expect(s.home.placed).toEqual({ desk: 'bike_helmet' });
+    expect(s.activeTitle).toBeNull();
+    expect(validateState(s, pack)).toEqual([]);
+    expect(migrate({ ...base, titles: ['t_newcomer'], activeTitle: 't_newcomer' }, 1, pack).activeTitle).toBe('t_newcomer');
+  });
+
   it('a migrated state plays on: the reducer accepts it and the money still reconciles', () => {
     const s = migrate(saved('v1-corrupt'), 1, pack);
     const r = reduce(s, { t: 'conversation_done', facts: facts1f({ ind: 4 }) }, ctx1f(pack, dayAt(3), view1f()));

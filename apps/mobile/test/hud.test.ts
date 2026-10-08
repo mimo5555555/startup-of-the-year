@@ -236,13 +236,20 @@ describe('what an option does', () => {
 
 describe('shutters and badges', () => {
   it('opens each shop at its chapter', () => {
-    expect(shopStates(FULL, at(1))).toEqual([['konbini', true], ['denki', false], ['motors', false], ['fukufuku', false]]);
+    expect(shopStates(FULL, at(1)).slice(0, 4)).toEqual([['konbini', true], ['denki', false], ['motors', false], ['fukufuku', false]]);
     expect(shopStates(FULL, at(4)).find(([id]) => id === 'denki')).toEqual(['denki', true]);
     expect(shopStates(FULL, at(9)).every(([, open]) => open)).toBe(true);
   });
 
-  it('leaves the world alone when the pack describes no shops', () => {
-    expect(shopStates(JP_PACK, at(1))).toEqual(JP_PACK.shops.map((s) => [s.id, at(1).chapter.n >= s.openChapter]));
+  it('follows the pack shops, then the shops only a chapter lists (Fuku-Fuku opens in Chapter 2, §15.4)', () => {
+    const described = JP_PACK.shops.map((s) => [s.id, at(1).chapter.n >= s.openChapter]);
+    expect(shopStates(JP_PACK, at(1)).slice(0, described.length)).toEqual(described);
+    const state = (n: number) => new Map(shopStates(JP_PACK, at(n)));
+    expect(state(1).get('fukufuku')).toBe(false);
+    expect(state(1).get('aiko')).toBe(false);
+    expect(state(2).get('fukufuku')).toBe(true);
+    expect(state(2).get('aiko')).toBe(true);
+    expect(state(1).get('konbini')).toBe(true);
   });
 
   it('badges: lesson / done for Hanako, new / done for the shops, a padlock when nothing is open', () => {
