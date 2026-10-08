@@ -1,8 +1,75 @@
 import type { LexEntry } from '../types';
 import { w, g } from './helpers';
 
-// Lexicon entries for quests, goals and the game UI vocabulary. Keep surfaces unique across the whole lexicon (the content tests report clashes).
-void w;
-void g;
+// Lexicon entries for quests, story beats and goals (agent 2F, docs/GAME_DESIGN.md §15.10): the words of the Chapter 1-2 beats, the welcome-back,
+// phone and dream beats, and the §15.10 list for the beats of chapters 3-8 that slice 5 writes. Keep surfaces unique across the whole lexicon
+// (the content tests report clashes); 今日 and 少し live in the shop module.
 
-export const QUESTS_LEXICON: LexEntry[] = [];
+export const QUESTS_LEXICON: LexEntry[] = [
+  // Hanako's opening beat
+  w('ようこそ', '', 'welcome (to a place)', 'أهلًا بك'),
+  w('桜町', 'さくらちょう', 'Sakura-chō (the neighbourhood)', 'ساكورا-تشو (الحيّ)'),
+  w('花子', 'はなこ', 'Hanako (a name)', 'هاناكو (اسم)'),
+  w('最初', 'さいしょ', 'first, the beginning', 'الأول، البداية'),
+  w('お金', 'おかね', 'money', 'نقود'),
+  w('一年後', 'いちねんご', 'one year later', 'بعد عام'),
+  w('日本語', 'にほんご', 'Japanese (the language)', 'اللغة اليابانية'),
+  w('家族', 'かぞく', 'family', 'أسرة'),
+  w('手紙', 'てがみ', 'letter', 'رسالة'),
+  w('書きます', 'かきます', 'write', 'يكتب'),
+  w('まず', '', 'first (of all)', 'أولًا'),
+  w('あいさつ', '', 'greeting', 'تحية'),
+  w('レッスン', '', 'lesson', 'درس'),
+  w('しましょう', '', "let's do", 'لنفعل'),
+  w('カタカナ', '', 'katakana', 'الكاتاكانا'),
+  // Hanako's closing beat. Bare 何 is なに, so this question word is one entry with the right reading.
+  w('よくできました', '', 'well done', 'أحسنت'),
+  w('これから', '', 'from now on, the future', 'من الآن فصاعدًا'),
+  w('夢', 'ゆめ', 'dream', 'حلم'),
+  w('何ですか', 'なんですか', 'what is it? / what is...?', 'ما هو؟'),
+  // Chapter 2, Tanaka
+  w('あの', '', 'um, excuse me', 'أمم'),
+  w('アルバイト', '', 'part-time job', 'عمل بدوام جزئي'),
+  w('しませんか', '', 'would you like to do it?', 'هل تودّ أن تفعل؟'),
+  w('レジ', '', 'cash register', 'الصندوق'),
+  w('おつかれさまでした', '', 'good work today (thank you for your effort)', 'أحسنت اليوم (شكرًا على جهدك)'),
+  w('お給料', 'おきゅうりょう', 'pay, salary', 'الأجر'),
+  // phone beats and the catch-up
+  w('電話', 'でんわ', 'phone, telephone', 'هاتف'),
+  g('よ', '(sentence ending: "you know")', '(أداة نهاية الجملة للتأكيد)'),
+  w('がんばって', '', 'do your best (te-form)', 'ابذل جهدك'),
+  w('います', '', 'is (doing), am, exists (living things)', 'يوجد، يفعل حاليًا'),
+  // welcome back, dream steps and finales
+  w('おかえりなさい', '', 'welcome back', 'أهلًا بعودتك'),
+  w('会えて', 'あえて', 'being able to meet', 'أن ألتقي'),
+  w('やりましょう', '', "let's do it", 'لنفعلها'),
+  w('調子', 'ちょうし', 'condition, form', 'الحالة'),
+  w('もう', '', 'already, more', 'بالفعل، أكثر'),
+  w('すこし', '', 'a little', 'قليلًا'),
+  w('すごい', '', 'amazing, great', 'رائع'),
+  w('連絡', 'れんらく', 'contact', 'تواصل'),
+  w('たつじん', '', 'master, expert', 'خبير'),
+  w('いっぱい', '', 'a lot', 'كثيرًا'),
+  w('話そう', 'はなそう', "let's talk (casual)", 'لنتحدث (عادي)'),
+  w('部屋', 'へや', 'room', 'غرفة'),
+  w('ここ', '', 'here', 'هنا'),
+  w('おめでとうございます', '', 'congratulations', 'مبروك'),
+  w('お祭り', 'おまつり', 'festival', 'مهرجان'),
+  w('楽しい', 'たのしい', 'fun, enjoyable', 'ممتع'),
+  w('旅', 'たび', 'trip, journey', 'رحلة'),
+  w('はじまり', '', 'beginning', 'بداية'),
+  w('新しい', 'あたらしい', 'new', 'جديد'),
+  w('生活', 'せいかつ', 'life, daily life', 'الحياة اليومية'),
+  w('ドライブ', '', 'drive (a car outing)', 'جولة بالسيارة'),
+  w('行きましょう', 'いきましょう', "let's go", 'لنذهب'),
+  w('車', 'くるま', 'car', 'سيارة'),
+  // §15.10 list for the beats of chapters 3-8
+  w('日記', 'にっき', 'diary', 'يوميات'),
+  w('屋台', 'やたい', 'food stall', 'بسطة طعام'),
+  w('花火', 'はなび', 'fireworks', 'ألعاب نارية'),
+  w('浴衣', 'ゆかた', 'yukata (light summer kimono)', 'يوكاتا (كيمونو صيفي خفيف)'),
+  w('自己紹介', 'じこしょうかい', 'self-introduction', 'تعريف بالنفس'),
+  w('皆さん', 'みなさん', 'everyone', 'جميعًا'),
+  w('土曜日', 'どようび', 'Saturday', 'يوم السبت'),
+  w('たこ焼き', 'たこやき', 'takoyaki (octopus balls)', 'تاكوياكي (كرات الأخطبوط)'),
+];

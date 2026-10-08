@@ -1,1 +1,468 @@
-/* hud styles (docs/GAME_DESIGN.md §15.2): owned by the agent named there; imported through game.css. */
+/* hud styles (docs/GAME_DESIGN.md §15.2): owned by agent 2B; imported through game.css. Everything is prefixed hud-; the joystick, talk bubble,
+   level chip and "next up" card keep their rules in styles.css and are only extended here. Logical properties throughout (Arabic RTL). */
+
+/* ---------- wallet pill ---------- */
+.hud-wallet-wrap {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.chip.glass.hud-wallet,
+.chip.glass.hud-dream {
+  min-height: 44px;
+  cursor: pointer;
+  font-family: inherit;
+  text-align: start;
+}
+.hud-wallet .hud-amount {
+  font-size: 16px;
+  font-weight: 800;
+  letter-spacing: 0.01em;
+}
+.hud-ic {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding-inline-start: 8px;
+  margin-inline-start: 2px;
+  border-inline-start: 1px solid var(--glass-line);
+  font-size: 13px;
+  opacity: 0.9;
+}
+.hud-flash {
+  position: absolute;
+  inset-inline-start: calc(100% + 6px);
+  top: 50%;
+  translate: 0 -50%;
+  font-weight: 800;
+  font-size: 15px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--glass);
+  white-space: nowrap;
+  animation: hud-flash 2.2s ease-out forwards;
+  pointer-events: none;
+}
+.hud-flash.up {
+  color: #7be0b0;
+}
+.hud-flash.down {
+  color: #ffb3c0;
+}
+@keyframes hud-flash {
+  0% {
+    opacity: 0;
+    translate: 0 -30%;
+  }
+  12%,
+  75% {
+    opacity: 1;
+    translate: 0 -50%;
+  }
+  100% {
+    opacity: 0;
+    translate: 0 -70%;
+  }
+}
+
+/* ---------- dream chip ---------- */
+.chip.glass.hud-dream {
+  gap: 8px;
+  padding: 5px 14px 5px 8px;
+  max-width: calc(100vw - 24px - 104px - 10px);
+}
+html[dir='rtl'] .chip.glass.hud-dream {
+  padding: 5px 8px 5px 14px;
+}
+.hud-ring {
+  flex: none;
+}
+.hud-ring circle {
+  fill: none;
+  stroke-width: 4;
+}
+.hud-ring .trk {
+  stroke: rgba(255, 255, 255, 0.28);
+}
+.hud-ring .val {
+  stroke: var(--sun);
+  stroke-linecap: round;
+}
+.hud-dream-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.2;
+}
+.hud-dream-text small {
+  font-size: 11px;
+  font-weight: 700;
+  opacity: 0.75;
+}
+.hud-dream-text strong {
+  font-size: 13.5px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* ---------- phone icon (replaces the level chip once the phone is owned) ---------- */
+.hud-phone {
+  flex: none;
+}
+
+/* ---------- tracker card (the old "next up" look plus the two constraints) ---------- */
+.next-up.hud-track {
+  align-items: flex-start;
+  width: min(80vw, 340px);
+  padding-inline: 8px 14px;
+  min-height: 56px;
+}
+.next-up.hud-track .portrait,
+.hud-track-icon {
+  margin-block-start: 2px;
+}
+.hud-track .next-go {
+  align-self: center;
+  flex: none;
+}
+.hud-track .next-text {
+  flex: 1;
+}
+.hud-track .next-text strong {
+  font-size: 15px;
+  overflow-wrap: anywhere;
+}
+.hud-track-icon {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: rgba(255, 255, 255, 0.16);
+}
+.hud-cons {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  margin-block-start: 5px;
+  font-size: 12.5px;
+}
+.hud-con {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  opacity: 0.95;
+}
+.hud-con svg {
+  flex: none;
+}
+.hud-con.pace {
+  opacity: 0.75;
+  font-size: 12px;
+}
+.hud-bar {
+  flex: 1;
+  min-width: 28px;
+  max-width: 70px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.25);
+  overflow: hidden;
+}
+.hud-bar i {
+  display: block;
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--sun));
+  border-radius: 3px;
+}
+
+/* ---------- menu: two groups over the world ---------- */
+.hud-menu-wrap {
+  position: absolute;
+  inset-inline-start: 12px;
+  top: calc(var(--safe-top) + 10px + 52px);
+  z-index: 7;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: calc(100dvh - var(--safe-top) - var(--safe-bottom) - 80px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.hud-menu {
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  min-width: 210px;
+}
+.hud-menu-wrap .menu {
+  min-width: 210px;
+}
+.hud-menu button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 44px;
+  padding: 10px 14px;
+  border: 0;
+  background: none;
+  color: #fff;
+  font-weight: 700;
+  font-size: 16px;
+  border-radius: 14px;
+  cursor: pointer;
+  text-align: start;
+}
+.hud-menu button:hover,
+.hud-menu button:active {
+  background: rgba(255, 255, 255, 0.14);
+}
+.hud-menu .pill {
+  margin-inline-start: auto;
+}
+.hud-menu-level {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 14px 10px;
+  font-weight: 800;
+  font-size: 14px;
+  border-block-end: 1px solid var(--glass-line);
+  margin-block-end: 4px;
+}
+.hud-menu-level .bar {
+  flex: 1;
+}
+.hud-menu-streak {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+/* ---------- talk button with the goods shortcut ---------- */
+.hud-talk {
+  margin-inline-start: auto;
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+.hud-goods-btn {
+  margin-block-end: 6px;
+}
+
+/* ---------- sheets (interaction, goods) ---------- */
+.hud-scrim {
+  z-index: 40;
+}
+.hud-sheet {
+  max-height: min(88dvh, 760px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.hud-sheet-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding-inline-end: 40px;
+}
+.hud-sheet-head h2 {
+  margin: 0;
+  font-size: 22px;
+  line-height: 1.2;
+}
+.hud-sheet-head p {
+  margin: 2px 0 0;
+  color: var(--fg-2);
+  font-size: 14px;
+}
+.hud-choose {
+  margin: 0;
+  color: var(--fg-2);
+  font-weight: 700;
+  font-size: 14px;
+}
+.hud-closed {
+  background: var(--warn-soft);
+  border-radius: 16px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.hud-closed p {
+  margin: 0;
+}
+.hud-closed-ja {
+  font-family: var(--font-ja);
+  font-size: 20px;
+  font-weight: 700;
+}
+.hud-closed-ch {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  color: var(--accent-text);
+}
+.hud-opts {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.hud-opt {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 14px 8px 10px;
+  border-radius: 18px;
+  border: 1.5px solid var(--line);
+  background: var(--bg-2);
+  color: var(--fg);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: transform 0.08s;
+}
+html[dir='rtl'] .hud-opt {
+  padding: 8px 10px 8px 14px;
+}
+.hud-opt:active:not(.locked) {
+  transform: translateY(2px);
+}
+.hud-opt.primary {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+}
+.hud-opt.alt {
+  background: var(--sky-soft);
+  border-color: transparent;
+}
+.hud-opt.locked {
+  opacity: 0.6;
+  cursor: default;
+}
+.hud-opt-ic {
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--card);
+  color: var(--accent-text);
+}
+.hud-opt-ic.big {
+  width: 48px;
+  height: 48px;
+  background: var(--sky-soft);
+  color: var(--sky-dark);
+}
+.hud-opt-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  line-height: 1.25;
+}
+.hud-opt-text strong {
+  font-size: 16.5px;
+}
+.hud-opt-text small {
+  color: var(--fg-2);
+  font-size: 13px;
+  font-weight: 700;
+}
+
+/* ---------- goods list ---------- */
+.hud-goods-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.hud-good {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px 12px;
+  padding: 10px 12px;
+  border-radius: 16px;
+  background: var(--bg-2);
+}
+.hud-good.locked .hud-good-main {
+  opacity: 0.72;
+}
+.hud-good-main {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  flex: 1 1 140px;
+  min-width: 0;
+}
+.hud-good-mean {
+  color: var(--fg-2);
+  font-size: 14px;
+}
+.hud-good-state {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--accent-text);
+}
+.hud-good-price {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  max-width: 100%;
+}
+html[dir='rtl'] .hud-good-price {
+  align-items: flex-start;
+}
+.hud-price {
+  font-size: 19px;
+  font-weight: 800;
+}
+.hud-hours {
+  font-size: 12px;
+  color: var(--fg-2);
+  font-weight: 700;
+}
+.hud-say {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 2px 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--sky-soft);
+  color: var(--sky-dark);
+  cursor: pointer;
+}
+.hud-note {
+  margin: 0;
+  color: var(--fg-2);
+  font-size: 14px;
+}
+.hud-tax {
+  color: var(--fg-2);
+  text-align: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hud-flash {
+    animation: none;
+  }
+}

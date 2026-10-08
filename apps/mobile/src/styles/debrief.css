@@ -1,1 +1,357 @@
-/* debrief styles (docs/GAME_DESIGN.md §15.2): owned by the agent named there; imported through game.css. */
+/* debrief and conversation game styles (docs/GAME_DESIGN.md §11.2, §11.3): price chip, stars, pay rows, Keep these, receipt, speech confirmation.
+   Every class is prefixed dbf-; colours and radii come from the tokens in styles.css. Logical properties only (the app runs RTL). */
+
+/* ---------- price chip under a clerk's bubble ---------- */
+.dbf-price {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 2px 8px;
+  margin-top: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: var(--warn-soft);
+  color: var(--fg);
+}
+.dbf-price b {
+  font-size: 16px;
+  font-weight: 800;
+}
+.dbf-price small {
+  font-size: 12px;
+  color: var(--fg-2);
+}
+.dbf-hours {
+  font-weight: 700;
+}
+
+/* ---------- conversation header and speech confirmation ---------- */
+.dbf-tag {
+  display: inline-block;
+  margin-inline-start: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 11px;
+  font-weight: 800;
+}
+.dbf-heard .assist-said span {
+  font-family: var(--font-ja);
+  font-size: 20px;
+}
+.dbf-heard .assist-actions {
+  flex-wrap: wrap;
+}
+.dbf-heard .assist-actions .btn {
+  flex: 1 1 30%;
+  min-width: 0;
+  padding-inline: 10px;
+}
+
+/* ---------- cards of the debrief ---------- */
+.dbf-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.dbf-card .h2 {
+  margin-bottom: 0;
+}
+.dbf-stars {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.dbf-stars li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  color: var(--fg-2);
+  opacity: 0.75;
+}
+.dbf-stars li.on {
+  color: #d9951a;
+  opacity: 1;
+}
+.dbf-stars li small {
+  font-size: 12px;
+  line-height: 1.25;
+  color: var(--fg-2);
+  overflow-wrap: anywhere;
+}
+.dbf-stars li.fresh svg {
+  animation: dbf-pop 0.6s ease-out both;
+}
+@keyframes dbf-pop {
+  0% {
+    transform: scale(0.4);
+  }
+  60% {
+    transform: scale(1.3);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.dbf-payline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+  margin: 0;
+}
+.dbf-payline strong {
+  font-size: 24px;
+  font-weight: 800;
+}
+.dbf-payline span {
+  flex: 1 1 140px;
+  min-width: 0;
+  color: var(--fg-2);
+}
+.dbf-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.dbf-rows li {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.dbf-rows li > span {
+  min-width: 0;
+}
+.dbf-rows li small {
+  display: block;
+  color: var(--fg-2);
+}
+.dbf-rows li:last-child {
+  border-bottom: 0;
+}
+.dbf-total {
+  font-weight: 800;
+}
+.dbf-gain {
+  color: var(--good);
+  font-weight: 800;
+}
+.dbf-neg {
+  color: var(--bad);
+  font-weight: 800;
+}
+.dbf-spent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 6px;
+  border-top: 1px dashed var(--line);
+}
+.dbf-spent .btn {
+  flex-shrink: 0;
+  min-height: 44px;
+}
+.dbf-nudge {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--sky-soft);
+  color: var(--sky-dark);
+  font-weight: 700;
+}
+.dbf-nudge svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ---------- friends strip ---------- */
+.dbf-friend {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.dbf-friend > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.dbf-hearts {
+  display: inline-flex;
+  gap: 2px;
+  color: var(--accent);
+}
+
+/* ---------- Keep these ---------- */
+.dbf-keep {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--line);
+}
+.dbf-keep:last-child {
+  border-bottom: 0;
+}
+.dbf-keep-line {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.dbf-keep-line > div {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.dbf-keep-line small {
+  color: var(--fg-2);
+}
+
+/* ---------- culture card, ticks, next goal ---------- */
+.dbf-culture p {
+  margin: 0;
+}
+.dbf-culture .tag {
+  align-self: flex-start;
+}
+.dbf-ticks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dbf-ticks li {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  color: var(--good);
+  font-weight: 700;
+}
+.dbf-ticks svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.dbf-next {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dbf-next .btn {
+  justify-content: space-between;
+  text-align: start;
+  padding-block: 10px;
+}
+.dbf-next .btn span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+/* the footer's two buttons must fit a 360 px screen in both languages */
+.feedback .panel-foot {
+  gap: 8px;
+}
+.feedback .panel-foot .btn {
+  min-width: 0;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.15;
+  padding-block: 6px;
+}
+.feedback .panel-foot .btn.soft {
+  flex: 0 1 auto;
+  padding-inline: 12px;
+}
+.feedback .panel-foot .btn.wide {
+  padding-inline: 12px;
+}
+
+/* a register note or a "maybe heard wrong" line is a note, not a mistake */
+.fix.dbf-note {
+  border-color: var(--sky-soft);
+  background: var(--sky-soft);
+  color: var(--fg);
+}
+.fix.dbf-note .cat {
+  background: var(--sky);
+  color: #fff;
+}
+
+/* ---------- receipt sheet ---------- */
+.dbf-receipt {
+  position: relative;
+  width: min(420px, 100%);
+  max-height: 88dvh;
+  overflow-y: auto;
+  margin-inline: auto;
+  padding: 20px 20px calc(18px + var(--safe-bottom));
+  border-radius: 28px 28px 0 0;
+  background: var(--card);
+  color: var(--fg);
+  box-shadow: 0 -10px 40px rgba(20, 16, 40, 0.3);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  animation: rise 0.22s ease-out;
+}
+.dbf-receipt header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-inline-end: 44px;
+}
+.dbf-receipt-x {
+  position: absolute;
+  inset-block-start: 10px;
+  inset-inline-end: 10px;
+}
+.dbf-sums {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 8px;
+  border-top: 2px dashed var(--line);
+}
+.dbf-sums div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.dbf-sums dt,
+.dbf-sums dd {
+  margin: 0;
+}
+.dbf-sums .total {
+  font-size: 19px;
+  font-weight: 800;
+}
+.dbf-thanks {
+  margin: 0;
+  text-align: center;
+  color: var(--fg-2);
+  font-family: var(--font-ja);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dbf-stars li.fresh svg {
+    animation: none;
+  }
+}

@@ -1,12 +1,29 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { LEXICON, segmentFree, entryToToken, type Token } from '@lw/content';
-import { isDue, previewIntervals, type Grade } from '@lw/core';
+import { previewIntervals, type Grade } from '@lw/core';
 import { Icon } from '../components/Icon';
 import { JaText } from '../components/JaText';
 import { useStore, dueCount, type VocabItem } from '../store';
 import { useT } from '../hooks';
 import { exampleFor, meaningOf } from '../content';
 import { blip, speakJa } from '../services';
+import type { StringKey } from '../i18n';
+import { dispatch } from '../game/bridge';
+import { recallMark, recallScore } from '../game/prepareLogic';
+import { applyRespace, enforceGoalCaps, isParked, planReview, reviewEvent } from '../game/srsHooks';
+
+/** The label of where a card came from: the four sources the game adds have their own keys (the v1 table has the other five). */
+const SOURCE_KEYS: Record<VocabItem['source'], StringKey> = {
+  sign: 'v.src.sign',
+  conversation: 'v.src.conversation',
+  lesson: 'v.src.lesson',
+  phrase: 'v.src.phrase',
+  starter: 'v.src.starter',
+  goal: 'prep.src.goal',
+  correction: 'prep.src.correction',
+  prepare: 'prep.src.prepare',
+  echo: 'prep.src.echo',
+};
 
 function tokensFor(item: VocabItem): Token[] {
   if (item.kind === 'word') {
@@ -39,6 +56,8 @@ export function Vocab() {
   const go = useStore((s) => s.go);
   const [tab, setTab] = useState<'words' | 'review'>(dueCount(vocab) > 0 ? 'review' : 'words');
   const due = dueCount(vocab);
+  // cards parked beyond the daily cap come back when the backlog is small (§11.5)
+  useEffect(() => enforceGoalCaps(), []);
 
   return (
     <div className="panel" dir={dir}>
@@ -92,7 +111,10 @@ function WordList() {
             <div className="word-info">
               <JaText tokens={tokensFor(v)} furigana={settings.furigana} romaji={settings.romaji} size="md" />
               <span dir="auto">{meaningOf(v.meaning, lang)}</span>
-              <small>{t(`v.src.${v.source}` as 'v.src.sign')}</small>
+              <small>
+                {t(SOURCE_KEYS[v.source])}
+                {isParked(v) && ` · ${t('prep.parked')}`}
+              </small>
             </div>
             <button className="icon-btn ghost" onClick={() => speakJa(v.s, { rate: 0.85 })} aria-label={t('common.listen')}>
               <Icon name="volume" size={18} />
@@ -112,14 +134,14 @@ function Review() {
   const vocab = useStore((s) => s.vocab);
   const settings = useStore((s) => s.settings);
   const review = useStore((s) => s.reviewWord);
-  const [queue] = useState(() => {
-    const now = new Date();
-    return vocab
-      .filter((v) => isDue(v.card, now))
-      .sort((a, b) => a.card.due.localeCompare(b.card.due))
-      .map((v) => v.id);
-  });
+  const profile = useStore((s) => s.profile);
+  // up to BALANCE.srs.amnestyDue due cards in due order; past that, the "Quick sprint" of the weakest cards and the rest moved forward (§11.5)
+  const [plan] = useState(() => planReview(vocab));
+  const queue = plan.queue;
+  useEffect(() => applyRespace(plan), [plan]);
   const [i, setI] = useState(0);
+  const [typed, setTyped] = useState('');
+  const [typedState, setTypedState] = useState<null | 'ok' | 'near'>(null);
   const [revealed, setRevealed] = useState(false);
   const [picked, setPicked] = useState<string | null>(null);
   const [done, setDone] = useState(0);
@@ -151,7 +173,12 @@ function Review() {
   }
 
   const rate = (g: Grade) => {
+    // the check that g_review8 counts: the pick-the-answer mode, or a typed answer that matched (§11.5); read the card before it changes
+    const ev = reviewEvent(item, mode === 'cloze' || typedState === 'ok');
     review(item.id, g);
+    dispatch(ev);
+    setTyped('');
+    setTypedState(null);
     blip(g === 'again' ? 'bad' : 'good', settings.autoSpeak);
     setDone(done + 1);
     setI(i + 1);
@@ -165,6 +192,11 @@ function Review() {
 
   return (
     <div className="panel-body review">
+      {plan.sprint && (
+        <p className="prep-sprint card" dir="auto">
+          <strong>{t('prep.sprint.title')}</strong> {t('prep.sprint.sub', { n: queue.length })}
+        </p>
+      )}
       <div className="bar wide thin">
         <i style={{ width: `${Math.round((i / queue.length) * 100)}%` }} />
       </div>
@@ -235,6 +267,50 @@ function Review() {
                   </div>
                 )}
               </div>
+            )}
+            {!revealed && front && (
+              <form
+                className="prep-form prep-review-type"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!typed.trim()) return;
+                  if (recallScore(typed, item.s) >= recallMark(profile ?? { age: 'adults', level: 'A1' })) {
+                    setTypedState('ok');
+                    setRevealed(true);
+                    speakJa(item.s, { rate: 0.9 });
+                  } else setTypedState('near');
+                }}
+              >
+                <input
+                  className="say prep-input"
+                  value={typed}
+                  onChange={(e) => {
+                    setTyped(e.target.value);
+                    setTypedState(null);
+                  }}
+                  placeholder={t('prep.review.type')}
+                  aria-label={t('prep.review.type')}
+                  dir="ltr"
+                  lang="ja"
+                  autoComplete="off"
+                  autoCapitalize="off"
+                  autoCorrect="off"
+                  spellCheck={false}
+                />
+                <button className="send" type="submit" disabled={!typed.trim()} aria-label={t('prep.check')}>
+                  <Icon name="check" size={20} />
+                </button>
+              </form>
+            )}
+            {!revealed && front && typedState === 'near' && (
+              <p className="prep-verdict near" dir="auto" role="status">
+                {t('prep.review.near')}
+              </p>
+            )}
+            {revealed && typedState === 'ok' && (
+              <p className="prep-verdict ok" dir="auto" role="status">
+                {t('prep.right')}
+              </p>
             )}
             {!revealed ? (
               <div className="rate-row">

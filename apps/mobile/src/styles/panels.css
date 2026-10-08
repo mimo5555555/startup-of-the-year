@@ -1,1 +1,588 @@
-/* panels styles (docs/GAME_DESIGN.md §15.2): owned by the agent named there; imported through game.css. */
+/* panels styles (docs/GAME_DESIGN.md §15.2): the vending machine and the two ticket machines (agent 2G); imported through game.css.
+   Every class is prefixed `pn-`. Layout uses logical properties so the panels mirror in Arabic; numbers carry dir="ltr" in the markup. */
+
+.pn-scrim {
+  align-items: flex-end;
+}
+.pn-sheet {
+  max-height: 94vh;
+  max-height: min(94dvh, 800px);
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  gap: 14px;
+  padding-inline: 16px;
+  -webkit-overflow-scrolling: touch;
+}
+/* the sheet is a column with a max height: its blocks scroll, they do not shrink into each other */
+.pn-sheet > * {
+  flex-shrink: 0;
+}
+.pn-num {
+  font-variant-numeric: tabular-nums;
+  unicode-bidi: isolate;
+  white-space: nowrap;
+}
+.pn-head {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.pn-title {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pn-title .ja {
+  align-self: flex-start;
+}
+.pn-title h2 {
+  font-size: 15px;
+  color: var(--fg-2);
+}
+.pn-wallet {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: var(--bg-2);
+  font-size: 14px;
+}
+.pn-wallet svg {
+  vertical-align: -4px;
+  margin-inline-end: 2px;
+}
+.pn-lead {
+  font-weight: 800;
+}
+.pn-lead.small {
+  font-size: 14px;
+  color: var(--fg-2);
+}
+.pn-note {
+  margin: 0;
+  color: var(--fg-2);
+  font-size: 14px;
+}
+.pn-gloss {
+  color: var(--fg-2);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+/* ---------- the buttons of a machine ---------- */
+.pn-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.pn-grid.rows {
+  grid-template-columns: minmax(0, 1fr);
+}
+.pn-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 10px 10px 4px 12px;
+  border: 2px solid var(--line);
+  border-radius: 18px;
+  background: var(--card);
+  color: var(--fg);
+  box-shadow: 0 3px 0 var(--line);
+}
+.pn-tile.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow: 0 3px 0 var(--accent-dark);
+}
+.pn-tile-main {
+  flex: 1;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 0;
+  border: 0;
+  background: none;
+  color: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.pn-tile-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pn-grid.rows .pn-tile {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  column-gap: 6px;
+  padding-block: 6px;
+}
+.pn-temps {
+  display: flex;
+  gap: 4px;
+}
+.pn-temps i {
+  width: 22px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--sky);
+}
+.pn-temps i.hot {
+  background: var(--bad);
+}
+.pn-price {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  column-gap: 8px;
+}
+.pn-price .ja {
+  color: var(--fg-2);
+}
+.pn-price strong {
+  font-size: 15px;
+}
+
+.pn-temp,
+.pn-extras {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pn-chip {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border: 2px solid var(--line);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--fg);
+  font-weight: 700;
+  cursor: pointer;
+}
+.pn-chip small {
+  color: var(--fg-2);
+  font-weight: 700;
+}
+.pn-chip.on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.pn-chip.on small,
+.pn-chip.on .rt,
+.pn-chip.on .rm {
+  color: inherit;
+  opacity: 0.9;
+}
+.pn-chip.hot {
+  border-color: var(--bad);
+}
+.pn-chip.cold {
+  border-color: var(--sky);
+}
+.pn-chip.hot.on {
+  background: var(--bad);
+}
+.pn-chip.cold.on {
+  background: var(--sky-dark);
+  border-color: var(--sky-dark);
+}
+
+/* ---------- paying ---------- */
+.pn-pay {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.pn-seg {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 16px;
+  background: var(--bg-2);
+}
+.pn-seg button {
+  min-height: 48px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  column-gap: 6px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--fg-2);
+  font-weight: 800;
+  cursor: pointer;
+}
+.pn-seg button small {
+  font-weight: 700;
+}
+.pn-seg button.on {
+  background: var(--card);
+  color: var(--fg);
+  box-shadow: var(--shadow-sm);
+}
+.pn-tray {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 18px;
+  background: var(--bg-2);
+}
+.pn-tray-slot {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+.pn-tray-slot strong {
+  font-size: 22px;
+}
+.pn-tray-label {
+  color: var(--fg-2);
+  font-size: 13px;
+  font-weight: 700;
+}
+.pn-tray-need {
+  margin-inline-start: auto;
+  color: var(--fg-2);
+  font-size: 13.5px;
+  font-weight: 700;
+}
+.pn-tray-need.ok {
+  color: var(--good);
+}
+.pn-coins {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 8px;
+}
+.pn-coin {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 3px solid rgba(36, 31, 61, 0.28);
+  border-radius: 50%;
+  color: #241f3d;
+  font: 800 14px/1 var(--font-body);
+  cursor: pointer;
+  box-shadow: 0 3px 0 rgba(36, 31, 61, 0.28);
+}
+.pn-coin:active:not(:disabled) {
+  transform: translateY(2px);
+  box-shadow: 0 1px 0 rgba(36, 31, 61, 0.28);
+}
+.pn-coin:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.pn-coin.gold {
+  background: radial-gradient(circle at 35% 30%, #ffe08a, #f1b93d);
+}
+.pn-coin.silver {
+  background: radial-gradient(circle at 35% 30%, #f4f5f8, #bcc1cc);
+}
+.pn-coin.nickel {
+  background: radial-gradient(circle at 35% 30%, #fbf7ea, #cdc6ae);
+}
+.pn-coin.copper {
+  background: radial-gradient(circle at 35% 30%, #efb98c, #c4824f);
+}
+.pn-coin.note {
+  width: 72px;
+  border-radius: 12px;
+  background: linear-gradient(180deg, #bfe3c9, #8fc7a1);
+}
+.pn-tray-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pn-tray-actions .btn {
+  min-height: 44px;
+  flex: 1;
+}
+.pn-ic {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, #4f7fe8, #3a63c4);
+  color: #fff;
+}
+.pn-ic .pn-tray-label {
+  display: block;
+  color: rgba(255, 255, 255, 0.85);
+}
+.pn-ic strong {
+  font-size: 22px;
+}
+.pn-short {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--warn-soft);
+  font-size: 14px;
+}
+.pn-short .btn {
+  min-height: 44px;
+}
+.pn-buy {
+  width: 100%;
+  min-height: 52px;
+}
+
+/* ---------- the fare map ---------- */
+.pn-map {
+  position: relative;
+  height: 232px;
+  margin-block: 2px;
+}
+.pn-lane {
+  position: absolute;
+  inset-inline: 6% 0;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--sky);
+  opacity: 0.55;
+}
+.pn-lane.l0 {
+  top: 49px;
+}
+.pn-lane.l1 {
+  top: 173px;
+}
+.pn-spine {
+  position: absolute;
+  inset-inline-start: 6%;
+  top: 52px;
+  height: 124px;
+  width: 6px;
+  margin-inline-start: -3px;
+  border-radius: 3px;
+  background: var(--sky);
+  opacity: 0.55;
+}
+.pn-origin {
+  position: absolute;
+  inset-inline-start: 6%;
+  top: 99px;
+  margin-inline-start: 12px;
+  color: var(--fg-2);
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+.pn-stop {
+  position: absolute;
+  width: 52px;
+  height: 92px;
+  margin-inline-start: -26px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  border: 0;
+  border-radius: 12px;
+  background: transparent;
+  color: var(--fg);
+  cursor: pointer;
+}
+.pn-stop.l0 {
+  top: 0;
+}
+.pn-stop.l1 {
+  top: 124px;
+}
+.pn-stop-name {
+  min-height: 40px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+}
+/* a four-character name (羽田空港) is wider than its button: it overflows both sides instead of wrapping */
+.pn-stop .jp {
+  white-space: nowrap;
+}
+.pn-stop .ja {
+  flex-wrap: nowrap;
+  justify-content: center;
+  font-size: 15px;
+}
+.pn-stop-dot {
+  width: 16px;
+  height: 16px;
+  margin-block: 4px;
+  border: 3px solid var(--sky-dark);
+  border-radius: 50%;
+  background: var(--card);
+}
+.pn-stop-fare {
+  font-size: 12.5px;
+  font-weight: 800;
+  line-height: 1.2;
+}
+.pn-stop:hover {
+  background: var(--sky-soft);
+}
+.pn-stop.on {
+  background: var(--accent-soft);
+}
+.pn-stop.on .pn-stop-dot {
+  border-color: var(--accent-dark);
+  background: var(--accent);
+}
+.pn-pick {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 18px;
+  background: var(--bg-2);
+}
+.pn-pick-name {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.pn-fares {
+  grid-column: 1 / -1;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.pn-fares > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  background: var(--card);
+}
+.pn-fares > div.on {
+  border-color: var(--accent);
+}
+.pn-fares dt {
+  color: var(--fg-2);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+.pn-fares dd {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+/* ---------- the result ---------- */
+.pn-done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  text-align: center;
+}
+.pn-done h3 {
+  font-size: 19px;
+}
+.pn-drink {
+  padding: 8px 18px;
+  border-radius: 16px;
+  border: 2px solid var(--sky);
+  background: var(--sky-soft);
+}
+.pn-drink.hot {
+  border-color: var(--bad);
+  background: var(--bad-soft);
+}
+.pn-ticket {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px;
+  border: 2px dashed #c9a64b;
+  border-radius: 16px;
+  background: #fff6dc;
+  color: #241f3d;
+}
+.pn-ticket .rt,
+.pn-ticket .rm,
+.pn-ticket .pn-gloss {
+  color: #655f80;
+}
+.pn-extras-on {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+}
+.pn-extras-on .pn-chip {
+  min-height: 32px;
+  padding: 2px 10px;
+}
+.pn-receipt {
+  width: 100%;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding-top: 8px;
+  border-top: 2px dashed var(--line);
+}
+.pn-receipt > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+.pn-receipt dt {
+  color: var(--fg-2);
+}
+.pn-receipt dd {
+  margin: 0;
+  font-weight: 800;
+}
+.pn-actions {
+  width: 100%;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pn-actions .btn {
+  flex: 1 1 140px;
+  padding-inline: 12px;
+}
+.pn-done .done-badge svg {
+  fill: none;
+}

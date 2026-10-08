@@ -1,9 +1,11 @@
 import { useEffect } from 'react';
 import { romajiText, segmentFree, LEXICON, type Token } from '@lw/content';
 import { levelProgress } from '@lw/core';
+import type { Correction } from '@lw/engine';
 import { Icon } from '../components/Icon';
 import { JaText, type Mark } from '../components/JaText';
 import { Portrait } from '../components/Portrait';
+import { DebriefPay, DebriefProgress, FriendsStrip, KeepThese, NextGoalButton, useDebriefFor } from '../components/game/DebriefGame';
 import { useStore } from '../store';
 import { useT } from '../hooks';
 import { characterById, displayName } from '../content';
@@ -40,6 +42,7 @@ export function Feedback() {
   const say = useStore((s) => s.say);
   const xpTotal = useStore((s) => s.xp);
   const openWord = useUi((s) => s.openWord);
+  const debrief = useDebriefFor(data);
 
   useEffect(() => {
     if (data && data.levelAfter > data.levelBefore) blip('level', settings.autoSpeak);
@@ -63,6 +66,30 @@ export function Feedback() {
   const saveAll = () => {
     for (const l of report.phrasesLearned) if (!savedSet.has(l.written)) saveLine(l.written, l.tokens, { en: l.en, ar: l.ar });
     say(t('common.saved'), 'good');
+  };
+
+  /** A correction. A soft one (a register note: "distant, not wrong") or a "maybe heard wrong" one is a gentle note, not a mistake. */
+  const fixCard = (c: Correction, i: number, maybe = false) => {
+    const note = c.soft || maybe;
+    return (
+      <article key={i} className={`fix fix-${c.category} ${note ? 'dbf-note' : ''}`}>
+        <span className="cat">{note ? t('debrief.note') : catLabel[c.category]}</span>
+        <div className="fix-line">
+          <JaText tokens={segmentFree(c.original, LEXICON)} furigana={false} romaji={false} size="md" className={note ? '' : 'wrong'} marks={note ? [] : [{ start: c.span[0], end: c.span[1], kind: c.category }]} />
+        </div>
+        <div className="fix-better">
+          <small>{t('f.better')}</small>
+          <div className="row-between">
+            <JaText tokens={segmentFree(c.better, LEXICON)} furigana={settings.furigana} romaji={settings.romaji} size="md" onTap={(tk) => openWord({ token: tk, source: 'conversation' })} />
+            <button className="icon-btn ghost" onClick={() => speakJa(c.better, { rate: 0.9 })} aria-label={t('common.listen')}>
+              <Icon name="volume" size={18} />
+            </button>
+          </div>
+        </div>
+        <p dir="auto">{c.explanation[lang]}</p>
+        {c.soft && <small className="muted">{t('debrief.softSub')}</small>}
+      </article>
+    );
   };
 
   return (
@@ -99,6 +126,13 @@ export function Feedback() {
           <p>{report.praise[lang]}</p>
         </section>
 
+        {debrief && (
+          <>
+            <DebriefPay data={debrief} />
+            <FriendsStrip data={debrief} />
+          </>
+        )}
+
         <section>
           <h2 className="h2">{t('f.focus')}</h2>
           <ul className="focus">
@@ -115,29 +149,33 @@ export function Feedback() {
           {report.corrections.length === 0 ? (
             <p className="muted">{t('f.none')}</p>
           ) : (
-            report.corrections.map((c, i) => (
-              <article key={i} className={`fix fix-${c.category}`}>
-                <span className="cat">{catLabel[c.category]}</span>
-                <div className="fix-line">
-                  <JaText tokens={segmentFree(c.original, LEXICON)} furigana={false} romaji={false} size="md" className="wrong" marks={[{ start: c.span[0], end: c.span[1], kind: c.category }]} />
-                </div>
-                <div className="fix-better">
-                  <small>{t('f.better')}</small>
-                  <div className="row-between">
-                    <JaText tokens={segmentFree(c.better, LEXICON)} furigana={settings.furigana} romaji={settings.romaji} size="md" onTap={(tk) => openWord({ token: tk, source: 'conversation' })} />
-                    <button className="icon-btn ghost" onClick={() => speakJa(c.better, { rate: 0.9 })} aria-label={t('common.listen')}>
-                      <Icon name="volume" size={18} />
-                    </button>
-                  </div>
-                </div>
-                <p dir="auto">{c.explanation[lang]}</p>
-              </article>
-            ))
+            report.corrections.map((c, i) => fixCard(c, i))
           )}
           <p className="muted small">{t('f.rule')}</p>
         </section>
 
-        {report.phrasesLearned.length > 0 && (
+        {report.maybe && report.maybe.length > 0 && (
+          <section>
+            <h2 className="h2">{t('debrief.maybeTitle')}</h2>
+            <p className="muted small" dir="auto">
+              {t('debrief.maybeSub')}
+            </p>
+            {report.maybe.map((c, i) => fixCard(c, i, true))}
+          </section>
+        )}
+
+        {debrief ? (
+          <KeepThese
+            data={debrief}
+            saved={savedSet}
+            onSave={(l) => saveLine(l.written, l.tokens, l.meaning)}
+            onSaveAll={() => {
+              for (const l of debrief.keep) if (l.assisted && !savedSet.has(l.written)) saveLine(l.written, l.tokens, l.meaning);
+              say(t('common.saved'), 'good');
+            }}
+          />
+        ) : (
+          report.phrasesLearned.length > 0 && (
           <section>
             <div className="row-between">
               <h2 className="h2">{t('f.learned')}</h2>
@@ -165,6 +203,14 @@ export function Feedback() {
               </div>
             ))}
           </section>
+          )
+        )}
+
+        {debrief && (
+          <>
+            <DebriefProgress data={debrief} />
+            <NextGoalButton />
+          </>
         )}
 
         <section>
@@ -192,6 +238,12 @@ export function Feedback() {
         <button
           className="btn soft"
           onClick={() => {
+            if (debrief) {
+              // the same scenario in the same mode, through the conversation request (the host mounts it over the city)
+              go('world');
+              useUi.getState().startConvo({ scenarioId, characterId: character.id, mode: debrief.facts.mode });
+              return;
+            }
             useStore.getState().setPendingTalk(character.id);
             go('world');
           }}

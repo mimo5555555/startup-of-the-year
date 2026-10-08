@@ -384,8 +384,12 @@ export interface Interaction {
   kind: 'scenario' | 'shift' | 'gift' | 'lesson' | 'trip' | 'visit' | 'window';
   scenarioId?: string;
   jobId?: string;
+  /** 'lesson': the Lesson id Hanako teaches */
+  lessonId?: string;
   /** 'window': the read-only goods sheet of a shop that is not open yet */
   shopId?: string;
+  /** chapter.n >= ch lists the option (D36; default 1). The tables of §6.1 name chapters (Shift C2, Gift C3, Train C5) and `Pred` has no chapter test. */
+  ch?: number;
   gate?: Pred;
 }
 

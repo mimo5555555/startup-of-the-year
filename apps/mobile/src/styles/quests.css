@@ -1,1 +1,531 @@
-/* quests styles (docs/GAME_DESIGN.md §15.2): owned by the agent named there; imported through game.css. */
+/* quests styles (docs/GAME_DESIGN.md §15.2): owned by agent 2F, imported through game.css. Everything is prefixed qst-; logical properties
+   throughout so the Arabic layout mirrors by itself; the tokens (--card, --line, --accent...) come from styles.css and follow the dark theme. */
+
+.qst-sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* ---------- screen: tab strip and body ---------- */
+.qst-tabs {
+  display: flex;
+  gap: 2px;
+  padding: 6px 8px 0;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+  max-width: 640px;
+  width: 100%;
+  margin-inline: auto;
+}
+.qst-tabs button {
+  flex: 1 1 0;
+  min-width: 0;
+  min-height: 44px;
+  padding: 6px 2px;
+  border: 0;
+  border-bottom: 3px solid transparent;
+  background: none;
+  font-weight: 800;
+  font-size: 13.5px;
+  line-height: 1.15;
+  color: var(--fg-2);
+  cursor: pointer;
+  overflow-wrap: anywhere;
+}
+.qst-tabs button.on {
+  color: var(--accent-text);
+  border-bottom-color: var(--accent);
+}
+.qst-body {
+  gap: 14px;
+}
+
+/* ---------- lists and rows (objectives, daily goals, dream steps) ---------- */
+.qst-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.qst-obj {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 0;
+  min-height: 44px;
+  border-top: 1px solid var(--line);
+}
+.qst-list > .qst-obj:first-child,
+.qst-list > .qst-teaser:first-child {
+  border-top: 0;
+}
+.qst-tick {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  margin-top: 1px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  color: #fff;
+}
+.qst-obj.done .qst-tick {
+  background: var(--good);
+  border-color: var(--good);
+  animation: qst-pop 0.35s ease-out;
+}
+.qst-obj.shut {
+  opacity: 0.6;
+}
+.qst-obj-body {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+.qst-obj.done .qst-obj-body > strong {
+  color: var(--fg-2);
+  font-weight: 700;
+}
+.qst-prog {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.qst-prog.wide {
+  margin-block: 10px 4px;
+}
+.qst-bar {
+  flex: 1;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--bg-2);
+  overflow: hidden;
+}
+.qst-bar i {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: linear-gradient(90deg, var(--accent), var(--sun));
+  transition: width 0.4s;
+}
+.qst-count {
+  font-weight: 800;
+  font-size: 13.5px;
+  color: var(--fg-2);
+  white-space: nowrap;
+}
+.qst-eased {
+  align-self: flex-start;
+}
+.qst-easier {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 10px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  color: var(--fg);
+  font-weight: 700;
+  font-size: 14px;
+}
+.qst-easier > span {
+  flex: 1 1 120px;
+  min-width: 0;
+}
+.qst-easier .btn {
+  min-height: 44px;
+}
+.qst-swap {
+  box-shadow: none;
+  background: var(--bg-2);
+}
+
+/* ---------- chapter card ---------- */
+.qst-chapter {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.qst-chapter-head {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.qst-chapter-n {
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--accent-text);
+}
+.qst-chapter-ja {
+  font-size: 26px;
+  line-height: 1.2;
+  font-family: var(--font-ja);
+}
+.qst-chapter-head p {
+  margin: 0;
+  color: var(--fg-2);
+  font-weight: 700;
+}
+.qst-reward {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 0;
+}
+.qst-slot {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding-top: 10px;
+  border-top: 1px dashed var(--line);
+}
+.qst-wait {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--good-soft);
+  border-color: var(--good);
+  color: var(--fg);
+}
+.qst-wait strong {
+  font-size: 20px;
+  font-family: var(--font-ja);
+}
+.qst-teaser {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 0;
+  min-height: 44px;
+  border-top: 1px solid var(--line);
+  color: var(--fg-2);
+}
+.qst-teaser-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+.qst-teaser small.muted {
+  white-space: nowrap;
+}
+
+/* ---------- daily goals ---------- */
+.qst-pay {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+.qst-daily .h2 {
+  margin: 0 0 4px;
+}
+.qst-daily p {
+  margin: 6px 0 0;
+}
+
+/* ---------- friends and culture panes ---------- */
+.qst-friend {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px 0;
+  border-top: 1px solid var(--line);
+}
+.qst-list > .qst-friend:first-child {
+  border-top: 0;
+}
+.qst-hearts {
+  display: inline-flex;
+  gap: 2px;
+  font-size: 18px;
+  color: var(--fg-2);
+  direction: ltr;
+}
+.qst-hearts .on {
+  color: var(--accent);
+}
+
+/* ---------- dream picker ---------- */
+.qst-picker-head h2 {
+  font-size: 21px;
+  margin: 0;
+}
+.qst-picker-head p {
+  margin: 4px 0 0;
+}
+.qst-dreams {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.qst-dream {
+  width: 100%;
+  min-height: 64px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 18px;
+  border: 2px solid var(--line);
+  background: var(--card);
+  color: var(--fg);
+  text-align: start;
+  cursor: pointer;
+}
+.qst-dream.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.qst-dream.shut {
+  opacity: 0.55;
+  cursor: default;
+}
+.qst-dream-icon {
+  flex: none;
+  display: inline-grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  background: var(--sky-soft);
+  color: var(--sky-dark);
+}
+.qst-dream-icon.big {
+  width: 58px;
+  height: 58px;
+  border-radius: 18px;
+}
+.qst-dream-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.qst-dream-text strong {
+  font-family: var(--font-ja);
+  font-size: 18px;
+}
+.qst-suggested {
+  align-self: flex-start;
+  margin-top: 4px;
+}
+.qst-picker-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  position: sticky;
+  bottom: 0;
+  padding: 10px 0 2px;
+  background: linear-gradient(to top, var(--bg) 70%, transparent);
+}
+.qst-picker-actions .btn.primary {
+  flex: 1 1 160px;
+}
+
+/* ---------- dream tab ---------- */
+.qst-dream-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.qst-dream-head p {
+  margin: 2px 0 0;
+  color: var(--fg-2);
+  font-weight: 700;
+}
+.qst-dream-ja {
+  font-family: var(--font-ja);
+  font-size: 24px;
+  line-height: 1.2;
+}
+.qst-cons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.qst-con {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px 10px;
+}
+.qst-con-label {
+  font-weight: 800;
+  font-size: 13px;
+  color: var(--fg-2);
+  min-width: 64px;
+}
+.qst-con .qst-bar {
+  flex: 1 1 80px;
+}
+.qst-con-text {
+  flex: 1 1 100%;
+  font-weight: 700;
+  font-size: 14.5px;
+  padding-inline-start: 26px;
+}
+.qst-finale {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  text-align: center;
+  background: var(--good-soft);
+  border-color: var(--good);
+}
+.qst-sticker {
+  cursor: default;
+}
+
+@keyframes qst-pop {
+  0% {
+    transform: scale(0.6);
+  }
+  70% {
+    transform: scale(1.18);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .qst-obj.done .qst-tick {
+    animation: none;
+  }
+  .qst-bar i {
+    transition: none;
+  }
+}
+
+/* ---------- story beat ---------- */
+.panel.qst-beat {
+  z-index: 40;
+  justify-content: flex-end;
+  background: linear-gradient(to top, var(--scrim), rgba(0, 0, 0, 0.12) 65%, transparent);
+}
+.qst-beat-stage {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 24px 16px 0;
+}
+.qst-beat-portrait {
+  filter: drop-shadow(0 8px 16px rgba(36, 31, 61, 0.28));
+}
+.qst-beat-card {
+  width: 100%;
+  max-width: 640px;
+  margin-inline: auto;
+  padding: 16px 18px calc(18px + var(--safe-bottom));
+  border-radius: 26px 26px 0 0;
+  background: var(--card);
+  color: var(--fg);
+  border: 1.5px solid var(--line);
+  border-bottom: 0;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  text-align: start;
+  cursor: pointer;
+}
+.qst-beat-card.ask {
+  cursor: default;
+}
+.qst-listen {
+  margin-inline-start: auto;
+  width: 44px;
+  height: 44px;
+}
+.qst-beat-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 800;
+  color: var(--accent-text);
+}
+.qst-beat-name small {
+  color: var(--fg-2);
+  font-weight: 700;
+}
+.qst-beat-ja {
+  min-height: 56px;
+}
+.qst-beat-gloss {
+  margin: 0;
+  color: var(--fg-2);
+  font-weight: 700;
+}
+.qst-beat-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-height: 24px;
+}
+.qst-dots {
+  display: inline-flex;
+  gap: 6px;
+}
+.qst-dots i {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--line);
+}
+.qst-dots i.on {
+  background: var(--accent);
+}
+.qst-ask {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.qst-ask-row {
+  display: flex;
+  gap: 10px;
+  align-items: stretch;
+}
+.qst-ask-row .field {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-ja);
+}
+.qst-ask-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+.qst-ask-actions .btn.primary {
+  flex: 1 1 140px;
+}
+.panel.qst-beat-dream {
+  z-index: 41;
+  overflow-y: auto;
+  padding: calc(var(--safe-top) + 16px) 16px calc(16px + var(--safe-bottom));
+}
+.panel.qst-beat-dream > * {
+  width: 100%;
+  max-width: 640px;
+  margin-inline: auto;
+}

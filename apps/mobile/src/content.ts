@@ -1,6 +1,7 @@
 // App-side helpers over the content pack.
 import {
   CHARACTERS,
+  LESSONS,
   LEXICON,
   SCENARIOS,
   SIGNS,
@@ -21,7 +22,21 @@ export const NPC_ORDER = ['hanako', 'yuki', 'tanaka', 'sato', 'kenji', 'mio'];
 export const TOTAL_SIGNS = SIGNS.length;
 
 export const characterById = (id: string): Character | undefined => CHARACTERS.find((c) => c.id === id);
-export const scenarioForCharacter = (id: string): Scenario | undefined => SCENARIOS.find((s) => s.characterId === id);
+export const scenarioById = (id: string): Scenario | undefined => SCENARIOS.find((s) => s.id === id);
+
+/** Every scenario a character owns (docs/GAME_DESIGN.md §6.1: several per NPC; the registries fill in as the slices land). */
+export const scenariosForCharacter = (id: string): Scenario[] => SCENARIOS.filter((s) => s.characterId === id);
+
+/** The character's primary scenario: `Character.scenarioId` when it is registered, else the first one it owns (what Talk starts when there is one thing to do). */
+export function scenarioForCharacter(id: string): Scenario | undefined {
+  const owned = scenariosForCharacter(id);
+  const primary = characterById(id)?.scenarioId;
+  return owned.find((s) => s.id === primary) ?? owned[0];
+}
+
+/** What is registered right now: the HUD hides an option whose target a later slice has not built yet. */
+export const registeredScenarioIds = (): ReadonlySet<string> => new Set(SCENARIOS.map((s) => s.id));
+export const registeredLessonIds = (): ReadonlySet<string> => new Set(LESSONS.map((l) => l.id));
 
 export function displayName(c: Character, lang: UiLang): string {
   return lang === 'ar' ? c.name.ar : c.name.en;

@@ -93,6 +93,9 @@ describe('welcome back', () => {
   };
   beforeEach(() => {
     PACK.beats[WELCOME_BACK_BEAT] = BEAT;
+    // the pack now has Chapter 1's opening beat (2F) and a fresh game queues it on mount: these tests are about the welcome-back beat only
+    useGame.getState().setGame({ ...getGame(), beats: PACK.chapters.map((c) => c.beats.open) });
+    useUi.setState({ beats: [] });
   });
 
   it('queues the beat once after BALANCE.nextGoal.awayDays or more, and not on a short gap', () => {

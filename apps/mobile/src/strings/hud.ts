@@ -1,4 +1,4 @@
-// UI strings for the world HUD: wallet pill, tracker card, pace. Every key needs an English and an Arabic string; keys are prefixed 'hud.'.
+// UI strings for the world HUD: wallet pill, tracker card, dream chip, game menu, interaction and goods sheets. Every key needs an English and an Arabic string; keys are prefixed 'hud.'.
 
 export const en = {
   'hud.wallet': 'Wallet',
@@ -11,6 +11,23 @@ export const en = {
   'hud.pace': 'About {n} days at your pace',
   'hud.softCap': 'Shops are quiet today. Extra practice still counts toward chapters.',
   'hud.cantListen': "I can't listen right now",
+  'hud.quests': 'Quests',
+  'hud.friends': 'Friends',
+  'hud.phone': 'Phone',
+  'hud.lessons': 'Lessons',
+  'hud.enoughYen': 'You have enough yen',
+  'hud.unlocked': 'Open now',
+  'hud.goalsFirst': 'Goals to finish first: {n}',
+  'hud.paceMany': 'More than 60 days at your pace',
+  'hud.steps': 'Steps: {n} of {total}',
+  'hud.choose': 'What would you like to do?',
+  'hud.needHearts': 'Hearts needed: {n}',
+  'hud.closedSay': 'We are still getting ready.',
+  'hud.windowNote': 'You can look and listen, but nothing is for sale here yet.',
+  'hud.noGoods': 'Nothing to look at yet.',
+  'hud.sayPrice': 'Hear the price',
+  'hud.doorLocked': 'まだ入れません · Not open yet',
+  'hud.level': 'Level and streak',
 } as const;
 
 export const ar: Record<keyof typeof en, string> = {
@@ -24,4 +41,21 @@ export const ar: Record<keyof typeof en, string> = {
   'hud.pace': 'نحو {n} يومًا بوتيرتك',
   'hud.softCap': 'المتاجر هادئة اليوم. التدريب الإضافي ما زال يُحتسب للفصول.',
   'hud.cantListen': 'لا أستطيع الاستماع الآن',
+  'hud.quests': 'المهام',
+  'hud.friends': 'الأصدقاء',
+  'hud.phone': 'الهاتف',
+  'hud.lessons': 'الدروس',
+  'hud.enoughYen': 'لديك ما يكفي من الين',
+  'hud.unlocked': 'مفتوح الآن',
+  'hud.goalsFirst': 'أهداف يجب إنهاؤها أولًا: {n}',
+  'hud.paceMany': 'أكثر من 60 يومًا بوتيرتك',
+  'hud.steps': 'الخطوات: {n} من {total}',
+  'hud.choose': 'ماذا تريد أن تفعل؟',
+  'hud.needHearts': 'القلوب المطلوبة: {n}',
+  'hud.closedSay': 'ما زلنا نستعدّ.',
+  'hud.windowNote': 'يمكنك النظر والاستماع، لكن لا شيء للبيع هنا بعد.',
+  'hud.noGoods': 'لا شيء لتنظر إليه بعد.',
+  'hud.sayPrice': 'استمع إلى السعر',
+  'hud.doorLocked': 'まだ入れません · لم يُفتح بعد',
+  'hud.level': 'المستوى والسلسلة',
 };

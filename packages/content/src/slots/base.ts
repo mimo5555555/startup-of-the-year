@@ -24,7 +24,10 @@ export const PLACES: SlotOption[] = [
   opt('akihabara', '秋葉原', ['あきはばら', 'akihabara'], ['akihabara'], ['أكيهابارا', 'اكيهابارا']),
   opt('ueno', '上野', ['うえの', 'ueno'], ['ueno'], ['أوينو', 'اوينو']),
   opt('tokyoStation', '東京駅', ['とうきょうえき', 'とうきょう', '東京', 'tokyo'], ['tokyo station', 'tokyo'], ['محطة طوكيو', 'طوكيو']),
-  opt('airport', '空港', ['くうこう', 'kuukou', 'kuko'], ['airport'], ['المطار', 'مطار']),
+  // relabelled Haneda Airport (§5.4); 「空港」 still matches
+  opt('airport', '羽田空港', ['空港', 'くうこう', 'はねだ', 'kuukou', 'kuko', 'haneda'], ['haneda airport', 'haneda', 'airport'], ['مطار هانيدا', 'هانيدا', 'المطار', 'مطار']),
+  // the fictional trip target (§5.4, D29)
+  opt('hikarigaoka', '光が丘', ['ひかりがおか', 'hikarigaoka'], ['hikarigaoka'], ['هيكاريغاأوكا', 'هيكاريغاوكا']),
 ];
 
 export const COUNTRIES: SlotOption[] = [

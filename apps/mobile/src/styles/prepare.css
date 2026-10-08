@@ -1,1 +1,307 @@
-/* prepare styles (docs/GAME_DESIGN.md §15.2): owned by the agent named there; imported through game.css. */
+/* prepare styles (docs/GAME_DESIGN.md §15.2): the Prepare screen, the hidden-line Say it (SayIt, EchoButton) and the pocket card.
+   Every class is prefixed prep-; colours and radii come from the tokens in styles.css. Logical properties only (the app runs RTL). */
+
+.prep-body {
+  gap: 14px;
+}
+.prep-for {
+  margin: 0;
+  color: var(--fg-2);
+  font-weight: 700;
+  font-size: 14px;
+}
+.prep-count {
+  white-space: nowrap;
+}
+
+/* ---------- buttons and links: every target is at least 44 px ---------- */
+.prep-btn {
+  min-height: 44px;
+  padding-inline: 16px;
+  font-size: 15px;
+}
+.prep-btn.rec {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+.prep-link {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 0;
+  background: none;
+  color: var(--accent-text);
+  font: 800 14px var(--font-body);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+  align-self: center;
+  text-align: center;
+}
+.prep-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+/* ---------- footer ---------- */
+.prep-foot {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 16px calc(10px + var(--safe-bottom));
+  border-top: 1px solid var(--line);
+  background: var(--bg);
+  max-width: 640px;
+  width: 100%;
+  margin-inline: auto;
+}
+.prep-nav {
+  display: flex;
+  gap: 10px;
+}
+.prep-nav .btn.soft {
+  flex: none;
+}
+.prep-foot .btn {
+  white-space: nowrap;
+}
+
+/* ---------- mode toggle ---------- */
+.prep-mode {
+  display: flex;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 16px;
+  background: var(--bg-2);
+}
+.prep-mode-btn {
+  flex: 1;
+  min-height: 44px;
+  padding: 4px 10px;
+  border: 0;
+  border-radius: 12px;
+  background: none;
+  color: var(--fg-2);
+  font: 800 13.5px/1.2 var(--font-body);
+  cursor: pointer;
+}
+.prep-mode-btn.on {
+  background: var(--card);
+  color: var(--fg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ---------- study and recall cards ---------- */
+.prep-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+}
+.prep-card .ja {
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.prep-key {
+  padding: 2px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-size: 12px;
+  font-weight: 800;
+}
+.prep-meaning {
+  margin: 0;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.35;
+}
+.prep-ready h2 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--good);
+}
+.prep-ready p {
+  margin: 0;
+}
+
+.prep-say {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  width: 100%;
+}
+.prep-line-slot {
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+}
+.prep-hidden {
+  display: inline-flex;
+  gap: 8px;
+}
+.prep-hidden i {
+  width: 38px;
+  height: 10px;
+  border-radius: 6px;
+  background: var(--line);
+}
+.prep-form {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.prep-input {
+  min-width: 0;
+}
+.prep-review-type {
+  margin-top: 12px;
+}
+
+/* ---------- verdicts ---------- */
+.prep-verdict {
+  margin: 0;
+  padding: 8px 12px;
+  border-radius: 12px;
+  font-weight: 700;
+  font-size: 14.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.prep-verdict.ok {
+  background: var(--good-soft);
+  color: var(--good);
+}
+.prep-verdict.near {
+  background: var(--warn-soft);
+  color: var(--fg);
+}
+.prep-verdict.peek {
+  background: var(--sky-soft);
+  color: var(--fg);
+}
+
+/* ---------- build it from the pieces ---------- */
+.prep-build {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.prep-built,
+.prep-tiles {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.prep-built {
+  min-height: 56px;
+  padding: 6px;
+  border: 2px dashed var(--line);
+  border-radius: 14px;
+  align-items: center;
+}
+.prep-built-empty {
+  color: var(--fg-2);
+  padding-inline: 8px;
+}
+.prep-tile {
+  min-height: 44px;
+  min-width: 44px;
+  padding: 0 14px;
+  border: 2px solid var(--line);
+  border-radius: 12px;
+  background: var(--card);
+  color: var(--fg);
+  font: 700 18px var(--font-ja);
+  cursor: pointer;
+  box-shadow: 0 2px 0 var(--line);
+}
+.prep-tile.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* ---------- status marks and the pocket list ---------- */
+.prep-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 800;
+  color: var(--fg-2);
+}
+.prep-status i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  border: 2px solid currentColor;
+}
+.prep-status.seen i {
+  background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+}
+.prep-status.ready {
+  color: var(--good);
+}
+.prep-pocket {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.prep-pocket-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+.prep-pocket-lines li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  column-gap: 10px;
+  row-gap: 2px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+  align-items: center;
+}
+.prep-pocket-lines li:last-child {
+  border-bottom: 0;
+}
+.prep-pocket-ja {
+  grid-column: 1;
+  font: 700 17px var(--font-ja);
+  overflow-wrap: anywhere;
+}
+.prep-pocket-lines small {
+  grid-column: 1;
+  color: var(--fg-2);
+}
+.prep-pocket-lines .prep-status {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+}
+.prep-ready-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+/* ---------- debrief echo and the review additions ---------- */
+.prep-echo-open {
+  align-self: flex-start;
+}
+.prep-echo {
+  padding: 10px;
+  border-radius: 14px;
+  background: var(--bg-2);
+}
+.prep-sprint {
+  margin: 0 0 8px;
+  padding: 10px 12px;
+  font-size: 14px;
+}

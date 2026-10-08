@@ -1,17 +1,50 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { TokyoWorld, NPC_SPAWNS } from '@lw/world';
+import { TokyoWorld } from '@lw/world';
 import { CHARACTERS, SIGNS, SCENARIOS } from '@lw/content';
 import { levelProgress } from '@lw/core';
 import { WorldCtx, useT } from '../hooks';
-import { dueCount, useStore } from '../store';
+import { useStore } from '../store';
 import { Icon } from '../components/Icon';
 import { Joystick } from '../components/Joystick';
 import { MiniMap } from '../components/MiniMap';
 import { Portrait } from '../components/Portrait';
-import { Conversation } from './Conversation';
-import { NPC_ORDER, TOTAL_SIGNS, characterById, displayName, entryForSign, npcLabels, scenarioForCharacter, tokenOf } from '../content';
+import { DreamChip } from '../components/game/DreamChip';
+import { GameMenu } from '../components/game/GameMenu';
+import { GoodsSheet } from '../components/game/GoodsSheet';
+import { InteractionSheet, runPlan } from '../components/game/InteractionSheet';
+import { TrackerCard } from '../components/game/TrackerCard';
+import { WalletPill } from '../components/game/WalletPill';
+import { TicketPanel } from './TicketPanel';
+import { VendingPanel } from './VendingPanel';
+import { TOTAL_SIGNS, characterById, displayName, entryForSign, npcLabels, registeredLessonIds, registeredScenarioIds, tokenOf } from '../content';
 import { useUi } from '../ui';
 import { blip, haptic } from '../services';
+import { dispatch, openScreen } from '../game/bridge';
+import { useDisclosure, useGameState, useGameView, useTracker } from '../game/hooks';
+import { PACK, shopById } from '../game/pack';
+import {
+  approachPoint,
+  doorOpens,
+  goalTarget,
+  goodsShopOf,
+  hudElements,
+  interactionRows,
+  keeperOf,
+  legacyGoal,
+  legacyPlan,
+  needsSheet,
+  openRows,
+  pinOf,
+  planFor,
+  routePick,
+  syncWorld,
+  type InteractionEnv,
+  type Plan,
+  type PickRoute,
+} from '../game/worldSync';
+
+/** What the player is looking at over the world: the NPC's options, a shop front, or Hanako's lesson list. */
+type Sheet = { kind: 'npc'; id: string; lessonsOnly?: boolean } | { kind: 'shop'; id: string };
 
 export function WorldScreen() {
   const { t, lang, dir } = useT();
@@ -19,13 +52,14 @@ export function WorldScreen() {
   const [world, setWorld] = useState<TokyoWorld | null>(null);
   const [failed, setFailed] = useState(false);
   const [nearby, setNearby] = useState<string | null>(null);
-  const [talkTo, setTalkTo] = useState<string | null>(null);
   const [menu, setMenu] = useState(false);
+  const [sheet, setSheet] = useState<Sheet | null>(null);
+  const [goods, setGoods] = useState<{ shopId: string; window: boolean } | null>(null);
+  const [panel, setPanel] = useState<{ t: 'vending' } | { t: 'ticket'; kind: 'ramen' | 'station' } | null>(null);
 
   const screen = useStore((s) => s.screen);
   const xp = useStore((s) => s.xp);
   const streak = useStore((s) => s.streak);
-  const vocab = useStore((s) => s.vocab);
   const completed = useStore((s) => s.completed);
   const lessonsDone = useStore((s) => s.lessonsDone);
   const discovered = useStore((s) => s.discovered);
@@ -36,6 +70,20 @@ export function WorldScreen() {
   const say = useStore((s) => s.say);
   const updateSettings = useStore((s) => s.updateSettings);
   const openWord = useUi((s) => s.openWord);
+  const inConvo = useUi((s) => !!s.convo);
+
+  // ---- game state the HUD reads ----
+  const game = useGameState();
+  const view = useGameView();
+  const disclosure = useDisclosure();
+  const tracked = useTracker();
+  const scenarios = useMemo(registeredScenarioIds, []);
+  const lessons = useMemo(registeredLessonIds, []);
+  const env: InteractionEnv = useMemo(() => ({ pack: PACK, state: game, view, scenarios, lessons }), [game, view, scenarios, lessons]);
+  const envRef = useRef(env);
+  envRef.current = env;
+  const elements = hudElements(disclosure);
+  const unread = Object.values(game.friends).reduce((n, f) => n + (f.unread ?? 0), 0);
 
   // ---- create the 3D world once ----
   useEffect(() => {
@@ -61,12 +109,47 @@ export function WorldScreen() {
     };
   }, []);
 
+  /** Carries out a plan; a window plan opens the read-only Goods sheet over the world. */
+  const run = (plan: Plan) => {
+    setSheet(null);
+    setMenu(false);
+    if (plan.t === 'window') setGoods({ shopId: plan.shopId, window: true });
+    else runPlan(plan);
+  };
+
+  /** Panels, doors and shop fronts are routed game first (§7.6); returns whether the pick was taken. */
+  const routePicked = (id: string, route: PickRoute): boolean => {
+    if (!route) return false;
+    const e = envRef.current;
+    if (route.t === 'vending' || route.t === 'ticket') {
+      // the panel's first open grants the sign discovery and its word card, so nothing of the old behaviour is lost
+      const entry = entryForSign(id);
+      if (entry && discover(id)) {
+        blip('good', useStore.getState().settings.autoSpeak);
+        haptic(12);
+        openWord({ token: tokenOf(entry), source: 'sign' });
+      }
+      setPanel(route.t === 'vending' ? { t: 'vending' } : { t: 'ticket', kind: route.kind });
+    } else if (route.t === 'door') {
+      const row = route.friend ? interactionRows(e, route.friend).find((r) => r.it.kind === 'visit') : undefined;
+      if (route.friend && row && doorOpens(e, route.friend)) run(planFor(e, row.it, route.friend));
+      else say(t('hud.doorLocked'));
+    } else {
+      const shop = shopById(route.shopId);
+      if (!shop) return false;
+      if (e.state.chapter.n >= shop.openChapter) setGoods({ shopId: shop.id, window: false });
+      else setSheet({ kind: 'shop', id: shop.id });
+    }
+    return true;
+  };
+
   // ---- world events ----
   useEffect(() => {
     if (!world) return;
     return world.on((e) => {
       if (e.type === 'nearby') setNearby(e.id);
       else if (e.type === 'pick') {
+        if (routePicked(e.id, routePick(e.id))) return;
         const entry = entryForSign(e.id);
         if (!entry) return;
         const fresh = discover(e.id);
@@ -74,8 +157,13 @@ export function WorldScreen() {
         haptic(12);
         openWord({ token: tokenOf(entry), source: 'sign' });
         if (fresh) say(t('sign.found', { n: 2 }), 'good');
+      } else if (e.type === 'spot') {
+        // `stats.spots` keeps the id without the world's prefix (objective `visit spot:pond`)
+        dispatch({ t: 'spot', id: e.id.replace(/^spot:/, '') });
       } else if (e.type === 'quality' && e.quality === 'low') say(t('w.lowFps'));
     });
+    // routePicked reads everything through refs and stable store actions
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [world, t, discover, openWord, say]);
 
   // keep the 3D scene in step with app state
@@ -92,24 +180,29 @@ export function WorldScreen() {
   useEffect(() => {
     world?.setQualityMode(settings.graphics);
   }, [world, settings.graphics]);
+  // shutters by chapter, NPC badges (lesson / new / done / locked), ride and speed
   useEffect(() => {
-    if (!world) return;
-    for (const c of CHARACTERS) {
-      if (c.lessonId) world.setNpcBadge(c.id, lessonsDone.includes(c.lessonId) ? 'done' : 'lesson');
-      else if (c.scenarioId) world.setNpcBadge(c.id, completed[c.scenarioId] ? 'done' : 'new');
-    }
-  }, [world, completed, lessonsDone]);
+    if (world) syncWorld(world, env, { completed, lessonsDone });
+  }, [world, env, completed, lessonsDone]);
 
+  /** What Talk does: the one open option directly, or the sheet when there are several (§6.1). */
   const talk = (id: string) => {
     const c = characterById(id);
     if (!c) return;
     setMenu(false);
-    if (c.lessonId) {
-      useStore.setState({ lessonId: c.lessonId });
-      go('lesson');
+    const rows = interactionRows(env, id);
+    const open = openRows(rows);
+    if (needsSheet(rows) || (open.length === 0 && rows.length > 0)) {
+      setSheet({ kind: 'npc', id });
       return;
     }
-    setTalkTo(id);
+    if (open.length === 1) {
+      run(planFor(env, open[0].it, id));
+      return;
+    }
+    // no table for this character: what Talk always did
+    const plan = legacyPlan(c);
+    if (plan) run(plan);
   };
 
   // "practise again" from the feedback screen
@@ -117,48 +210,62 @@ export function WorldScreen() {
     if (!world || !pendingTalk) return;
     world.teleportNear(pendingTalk);
     useStore.getState().setPendingTalk(null);
-    setTalkTo(pendingTalk);
+    const c = characterById(pendingTalk);
+    const plan = c && legacyPlan(c);
+    if (plan) run(plan);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [world, pendingTalk]);
 
+  const busy = inConvo || !!sheet || !!goods || !!panel;
   // E or Enter talks to whoever is closest
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
-      if ((e.key.toLowerCase() === 'e' || e.key === 'Enter') && nearby && !talkTo && screen === 'world' && (e.target as HTMLElement)?.tagName !== 'INPUT') talk(nearby);
+      if ((e.key.toLowerCase() === 'e' || e.key === 'Enter') && nearby && !busy && screen === 'world' && (e.target as HTMLElement)?.tagName !== 'INPUT') talk(nearby);
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   });
 
-  const open = (screenName: 'vocab' | 'stats' | 'settings') => {
-    setMenu(false);
-    go(screenName);
+  const lvl = levelProgress(xp);
+  const due = view.vocab.dueCount;
+
+  // the tracker: the pack's next best goal (locked until done), else the first unfinished stop of the original tour
+  const goal = tracked ?? legacyGoal(completed, lessonsDone);
+  const walkToNpc = (id: string) => {
+    const p = approachPoint(id);
+    if (p && world) world.walkTo(p.x, p.z);
+  };
+  const goToGoal = () => {
+    const target = goalTarget(goal);
+    blip('tap', settings.autoSpeak);
+    if (target?.t === 'npc') walkToNpc(target.id);
+    else if (target?.t === 'point') world?.walkTo(target.x, target.z);
+    else if (target?.t === 'screen' && target.screen === 'vocab') go('vocab');
+    else openScreen('quests', { tab: target?.t === 'screen' ? target.tab : undefined });
   };
 
-  const lvl = levelProgress(xp);
-  const due = dueCount(vocab);
-
-  // next suggestion: lesson first, then the first scenario not finished yet
-  const nextId = useMemo(() => {
-    for (const id of NPC_ORDER) {
-      const c = characterById(id)!;
-      if (c.lessonId ? !lessonsDone.includes(c.lessonId) : !completed[c.scenarioId!]) return id;
-    }
-    return null;
-  }, [completed, lessonsDone]);
-  const nextChar = nextId ? characterById(nextId) : null;
-  const nextScenario = nextId ? scenarioForCharacter(nextId) : null;
-
-  const walkToNext = () => {
-    const spawn = NPC_SPAWNS.find((n) => n.id === nextId);
-    if (!spawn || !world) return;
-    const d = spawn.radius * 0.62;
-    world.walkTo(spawn.x + Math.sin(spawn.face) * d, spawn.z + Math.cos(spawn.face) * d);
-    blip('tap', settings.autoSpeak);
+  /** Menu > Lessons: the one lesson directly, Hanako's lesson list when there are several. */
+  const talkLessons = () => {
+    const rows = openRows(interactionRows(env, 'hanako').filter((r) => r.it.kind === 'lesson'));
+    setMenu(false);
+    if (rows.length === 1) run(planFor(env, rows[0].it, 'hanako'));
+    else setSheet({ kind: 'npc', id: 'hanako', lessonsOnly: true });
   };
 
   const nearChar = nearby ? characterById(nearby) : null;
-  const inConvo = !!talkTo;
+  const nearGoods = nearChar ? goodsShopOf(PACK, nearChar.id) : null;
   const found = discovered.filter((d) => SIGNS.some((s) => s.id === d)).length;
+
+  // what the sheet shows
+  const sheetChar = sheet?.kind === 'npc' ? characterById(sheet.id) : sheet ? characterById(keeperOf(sheet.id) ?? '') : undefined;
+  const sheetShop = sheet?.kind === 'shop' ? shopById(sheet.id) : undefined;
+  const sheetRows = !sheet
+    ? []
+    : sheet.kind === 'npc'
+      ? interactionRows(env, sheet.id).filter((r) => !sheet.lessonsOnly || r.it.kind === 'lesson')
+      : sheetChar
+        ? interactionRows(env, sheetChar.id).filter((r) => r.it.kind === 'window')
+        : [];
 
   return (
     <WorldCtx.Provider value={world}>
@@ -181,85 +288,70 @@ export function WorldScreen() {
                     <Icon name={menu ? 'x' : 'menu'} size={22} />
                     {due > 0 && !menu && <span className="dot-badge">{due}</span>}
                   </button>
-                  <div className="chip glass lvl" title={t('s.xp', { n: xp })}>
-                    <span className="lvl-n">{t('w.level', { n: lvl.level })}</span>
-                    <span className="bar">
-                      <i style={{ width: `${Math.round(lvl.fraction * 100)}%` }} />
-                    </span>
-                  </div>
-                  <div className={`chip glass flame ${streak.days > 0 ? 'on' : ''}`} title={t('s.streak')}>
-                    <Icon name="flame" size={16} />
-                    <span>{streak.days}</span>
-                  </div>
+                  {elements.includes('level') && (
+                    <>
+                      <div className="chip glass lvl" title={t('s.xp', { n: xp })}>
+                        <span className="lvl-n">{t('w.level', { n: lvl.level })}</span>
+                        <span className="bar">
+                          <i style={{ width: `${Math.round(lvl.fraction * 100)}%` }} />
+                        </span>
+                      </div>
+                      <div className={`chip glass flame ${streak.days > 0 ? 'on' : ''}`} title={t('s.streak')}>
+                        <Icon name="flame" size={16} />
+                        <span>{streak.days}</span>
+                      </div>
+                    </>
+                  )}
+                  {elements.includes('phone') && (
+                    <button className="icon-btn glass hud-phone" aria-label={t('hud.phone')} onClick={() => openScreen('phone', {})}>
+                      <Icon name="phone" size={22} />
+                      {unread > 0 && <span className="dot-badge">{unread}</span>}
+                    </button>
+                  )}
                 </div>
-                {menu && (
-                  <nav className="menu glass-card" aria-label={t('w.menu')}>
-                    <button onClick={() => open('vocab')}>
-                      <Icon name="book" size={20} /> {t('w.words')}
-                      {due > 0 && <span className="pill">{t('v.due', { n: due })}</span>}
-                    </button>
-                    <button onClick={() => open('stats')}>
-                      <Icon name="chart" size={20} /> {t('w.progress')}
-                    </button>
-                    <button onClick={() => open('settings')}>
-                      <Icon name="sliders" size={20} /> {t('w.settings')}
-                    </button>
-                  </nav>
-                )}
+                <WalletPill />
+                {elements.includes('dream') && <DreamChip />}
               </div>
               <div className="hud-right">
-                <MiniMap world={world} target={nextId} />
-                <div className="found glass chip" title={t('w.found', { n: found, total: TOTAL_SIGNS })}>
-                  <Icon name="sparkle" size={14} /> {found}/{TOTAL_SIGNS}
-                </div>
+                <MiniMap world={world} pin={pinOf(goal)} />
+                {elements.includes('found') && (
+                  <div className="found glass chip" title={t('w.found', { n: found, total: TOTAL_SIGNS })}>
+                    <Icon name="sparkle" size={14} /> {found}/{TOTAL_SIGNS}
+                  </div>
+                )}
               </div>
             </div>
 
-            {nextChar && nextScenario && !nearChar && (
-              <button className="next-up glass-card" onClick={walkToNext}>
-                <Portrait spec={nextChar.avatar} size={40} />
-                <span className="next-text">
-                  <small>{t('w.nextUp')}</small>
-                  <strong>{displayName(nextChar, lang)}</strong>
-                  <em dir="auto">{nextScenario.title[lang]}</em>
-                </span>
-                <span className="next-go">
-                  <Icon name="walk" size={18} />
-                </span>
-              </button>
-            )}
-            {!nextChar && !nearChar && (
+            {menu && <GameMenu showLevel={!elements.includes('level')} onClose={() => setMenu(false)} onLessons={() => talkLessons()} />}
+
+            {/* always on the HUD (§7.5): the old "next up" card hid itself next to an NPC, but the tracker is the one thing that must stay */}
+            {goal && <TrackerCard goal={goal} onGo={goToGoal} />}
+            {!goal && (
               <div className="next-up glass-card static">
                 <span className="next-text">
                   <strong>{t('f.again')}</strong>
                 </span>
               </div>
             )}
-            {nextChar && !nextScenario && !nearChar && (
-              <button className="next-up glass-card" onClick={walkToNext}>
-                <Portrait spec={nextChar.avatar} size={40} />
-                <span className="next-text">
-                  <small>{t('w.nextUp')}</small>
-                  <strong>{displayName(nextChar, lang)}</strong>
-                  <em dir="auto">{t('l.title')}</em>
-                </span>
-                <span className="next-go">
-                  <Icon name="walk" size={18} />
-                </span>
-              </button>
-            )}
 
             <div className="hud-bottom">
               <Joystick onMove={(x, y) => world.setMove(x, y)} />
               {nearChar && (
-                <button className="talk-btn" dir={dir} onClick={() => talk(nearChar.id)}>
-                  <Portrait spec={nearChar.avatar} size={46} />
-                  <span>
-                    <small>{nearChar.lessonId ? t('w.lesson', { name: '' }).trim() : t('w.talk', { name: '' }).trim()}</small>
-                    <strong>{displayName(nearChar, lang)}</strong>
-                  </span>
-                  <Icon name={dir === 'rtl' ? 'chevL' : 'chevR'} size={22} />
-                </button>
+                <div className="hud-talk">
+                  {nearGoods && (
+                    <button className="icon-btn glass hud-goods-btn" aria-label={t('shop.goods')} onClick={() => setGoods({ shopId: nearGoods, window: false })}>
+                      <Icon name="bag" size={22} />
+                    </button>
+                  )}
+                  <button className="talk-btn" dir={dir} onClick={() => talk(nearChar.id)}>
+                    <Portrait spec={nearChar.avatar} size={46} />
+                    <span>
+                      <small>{nearChar.lessonId ? t('w.lesson', { name: '' }).trim() : t('w.talk', { name: '' }).trim()}</small>
+                      <strong>{displayName(nearChar, lang)}</strong>
+                    </span>
+                    <Icon name={dir === 'rtl' ? 'chevL' : 'chevR'} size={22} />
+                  </button>
+                </div>
               )}
             </div>
 
@@ -280,13 +372,25 @@ export function WorldScreen() {
           </div>
         )}
 
-        {world && talkTo && (
-          <Conversation
-            key={talkTo}
-            characterId={talkTo}
-            onClose={() => setTalkTo(null)}
+        {world && !inConvo && screen === 'world' && sheet && (
+          <InteractionSheet
+            character={sheetChar && sheet.kind === 'npc' ? sheetChar : undefined}
+            shopName={sheetShop?.name}
+            rows={sheetRows}
+            closedUntil={sheetShop && env.state.chapter.n < sheetShop.openChapter ? sheetShop.openChapter : undefined}
+            hasGoods={sheet.kind === 'npc' && !sheet.lessonsOnly && !!goodsShopOf(PACK, sheet.id)}
+            onPick={(row) => run(planFor(env, row.it, sheetChar?.id ?? ''))}
+            onGoods={() => {
+              const shopId = sheet.kind === 'npc' ? goodsShopOf(PACK, sheet.id) : null;
+              setSheet(null);
+              if (shopId) setGoods({ shopId, window: false });
+            }}
+            onClose={() => setSheet(null)}
           />
         )}
+        {goods && screen === 'world' && <GoodsSheet shopId={goods.shopId} window={goods.window} onClose={() => setGoods(null)} />}
+        {panel?.t === 'vending' && screen === 'world' && <VendingPanel onClose={() => setPanel(null)} />}
+        {panel?.t === 'ticket' && screen === 'world' && <TicketPanel kind={panel.kind} onClose={() => setPanel(null)} />}
       </div>
     </WorldCtx.Provider>
   );

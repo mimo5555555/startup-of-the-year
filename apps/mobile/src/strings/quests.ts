@@ -1,4 +1,5 @@
-// UI strings for quests, goals, chapters and daily goals. Every key needs an English and an Arabic string; keys are prefixed 'dream.' and 'quests.'.
+// UI strings for quests, goals, chapters, daily goals and dreams. Every key needs an English and an Arabic string; keys are prefixed 'dream.' and 'quests.'.
+// The first block is the canonical table of docs/GAME_DESIGN.md §7.6; the rest belongs to the Quests screen, the Dream picker and the story beats (2F).
 
 export const en = {
   'dream.title': 'Your dream',
@@ -22,6 +23,65 @@ export const en = {
   'quests.easier': 'Make it easier',
   'quests.fromYesterday': 'From yesterday',
   'quests.hintFriends': 'Make sure two friends are at 2 hearts',
+
+  // toasts the objective engine and the dream engine raise
+  'quests.objectiveDone': 'Goal complete!',
+  'quests.catchUp': 'Hanako-sensei added ¥{n} toward your phone.',
+  'quests.goalDone': 'Daily goal done: +¥{n}',
+  'quests.streak': 'Streak bonus: +¥{n}',
+  'dream.stepDone': 'Dream step complete!',
+
+  // Story tab
+  'quests.goals': '{done} of {total} goals',
+  'quests.reward': 'Reward: ¥{n}',
+  'quests.comingUp': 'Coming up',
+  'quests.gate.friend': 'Make a closer friend first',
+  'quests.gate.other': 'One thing is still missing before the next chapter',
+  'quests.freeWalk': 'Free Walk: the whole town is open. Daily goals and dreams go on.',
+  'quests.easierSay': "Let's make it a bit easier.",
+  'quests.easierOn': 'Made easier',
+  'quests.dreamSlot': 'Dream step',
+  'quests.dreamNone': 'Pick a dream to see its step here.',
+
+  // Today tab
+  'quests.trioGoal': "Finish all of today's goals: +¥{n}",
+  'quests.each': '+¥{n} each',
+  'quests.streakBonus': 'Streak bonus with your first goal: +¥{n}',
+  'quests.swapDone': 'Swapped today',
+  'quests.dailyLater': 'Daily goals start after your first chapter.',
+  'quests.dailyNone': 'No goals left today. Enjoy the town!',
+
+  // Friends and Culture tabs
+  'quests.friendsNone': 'Friends appear from Chapter 3.',
+  'quests.friendsOpen': 'Open Friends',
+  'quests.cultureCount': '{n} culture cards collected',
+  'quests.cultureOpen': 'Open the stamp book',
+
+  // Dream tab and picker
+  'dream.none': 'No dream yet',
+  'dream.pickThis': 'Choose this dream',
+  'dream.suggested': 'Suggested for you',
+  'dream.freeWalk': 'Opens when the story is finished',
+  'dream.cost': 'About ¥{n}',
+  'dream.saved': 'Saved ¥{cash} of ¥{cost}',
+  'dream.nothingToBuy': 'Nothing to buy for this dream',
+  'dream.yenLabel': 'Yen',
+  'dream.langLabel': 'Language',
+  'dream.stickers': 'Stickers',
+  'dream.sticker': 'Sticker earned',
+  'dream.switchFree': 'Switching is free and your progress is kept.',
+  'dream.finale': 'You did it! Title and sticker earned.',
+  'dream.horizon.short': 'A few days',
+  'dream.horizon.medium': 'A week or two',
+  'dream.horizon.long': 'A few weeks',
+  'dream.horizon.epilogue': 'After the story',
+
+  // story beats
+  'quests.skip': 'Skip for now',
+  'quests.nameKanaHint': 'Katakana is best, but any spelling is fine.',
+  'quests.nameKanaPlaceholder': 'e.g. ミオ',
+  'quests.nameKanaUse': 'This is my name',
+  'quests.diaryHint': 'One line about today, in any language.',
 } as const;
 
 export const ar: Record<keyof typeof en, string> = {
@@ -46,4 +106,57 @@ export const ar: Record<keyof typeof en, string> = {
   'quests.easier': 'اجعلها أسهل',
   'quests.fromYesterday': 'من الأمس',
   'quests.hintFriends': 'تأكد أن صديقين وصلا إلى قلبين',
+
+  'quests.objectiveDone': 'أنجزت هدفًا!',
+  'quests.catchUp': 'أضافت المعلّمة هاناكو ¥{n} لشراء هاتفك.',
+  'quests.goalDone': 'أنجزت هدفًا يوميًا: +¥{n}',
+  'quests.streak': 'مكافأة السلسلة: +¥{n}',
+  'dream.stepDone': 'اكتملت خطوة من حلمك!',
+
+  'quests.goals': '{done} من {total} أهداف',
+  'quests.reward': 'المكافأة: ¥{n}',
+  'quests.comingUp': 'قادم',
+  'quests.gate.friend': 'كوّن صديقًا مقرّبًا أولًا',
+  'quests.gate.other': 'ينقصك أمر واحد قبل الفصل التالي',
+  'quests.freeWalk': 'المشي الحر: الحيّ كله مفتوح. الأهداف اليومية والأحلام تستمر.',
+  'quests.easierSay': 'لنجعلها أسهل قليلًا.',
+  'quests.easierOn': 'تم تسهيلها',
+  'quests.dreamSlot': 'خطوة الحلم',
+  'quests.dreamNone': 'اختر حلمًا لتظهر خطوته هنا.',
+
+  'quests.trioGoal': 'أنجز كل أهداف اليوم: +¥{n}',
+  'quests.each': '+¥{n} لكل هدف',
+  'quests.streakBonus': 'مكافأة السلسلة مع أول هدف: +¥{n}',
+  'quests.swapDone': 'بدّلت اليوم',
+  'quests.dailyLater': 'تبدأ الأهداف اليومية بعد فصلك الأول.',
+  'quests.dailyNone': 'لا أهداف متبقية اليوم. استمتع بالحيّ!',
+
+  'quests.friendsNone': 'يظهر الأصدقاء من الفصل 3.',
+  'quests.friendsOpen': 'افتح الأصدقاء',
+  'quests.cultureCount': 'جمعت {n} بطاقة ثقافية',
+  'quests.cultureOpen': 'افتح دفتر الأختام',
+
+  'dream.none': 'لا حلم بعد',
+  'dream.pickThis': 'اختر هذا الحلم',
+  'dream.suggested': 'مقترح لك',
+  'dream.freeWalk': 'يُفتح بعد انتهاء القصة',
+  'dream.cost': 'نحو ¥{n}',
+  'dream.saved': 'ادّخرت ¥{cash} من ¥{cost}',
+  'dream.nothingToBuy': 'لا شيء لشرائه لهذا الحلم',
+  'dream.yenLabel': 'الين',
+  'dream.langLabel': 'اللغة',
+  'dream.stickers': 'الملصقات',
+  'dream.sticker': 'حصلت على ملصق',
+  'dream.switchFree': 'التغيير مجاني وتقدّمك محفوظ.',
+  'dream.finale': 'لقد فعلتها! حصلت على اللقب والملصق.',
+  'dream.horizon.short': 'بضعة أيام',
+  'dream.horizon.medium': 'أسبوع أو أسبوعان',
+  'dream.horizon.long': 'بضعة أسابيع',
+  'dream.horizon.epilogue': 'بعد القصة',
+
+  'quests.skip': 'تخطَّ الآن',
+  'quests.nameKanaHint': 'الكاتاكانا أفضل، لكن أي كتابة مقبولة.',
+  'quests.nameKanaPlaceholder': 'مثال: ミオ',
+  'quests.nameKanaUse': 'هذا هو اسمي',
+  'quests.diaryHint': 'سطر واحد عن اليوم، بأي لغة.',
 };
