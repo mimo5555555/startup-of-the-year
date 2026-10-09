@@ -1,4 +1,5 @@
 import type { DreamDef, DreamStep, Gloss, Pred } from '@lw/game';
+import { releasedGate } from './chapters';
 
 // The 7 dreams and their step ladders (docs/GAME_DESIGN.md §7.3, D20, D28). Steps pay no yen: the item is the prize; the 2nd step of
 // every dream pays a cosmetic sticker and a one-line beat (BALANCE.dream.milestoneStep). `gate` is the chapter in which a step becomes
@@ -145,3 +146,39 @@ export const DREAMS: DreamDef[] = [
     ],
   },
 ];
+
+// ---------------------------------------------------------------------------------------------------------------
+// The release cap (docs/RELEASE_1.md): the dreams the Dream picker offers
+// ---------------------------------------------------------------------------------------------------------------
+
+/**
+ * The car dream as this release can finish it. The designed ladder asks for hearts with Nakamura (he is a shopkeeper here, not one of the
+ * six friends) and a ride-along beat (`first_drive`) that this release does not build, so those two steps become things the player can
+ * really do at Free Walk: ask the dealer for the drive-away price (the lesson of the trap), and drive to the east end of the street
+ * (the car's ×2.5 speed is the point). Buying with a haggle costs less than the ¥198,000 jar, so the savings step is "saved it or bought it".
+ */
+const RELEASED_CAR_STEPS: DreamStep[] = [
+  step('car_1', FREE_WALK, { k: 'words_known', tag: 'car', n: 8 }, 'Learn 8 car words', 'تعلّم 8 كلمات عن السيارات'),
+  step('car_2', FREE_WALK, { k: 'said', scenario: 'motors_car', intent: 'ask_total' }, 'Ask the dealer for the drive-away price (乗り出し価格)', 'اسأل التاجر عن السعر النهائي (乗り出し価格)'),
+  // cash only: the savings jar of the Dream tab (the IC card and points never count, §4.1)
+  step('car_3', FREE_WALK, { k: 'any', of: [{ k: 'wallet', atLeast: 198000 }, { k: 'own', category: 'car' }] }, 'Save ¥198,000 in cash', 'ادّخر ¥198,000 نقدًا'),
+  step('car_4', FREE_WALK, { k: 'own', category: 'car' }, 'Buy your car', 'اشترِ سيارتك'),
+  step('car_5', FREE_WALK, { k: 'visit', place: 'spot:east_end' }, 'Drive to the east end of the street', 'قُد سيارتك إلى نهاية الشارع الشرقية'),
+];
+
+/** The dreams whose ladders can be finished with the content of Release 1; the others stay authored above and are not offered. */
+const RELEASED_DREAM_IDS = ['phone_pal', 'bike', 'car'] as const;
+/** Onboarding goals that map onto a released dream (the unreleased flat, festival and travel dreams are not offered). */
+const RELEASED_DEFAULTS: Record<(typeof RELEASED_DREAM_IDS)[number], string[]> = { phone_pal: ['work', 'casual', 'relocation'], bike: ['travel'], car: [] };
+
+/**
+ * The Dream picker's table in this release (`JP_PACK.dreams`): phone_pal, bike and car. Step gates and chapters that are never played
+ * become Free Walk (`releasedGate`); `validatePack` proves every step of every dream here is finishable (`dream_blocked`).
+ */
+export const RELEASED_DREAMS: DreamDef[] = RELEASED_DREAM_IDS.map((id) => {
+  const d = DREAMS.find((x) => x.id === id) as DreamDef;
+  const steps = id === 'car' ? RELEASED_CAR_STEPS : d.steps.map((s) => ({ ...s, gate: releasedGate(s.gate) }));
+  const { defaultFor: _ignored, ...rest } = d;
+  const goals = RELEASED_DEFAULTS[id];
+  return { ...rest, ...(goals.length > 0 ? { defaultFor: goals } : {}), steps };
+});

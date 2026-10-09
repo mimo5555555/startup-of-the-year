@@ -1,1 +1,293 @@
-/* friends styles (docs/GAME_DESIGN.md §15.2): owned by the agent named there; imported through game.css. */
+/* friends styles (docs/GAME_DESIGN.md §15.2): owned by the agent named there (4A); imported through game.css. Everything is prefixed frd-;
+   logical properties throughout so the Arabic layout mirrors by itself; the tokens (--card, --line, --accent...) come from styles.css and
+   follow the dark theme. Targets are at least 44px; nothing is wider than the 360px screen (long names wrap). */
+
+.frd-body-wrap {
+  gap: 12px;
+}
+.frd-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* ---------- one friend ---------- */
+.frd-card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+.frd-card.open {
+  border-color: var(--accent);
+}
+.frd-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 72px;
+  padding: 10px 12px;
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.frd-head .portrait {
+  flex: none;
+}
+.frd-who {
+  flex: 1 1 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.frd-who strong {
+  font-size: 17px;
+  font-family: var(--font-display);
+  overflow-wrap: anywhere;
+}
+html[lang='ar'] .frd-who strong {
+  font-family: var(--font-ar);
+}
+.frd-who small {
+  overflow-wrap: anywhere;
+}
+.frd-card.open .frd-head .frd-hb {
+  display: none;
+}
+.frd-chev {
+  flex: none;
+  color: var(--fg-2);
+  transition: transform 0.18s;
+}
+.frd-card.open .frd-chev {
+  transform: rotate(180deg);
+}
+.frd-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 2px 14px 14px;
+  border-top: 1px solid var(--line);
+  padding-top: 12px;
+}
+.frd-body p {
+  margin: 0;
+}
+
+/* ---------- hearts ---------- */
+.frd-hb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+}
+.frd-hb.compact {
+  gap: 0;
+}
+.frd-hearts {
+  display: inline-flex;
+  gap: 3px;
+  color: var(--line);
+}
+.frd-hearts svg {
+  color: var(--fg-2);
+  opacity: 0.45;
+}
+.frd-hearts svg.on {
+  color: var(--accent);
+  opacity: 1;
+  animation: frd-pop 0.32s ease-out;
+}
+@keyframes frd-pop {
+  from {
+    transform: scale(0.6);
+  }
+  60% {
+    transform: scale(1.25);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .frd-hearts svg.on {
+    animation: none;
+  }
+}
+.frd-meter {
+  flex: 1 1 90px;
+  min-width: 90px;
+  height: 8px;
+  border-radius: 99px;
+  background: var(--accent-soft);
+  overflow: hidden;
+}
+.frd-meter i {
+  display: block;
+  height: 100%;
+  border-radius: 99px;
+  background: var(--accent);
+  transition: width 0.3s;
+}
+.frd-next {
+  font-weight: 700;
+  color: var(--accent-text);
+  overflow-wrap: anywhere;
+}
+
+/* ---------- facts, perks ---------- */
+.frd-h {
+  margin: 4px 0 0;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--fg-2);
+}
+.frd-facts,
+.frd-perks {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.frd-fact {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 44px;
+  justify-content: center;
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  border: 2px solid transparent;
+}
+.frd-fact:not(.known) {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px dashed var(--line);
+  color: var(--fg-2);
+}
+.frd-fact.gold {
+  border-color: var(--sun);
+}
+.frd-perks li {
+  padding: 8px 12px;
+  border-radius: 14px;
+  background: var(--good-soft);
+  font-weight: 700;
+}
+
+/* ---------- a heart beat waiting ---------- */
+.frd-event {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--warn-soft);
+  font-weight: 700;
+}
+.frd-event span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.frd-event .btn {
+  flex: none;
+}
+
+/* ---------- buttons ---------- */
+.frd-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.frd-actions .btn {
+  flex: 1 1 100px;
+  min-height: 48px;
+  justify-content: center;
+  gap: 6px;
+}
+.frd-badge {
+  display: inline-block;
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: 99px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 12px;
+  line-height: 20px;
+  text-align: center;
+}
+
+/* ---------- the gift sheet ---------- */
+.frd-gift {
+  max-height: 86vh;
+  overflow-y: auto;
+}
+.frd-gift-title {
+  margin: 0;
+  padding-inline-end: 40px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 19px;
+}
+.frd-gift p {
+  margin: 0;
+}
+.frd-gift-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.frd-gift-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  min-height: 52px;
+  padding: 8px 14px;
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  background: var(--card);
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.frd-gift-item.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.frd-gift-name {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.frd-gift-name small {
+  overflow-wrap: anywhere;
+}
+.frd-qty {
+  flex: none;
+  font-weight: 800;
+}
+.frd-note {
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--warn-soft);
+  font-weight: 700;
+}

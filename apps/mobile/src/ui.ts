@@ -21,6 +21,8 @@ export interface ConvoRequest {
   /** 'real' hides the suggestion chips and pays +25% yen; absent = Guided */
   mode?: 'guided' | 'real';
   startNode?: string;
+  /** a gift hand-over (`give_gift`): the item handed over, an ItemDef or menu id (4A) */
+  itemId?: string;
 }
 
 /** What the screens that need an argument read when they open (set by `bridge.openScreen`, which also navigates). */
@@ -28,6 +30,8 @@ export interface ScreenArgs {
   prepare: { scenarioId: string; characterId: string; mode?: 'guided' | 'real' };
   shift: { jobId: string };
   phone: { friendId?: string };
+  /** the Friends screen opens on this friend, with the gift sheet open when `gift` (4A) */
+  friends: { friendId?: string; gift?: boolean };
   quests: { tab?: 'dream' | 'story' | 'today' | 'friends' | 'culture' };
 }
 

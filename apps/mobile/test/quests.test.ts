@@ -150,24 +150,23 @@ describe('daily goals', () => {
 });
 
 describe('dream picker', () => {
-  it('shows seven cards to an adult with the goal-matched one suggested, and the car shut until Free Walk', () => {
+  it('shows the three released dreams to an adult with the goal-matched one suggested, and the car shut until Free Walk', () => {
     const out = html(createElement(DreamPicker, { onChoose: () => {}, onLater: () => {} }));
-    expect([...out.matchAll(/data-dream="(\w+)"/g)].map((m) => m[1])).toEqual(['phone_pal', 'bike', 'flat', 'festival', 'travel', 'fresh_start', 'car']);
-    // goal 'casual' -> festival
-    expect(out).toMatch(/data-dream="festival"[^>]*>.*?Suggested for you/s);
+    expect([...out.matchAll(/data-dream="(\w+)"/g)].map((m) => m[1])).toEqual(['phone_pal', 'bike', 'car']);
+    // goal 'casual' -> the phone dream (the festival dream is not in Release 1)
+    expect(out).toMatch(/data-dream="phone_pal"[^>]*>.*?Suggested for you/s);
     expect(out).toMatch(/data-dream="car"[^>]*disabled/);
     expect(out).toContain('Decide later');
     expect(out).toContain('Choose this dream');
     expect(out).toContain('What do you want to achieve here?');
   });
 
-  it('never draws the flat, the fresh start or the car for a child (D28)', () => {
+  it('never draws the car for a child (D28; the flat and the fresh start are not in Release 1)', () => {
     useStore.setState({ profile: { ...profile, age: 'kids', goal: 'relocation' } });
     sync();
     const out = html(createElement(DreamPicker, { onChoose: () => {} }));
-    expect([...out.matchAll(/data-dream="(\w+)"/g)].map((m) => m[1])).toEqual(['phone_pal', 'bike', 'festival', 'travel']);
-    // relocation maps to the flat, which a child does not see: the festival is suggested instead
-    expect(out).toMatch(/data-dream="festival"[^>]*>.*?Suggested for you/s);
+    expect([...out.matchAll(/data-dream="(\w+)"/g)].map((m) => m[1])).toEqual(['phone_pal', 'bike']);
+    expect(out).toMatch(/data-dream="phone_pal"[^>]*>.*?Suggested for you/s);
     expect(out).not.toContain('Decide later');
   });
 
@@ -248,7 +247,8 @@ describe('Quests screen', () => {
     expect([...out.matchAll(/role="tab"[^>]*data-tab="(\w+)"/g)].map((m) => m[1])).toEqual(['story', 'culture']);
     expect(out).toContain('data-chapter="1"');
     expect(out).toContain('data-obj="c1_5"');
-    expect((out.match(/class="qst-teaser"/g) ?? []).length).toBe(7);
+    // Release 1 plays chapters 1-4: the teasers are chapters 2-4
+    expect((out.match(/class="qst-teaser"/g) ?? []).length).toBe(3);
     expect(out).toContain('Coming up');
     expect(out).not.toContain('data-slot="dream"');
   });

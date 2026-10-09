@@ -64,11 +64,9 @@ describe('NPC spawn guard: the building AND the character must be registered', (
     world.dispose();
   });
 
-  it('spawns rin and aiko once their buildings exist, and not aoi or nakamura whose buildings do not', () => {
+  it('spawns rin and aiko once their buildings exist, aoi and nakamura because Hikari Denki and Nakamura Motors are built', () => {
     const { world } = make(withNewSites);
-    expect(ids(world)).toEqual(expect.arrayContaining(['rin', 'aiko']));
-    expect(ids(world)).not.toContain('aoi');
-    expect(ids(world)).not.toContain('nakamura');
+    expect(ids(world)).toEqual(expect.arrayContaining(['rin', 'aiko', 'aoi', 'nakamura']));
     world.dispose();
   });
 

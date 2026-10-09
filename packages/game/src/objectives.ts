@@ -633,6 +633,8 @@ function startChapter(state: GameState, n: number, pack: GamePack, out: EvalOut)
   for (const o of def?.opens ?? []) out.derived.push({ t: 'unlocked', what: o.kind, id: o.id });
   for (const i of pack.items) if (i.gate.ch === n) out.derived.push({ t: 'unlocked', what: 'item', id: i.id });
   for (const d of pack.dreams) if (d.openChapter === n) out.derived.push({ t: 'unlocked', what: 'dream', id: d.id });
+  // Free Walk has no chapter row to list its shops: a capped release gates them on it (docs/RELEASE_1.md)
+  if (!def) for (const sh of pack.shops) if (sh.openChapter === n) out.derived.push({ t: 'unlocked', what: 'shop', id: sh.id });
   if (def && !s.beats.includes(def.beats.open)) out.effects.push({ t: 'beat', id: def.beats.open });
   return s;
 }

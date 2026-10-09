@@ -1,1 +1,210 @@
-/* culture styles (docs/GAME_DESIGN.md §15.2): owned by the agent named there; imported through game.css. */
+/* culture styles (docs/GAME_DESIGN.md §10; agent 4F): the stamp book, the card face and the unlock pop-up. Every class is prefixed cul-.
+   Colours and radii come from the tokens in styles.css; logical properties only (the app runs RTL). */
+
+.cul-book,
+.cul-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  width: 100%;
+}
+.cul-head {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.cul-head p {
+  margin: 0;
+}
+.cul-count {
+  font-weight: 800;
+  font-size: 18px;
+  color: var(--fg);
+}
+.cul-count.sub {
+  font-size: 14px;
+  color: var(--fg-2);
+}
+
+/* ---------- the grid of stamps ---------- */
+.cul-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.cul-grid li {
+  display: flex;
+  min-width: 0;
+}
+.cul-stamp {
+  flex: 1;
+  min-width: 0;
+  min-height: 132px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 12px 10px;
+  border-radius: 18px;
+  border: 2px solid var(--accent);
+  background: var(--card);
+  color: var(--fg);
+  text-align: center;
+  font: inherit;
+  cursor: pointer;
+}
+.cul-stamp.said {
+  border-color: var(--good);
+  background: var(--good-soft);
+}
+.cul-stamp.locked {
+  cursor: default;
+  border: 2px dashed var(--line);
+  background: var(--bg-2);
+  color: var(--fg-2);
+}
+.cul-stamp small {
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--fg-2);
+  overflow-wrap: anywhere;
+}
+.cul-ja {
+  font-family: var(--font-ja);
+  font-weight: 700;
+  font-size: 15px;
+  line-height: 1.3;
+  overflow-wrap: anywhere;
+}
+.cul-q {
+  font: 800 28px var(--font-display);
+  color: var(--line);
+}
+.cul-tag.good {
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+/* ---------- the card face (detail and pop-up) ---------- */
+.cul-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cul-face {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  min-width: 0;
+}
+.cul-phrase {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 6px;
+}
+.cul-part {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+}
+.cul-slash {
+  display: none;
+}
+.cul-speak {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 0;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.cul-meaning {
+  margin: 0;
+  font-weight: 800;
+  font-size: 16px;
+  color: var(--fg);
+}
+.cul-text {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.55;
+  color: var(--fg-2);
+}
+.cul-back {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+html[dir='rtl'] .cul-back svg {
+  transform: scaleX(-1);
+}
+
+/* ---------- Say it ---------- */
+.cul-say {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.cul-say h3 {
+  margin: 0;
+  font: 800 16px var(--font-display);
+}
+.cul-say p {
+  margin: 0;
+}
+.cul-sayDone {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  color: var(--good);
+}
+
+/* ---------- the unlock pop-up ---------- */
+.cul-scrim {
+  z-index: 70;
+}
+.cul-pop {
+  width: min(400px, 100%);
+  max-height: 88vh;
+  overflow-y: auto;
+}
+.cul-pop-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.cul-xp {
+  background: var(--warn-soft);
+  color: var(--fg);
+}
+.cul-pop-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+.cul-btn {
+  min-height: 44px;
+  padding-inline: 16px;
+  font-size: 15px;
+}
+.cul-face {
+  text-align: start;
+}
+.cul-sayDone svg {
+  flex-shrink: 0;
+}

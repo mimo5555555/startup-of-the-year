@@ -215,7 +215,7 @@ export function FriendsStrip({ data }: { data: DebriefData }) {
   const disclosure = useDisclosure();
   const game = useGame();
   if (!disclosure.friendsStrip) return null;
-  const ids = [...new Set(data.derived.flatMap((e) => (e.t === 'ap_gained' || e.t === 'hearts_changed' ? [e.friendId] : [])))];
+  const ids = [...new Set(data.derived.flatMap((e) => (e.t === 'ap_gained' || e.t === 'hearts_changed' || e.t === 'gift_reacted' ? [e.friendId] : [])))];
   if (!ids.length) return null;
   return (
     <section className="card dbf-card">
@@ -223,7 +223,9 @@ export function FriendsStrip({ data }: { data: DebriefData }) {
       {ids.map((id) => {
         const c = characterById(id);
         if (!c) return null;
-        const ap = data.derived.reduce((n, e) => (e.t === 'ap_gained' && e.friendId === id ? n + e.ap : n), 0);
+        // a gift's affinity is reported by its own event (4A): it counts here with the talk's
+        const ap = data.derived.reduce((n, e) => ((e.t === 'ap_gained' || e.t === 'gift_reacted') && e.friendId === id ? n + e.ap : n), 0);
+        const gift = data.derived.find((e) => e.t === 'gift_reacted' && e.friendId === id);
         const up = data.derived.find((e) => e.t === 'hearts_changed' && e.friendId === id && e.to > e.from);
         const now = heartsFor(game, id);
         return (
@@ -236,6 +238,11 @@ export function FriendsStrip({ data }: { data: DebriefData }) {
                   <Icon key={i} name={i < now ? 'heartFilled' : 'heart'} size={18} />
                 ))}
               </span>
+              {gift && gift.t === 'gift_reacted' && (
+                <small data-gift-reaction={gift.reaction} dir="auto">
+                  {t(`social.react.${gift.reaction}` as const, { name: displayName(c, lang) })}
+                </small>
+              )}
               {up ? (
                 <small className="dbf-gain" dir="auto">
                   {t('social.heartUp', { name: displayName(c, lang) })}

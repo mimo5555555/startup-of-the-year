@@ -214,7 +214,8 @@ describe('ScenarioMeta of station_ic and sato_directions (§6.3)', () => {
 
   it('both are Sato\'s, registered, and neither stands in the way of the info scenario `station`', () => {
     for (const id of ['station', 'station_ic', 'sato_directions']) expect(scenarioById(id)?.characterId, id).toBe('sato');
-    expect(SCENARIOS.filter((s) => s.characterId === 'sato').length).toBe(3);
+    // (his small talk, smalltalk_sato, is the heart engine and is not a station scenario)
+    expect(SCENARIOS.filter((s) => s.characterId === 'sato' && !s.id.startsWith('smalltalk_')).length).toBe(3);
   });
 
   it('game-pack validation finds nothing wrong with the card, the shops and these two rows', () => {

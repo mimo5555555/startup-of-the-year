@@ -1,4 +1,5 @@
 import type { Beat, BeatLine } from '@lw/game';
+import { RELEASE_EPILOGUE } from '../chapters';
 
 // Story beats of the first two chapters, the standing beats the engine plays by name (welcome back, the phone, the catch-up stipend, a
 // dream's second step) and the seven dream finales (docs/GAME_DESIGN.md §7.2, §7.3, §4.5, §14.9). Lines are short A1-A2 Japanese with every
@@ -49,6 +50,13 @@ const B: Beat[] = [
     L('hanako', 'おかえりなさい|。', 'Welcome back!', 'أهلًا بعودتك!'),
     L('hanako', 'また|会えて|、|うれしい|です|。', "I'm glad to see you again.", 'يسعدني أن أراك مرة أخرى.'),
     L('hanako', 'ゆっくり|、|やりましょう|。', "Let's take it slowly.", 'لنأخذ الأمر ببطء.'),
+  ]),
+  // the release cap (docs/RELEASE_1.md): the last released chapter closes with a short "to be continued" from Hanako, and Free Walk begins
+  beat(RELEASE_EPILOGUE, 'school', [
+    L('hanako', 'よくできました|。|友だち|も|スマホ|も|あります|ね|。', "Well done. You have friends, and a phone, too.", 'أحسنت. لديك أصدقاء وهاتف أيضًا.'),
+    L('hanako', 'まだ|これから|です|よ|。', "It's only the beginning!", 'إنها مجرد البداية!'),
+    L('hanako', 'これから|も|桜町|で|たくさん|話しましょう|。', "Let's keep talking a lot in Sakura-chō.", 'لنواصل الحديث كثيرًا في ساكورا-تشو.'),
+    L('hanako', 'ゆっくり|、|やりましょう|。|またね|！', "Let's take it slowly. See you!", 'لنأخذ الأمر ببطء. إلى اللقاء!'),
   ]),
   // the second step of any dream
   beat('b_dream_step', 'school', [L('hanako', 'いい|調子|です|ね|。|もう|すこし|です|。', "You're doing well. Almost there.", 'تتقدم جيدًا. اقتربت.')]),

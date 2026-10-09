@@ -149,7 +149,8 @@ describe('the interaction table (§6.1)', () => {
 
   it('hides an option whose scenario, job or lesson a later slice has not built yet', () => {
     const rows = interactionRows(envOf(at(3), JP_PACK), 'mio');
-    expect(rows.map((r) => r.it.id)).toEqual(['mio_meet']);
+    // the gift row is real since 4A: Mio is a friend of the pack and the shops sell presents (it opens the gift sheet of the Friends screen)
+    expect(rows.map((r) => r.it.id)).toEqual(['mio_meet', 'mio_gift']);
     // an unknown lesson is not offered
     expect(interactionRows(envOf(at(1), FULL, REAL_SCENARIOS, new Set(['greetings'])), 'hanako').map((r) => r.it.id)).toEqual(['lesson_greetings']);
   });
@@ -191,7 +192,8 @@ describe('content.ts is multi-valued', () => {
   it('lists every scenario of a character and keeps the primary one first', () => {
     expect(scenariosForCharacter('yuki').map((s) => s.id)).toContain('cafe');
     expect(scenarioForCharacter('yuki')?.id).toBe('cafe');
-    expect(scenarioForCharacter('hanako')).toBeUndefined();
+    // Hanako teaches a lesson; her only scenario is her small talk (4B-a)
+    expect(scenarioForCharacter('hanako')?.id).toBe('smalltalk_hanako');
   });
 });
 

@@ -4,7 +4,7 @@ import { HOME_SLOTS } from './inventory';
 import { reconcile } from './ledger';
 import { walletLimits } from './money';
 import { deriveCompleted, openChapter, prerequisiteIssues } from './objectives';
-import type { BeatEffect, ContentIndex, GamePack, GameState, GameView, Gloss, Pred, ValidationIssue, ValidationLevel } from './types';
+import type { BeatEffect, ContentIndex, DreamDef, GamePack, GameState, GameView, Gloss, Pred, ValidationIssue, ValidationLevel } from './types';
 
 const ID_RE = /^[A-Za-z0-9_][A-Za-z0-9_:.\-]*$/;
 const COUNTERS: readonly string[] = ['conv_distinct', 'indep_lines', 'new_intents', 'purchase', 'shift_good', 'friend_contact', 'places_distinct', 'review_checked', 'lesson', 'culture_new'];
@@ -688,6 +688,117 @@ function unreachable(pack: GamePack, p: Pred, ch: number): string[] {
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// The release cap (docs/RELEASE_1.md): chapters 1..lastChapter, then Free Walk; every offered dream is finishable
+// ---------------------------------------------------------------------------------------------------------------
+
+/** Flags the released app raises itself (the paper ticket of the ticket machine, `ticket_bought`); every other flag needs a beat or scenario effect. */
+const APP_FLAGS: readonly string[] = ['ticket_bought'];
+
+/**
+ * Why a dream cannot be finished with the content of the pack (empty = completable): every step's predicate must be reachable once
+ * everything is open (Free Walk), with the extra proof a released pack needs, that the content to meet it is really there: a
+ * registered conversation that raises hearts with the friend, a registered trip or visit scenario, a way to buy each item, a
+ * flat to furnish, a beat or scenario that raises the flag. Hidden dreams are exactly the ones this returns something for.
+ */
+export function dreamBlockers(pack: GamePack, dream: DreamDef): string[] {
+  const routes = sold(pack);
+  const free = granted(pack);
+  const panels = new Set(pack.shops.filter((s) => s.surface === 'panel').map((s) => s.id));
+  const obtainable = (id: string): boolean => routes.has(id) || free.has(id) || panels.has(pack.items.find((i) => i.id === id)?.shop ?? '');
+  const raised = new Set<string>(APP_FLAGS);
+  const fromEffects = (fx: BeatEffect[] | undefined): void => fx?.forEach((e) => e.t === 'flag' && raised.add(e.id));
+  Object.values(pack.beats).forEach((b) => fromEffects(b.effects));
+  pack.scenarioMeta.forEach((m) => fromEffects(m.effects));
+  const talkers = new Set(pack.scenarioMeta.filter((m) => m.kind === 'talk' && m.friendId).map((m) => m.friendId as string));
+  const registered = new Set(pack.scenarioMeta.map((m) => m.id));
+  const interactions = Object.values(pack.interactions).flat();
+  const fw = BALANCE.freeWalkChapter;
+
+  const leaf = (p: Pred, seen: Set<string>): string[] => {
+    const why = unreachable(pack, p, fw);
+    switch (p.k) {
+      case 'scenario':
+      case 'said': {
+        const id = p.k === 'scenario' ? p.id : p.scenario;
+        const gate = pack.scenarioMeta.find((m) => m.id === id)?.gate;
+        if (gate && !seen.has(id)) why.push(...blockers(gate, new Set([...seen, id])));
+        break;
+      }
+      case 'hearts':
+        if (!talkers.has(p.friend)) why.push(`no registered conversation raises hearts with ${p.friend}`);
+        break;
+      case 'hearts_count': {
+        const n = pack.friends.filter((f) => talkers.has(f.id)).length;
+        if (n < p.n) why.push(`${p.n} friends at ${p.atLeast} hearts, but only ${n} friends have a registered conversation`);
+        break;
+      }
+      case 'flag':
+        if (!raised.has(p.id)) why.push(`nothing raises the flag "${p.id}"`);
+        break;
+      case 'item_placed':
+        if (!pack.items.some((i) => i.fx.some((f) => f.t === 'homeTier') && obtainable(i.id))) why.push('there is no flat to furnish');
+        break;
+      case 'own': {
+        if (p.item && !obtainable(p.item)) why.push(`item ${p.item} is sold nowhere`);
+        const cat = p.category;
+        if (cat && !pack.items.some((i) => i.tags.includes(cat) && obtainable(i.id))) why.push(`no item tagged "${cat}" is sold`);
+        break;
+      }
+      case 'visit': {
+        const kind = p.place.startsWith('trip:') ? 'trip' : p.place.startsWith('home:') ? 'visit' : null;
+        if (kind) {
+          const rest = p.place.slice(5);
+          const hits = interactions.filter((i) => i.kind === kind && (kind === 'visit' || i.id === p.place || i.id === rest || i.id.endsWith(rest) || i.scenarioId === rest));
+          if (!hits.some((i) => i.scenarioId && registered.has(i.scenarioId))) why.push(`no registered ${kind} scenario for ${p.place}`);
+        }
+        break;
+      }
+      default:
+        break;
+    }
+    return why;
+  };
+  const blockers = (p: Pred, seen: Set<string>): string[] => {
+    if (p.k === 'all') return p.of.flatMap((q) => blockers(q, seen));
+    if (p.k === 'any') {
+      const each = p.of.map((q) => blockers(q, seen));
+      return each.length > 0 && each.every((w) => w.length > 0) ? [`no alternative can be met (${each.map((w) => w[0]).join('; ')})`] : [];
+    }
+    return leaf(p, seen);
+  };
+
+  const why: string[] = [];
+  for (const id of dream.items) if (!obtainable(id)) why.push(`dream item ${id} is sold nowhere`);
+  for (const st of dream.steps) for (const w of blockers(st.pred, new Set())) why.push(`step ${st.id}: ${w}`);
+  return why;
+}
+
+function releaseChecks(pack: GamePack, out: Out): void {
+  const rel = pack.release;
+  if (!rel) return;
+  const fw = BALANCE.freeWalkChapter;
+  const last = rel.lastChapter;
+  const maxN = pack.chapters.reduce((m, c) => Math.max(m, c.n), 0);
+  if (!isInt(last) || last < 1 || last >= fw - 1) add(out, 2, 'release_cap', 'release.lastChapter', `lastChapter is a chapter from 1 to ${fw - 2}`);
+  else if (maxN !== last) add(out, 2, 'release_cap', 'release.lastChapter', `the pack plays chapters up to ${last}, but holds chapters up to ${maxN} (a capped pack holds exactly 1..lastChapter)`);
+  const closing = pack.chapters.find((c) => c.n === last)?.beats.close;
+  if (!rel.epilogue || closing !== rel.epilogue) add(out, 2, 'release_epilogue', 'release.epilogue', `the closing beat of chapter ${last} must be the epilogue "${rel.epilogue}" (it is "${String(closing)}")`);
+  if (rel.epilogue && pack.beats[rel.epilogue] && pack.beats[rel.epilogue]!.lines.length === 0) add(out, 2, 'release_epilogue', 'release.epilogue', 'the epilogue beat has no lines');
+
+  // a gate on a chapter that is never played would read "Opens in Chapter 6" for a chapter that does not exist: it is Free Walk
+  const never = (ch: number | undefined): boolean => ch !== undefined && ch > last && ch < fw;
+  pack.items.forEach((it, i) => never(it.gate.ch) && add(out, 3, 'release_gate', `items[${i}].gate.ch`, `item ${it.id} opens in chapter ${it.gate.ch}, which this release never plays: gate it on Free Walk (${fw})`));
+  pack.shops.forEach((s, i) => never(s.openChapter) && add(out, 3, 'release_gate', `shops[${i}].openChapter`, `shop ${s.id} opens in chapter ${s.openChapter}, which this release never plays: open it at Free Walk (${fw})`));
+  pack.dreams.forEach((d, di) => {
+    if (never(d.openChapter)) add(out, 3, 'release_gate', `dreams[${di}].openChapter`, `dream ${d.id} opens in chapter ${d.openChapter}, which this release never plays`);
+    d.steps.forEach((st, si) => never(st.gate) && add(out, 3, 'release_gate', `dreams[${di}].steps[${si}].gate`, `step ${st.id} shows in chapter ${st.gate}, which this release never plays: gate it on Free Walk (${fw})`));
+  });
+
+  // the Dream picker offers every dream of the pack, so each one has to be finishable with what is released
+  pack.dreams.forEach((d, di) => dreamBlockers(pack, d).forEach((why) => add(out, 4, 'dream_blocked', `dreams[${di}]`, `dream ${d.id} cannot be finished in this release: ${why}`)));
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 // Level 5: everything, with the injected content index
 // ---------------------------------------------------------------------------------------------------------------
 
@@ -802,6 +913,7 @@ export function validatePack(pack: GamePack, opts: { level: ValidationLevel; ind
   level3(pack, out);
   level4(pack, out);
   level5(pack, out, opts.index);
+  releaseChecks(pack, out);
   // unresolved ids and predicate requirements are only reported once their level is asked for
   return out.filter((i) => i.level <= opts.level);
 }

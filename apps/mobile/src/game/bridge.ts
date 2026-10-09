@@ -8,6 +8,7 @@ import {
   needsFlush,
   reduce,
   seedFromLegacy,
+  type DerivedEvent,
   type InputEvent,
   type ReduceResult,
   type SrsOp,
@@ -18,7 +19,8 @@ import { translate, type StringKey } from '../i18n';
 import { blip, haptic } from '../services';
 import { setLoopFactsHook, flushNow, useStore, type VocabItem } from '../store';
 import { useUi, type ConvoRequest, type ScreenArgs } from '../ui';
-import { PACK, beatById } from './pack';
+import { PACK, beatById, friendById } from './pack';
+import { heartEventOfBeat, pendingHeartBeats } from './friendsLogic';
 import { flushGameNow, getGame, useGame } from './gameStore';
 import { applyImplicitReview } from './srsHooks';
 import { gameView } from './selectors';
@@ -37,7 +39,17 @@ export function dispatch(event: InputEvent): ReduceResult {
   // money, purchase and story events reach the disk before anything else can happen (E10); the rest waits for the debounce
   if (needsFlush(event)) flushGameNow();
   routeEffects(result.effects);
+  queueHeartBeats(result.derived);
   return result;
+}
+
+/** A friend reached a heart that has a beat (Mio's ♥2 note): it is queued and plays in the world once the conversation and its debrief are closed (4A). */
+function queueHeartBeats(derived: DerivedEvent[]): void {
+  for (const d of derived) {
+    if (d.t !== 'heart_event_ready') continue;
+    const beat = friendById(d.friendId)?.events?.find((e) => e.heart === d.level)?.beat;
+    if (beat && beatById(beat)) useUi.getState().queueBeat(beat);
+  }
 }
 
 /** Applies what the reducer asked the app to do (exported for tests; screens call `dispatch`). */
@@ -124,6 +136,8 @@ export function observeDay(now: number = Date.now()): void {
   // read before the event: `day_observed` moves `lastSeenAt`
   const away = awayDays(before, now);
   dispatch({ t: 'day_observed', nowMs: now });
+  // a heart beat that was reached but never played (the app was closed before it ran) comes back (4A)
+  for (const p of pendingHeartBeats(PACK, getGame(), (id) => !!beatById(id))) useUi.getState().queueBeat(p.beat);
   const after = getGame();
   const day = after.clock.dayIndex;
   if (away < BALANCE.nextGoal.awayDays || before.clock.activeDays < 1 || after.flags.welcomeSeenDay === day || !beatById(WELCOME_BACK_BEAT)) return;
@@ -244,6 +258,9 @@ export function openScreen<K extends keyof ScreenArgs>(screen: K, args: ScreenAr
 /** A beat finished playing: files it (applying its effects) and takes it off the queue. A beat the pack no longer knows is dropped the same way. */
 export function completeBeat(id: string): ReduceResult {
   const result = dispatch({ t: 'beat_done', id });
+  // the beat of a heart event files the event once it has played: +10 AP, never twice (4A)
+  const heart = heartEventOfBeat(PACK, id);
+  if (heart) dispatch({ t: 'heart_event_done', friendId: heart.friendId, level: heart.level });
   useUi.getState().finishBeat(id);
   return result;
 }

@@ -293,7 +293,8 @@ describe('the pack as a whole', () => {
     const missing = (code: string, re: RegExp) => [...new Set(issues.filter((i) => i.code === code).map((i) => re.exec(i.message)?.[1]))].sort();
     expect(missing('beat_missing', /beat "(.+?)"/)).toEqual(
       ['b_ch3_open', 'b_ch3_close', 'b_ch4_open', 'b_ch4_close', 'b_ch5_open', 'b_ch5_close', 'b_ch6_open', 'b_ch6_close', 'b_ch7_open', 'b_ch7_close', 'b_ch8_open', 'b_ch8_close', 'b_rankup']
-        .filter((id) => !JP_PACK.beats[id])
+        // Release 1 plays chapters 1-4 (docs/RELEASE_1.md): the beats of the unplayed chapters are not referenced by the pack
+        .filter((id) => !JP_PACK.beats[id] && (!/^b_ch\d/.test(id) || JP_PACK.chapters.some((c) => c.beats.open === id || c.beats.close === id)))
         .sort(),
     );
     expect(missing('title_missing', /title "(.+?)"/).every((id) => /^t_(newcomer|friend|connected|traveller|guest|resident|lives_in_ja|dream_[a-z_]+)$/.test(id as string))).toBe(true);

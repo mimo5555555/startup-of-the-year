@@ -352,3 +352,29 @@ export const CHAPTERS: ChapterDef[] = [
     ],
   },
 ];
+
+// ---------------------------------------------------------------------------------------------------------------
+// The release cap (docs/RELEASE_1.md): chapters 1-4, then Free Walk
+// ---------------------------------------------------------------------------------------------------------------
+
+/** Free Walk: `chapter.n = 9`, current once the last released chapter is completed (D36). */
+export const FREE_WALK = 9;
+/** The last chapter this release plays; the later chapters stay authored above for the release that adds them (lift the cap by raising this). */
+export const RELEASE_LAST_CHAPTER = 4;
+/** Beat id of the short "to be continued" (Hanako) that closes the last released chapter and hands over to Free Walk (`beats-core.ts`). */
+export const RELEASE_EPILOGUE = 'b_release_epilogue';
+
+/**
+ * The chapter in which something designed for chapter `ch` opens in this release: a chapter that is never played opens its things at
+ * Free Walk (Nakamura Motors, the bike and the helmet, the car), so a closed sheet never says "Opens in Chapter 6" for a chapter
+ * that does not exist. Item, shop and dream tables write the design number through this; `validatePack` rejects a gate in between.
+ */
+export const releasedGate = (ch: number): number => (ch > RELEASE_LAST_CHAPTER && ch < FREE_WALK ? FREE_WALK : ch);
+
+/**
+ * The chapters this release plays: 1..RELEASE_LAST_CHAPTER of the table above. The last one closes with the epilogue instead of its
+ * designed closing beat (Mio's festival invitation would promise a festival that is not in this release).
+ */
+export const RELEASED_CHAPTERS: ChapterDef[] = CHAPTERS.filter((c) => c.n <= RELEASE_LAST_CHAPTER).map((c) =>
+  c.n === RELEASE_LAST_CHAPTER ? { ...c, beats: { ...c.beats, close: RELEASE_EPILOGUE } } : c,
+);

@@ -210,8 +210,8 @@ describe('shop hooks over the real pack', () => {
     const later = rig('konbini');
     later.game.hooks.vars({ item: 'onigiri' }, {});
     later.game.hooks.vars({ item: 'onigiri', giftItem: 'choco' }, {});
-    // the catalog (3E) prices the gift; until it does the basket is unpriced rather than wrong
-    expect(later.game.amounts().total).toBeUndefined();
+    // the catalog (3E) prices the gift: the chocolate replaces the onigiri
+    expect(later.game.amounts().total).toBe(JP_PACK.items.find((i) => i.id === 'g_choco')!.price);
     const earlier = rig('konbini');
     earlier.game.hooks.vars({ giftItem: 'choco' }, {});
     earlier.game.hooks.vars({ giftItem: 'choco', item: 'water' }, {});
@@ -269,13 +269,14 @@ describe('the shops are completable by tapping suggestions', () => {
   // station_ic has its own counter hooks and tests (2G); here the basket shops
   for (const meta of JP_PACK.scenarioMeta.filter((m) => m.shop && Object.keys(m.shop.itemMap).length > 0)) {
     it(`${meta.id}: with cash the payment step is done and one purchase was made`, () => {
-      const r = rig(meta.id, (s) => ({ ...s, wallet: { ...s.wallet, cash: 5000 } }));
+      // Free Walk (chapter 9): Hikari Denki and Nakamura Motors are open (docs/RELEASE_1.md)
+      const r = rig(meta.id, (s) => ({ ...s, chapter: { ...s.chapter, n: 9 }, wallet: { ...s.wallet, cash: 300000 } }));
       tapThrough(r.session);
       expect(r.session.stepsDone.has(meta.shop!.payStep), meta.id).toBe(true);
       expect(r.game.purchases.length).toBeGreaterThan(0);
     });
     it(`${meta.id}: without money the conversation ends and nothing is bought`, () => {
-      const r = rig(meta.id, (s) => ({ ...s, wallet: { ...s.wallet, cash: 0 } }));
+      const r = rig(meta.id, (s) => ({ ...s, chapter: { ...s.chapter, n: 9 }, wallet: { ...s.wallet, cash: 0 } }));
       tapThrough(r.session);
       expect(r.session.ended).toBe(true);
       expect(r.game.purchases).toHaveLength(0);

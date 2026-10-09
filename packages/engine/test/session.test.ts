@@ -270,6 +270,11 @@ function tapThrough(s: ConversationSession): void {
   while (!s.ended && guard++ < 30) s.pickSuggestion(0);
 }
 
+/** Scenarios whose say-the-total chip needs the game's `total` Var (`SceneNode` chips resolve Vars only with hooks). */
+const NEEDS_TOTAL = new Set(['motors_car']);
+/** give_gift: the three hand-over chips name the item the host passes in as the Var `gift` (4B-a) */
+const GIFT_HOOKS = () => ({ game: { vars: () => ({ gift: { ja: 'チョコレート', gloss: { en: 'chocolate', ar: 'شوكولاتة' } } }), charge: () => ({ ok: true }) } });
+
 describe('every offered suggestion works', () => {
   // Pick every suggestion at every reachable node; the character must always understand it.
   function walk(sc: Scenario, l1: L1, mk: () => Partial<SessionOptions> = () => ({})) {
@@ -304,7 +309,10 @@ describe('every offered suggestion works', () => {
   for (const sc of SCENARIOS) {
     for (const l1 of ['en', 'ar'] as const) {
       it(`${sc.id} (${l1})`, () => {
-        const { problems, nodes } = walk(sc, l1);
+        const { problems: all, nodes } = walk(sc, l1, sc.id === 'give_gift' ? GIFT_HOOKS : undefined);
+        // a scenario that asks the learner to say the total shows it in a chip: without the game's hooks there is no number to show
+        // (the Motors tests walk it with hooks)
+        const problems = NEEDS_TOTAL.has(sc.id) ? all.filter((p) => !/\/(confirm|wrong_total)\/#\d+: unresolved variable$/.test(p)) : all;
         expect(problems).toEqual([]);
         expect(nodes).toBeGreaterThan(2);
       });

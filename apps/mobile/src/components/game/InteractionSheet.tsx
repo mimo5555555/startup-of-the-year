@@ -25,8 +25,8 @@ export function runPlan(plan: Plan): void {
       openScreen('shift', { jobId: plan.jobId });
       break;
     case 'gift':
-      // the gift hand-over lives on the Friends screen (slice 4A)
-      useStore.getState().go('friends');
+      // the gift hand-over lives on the Friends screen (slice 4A): it opens on this friend with the gift sheet up
+      openScreen('friends', { friendId: plan.characterId, gift: true });
       break;
     case 'window':
       break;

@@ -5,8 +5,8 @@ import { JP_LANGUAGE } from './jp-language';
 import { MENU } from './menu';
 import { FARES } from './fares';
 import { INTERACTIONS } from './interactions';
-import { CHAPTERS } from './chapters';
-import { DREAMS } from './dreams';
+import { RELEASED_CHAPTERS, RELEASE_EPILOGUE, RELEASE_LAST_CHAPTER } from './chapters';
+import { RELEASED_DREAMS } from './dreams';
 import { DAILY } from './daily';
 import { WORD_TAGS } from './wordTags';
 import { ITEMS } from './items';
@@ -37,8 +37,9 @@ export const JP_PACK: GamePack = {
   shops: SHOPS,
   fares: FARES,
   jobs: JOBS,
-  chapters: CHAPTERS,
-  dreams: DREAMS,
+  // Release 1 plays chapters 1-4, then Free Walk (docs/RELEASE_1.md); the Dream picker offers the dreams that can be finished with it
+  chapters: RELEASED_CHAPTERS,
+  dreams: RELEASED_DREAMS,
   daily: DAILY,
   beats: BEATS,
   friends: FRIENDS,
@@ -50,4 +51,5 @@ export const JP_PACK: GamePack = {
   titles: TITLES,
   ageProfiles: JP_AGE_PROFILES,
   keepsakes: KEEPSAKES,
+  release: { lastChapter: RELEASE_LAST_CHAPTER, epilogue: RELEASE_EPILOGUE },
 };

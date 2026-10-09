@@ -23,6 +23,7 @@ import { watchFontsReady } from './fonts';
 import { unlockOnFirstGesture } from './services';
 import { init, observeDay } from './game/bridge';
 import { BeatGate, ConversationHost } from './game/host';
+import { CultureCardHost } from './components/game/CultureCard';
 import { useGameReady } from './game/hooks';
 
 export default function App() {
@@ -73,6 +74,7 @@ export default function App() {
       {screen === 'beat' && <StoryBeat />}
       <ConversationHost />
       <BeatGate />
+      <CultureCardHost />
       <WordSheet />
       <Toasts />
     </div>

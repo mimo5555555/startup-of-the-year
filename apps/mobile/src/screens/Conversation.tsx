@@ -30,6 +30,8 @@ import { setDebrief, type KeepLine } from '../components/game/DebriefGame';
 import { characterById, displayName, scenarioForCharacter } from '../content';
 import { dispatch } from '../game/bridge';
 import { createConvoGame, leaveAction } from '../game/convoHooks';
+import { completeFriendFacts, giftEventOf, planFriendConvo } from '../game/friendsLogic';
+import { planAccepted, planChat, planFlagEvent } from '../game/phoneLogic';
 import { getGame } from '../game/gameStore';
 import { PACK } from '../game/pack';
 import { gameView } from '../game/selectors';
@@ -49,7 +51,13 @@ const LOW_STREAK_MAX = 3;
 type MicState = { listening: boolean; msg?: string; fix?: boolean; lang: 'ja' | 'l1' };
 
 export function Conversation({ characterId, onClose }: { characterId: string; onClose: () => void }) {
-  const world = useWorld();
+  const worldCtx = useWorld();
+  // a text chat from the phone (§8.7) has no camera, no speaker animation and no pause: the 3D world is not touched at all
+  const [chat] = useState(() => {
+    const c = useUi.getState().convo;
+    return c?.channel === 'chat' && c.characterId === characterId;
+  });
+  const world = chat ? null : worldCtx;
   const { t, lang, dir } = useT();
   const profile = useStore((s) => s.profile)!;
   const settings = useStore((s) => s.settings);
@@ -68,15 +76,22 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
     const scenario = (req && scenarioById(req.scenarioId)) || scenarioForCharacter(characterId)!;
     const sessionId = uid('s_');
     const state = getGame();
-    const game = createConvoGame({ pack: PACK, scenarioId: scenario.id, sessionId, state: getGame, view: () => gameView(useStore.getState()), commit: dispatch });
+    // a small talk or a gift hand-over with a friend: the topic, the profile fact, the callback, the reaction (4A, `friendsLogic`)
+    // a phone thread has the friend's own flags (their place, plain or polite speech, 4C); small talk and gifts have the 4A plan
+    const friend = chat
+      ? planChat(PACK, state, characterId)
+      : planFriendConvo(PACK, state, { scenarioId: scenario.id, characterId, startNode: req?.startNode, itemId: req?.itemId }, { nodeIds: Object.keys(scenario.nodes), interests: character.interests });
+    const game = createConvoGame({ pack: PACK, scenarioId: scenario.id, sessionId, state: getGame, view: () => gameView(useStore.getState()), commit: dispatch, friend });
     const meta = game.meta;
     // Real mode only where the scenario allows it; the ramen shop starts after the ticket machine when a ticket is held
     const mode: 'guided' | 'real' = req?.mode === 'real' && meta?.real ? 'real' : 'guided';
-    const startNode = req?.startNode ?? (meta?.startNode && state.tickets.ramen && scenario.id === 'ramen' ? meta.startNode : undefined);
-    const friendDef = meta?.friendId ? PACK.friends.find((f) => f.id === meta.friendId) : undefined;
+    const startNode = req?.startNode ?? friend?.startNode ?? (meta?.startNode && state.tickets.ramen && scenario.id === 'ramen' ? meta.startNode : undefined);
+    const friendId = meta?.friendId ?? (chat ? characterId : undefined);
+    const friendDef = friendId ? PACK.friends.find((f) => f.id === friendId) : undefined;
     // a friend who has switched to plain speech makes casual forms correct, and stiff ones merely distant (§11.4)
     const casual = !!friendDef && (heartsOf(state, friendDef.id) >= friendDef.casualAt || (state.friends[friendDef.id]?.flags ?? []).includes('casual'));
-    const feedback: FeedbackOptions = { register: casual ? 'casual' : meta?.register, friend: !!meta?.friendId, markers: PACK.lang.registerMarkers, speechPolicy: BALANCE.speech };
+    // a thread with a friend who still speaks polite form is judged as polite: the template's own register is the casual one (meta-chat)
+    const feedback: FeedbackOptions = { register: casual ? 'casual' : chat ? 'polite' : meta?.register, friend: !!friendId, markers: PACK.lang.registerMarkers, speechPolicy: BALANCE.speech };
     const session = new ConversationSession({
       scenario,
       character,
@@ -91,7 +106,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
       policy: BALANCE,
     });
     // the 3D camera only follows a face-to-face talk with someone standing in the street (phone chats and trips have no spawn)
-    const onStage = req?.channel !== 'chat' && !!world?.npcPosition(characterId);
+    const onStage = !chat && !!world?.npcPosition(characterId);
     return { scenario, session, game, mode, feedback, onStage, startNode };
   });
   const { scenario, session, game, mode, feedback, onStage } = setup;
@@ -163,6 +178,8 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
   };
 
   const speakTurn = async (turn: Turn, forceAudio = false) => {
+    // a text message is read, not heard: the speaker button on the bubble is the way to listen
+    if (chat && !forceAudio) return;
     world?.setEmotion(characterId, turn.emotion ?? 'neutral');
     const gen = speechGen.current;
     await speak(turn.line.plain, { talk: forceAudio });
@@ -431,12 +448,18 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
     finished.current = true;
     stopSpeech();
     const report = evaluateSession(session, feedback);
-    const facts = session.facts({ mode, prepared: game.prepared, feedback });
+    const facts0 = session.facts({ mode, prepared: game.prepared, feedback });
+    const facts = game.friend ? completeFriendFacts(game.friend, facts0, session.stepsDone) : facts0;
     const turns = session.turns.map((x) => ({ id: x.id, speaker: x.speaker, written: x.line.written, en: x.line.en, ar: x.line.ar, assisted: x.assisted, tokens: x.line.tokens }));
     const data = useStore.getState().recordLoop({ scenarioId: scenario.id, report, turns });
     let derived = game.derived;
     try {
+      // a gift is handed over first: the friend's reaction and affinity come before the talk is counted (§8.5)
+      const gift = game.friend ? giftEventOf(game.friend, facts) : null;
+      if (gift) derived = [...derived, ...dispatch(gift).derived];
       derived = [...derived, ...dispatch({ t: 'conversation_done', facts }).derived];
+      // an accepted plan is today's pin on the friend's place (Phone > Map)
+      if (chat && planAccepted(scenario.id, session.stepsDone)) dispatch(planFlagEvent(characterId, getGame().clock.dayIndex));
     } catch (e) {
       // the report still shows: the debrief just has no game rows
       console.error('conversation_done failed', e);
@@ -470,7 +493,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
   const turnTranslation = (turn: Turn) => (lang === 'ar' ? turn.line.ar : turn.line.en);
 
   return (
-    <div className="convo" dir={dir} ref={rootRef}>
+    <div className={`convo${chat ? ' ph-chat' : ''}`} dir={dir} ref={rootRef} data-channel={chat ? 'chat' : 'world'}>
       <header className="convo-head glass-bar">
         <button className="icon-btn ghost" onClick={requestLeave} aria-label={t('c.leave')}>
           <Icon name="x" size={22} />
@@ -482,12 +505,16 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
               {displayName(character, lang)}
               {real && <span className="dbf-tag">{t('debrief.realTag')}</span>}
             </strong>
-            <small dir="auto">{character.job[lang]}</small>
+            <small dir="auto">{chat ? t('phone.chatSub') : character.job[lang]}</small>
           </div>
         </div>
-        <button className="icon-btn ghost" onClick={() => { stopSpeech(); dropMic(); setPaused(true); world?.setPaused(true); }} aria-label={t('c.pause')}>
-          <Icon name="pause" size={20} />
-        </button>
+        {chat ? (
+          <span />
+        ) : (
+          <button className="icon-btn ghost" onClick={() => { stopSpeech(); dropMic(); setPaused(true); world?.setPaused(true); }} aria-label={t('c.pause')}>
+            <Icon name="pause" size={20} />
+          </button>
+        )}
         <div className="goals" aria-label={t('c.goals')}>
           {scenario.steps.map((s) => {
             const done = session.stepsDone.has(s.id);
@@ -713,12 +740,16 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
               <button className={`tool ${showTr ? 'on' : ''}`} onClick={() => setShowTr(!showTr)} aria-pressed={showTr}>
                 <Icon name="language" size={17} /> {t('c.translate')}
               </button>
-              <button className="tool" onClick={() => replay(true)}>
-                <span className="x06">0.6×</span> {t('c.slow')}
-              </button>
-              <button className="tool" onClick={() => replay(false)}>
-                <Icon name="replay" size={17} /> {t('c.replay')}
-              </button>
+              {!chat && (
+                <>
+                  <button className="tool" onClick={() => replay(true)}>
+                    <span className="x06">0.6×</span> {t('c.slow')}
+                  </button>
+                  <button className="tool" onClick={() => replay(false)}>
+                    <Icon name="replay" size={17} /> {t('c.replay')}
+                  </button>
+                </>
+              )}
             </div>
             )}
             <form

@@ -20,6 +20,7 @@ import {
   type ReduceResult,
   type ScenarioMeta,
 } from '@lw/game';
+import type { FriendPlan } from './friendsLogic';
 import { IC_SCENARIO, icHooks } from './icHooks';
 
 /** Slot option ids of `qty` (slots/shop.ts) and of `payMethod`. */
@@ -79,6 +80,8 @@ export interface ConvoGame {
   purchases: ConvoPurchase[];
   /** derived events of those purchases (culture cards, unlocks...) for the debrief */
   derived: DerivedEvent[];
+  /** a small talk or gift hand-over with a friend: its flags and variables are already in `flags` and the hooks (4A, `friendsLogic`) */
+  friend: FriendPlan | null;
 }
 
 export interface ConvoGameDeps {
@@ -89,6 +92,8 @@ export interface ConvoGameDeps {
   view(): GameView;
   /** the bridge's `dispatch`: one purchase event per basket line (the IC counter also tops up and refunds) */
   commit(ev: InputEvent): ReduceResult;
+  /** the host's plan for a friend conversation (small talk, gift): its flags and variables are added to the session's */
+  friend?: FriendPlan | null;
 }
 
 /** Pocket lines of a scenario that count as recalled (§3.2): ready (a recall pass within 7 days) or a known card. */
@@ -252,7 +257,7 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
     vars(slots, flags) {
       const v = inner.vars(slots, flags);
       last = { price: numberOf(v.price), total: numberOf(v.total), fare: numberOf(v.fare) };
-      return v;
+      return deps.friend ? { ...deps.friend.vars, ...v } : v;
     },
   };
 
@@ -260,6 +265,7 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
   const plays = state.runs[scenarioId]?.count ?? 0;
   const flags: Record<string, boolean> = { priced: true };
   if (meta?.twist && twistFor(state.clock.dayIndex, scenarioId, plays)) flags.twist = true;
+  if (deps.friend) Object.assign(flags, deps.friend.flags);
 
   return {
     hooks,
@@ -270,5 +276,6 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
     amounts: () => ({ ...last }),
     purchases: log,
     derived,
+    friend: deps.friend ?? null,
   };
 }

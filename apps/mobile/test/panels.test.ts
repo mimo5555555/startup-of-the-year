@@ -186,13 +186,15 @@ describe('vending machine', () => {
     expect(w.state.wallet.cash).toBe(850);
     expect(w.state.totals.spent).toBe(3000 - 850);
     expect(w.state.stats.purchases).toBe(0);
-    expect(w.effects.filter((e) => e.t === 'xp')).toEqual([{ t: 'xp', amount: BALANCE.vendingXp, why: 'vending' }]);
+    // (the first drink also unlocks cc_vending: its cultureXp is a separate effect, counted by the culture tests)
+    const vendXp = () => w.effects.filter((e) => e.t === 'xp' && e.why === 'vending');
+    expect(vendXp()).toEqual([{ t: 'xp', amount: BALANCE.vendingXp, why: 'vending' }]);
     // the same drink again pays, but the first-time XP is not given twice
     expect(buy(w, 'v_tea')).toBe(true);
     expect(w.state.wallet.cash).toBe(700);
-    expect(w.effects.filter((e) => e.t === 'xp')).toHaveLength(1);
+    expect(vendXp()).toHaveLength(1);
     expect(buy(w, 'v_water')).toBe(true);
-    expect(w.effects.filter((e) => e.t === 'xp')).toHaveLength(2);
+    expect(vendXp()).toHaveLength(2);
     expect(reconcile(w.state, 3000).ok).toBe(true);
   });
 

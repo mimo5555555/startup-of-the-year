@@ -139,9 +139,10 @@ describe('sheets', () => {
     expect(sheet()).toMatch(/class="rm"/);
   });
 
-  it('the goods sheet has an empty state (the shops are filled by slice 3) and never a dead end', () => {
+  it('the goods sheet has an empty state (a shop this release does not sell from) and never a dead end', () => {
     setLang('en');
-    const out = html(createElement(GoodsSheet, { shopId: 'denki', window: true, onClose: () => {} }));
+    // Fuku-Fuku is deferred (docs/RELEASE_1.md): no item of the pack names it
+    const out = html(createElement(GoodsSheet, { shopId: 'fukufuku', window: true, onClose: () => {} }));
     expect(out).toContain('Look through the window');
     expect(out).toContain('Nothing to look at yet.');
     expect(out).toContain('Close');

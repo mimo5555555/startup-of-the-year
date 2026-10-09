@@ -114,8 +114,8 @@ describe('building registry', () => {
     expect(city.pickables.some((p) => p.id === 'fukufuku')).toBe(true);
   });
 
-  it('the ride stub mounts nothing', () => {
-    expect(buildRide('bike', { toon: new THREE.MeshBasicMaterial(), glow: new THREE.MeshBasicMaterial() })).toBeNull();
+  it('buildRide mounts a mesh for each ride kind (details in buildings-motors.test.ts)', () => {
+    for (const kind of ['bike', 'ebike', 'car'] as const) expect(buildRide(kind, { toon: new THREE.MeshBasicMaterial(), glow: new THREE.MeshBasicMaterial() })).not.toBeNull();
   });
 });
 

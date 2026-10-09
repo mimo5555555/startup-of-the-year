@@ -1,9 +1,10 @@
 // The world HUD's game logic (docs/GAME_DESIGN.md §2.5, §6.1, §6.4, §7.5, §11.7). Pure functions over the pack and the game state, so they
 // are testable without React or WebGL; `syncWorld` is the one function that touches the 3D world. Slice 3F extends `syncWorld` with the
-// avatar patches; the ride and speed calls are already here because they are the same kind of call as the shutters.
+// avatar patches (avatarFx.ts); the ride and speed calls are the same kind of call as the shutters.
 import type { Badge, TokyoWorld } from '@lw/world';
 import { DOORS, NPC_SPAWNS, SHOPS, shopIdOf } from '@lw/world';
 import type { Character } from '@lw/content';
+import type { AvatarSpec } from '@lw/content';
 import { CHARACTERS, lessonById } from '@lw/content';
 import {
   derivedFlags,
@@ -22,6 +23,8 @@ import {
   type Pred,
 } from '@lw/game';
 import { NPC_ORDER, characterById, scenarioById, scenarioForCharacter } from '../content';
+import { useStore } from '../store';
+import { applyAvatar, avatarSpecFor } from './avatarFx';
 
 // ---------------------------------------------------------------------------------------------------------------
 // HUD disclosure: which elements are on screen (§2.5)
@@ -279,16 +282,40 @@ export function shopStates(pack: GamePack, state: GameState): Array<[string, boo
   return out;
 }
 
-/** Puts the 3D world in line with the game: shutters, NPC badges, ride and speed. Safe to call after every state change. */
-export function syncWorld(world: TokyoWorld, env: InteractionEnv, legacy: { completed: Record<string, unknown>; lessonsDone: readonly string[] }): void {
+/** What the owned things do to the world (§5.5): the ride under the player, the speed multiplier and the avatar with the worn pieces on. */
+export interface WorldFx {
+  ride: 'none' | 'bike' | 'ebike' | 'car';
+  moveMultiplier: number;
+  spec: AvatarSpec;
+}
+
+/** Pure: the ride, speed and avatar for a game state. `base` is the avatar the player made in onboarding. */
+export function worldFx(pack: GamePack, state: GameState, base: AvatarSpec): WorldFx {
+  const flags = derivedFlags(pack, state);
+  return { ride: flags.ride.mesh, moveMultiplier: flags.speedMult, spec: avatarSpecFor(pack, state, base) };
+}
+
+/**
+ * Puts the 3D world in line with the game: shutters, NPC badges, ride, speed and the avatar's worn pieces. Safe to call after every
+ * state change (the world rebuilds the avatar only when the spec really changed). `opts.base` is the player's own avatar; it defaults to
+ * the profile's.
+ */
+export function syncWorld(
+  world: TokyoWorld,
+  env: InteractionEnv,
+  legacy: { completed: Record<string, unknown>; lessonsDone: readonly string[] },
+  opts: { base?: AvatarSpec | null } = {},
+): void {
   for (const [id, open] of shopStates(env.pack, env.state)) world.setShopOpen(id, open);
   for (const c of CHARACTERS) {
     if (!NPC_SPAWNS.some((n) => n.id === c.id)) continue;
     world.setNpcBadge(c.id, npcBadge(env, c, legacy.completed, legacy.lessonsDone));
   }
-  const flags = derivedFlags(env.pack, env.state);
-  world.setMoveMultiplier(flags.speedMult);
-  world.setRide(flags.ride.mesh);
+  const base = opts.base ?? useStore.getState().profile?.avatar ?? null;
+  const fx = worldFx(env.pack, env.state, base ?? CHARACTERS[0].avatar);
+  world.setMoveMultiplier(fx.moveMultiplier);
+  world.setRide(fx.ride);
+  if (base) applyAvatar(world, fx.spec, base);
 }
 
 // ---------------------------------------------------------------------------------------------------------------

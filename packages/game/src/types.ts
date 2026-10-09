@@ -684,6 +684,19 @@ export interface ShiftPlan {
 
 // --- the pack -------------------------------------------------------------------------------------------------------
 
+/**
+ * The release cap (docs/RELEASE_1.md): a pack that ships only the first chapters. `pack.chapters` holds exactly the chapters 1..lastChapter
+ * (the later ones are not played), completing `lastChapter` makes Free Walk (`chapter.n = 9`) current, and whatever the cut-off chapters
+ * would have opened is gated on Free Walk instead (`validatePack` reports an item, shop or dream step gated on a chapter in between).
+ * Every dream of `pack.dreams` is one that can be finished with the released content (`validatePack` level 4 proves it).
+ */
+export interface ReleaseDef {
+  /** the last chapter that is played: 1-8 */
+  lastChapter: number;
+  /** Beat id: the closing beat of `lastChapter`, a short "to be continued" that hands over to Free Walk */
+  epilogue: string;
+}
+
 export interface GamePack {
   schema: 1;
   id: string;
@@ -723,6 +736,8 @@ export interface GamePack {
   ranks?: NameGloss[];
   /** keepsake id -> name (heart-5 gifts, home visits, dream finales); the ids owned are in `GameState.keepsakes` */
   keepsakes?: Record<string, NameGloss>;
+  /** a capped release: only the first chapters are played, then Free Walk (see `ReleaseDef`) */
+  release?: ReleaseDef;
 }
 
 // ---------------------------------------------------------------------------------------------------------------

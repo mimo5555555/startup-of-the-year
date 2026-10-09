@@ -1,1 +1,583 @@
-/* shift styles (docs/GAME_DESIGN.md §15.2): owned by the agent named there; imported through game.css. */
+/* shift styles (docs/GAME_DESIGN.md §15.2, §9.4): owned by 4D; imported through game.css. Every class is prefixed sh-. */
+.panel.shift .panel-body {
+  padding-inline: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.sh-play,
+.sh-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+.sh-card {
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: 22px;
+  padding: 18px 16px;
+  box-shadow: var(--shadow-sm);
+}
+.sh-card h2,
+.sh-card h3 {
+  margin: 0;
+}
+.sh-card-head {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.sh-job-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 16px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  display: grid;
+  place-items: center;
+  flex: none;
+}
+.sh-note {
+  color: var(--fg-2);
+  font-size: 14px;
+  margin: 0;
+}
+.sh-num {
+  font-variant-numeric: tabular-nums;
+}
+.sh-facts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+.sh-facts > div {
+  background: var(--bg-2);
+  border-radius: 14px;
+  padding: 8px 12px;
+}
+.sh-facts dt {
+  font-size: 12px;
+  color: var(--fg-2);
+}
+.sh-facts dd {
+  margin: 2px 0 0;
+  font-weight: 800;
+  font-size: 18px;
+}
+.sh-rank small {
+  color: var(--fg-2);
+  font-weight: 700;
+}
+.sh-boss {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sh-gloss-line {
+  margin: 0;
+  color: var(--fg-2);
+  font-size: 15px;
+}
+
+/* the steps strip */
+.sh-steps {
+  display: flex;
+  gap: 8px;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.sh-step {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  background: var(--bg-2);
+  color: var(--fg-2);
+  font-size: 13px;
+  font-weight: 800;
+}
+.sh-step-dot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  color: #fff;
+}
+.sh-step.now {
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+.sh-step.now .sh-step-dot {
+  border-color: var(--accent);
+}
+.sh-step.ok {
+  background: var(--good-soft);
+  color: var(--good);
+}
+.sh-step.ok .sh-step-dot {
+  background: var(--good);
+  border-color: var(--good);
+}
+.sh-step.bad {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+.sh-step.bad .sh-step-dot {
+  background: var(--bad);
+  border-color: var(--bad);
+}
+
+/* the customer */
+.sh-customer {
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  border-radius: 22px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sh-customer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.sh-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--fg-2);
+}
+.sh-dots {
+  display: inline-flex;
+  gap: 5px;
+}
+.sh-dots i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--line);
+}
+.sh-dots i.done {
+  background: var(--good);
+}
+.sh-dots i.now {
+  background: var(--accent);
+}
+.sh-bubble {
+  background: var(--bg-2);
+  border-radius: 18px;
+  padding: 12px 14px;
+  min-height: 64px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  justify-content: center;
+}
+.sh-hidden {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--fg-2);
+  font-weight: 700;
+}
+.sh-trans {
+  margin: 0;
+  color: var(--fg-2);
+  font-size: 15px;
+}
+.sh-row,
+.sh-assist,
+.sh-help,
+.sh-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+.sh-assist .btn,
+.sh-row .btn,
+.sh-help .btn {
+  min-height: 44px;
+  flex: 1 1 96px;
+  min-width: 0;
+  white-space: normal;
+  text-align: center;
+  line-height: 1.2;
+  font-size: 13px;
+  padding: 6px 8px;
+  gap: 5px;
+}
+.sh-assist .btn {
+  flex-basis: 140px;
+}
+.sh-assist .btn[data-act='cant-listen'] {
+  flex-basis: 100%;
+  min-height: 40px;
+}
+.sh-row .btn.wide {
+  flex: 2 1 140px;
+}
+.sh-on {
+  background: var(--good-soft);
+  color: var(--good);
+}
+
+/* the order pad */
+.sh-order,
+.sh-answer,
+.sh-verdict,
+.sh-done {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sh-prompt {
+  margin: 0;
+  font-weight: 800;
+}
+.sh-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.sh-item {
+  position: relative;
+  min-width: 0;
+}
+.sh-item-main {
+  width: 100%;
+  min-height: 92px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 8px 4px;
+  border-radius: 16px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+  overflow: hidden;
+}
+.sh-item.on .sh-item-main {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.sh-item-main:disabled {
+  opacity: 0.6;
+}
+.sh-item .ja-sm {
+  font-size: 14px;
+}
+.sh-gloss {
+  font-size: 11px;
+  color: var(--fg-2);
+  text-align: center;
+  line-height: 1.15;
+  max-width: 100%;
+}
+.sh-price {
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+.sh-qty {
+  position: absolute;
+  inset-block-start: -6px;
+  inset-inline-start: -4px;
+  min-width: 26px;
+  height: 26px;
+  padding: 0 6px;
+  border-radius: 13px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+  display: grid;
+  place-items: center;
+  pointer-events: none;
+}
+.sh-minus {
+  position: absolute;
+  inset-block-start: -8px;
+  inset-inline-end: -6px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  display: grid;
+  place-items: center;
+  color: var(--fg);
+  cursor: pointer;
+}
+.sh-minus > svg {
+  width: 26px;
+  height: 26px;
+  padding: 6px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1.5px solid var(--line);
+  box-sizing: border-box;
+}
+.sh-flag {
+  flex: 1;
+  min-height: 48px;
+  min-width: 130px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 6px 12px;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  font-weight: 800;
+  cursor: pointer;
+}
+.sh-flag.on {
+  background: var(--sky-soft);
+  border-color: var(--sky);
+  color: var(--sky-dark);
+}
+.sh-confirm:disabled {
+  opacity: 0.55;
+}
+
+/* totals, thanks */
+.sh-register {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  background: var(--sky-soft);
+  border-radius: 16px;
+  padding: 10px 14px;
+  font-weight: 700;
+}
+.sh-reg-paid {
+  font-size: 14px;
+  color: var(--fg-2);
+}
+.sh-type {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.sh-input {
+  flex: 1;
+  min-width: 0;
+  min-height: 48px;
+  padding: 0 14px;
+  font: inherit;
+  font-size: 17px;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  color: var(--fg);
+}
+.sh-input:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: 1px;
+}
+.sh-hint,
+.sh-msg {
+  margin: 0;
+  font-size: 14px;
+  color: var(--fg-2);
+}
+.sh-msg {
+  color: var(--bad);
+  font-weight: 700;
+}
+.sh-tiles {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sh-slots,
+.sh-pool {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  min-height: 54px;
+  padding: 8px;
+  border-radius: 16px;
+  align-items: center;
+}
+.sh-slots,
+.sh-pool {
+  direction: ltr;
+}
+.sh-slots {
+  background: var(--bg-2);
+  border: 1.5px dashed var(--line);
+}
+.sh-slot-empty {
+  color: var(--fg-2);
+  padding-inline: 8px;
+}
+.sh-tile {
+  min-height: 48px;
+  min-width: 48px;
+  padding: 4px 12px;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+}
+.sh-tile.placed {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.sh-tile:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.sh-choices {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sh-choice {
+  width: 100%;
+  min-height: 56px;
+  padding: 8px 14px;
+  border-radius: 16px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.sh-verdict {
+  background: var(--bad-soft);
+  border-radius: 18px;
+  padding: 14px;
+}
+.sh-verdict h3 {
+  margin: 0;
+  color: var(--bad);
+}
+.sh-correct {
+  background: var(--card);
+  border-radius: 14px;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sh-correct-label {
+  font-size: 12px;
+  color: var(--fg-2);
+  font-weight: 700;
+}
+.sh-correct-ja {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.sh-detail {
+  margin: 0;
+  font-weight: 700;
+}
+.sh-ok {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--good);
+  font-weight: 800;
+}
+
+/* the result card */
+.sh-wage {
+  margin: 0;
+  font-size: 26px;
+  font-weight: 900;
+  color: var(--accent-text);
+}
+.sh-rankup,
+.sh-bonus {
+  background: var(--warn-soft);
+  border-radius: 16px;
+  padding: 10px 12px;
+  margin: 0;
+}
+.sh-rankup {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.sh-words {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sh-word-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.sh-word {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.1;
+}
+.sh-word small {
+  font-size: 11px;
+  opacity: 0.8;
+}
+.sh-quit {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 16px calc(20px + var(--safe-bottom));
+}
+.sh-quit h2 {
+  margin: 0;
+}
+
+/* kids and seniors: larger targets (§11.9) */
+.sh-big .sh-item-main {
+  min-height: 108px;
+}
+.sh-big .sh-tile,
+.sh-big .sh-choice,
+.sh-big .sh-flag {
+  min-height: 56px;
+}
+.sh-big .btn.sm {
+  min-height: 52px;
+}
+
+.sh-row .btn svg,
+.sh-assist .btn svg {
+  flex: none;
+}

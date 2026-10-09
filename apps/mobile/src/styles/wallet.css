@@ -1,1 +1,367 @@
-/* wallet styles (docs/GAME_DESIGN.md §15.2): owned by the agent named there; imported through game.css. */
+/* wallet styles (docs/GAME_DESIGN.md §15.2): the Wallet screen, the inventory grid and item card, the wardrobe and the receipts. Owned by 3F; imported through game.css. Prefix: wlt-. */
+.wlt-body {
+  gap: 14px;
+}
+
+/* ---------- balances ---------- */
+.wlt-money {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 16px;
+}
+.wlt-pocket {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+}
+.wlt-pocket svg {
+  color: var(--accent-text);
+}
+.wlt-pocket span {
+  font-weight: 700;
+  color: var(--fg-2);
+}
+.wlt-pocket strong {
+  font-size: 24px;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+}
+.wlt-pocket[data-pocket='ic'] strong,
+.wlt-pocket[data-pocket='points'] strong {
+  font-size: 19px;
+}
+.wlt-totals {
+  color: var(--fg-2);
+  font-size: 13px;
+  padding-top: 6px;
+  border-top: 1px solid var(--line);
+}
+.wlt-tabs {
+  padding-inline: 0;
+  border-bottom: 1px solid var(--line);
+}
+.wlt-tabs button {
+  font-size: 15px;
+}
+.wlt-empty {
+  margin: 18px 6px;
+}
+
+/* ---------- what you own ---------- */
+.wlt-things {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.wlt-grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+.wlt-grid > li {
+  display: flex;
+}
+.wlt-tile {
+  position: relative;
+  width: 100%;
+  flex: 1;
+  min-height: 130px;
+  padding: 26px 8px 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+  background: var(--card);
+  color: var(--fg);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+.wlt-tile:active {
+  transform: scale(0.98);
+}
+.wlt-tile-ic {
+  flex: none;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--sky-soft);
+  color: var(--sky-dark);
+}
+.wlt-tile-name {
+  font-weight: 800;
+  font-size: 14px;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+.wlt-tile-ja {
+  font-family: var(--font-ja);
+  font-size: 12px;
+  color: var(--fg-2);
+  overflow-wrap: anywhere;
+}
+.wlt-qty {
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline-end: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: 800;
+  font-size: 12px;
+}
+.wlt-worn {
+  position: absolute;
+  inset-block-start: 8px;
+  inset-inline-start: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--good-soft);
+  color: var(--good);
+  font-weight: 800;
+  font-size: 11px;
+}
+
+/* ---------- wardrobe ---------- */
+.wlt-wardrobe {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px 14px;
+}
+.wlt-wardrobe header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--accent-text);
+}
+.wlt-wardrobe header div {
+  display: flex;
+  flex-direction: column;
+  color: var(--fg);
+}
+.wlt-wardrobe header small {
+  color: var(--fg-2);
+}
+.wlt-wear-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.wlt-wear {
+  flex: 1 1 140px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 12px;
+  background: var(--bg-2);
+  color: var(--fg);
+  border: 2px solid var(--line);
+  border-radius: 14px;
+  font-weight: 800;
+  cursor: pointer;
+}
+.wlt-wear span {
+  flex: 1;
+  text-align: start;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.wlt-wear em {
+  font-style: normal;
+  font-size: 12px;
+  color: var(--fg-2);
+}
+.wlt-wear.on {
+  border-color: var(--good);
+  background: var(--good-soft);
+}
+.wlt-wear.on em {
+  color: var(--good);
+}
+
+/* ---------- item card ---------- */
+.wlt-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.wlt-ja {
+  font-family: var(--font-ja);
+}
+.wlt-say {
+  align-self: flex-start;
+  gap: 6px;
+}
+.wlt-facts {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.wlt-facts > div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.wlt-facts dt {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--fg-2);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.wlt-facts dd {
+  margin: 0;
+  font-weight: 700;
+}
+.wlt-fx {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.wlt-hours {
+  display: inline-block;
+  margin-inline-start: 8px;
+  padding: 1px 8px;
+  border-radius: 999px;
+  background: var(--warn-soft);
+  color: var(--fg);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+/* ---------- receipts ---------- */
+.wlt-receipts {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.wlt-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px 12px 8px;
+}
+.wlt-list > li {
+  display: flex;
+  flex-direction: column;
+}
+.wlt-day {
+  margin: 12px 0 2px;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--fg-2);
+}
+.wlt-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 48px;
+  padding: 6px 0;
+  width: 100%;
+  background: none;
+  border: 0;
+  border-bottom: 1px solid var(--line);
+  color: var(--fg);
+  text-align: start;
+  font: inherit;
+}
+.wlt-row-btn {
+  cursor: pointer;
+}
+.wlt-row-ic {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--bg-2);
+  color: var(--accent-text);
+}
+.wlt-row-main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+}
+.wlt-row-name {
+  font-weight: 800;
+  overflow-wrap: anywhere;
+}
+.wlt-row-main .wlt-hours {
+  margin-inline-start: 0;
+}
+.wlt-row-pocket {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--fg-2);
+  font-size: 12px;
+}
+.wlt-amount {
+  flex: none;
+  font-variant-numeric: tabular-nums;
+}
+.wlt-amount.up {
+  color: var(--good);
+}
+.wlt-amount.down {
+  color: var(--fg);
+}
+.wlt-slip {
+  margin: 6px 0 8px;
+  padding: 12px 14px;
+  background: var(--bg-2);
+  border: 1px dashed var(--line);
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 14px;
+}
+.wlt-slip dl {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.wlt-slip dl > div {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+}
+.wlt-slip dt {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.wlt-slip dd {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+}
+.wlt-slip .total {
+  border-top: 1px solid var(--line);
+  padding-top: 4px;
+  font-weight: 800;
+}
+.wlt-slip small {
+  color: var(--fg-2);
+}
