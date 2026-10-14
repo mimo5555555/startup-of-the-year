@@ -13,8 +13,8 @@ const money = (n: number): Vars[string] => {
 };
 const PRICES: Record<string, number> = { tee: 1990, cap: 2490, hoodie: 4990, jeans: 5990, sneakers: 7990, jacket: 12900, glasses: 9900, backpack: 6900, suit: 19800, plush: 800, guitarPick: 300 };
 
-/** A counter with a purse: the price is the one of the chosen piece (the T-shirt before a choice). */
-function counter(cash: number) {
+/** A counter with a purse: the price is the one of the chosen piece (the T-shirt before a choice); `outOfStock` pieces are "not in stock yet" (the game's `in_stock` check refuses them). */
+function counter(cash: number, outOfStock: string[] = []) {
   const log = { charges: [] as string[], refused: 0 };
   const idOf = (s: Record<string, string>) => s.giftItem ?? s.clothes ?? 'tee';
   const hooks: SessionGameHooks = {
@@ -28,6 +28,7 @@ function counter(cash: number) {
       cash -= PRICES[idOf(slots)];
       return { ok: true };
     },
+    intent: (kind, ctx) => ({ ok: kind === 'in_stock' && !outOfStock.includes(idOf(ctx.slotIds)) }),
   };
   return { hooks, log };
 }
@@ -124,11 +125,19 @@ describe('fuku_clothes: every chip is understood', () => {
     const r = walk('en', () => ({ game: counter(500000).hooks, flags: { priced: true } }));
     const seen = new Set([...r.visited].map((k) => k.split('|')[0]));
     const all = Object.keys(scenarioById('fuku_clothes')!.nodes);
-    // `done` and `leave` are end nodes (the walk stops there); `short` needs too little cash
-    expect(all.filter((n) => !seen.has(n) && !['done', 'leave', 'short'].includes(n))).toEqual([]);
+    // `done` and `leave` are end nodes (the walk stops there); `short` needs too little cash; `not_yet` needs a piece that is not in stock yet (below)
+    expect(all.filter((n) => !seen.has(n) && !['done', 'leave', 'short', 'not_yet'].includes(n))).toEqual([]);
     const poor = walk('en', () => ({ game: counter(100).hooks, flags: { priced: true } }));
     expect([...poor.visited].some((k) => k.startsWith('short|'))).toBe(true);
   }, WALK_TIMEOUT);
+
+  for (const l1 of ['en', 'ar'] as const) {
+    it(`a piece that is not in stock yet leads to Rin's "not in stock" node, whose every chip is understood (${l1})`, () => {
+      const r = walk(l1, () => ({ game: counter(500000, ['hoodie']).hooks, flags: { priced: true } }));
+      expect(r.problems).toEqual([]);
+      expect([...r.visited].some((k) => k.startsWith('not_yet|'))).toBe(true);
+    }, WALK_TIMEOUT);
+  }
 });
 
 describe('fuku_clothes: the whole purchase by tapping chips', () => {

@@ -447,6 +447,21 @@
   text-align: center;
   color: var(--fg-2);
 }
+/* a short (landscape) phone: the conversation's bottom card starts about 150px down and its first suggestion at 190px, so the mirror shrinks (no caption) to stay above it */
+@media (max-height: 520px) {
+  .fit-mirror {
+    top: calc(var(--safe-top, 0px) + 118px);
+    width: 44px;
+    padding: 4px;
+    gap: 0;
+  }
+  .fit-figure {
+    width: 28px;
+  }
+  .fit-mirror figcaption {
+    display: none;
+  }
+}
 @keyframes fit-in {
   from {
     opacity: 0;

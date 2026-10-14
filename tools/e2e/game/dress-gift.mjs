@@ -1,7 +1,7 @@
 // Release 2 wave A end to end (docs/RELEASE_2.md): dress and gift, in the REAL UI at 360 px, English or Arabic (--ar):
 //   Chapter 1: the Fuku-Fuku and Aiko shutters are down -> dev tools: yen and Chapter 2 -> both open ->
 //   Fuku-Fuku through the conversation: the T-shirt in blue (price chip, exact charge; in the fitting room the avatar wears it, declined once it is
-//   back to the real avatar; bought, it is worn at once), sneakers refused politely in Chapter 2 and bought in Chapter 3 ->
+//   back to the real avatar; bought, it is worn at once), sneakers "not in stock yet" in Chapter 2 (no price, nothing charged) and bought in Chapter 3 ->
 //   the Wallet's Wardrobe (Take off / Wear), a reload keeps the outfit -> Aiko's stall: the wagashi for Mio through the conversation (she
 //   recommends from Mio's tastes), handed over from the Friends screen: Mio loves it, affinity within the caps ->
 //   the render cost at the busiest places. After every step: no horizontal scroll, no console error, wallet = ledger.
@@ -218,24 +218,20 @@ assert.equal((await spec()).top, BLUE, 'worn at once');
 await shot('4-worn');
 await check('T-shirt bought');
 
-// ---- 5. sneakers: closed in Chapter 2, politely -------------------------------------------------------------------------------
-step('Fuku-Fuku: sneakers are refused politely in Chapter 2 (nothing charged)');
+// ---- 5. sneakers: not in stock in Chapter 2, said at once -----------------------------------------------------------------------
+step('Fuku-Fuku: sneakers are not in stock in Chapter 2 (said at once, no price, nothing charged)');
 const cashChap2 = await cash();
 await openConvo('rin', 'rin_shop', 'fuku_clothes');
-await clothesToFitting('スニーカーをください', '黒');
-await tap(/ちょうど/);
-await tap(/これ/);
-await tap(/現金/);
-await page.waitForFunction(() => !document.querySelector('.bubble.typing'), null, { timeout: 40000 });
-await t.sleep(500);
+await say('スニーカーをください');
 const refusal = await lastChar();
-assert.ok(/品切れ|足りません|sold out|short|نفد|ناقص/i.test(refusal), `a polite refusal: ${refusal}`);
+assert.ok(/入荷|in stock|ليس لدينا/i.test(refusal), `a polite "not in stock yet": ${refusal}`);
+assert.ok(!refusal.includes('…'), `no empty price in the line: ${refusal}`);
 await shot('5-sneakers-refused');
 g = await liveGame(page);
 assert.equal(g.owned.sneakers, undefined, 'no sneakers yet');
 assert.equal(g.wallet.cash, cashChap2, 'nothing was charged');
 await check('sneakers refused');
-await tap(/考えます|また/);
+await say('またきます');
 await finish();
 assert.equal((await spec()).shoes, base.shoes, 'the real shoes are back');
 

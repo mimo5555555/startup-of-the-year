@@ -3,6 +3,8 @@ import type { AvatarSpec, Emotion, HairStyle } from '@lw/content';
 import { Batch } from './batch';
 
 const BLUSH = '#ff9fa8';
+/** polar angle where a beanie ends (about 73 degrees from the crown): its edge clears the eyes and brows */
+const BEANIE_EDGE = 1.28;
 const EYE = '#2a2230';
 const MOUTH = '#8a3b45';
 
@@ -194,8 +196,9 @@ export class Avatar {
       h.sphere(0, cy + 0.17, 0.33, 0.04, spec.accent, { ws: 6, hs: 4 });
     }
     if (acc.has('beanie')) {
-      h.cap(0, cy + 0.03, 0, 0.33, Math.PI * 0.52, spec.accent, { sy: 0.95 });
-      h.torus(0, cy + 0.13, 0, 0.31, 0.04, shade(spec.accent, 0.85), { rx: Math.PI / 2 });
+      // the knit's edge stays above the brows like the helmet's rim (the eyes sit at cy + 0.01 and must stay clear): the roll sits on that edge
+      h.cap(0, cy + 0.03, 0, 0.33, BEANIE_EDGE, spec.accent, { sy: 0.95 });
+      h.torus(0, cy + 0.125, 0, 0.315, 0.035, shade(spec.accent, 0.85), { rx: Math.PI / 2 });
     }
     if (acc.has('helmet')) {
       // bike helmet: shell larger than the hair cap, rim above the brows (the eyes sit at z 0.272 and must stay clear)

@@ -70,7 +70,9 @@ const later = (): IntentDef => ({ id: 'later', any: ['またきます', 'かん�
 const askPrice: IntentDef = { id: 'ask_price', any: ['いくら', 'ねだん'], stay: true, reply: L('後で、|お値段|を|お知らせ|します|ね。', 'I will tell you the price in a moment.', 'سأخبرك بالسعر بعد قليل.') };
 const justLooking: IntentDef = { id: 'just_looking', any: ['みているだけ', '見ているだけ'], stay: true, reply: L('ごゆっくり|どうぞ。', 'Please take your time.', 'خذ وقتك من فضلك.') };
 const PICK_IDEAL = L('{giftItem}|を|ください。', '{giftItem}, please.', '{giftItem} من فضلك.');
-const pickPresent = (next: string, step?: string): IntentDef => ({ id: 'pick_gift', slot: 'giftItem', slotRequired: true, next, ...(step ? { step } : {}), request: true, ideal: PICK_IDEAL });
+/** The presents this stall sells: `giftItem` is shared with every shop's `goods` node, so naming the manga here must not start a sale that could never be charged. */
+const PRESENTS = Object.keys(AIKO_PRICES);
+const pickPresent = (next: string, step?: string): IntentDef => ({ id: 'pick_gift', slot: 'giftItem', slotOptions: PRESENTS, slotRequired: true, next, ...(step ? { step } : {}), request: true, ideal: PICK_IDEAL });
 const SHELF_LINE = L('お花、|和菓子、|お茶セット、|手ぬぐい|が|あります|よ。', 'We have bouquets, wagashi, tea sets and tenugui.', 'لدينا باقات زهور وواغاشي وأطقم شاي ومناشف تينوغوي.');
 const CHIPS_GIFT = [S('和菓子|を|ください。', 'Wagashi, please.', 'واغاشي من فضلك.'), S('お花|を|ください。', 'A bouquet, please.', 'باقة زهور من فضلك.'), S('手ぬぐい|を|ください。', 'A tenugui, please.', 'منشفة تينوغوي من فضلك.')];
 

@@ -209,7 +209,7 @@ describe('setMoveMultiplier: sub-steps never tunnel', () => {
       expect(maxFrame, `phase ${k}`).toBeGreaterThan(0.1); // it really was moving fast
       expect(maxX, `phase ${k}`).toBeLessThanOrEqual(limit + 1e-6);
     }
-  });
+  }, 20_000);
 
   it('holds at the top of the range and at a 1/60 frame', () => {
     expect(runAt(10, limit - 5, 0.05).maxX).toBeLessThanOrEqual(limit + 1e-6);

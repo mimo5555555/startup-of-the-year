@@ -5,7 +5,8 @@ import type { NameGloss } from '@lw/game';
  *
  * The design table lists the tastes of all nine friends over the full catalog. Release 1 (docs/RELEASE_1.md) has six friends and sells
  * only the things the shops of the release stock (Release 2 wave A adds Aiko's four presents: g_flower, g_wagashi, g_tea_set, g_tenugui,
- * so each friend loves one of them and Kenji's dislike of the bouquet is back), so every list below names released ids only (an unknown id would be a validation
+ * so each friend loves one of them and Kenji's dislike of the bouquet is back; Fuku-Fuku's two presents, g_plush and g_guitar_pick, bring back
+ * Kenji's dislike of the plush toy and Yuki's love of the guitar pick), so every list below names released ids only (an unknown id would be a validation
  * warning, and a gift nobody can buy is a taste nobody can see):
  *   - catalog gifts: g_choco, g_manga, g_game_card (konbini), g_music_cd (Hikari Denki), g_carfresh (Nakamura Motors)
  *   - the giftable menu items, written as the bare option of the menu row (`coffee` matches `konbini:coffee` and `cafe:coffee`):
@@ -15,7 +16,7 @@ import type { NameGloss } from '@lw/game';
  *
  * A design love that is not released is replaced by the nearest released one (noted per friend) so that every friend has a present they
  * love that can be bought in a shop open by Free Walk, and at least one such present at the konbini (open from Chapter 1, where the
- * Chapter 3 gift is bought). A design dislike that is not released is dropped (Kenji's g_flower and g_plush) rather than invented.
+ * Chapter 3 gift is bought). A design dislike that is not released is dropped rather than invented.
  */
 export interface Taste {
   /** ItemDef ids, menu ids or bare menu options: x2 */
@@ -31,14 +32,14 @@ export const TASTES: Record<string, Taste> = {
   // (Aiko's wagashi stands in for the souvenir: she loves sweets)
   mio: { loves: ['g_manga', 'cake', 'g_wagashi'], likes: ['sweet', 'cute', 'media', 'music'], dislikes: ['coffee'] },
   // design: loves g_guitar_pick, g_tea_set, cake | likes sweet, music, flower | dislikes coffee, g_game_card
-  yuki: { loves: ['cake', 'g_tea_set'], likes: ['sweet', 'music', 'flower'], dislikes: ['coffee', 'g_game_card'] },
+  yuki: { loves: ['g_guitar_pick', 'cake', 'g_tea_set'], likes: ['sweet', 'music', 'flower'], dislikes: ['coffee', 'g_game_card'] },
   // design: loves g_game_card, coffee, g_manga | likes game, tech, sweet | dislikes onigiri, bento
   // (the wagashi is an Aiko present the sweet-toothed Tanaka loves; the design has no Aiko love for him)
   tanaka: { loves: ['g_game_card', 'coffee', 'g_manga', 'g_wagashi'], likes: ['game', 'tech', 'sweet'], dislikes: ['onigiri', 'bento'] },
   // design: loves g_tea_set, g_wagashi, g_souvenir (the souvenir is not released: green tea stands in) | likes travel, tea, tradition | dislikes g_choco, g_game_card
   sato: { loves: ['g_tea_set', 'g_wagashi', 'greenTea'], likes: ['travel', 'tea', 'tradition'], dislikes: ['g_choco', 'g_game_card'] },
-  // design: loves g_tenugui, greenTea, coffee | likes sports, food, drink | dislikes g_flower, g_plush (g_plush is a Fuku-Fuku present, not an Aiko one)
-  kenji: { loves: ['g_tenugui', 'greenTea', 'coffee'], likes: ['sports', 'food', 'drink'], dislikes: ['g_flower'] },
+  // design: loves g_tenugui, greenTea, coffee | likes sports, food, drink | dislikes g_flower, g_plush
+  kenji: { loves: ['g_tenugui', 'greenTea', 'coffee'], likes: ['sports', 'food', 'drink'], dislikes: ['g_flower', 'g_plush'] },
   // design: loves g_tea_set, g_wagashi, g_flower | likes tradition, flower, craft | dislikes g_choco, g_game_card
   hanako: { loves: ['g_tea_set', 'g_wagashi', 'g_flower', 'greenTea'], likes: ['tradition', 'flower', 'craft', 'tea'], dislikes: ['g_choco', 'g_game_card'] },
 };

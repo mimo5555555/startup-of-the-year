@@ -246,6 +246,8 @@ describe('the fitting room (try-on)', () => {
   });
 
   it('a different colour or piece changes the preview; a present or a scenario without a fitting room has none', () => {
+    // the jeans open with Chapter 3 (before that Rin says they are not in stock yet and there is no fitting room for them)
+    setGame({ ...getGame(), chapter: { ...getGame().chapter, n: 3 } });
     const { game, session } = shop();
     toOffer(session, 'ジーンズ');
     tap(session, '試着');

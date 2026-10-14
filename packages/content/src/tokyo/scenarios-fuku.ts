@@ -92,8 +92,11 @@ const payIntents = (next: string): IntentDef[] => [
 const askPrice = (again: string): IntentDef => ({ id: 'ask_price', any: ['いくら', 'ねだん'], next: again });
 
 const CHOOSE_IDEAL = L('{clothes}|を|ください。', '{clothes}, please.', '{clothes} من فضلك.');
-/** picking a piece by name, wherever the learner is: the sale goes on to the size */
-const pickClothes = (): IntentDef => ({ id: 'choose_clothes', slot: 'clothes', slotRequired: true, next: 'size', step: 'look', request: true, ideal: CHOOSE_IDEAL });
+/**
+ * picking a piece by name, wherever the learner is: the sale goes on to the size. A piece that cannot be sold yet (a later chapter) is "not in
+ * stock": the game's `in_stock` check sends the learner to `not_yet` instead of through a fitting and a till that could never charge.
+ */
+const pickClothes = (): IntentDef => ({ id: 'choose_clothes', slot: 'clothes', slotRequired: true, next: 'size', step: 'look', request: true, ideal: CHOOSE_IDEAL, econ: 'in_stock', nextIfNo: 'not_yet' });
 const goodsIntent: IntentDef = { id: 'ask_goods', any: ['ぷれぜんと', 'ほかになにが'], next: 'goods' };
 const justLooking: IntentDef = { id: 'just_looking', any: ['みているだけ', '見ているだけ'], stay: true, reply: L('ごゆっくり|どうぞ。', 'Please take your time.', 'خذ وقتك من فضلك.') };
 const sizePick = (next: string): IntentDef => ({
@@ -158,6 +161,13 @@ export const FUKU_CLOTHES: Scenario = {
         goodsIntent,
         later(),
       ],
+    }),
+    // a piece that opens in a later chapter: Rin says so and offers the others (no price, no fitting room, no till)
+    node({
+      id: 'not_yet',
+      say: [say(L('{clothes}|は|まだ|入荷|して|いません。|ほか|の|は|いかが|です|か？', 'We do not have the {clothes} in stock yet. How about another piece?', 'ليس لدينا {clothes} بعد. ما رأيك بقطعة أخرى؟'))],
+      suggestions: [S('パーカー|を|ください。', 'A hoodie, please.', 'هودي من فضلك.'), S('Tシャツ|を|ください。', 'A T-shirt, please.', 'قميص تي شيرت من فضلك.'), JUST_LOOKING_S, REPEAT_S],
+      intents: [pickClothes(), { id: 'just_looking', any: ['みているだけ', '見ているだけ'], next: 'shelves' }, goodsIntent, later()],
     }),
     // the size: a piece in one size says so; the other pieces hear their price here, as soon as the piece is known (the rest hear it at the offer)
     node({
