@@ -141,7 +141,10 @@ export const CHAPTERS: ChapterDef[] = [
         id: 'c3_3',
         pred: { k: 'gift', n: 1 },
         text: { en: 'Give a gift to a friend (buy it first!)', ar: 'قدّم هدية لصديق (اشترِها أولًا!)' },
-        hint: { en: 'Buy a small present at the konbini, then give it from the Friends screen.', ar: 'اشترِ هدية صغيرة من الكونبيني ثم قدّمها من شاشة الأصدقاء.' },
+        hint: {
+          en: "Buy a small present at the konbini or at Aiko's tea house, then give it from the Friends screen.",
+          ar: 'اشترِ هدية صغيرة من الكونبيني أو من بيت الشاي عند أيكو ثم قدّمها من شاشة الأصدقاء.',
+        },
       },
       {
         id: 'c3_4',

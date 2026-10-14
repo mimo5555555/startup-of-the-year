@@ -24,12 +24,14 @@ import { requestAudioCheckFocus } from '../components/AudioCheck';
 import { Icon } from '../components/Icon';
 import { JaText } from '../components/JaText';
 import { Portrait } from '../components/Portrait';
+import { FittingMirror } from '../components/game/FittingMirror';
 import { PriceChip } from '../components/game/PriceChip';
 import { ReceiptSheet } from '../components/game/ReceiptSheet';
 import { setDebrief, type KeepLine } from '../components/game/DebriefGame';
 import { characterById, displayName, scenarioForCharacter } from '../content';
 import { dispatch } from '../game/bridge';
 import { cultureSaidIn } from '../game/cultureLogic';
+import { showOutfit } from '../game/avatarFx';
 import { createConvoGame, leaveAction } from '../game/convoHooks';
 import { completeFriendFacts, giftEventOf, planFriendConvo } from '../game/friendsLogic';
 import { planAccepted, planChat, planFlagEvent } from '../game/phoneLogic';
@@ -213,6 +215,21 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // the fitting room (Fuku-Fuku): while the conversation is on a try-on node the piece is on the avatar; on any other node, and when the
+  // screen closes, the real outfit is back (so a piece that was not bought never stays on)
+  const base = profile.avatar;
+  const fitting = base && !chat && game.meta?.shop ? game.tryOn(session.nodeId, getGame(), base) : null;
+  useEffect(() => {
+    if (world && base && game.meta?.shop) showOutfit(world, PACK, getGame(), base, fitting);
+  });
+  useEffect(
+    () => () => {
+      if (world && base) showOutfit(world, PACK, getGame(), base, null);
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [],
+  );
 
   useEffect(() => {
     const el = listRef.current;
@@ -529,6 +546,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
           })}
         </div>
       </header>
+      {fitting && <FittingMirror spec={fitting} />}
 
       <section className="sheet convo-sheet" aria-live="polite">
         <div className="messages" ref={listRef}>

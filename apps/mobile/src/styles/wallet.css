@@ -159,6 +159,55 @@
   flex-wrap: wrap;
   gap: 8px;
 }
+.wlt-wear-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.wlt-wear-group h3 {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--fg-2);
+}
+.wlt-piece {
+  flex: 1 1 140px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.wlt-piece .wlt-wear {
+  flex: none;
+}
+.wlt-swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+}
+.wlt-swatch {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.wlt-swatch i {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--line);
+  box-sizing: border-box;
+}
+.wlt-swatch.on i {
+  outline: 3px solid var(--good);
+  outline-offset: 2px;
+}
 .wlt-wear {
   flex: 1 1 140px;
   min-height: 44px;
@@ -364,4 +413,48 @@
 }
 .wlt-slip small {
   color: var(--fg-2);
+}
+
+/* ---------- the fitting-room mirror (a clothes shop conversation) ---------- */
+.fit-mirror {
+  position: absolute;
+  z-index: 3;
+  inset-inline-end: 12px;
+  top: calc(var(--safe-top, 0px) + 132px);
+  width: 76px;
+  margin: 0;
+  padding: 8px 6px 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  background: color-mix(in srgb, var(--card) 88%, transparent);
+  border: 2px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.18);
+  pointer-events: none;
+  animation: fit-in 0.25s ease-out both;
+}
+.fit-figure {
+  width: 52px;
+  height: auto;
+  display: block;
+}
+.fit-mirror figcaption {
+  font-size: 10px;
+  font-weight: 800;
+  line-height: 1.15;
+  text-align: center;
+  color: var(--fg-2);
+}
+@keyframes fit-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .fit-mirror {
+    animation: none;
+  }
 }

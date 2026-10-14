@@ -1,7 +1,7 @@
 // What the conversation screen hands the engine for the game (docs/GAME_DESIGN.md §6.2, §11.2): the economy hooks of one shop
 // conversation, the flags, the recalled pocket lines. Pure on its inputs (state, view and the commit function are passed in), so a
 // test can drive it without a screen; the Conversation screen passes the bridge's `dispatch`.
-import { LEXICON, parseJaNumber, plainText, tokenize, yenToJa, type Vars } from '@lw/content';
+import { CLOTHES_COLOURS, LEXICON, parseJaNumber, plainText, tokenize, yenToJa, type AvatarSpec, type Vars } from '@lw/content';
 import type { RecalledLines, SessionGameHooks } from '@lw/engine';
 import {
   fareFor,
@@ -23,6 +23,7 @@ import {
   type ScenarioMeta,
 } from '@lw/game';
 import type { FriendPlan } from './friendsLogic';
+import { pieceColours, tryOnSpec } from './avatarFx';
 import { IC_SCENARIO, icHooks } from './icHooks';
 
 /** Slot option ids of `qty` (slots/shop.ts) and of `payMethod`. */
@@ -31,6 +32,15 @@ const METHODS: PayMethod[] = ['cash', 'card', 'ic'];
 
 /** Extra slots that REPLACE the main item when changed later (a present picked at the `goods` node), not an add-on like the ramen egg. */
 const EXCLUSIVE_EXTRAS = ['giftItem'];
+
+/**
+ * The fitting room (§6.3): the nodes of a clothes scenario in which the piece in the `itemSlot` is on the avatar (the fitting, the resize
+ * and Rin's compliment), and the slot that holds the colour the learner named. A piece that is not bought stays a preview: the screen
+ * puts the real outfit back as soon as the conversation is on another node.
+ */
+const TRY_ON: Record<string, { nodes: readonly string[]; colourSlot: string }> = {
+  fuku_clothes: { nodes: ['fitting', 'resize', 'suits'], colourSlot: 'clothesColour' },
+};
 
 /** The twist flag fires on a third of the plays from the second one on (§6.2: hash(dayIndex, scenarioId, playCount) % 3 === 0). */
 const TWIST_EVERY = 3;
@@ -82,6 +92,11 @@ export interface ConvoGame {
   purchases: ConvoPurchase[];
   /** derived events of those purchases (culture cards, unlocks...) for the debrief */
   derived: DerivedEvent[];
+  /**
+   * The avatar to show while the conversation is on `nodeId`: the piece the learner is trying on (in the colour they named) over what they
+   * wear, or null when this node shows nothing special (the screen then shows the real outfit).
+   */
+  tryOn(nodeId: string, state: GameState, base: AvatarSpec): AvatarSpec | null;
   /** a small talk or gift hand-over with a friend: its flags and variables are already in `flags` and the hooks (4A, `friendsLogic`) */
   friend: FriendPlan | null;
 }
@@ -202,8 +217,25 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
     return priced(qs) ? qs.reduce((a, q) => a + q.total, 0) : null;
   };
 
+  /** the slots as the session last reported them (every hook receives them): the fitting-room preview reads the piece and colour from here */
+  let lastSlots: Record<string, string> = {};
+
+  /**
+   * A colour the learner named for a piece that comes in several (the hoodie in red): the outfit remembers it, so the avatar wears it now and
+   * after a reload; the Wardrobe can change it later. Only a colour that is in the piece's own palette is kept.
+   */
+  const rememberColour = (itemId: string, slots: Record<string, string>) => {
+    const spec = TRY_ON[scenarioId];
+    const item = pack.items.find((i) => i.id === itemId);
+    const hex = spec ? CLOTHES_COLOURS[slots[spec.colourSlot] ?? ''] : undefined;
+    if (!item || !hex || !pieceColours(item).includes(hex)) return;
+    const st = deps.state();
+    if (st.owned[itemId]) commit({ t: 'outfit_changed', equipped: st.outfit.equipped, colours: { ...st.outfit.colours, [itemId]: hex } });
+  };
+
   const shopHooks: SessionGameHooks = {
     vars(slots) {
+      lastSlots = { ...slots };
       const v: Vars = {};
       const b = basketOf(slots);
       if (b) {
@@ -228,6 +260,7 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
     },
 
     charge(slots) {
+      lastSlots = { ...slots };
       const b = basketOf(slots);
       if (!b || !shopMeta) return { ok: false };
       const method = methodOf(slots);
@@ -249,6 +282,7 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
         if (!ledgerHas(deps.state(), id)) return done.length ? { ok: true } : { ok: false };
         n++;
         done.push(q);
+        rememberColour(b[i].itemId, slots);
       }
       const receipt: ConvoPurchase['receipt'] = mergeQuotes(done);
       if (method === 'cash') {
@@ -343,6 +377,13 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
     prepared: pocketReady(pack, state, deps.view(), scenarioId),
     meta,
     amounts: () => ({ ...last }),
+    tryOn(nodeId, st, base) {
+      const spec = TRY_ON[scenarioId];
+      const mainSlot = shopMeta?.itemSlot;
+      if (!spec || !shopMeta || !mainSlot || !spec.nodes.includes(nodeId)) return null;
+      const itemId = shopMeta.itemMap[lastSlots[mainSlot] ?? ''];
+      return itemId ? tryOnSpec(pack, st, base, itemId, CLOTHES_COLOURS[lastSlots[spec.colourSlot] ?? '']) : null;
+    },
     purchases: log,
     derived,
     friend: deps.friend ?? null,

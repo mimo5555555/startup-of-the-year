@@ -2,9 +2,10 @@ import type { ItemDef } from '@lw/game';
 import { releasedGate } from './chapters';
 
 /**
- * Pack data: the catalog of docs/GAME_DESIGN.md §5.2 and the gift items of §5.3 that THIS RELEASE sells (docs/RELEASE_1.md). Fuku-Fuku
- * clothes, the furniture, Aiko's gifts and the flat are not sold in Release 1 (no scenario sells them), so they have no row here; the
- * ids and prices of the full catalog stay in the design document.
+ * Pack data: the catalog of docs/GAME_DESIGN.md §5.2 and the gift items of §5.3 that THIS RELEASE sells (docs/RELEASE_1.md, RELEASE_2.md
+ * wave A). Fuku-Fuku's clothes (nine of the ten: the yukata waits for the festival) and its two presents are sold from Release 2 wave A; the
+ * furniture and the flat are not sold yet (no scenario sells them); Aiko's four presents (bouquet, wagashi, tea set, tenugui) are sold from Chapter 2 by `aiko_tea`, so they have no row here; the ids and prices of the full
+ * catalog stay in the design document.
  *
  * Every id equals the `itemMap` of the scenario metas that sell it (konbini, station_ic, denki_phone, motors_bike, motors_car), so
  * `validatePack` level 3 finds a sale route for each. Gates are the design's chapter numbers written through `releasedGate`: a chapter
@@ -33,6 +34,48 @@ const gift = (id: string, ja: string, reading: string | undefined, en: string, a
   gate: { ch: releasedGate(ch) },
   fx: [{ t: 'gift', tags }],
   tags,
+});
+
+/**
+ * The six free colours of the T-shirt, the hoodie and the sneakers (§5.2 "6 free colours"): the option ids of the `clothesColour` slot of
+ * `fuku_clothes` and the hex the avatar wears. The order is the slot's; the avatar patch palette below lists the hex in this order.
+ */
+export const CLOTHES_COLOURS: Readonly<Record<string, string>> = {
+  black: '#2b2b36',
+  white: '#f5f5f5',
+  red: '#d8433f',
+  blue: '#4f86f7',
+  green: '#2fb58b',
+  yellow: '#f4c340',
+};
+const CLOTHES_PALETTE = Object.values(CLOTHES_COLOURS);
+/** What a T-shirt, a hoodie and sneakers look like before a colour is picked (the player bought it without choosing). */
+const TEE_COLOUR = CLOTHES_COLOURS.white;
+const HOODIE_COLOUR = CLOTHES_COLOURS.blue;
+const SNEAKERS_COLOUR = CLOTHES_COLOURS.white;
+/** Jeans: the design's blue, then the other denim washes of §5.5 (the bottoms palette) for the Wardrobe's colour pick; the names are Wardrobe labels. */
+export const DENIM_COLOURS: Readonly<Record<string, string>> = { denim: '#35507a', navy: '#2f3a57', wash: '#5a6b8c', charcoal: '#3a3f50', khaki: '#8a6f4a' };
+const JEANS_COLOUR = DENIM_COLOURS.denim;
+const JEANS_WASHES = Object.values(DENIM_COLOURS);
+/** The winter jacket's fixed blue (§5.5). */
+const JACKET_COLOUR = '#2f5ea8';
+/** The business suit's charcoal (§5.5). */
+const SUIT_COLOUR = '#2b2f3a';
+
+type Avatar = Extract<ItemDef['fx'][number], { t: 'avatar' }>['patch'];
+
+/** A piece of clothing from Fuku-Fuku: a catalog item with an avatar patch (§5.5); the owner keeps one (`once`), the Wardrobe changes its colour. */
+const clothes = (id: string, ja: string, reading: string | undefined, en: string, ar: string, price: number, ch: number, patch: Avatar, tags: string[], more: Partial<ItemDef> = {}): ItemDef => ({
+  id,
+  name: { ja, ...(reading ? { reading } : {}), en, ar },
+  price,
+  cat: 'clothing',
+  shop: 'fukufuku',
+  gate: { ch: releasedGate(ch) },
+  fx: [{ t: 'avatar', patch }, ...(more.fx ?? [])],
+  tags: ['clothing', ...tags],
+  once: true,
+  ...(more.beat ? { beat: more.beat } : {}),
 });
 
 export const ITEMS: ItemDef[] = [
@@ -183,4 +226,24 @@ export const ITEMS: ItemDef[] = [
   gift('g_choco', 'チョコレート', undefined, 'Chocolate', 'شوكولاتة', 220, 'konbini', 1, ['sweet', 'snack']),
   gift('g_manga', 'マンガ（1巻）', 'いっかん', 'Manga volume', 'مجلد مانغا واحد', 680, 'konbini', 1, ['media', 'anime']),
   gift('g_game_card', 'ゲームカード', undefined, 'Game card', 'بطاقة ألعاب', 1000, 'konbini', 1, ['game', 'tech']),
+
+  // ---- Fuku-Fuku (opens in Chapter 2): the clothes and the two presents of its `goods` node ----
+  clothes('tee_basic', 'Tシャツ', undefined, 'T-shirt', 'قميص تي شيرت', 1990, 2, { top: TEE_COLOUR, pick: 'top', colours: CLOTHES_PALETTE }, ['top']),
+  clothes('cap', '帽子', 'ぼうし', 'Baseball cap', 'قبعة بيسبول', 2490, 2, { accessory: 'cap' }, ['head']),
+  clothes('hoodie', 'パーカー', undefined, 'Hoodie', 'هودي (سترة بقلنسوة)', 4990, 2, { top: HOODIE_COLOUR, pick: 'top', colours: CLOTHES_PALETTE, lightenAccent: true }, ['top']),
+  clothes('jeans', 'ジーンズ', undefined, 'Jeans', 'بنطال جينز', 5990, 3, { bottom: JEANS_COLOUR, pick: 'bottom', colours: JEANS_WASHES }, ['bottom']),
+  clothes('sneakers', 'スニーカー', undefined, 'Sneakers', 'حذاء رياضي', 7990, 3, { shoes: SNEAKERS_COLOUR, pick: 'shoes', colours: CLOTHES_PALETTE }, ['shoes']),
+  clothes('jacket_winter', 'ダウンジャケット', undefined, 'Winter down jacket + scarf', 'سترة شتوية منفوخة مع وشاح', 12900, 4, { top: JACKET_COLOUR, accessories: ['scarf'] }, ['top', 'winter']),
+  clothes('glasses_round', 'メガネ', undefined, 'Glasses', 'نظارات', 9900, 5, { accessory: 'glasses' }, ['face']),
+  clothes('backpack', 'リュック', undefined, 'Backpack', 'حقيبة ظهر', 6900, 5, { accessory: 'backpack' }, ['bag'], { fx: [{ t: 'trait', id: 'fewer_bags' }] }),
+  clothes('suit_set', 'スーツ', undefined, 'Business suit + tie', 'بدلة رسمية مع ربطة عنق', 19800, 6, { top: SUIT_COLOUR, bottom: SUIT_COLOUR, accessories: ['tie'] }, ['top', 'bottom', 'formal'], {
+    fx: [{ t: 'trait', id: 'formal_register' }],
+  }),
+  // Aiko's tea house (aiko_tea): sold from Chapter 2, when the stall opens
+  gift('g_flower', '花束', 'はなたば', 'Small bouquet', 'باقة زهور صغيرة', 1500, 'aiko', 2, ['flower', 'nature']),
+  gift('g_wagashi', '和菓子の詰め合わせ', 'わがしのつめあわせ', 'Wagashi assortment', 'علبة حلويات يابانية (واغاشي)', 1280, 'aiko', 2, ['sweet', 'tradition']),
+  gift('g_tea_set', 'お茶セット', 'おちゃセット', 'Tea set', 'طقم شاي', 1500, 'aiko', 2, ['tea', 'tradition']),
+  gift('g_tenugui', '手ぬぐい', 'てぬぐい', 'Tenugui hand towel', 'منشفة تينوغوي', 1100, 'aiko', 2, ['craft', 'tradition']),
+  gift('g_plush', 'ぬいぐるみ', undefined, 'Plush toy', 'دمية محشوة', 800, 'fukufuku', 2, ['cute']),
+  gift('g_guitar_pick', 'ギターピック', undefined, 'Guitar pick', 'ريشة غيتار', 300, 'fukufuku', 2, ['music']),
 ];

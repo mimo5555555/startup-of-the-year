@@ -35,9 +35,13 @@ const RELEASED_ITEMS = [
   'phone_used', 'phone_case', 'phone_pro', 'tv_small', 'g_music_cd',
   'bike_mamachari', 'bike_helmet', 'ebike', 'car_kei_used', 'car_kei_good', 'g_carfresh',
   'g_choco', 'g_manga', 'g_game_card',
+  // Release 2 wave A: Fuku-Fuku's nine clothes (not the yukata) and its two presents
+  'tee_basic', 'cap', 'hoodie', 'jeans', 'sneakers', 'jacket_winter', 'glasses_round', 'backpack', 'suit_set', 'g_plush', 'g_guitar_pick',
+  // Release 2 wave A: Aiko's four presents (the lantern fund and the flat are not sold)
+  'g_flower', 'g_wagashi', 'g_tea_set', 'g_tenugui',
 ];
 /** Fuku-Fuku clothes, furniture, Aiko's tea house and the flat are deferred: no scenario sells them, so the catalog must not price them. */
-const DEFERRED_ITEMS = ['tee_basic', 'cap', 'hoodie', 'jeans', 'sneakers', 'jacket_winter', 'yukata', 'glasses_round', 'backpack', 'suit_set', 'futon_set', 'desk_study', 'bookshelf', 'plant_pothos', 'kotatsu', 'rice_cooker', 'paper_lamp', 'home_room_ono', 'g_flower', 'g_wagashi', 'g_tea_set', 'g_tenugui', 'g_plush', 'g_guitar_pick', 'g_souvenir'];
+const DEFERRED_ITEMS = ['yukata', 'futon_set', 'desk_study', 'bookshelf', 'plant_pothos', 'kotatsu', 'rice_cooker', 'paper_lamp', 'home_room_ono', 'g_souvenir'];
 
 describe('the released catalog (§5.2, §5.3)', () => {
   it('holds exactly the items this release sells, each once', () => {
@@ -64,10 +68,25 @@ describe('the released catalog (§5.2, §5.3)', () => {
       g_choco: 220,
       g_manga: 680,
       g_game_card: 1_000,
+      tee_basic: 1_990,
+      cap: 2_490,
+      hoodie: 4_990,
+      jeans: 5_990,
+      sneakers: 7_990,
+      jacket_winter: 12_900,
+      glasses_round: 9_900,
+      backpack: 6_900,
+      suit_set: 19_800,
+      g_plush: 800,
+      g_guitar_pick: 300,
+      g_flower: 1_500,
+      g_wagashi: 1_280,
+      g_tea_set: 1_500,
+      g_tenugui: 1_100,
     });
     for (const i of JP_PACK.items) expect(Number.isInteger(i.price) && i.price >= 1, i.id).toBe(true);
     // the total of the released rows is a constant the design can be checked against
-    expect(JP_PACK.items.reduce((sum, i) => sum + i.price, 0)).toBe(1_043_560);
+    expect(JP_PACK.items.reduce((sum, i) => sum + i.price, 0)).toBe(1_122_990);
   });
 
   it('every item has an English, Japanese and Arabic name, with a reading for kanji', () => {
@@ -114,7 +133,7 @@ describe('the released catalog (§5.2, §5.3)', () => {
 
   it('presents are giftable: category gift, a gift effect carrying the tags, the same tags on the item', () => {
     const gifts = JP_PACK.items.filter((i) => i.cat === 'gift');
-    expect(gifts.map((i) => i.id).sort()).toEqual(['g_carfresh', 'g_choco', 'g_game_card', 'g_manga', 'g_music_cd']);
+    expect(gifts.map((i) => i.id).sort()).toEqual(['g_carfresh', 'g_choco', 'g_flower', 'g_game_card', 'g_guitar_pick', 'g_manga', 'g_music_cd', 'g_plush', 'g_tea_set', 'g_tenugui', 'g_wagashi']);
     for (const g of gifts) {
       const fx = g.fx.find((f) => f.t === 'gift');
       expect(fx, g.id).toBeTruthy();
@@ -126,6 +145,10 @@ describe('the released catalog (§5.2, §5.3)', () => {
     expect(item('g_game_card').tags).toEqual(['game', 'tech']);
     expect(item('g_music_cd').tags).toEqual(['music']);
     expect(item('g_carfresh').tags).toEqual(['cars']);
+    expect(item('g_flower').tags).toEqual(['flower', 'nature']);
+    expect(item('g_wagashi').tags).toEqual(['sweet', 'tradition']);
+    expect(item('g_tea_set').tags).toEqual(['tea', 'tradition']);
+    expect(item('g_tenugui').tags).toEqual(['craft', 'tradition']);
   });
 
   it('cars are for adults (D28) and the low-mileage car also wants six scenarios at two stars', () => {

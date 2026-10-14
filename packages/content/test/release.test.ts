@@ -177,8 +177,8 @@ describe('the level-4 proof: every released objective and every offered dream ca
     expect(codes.some((c) => c === 'bot_unreachable' || c === 'dream_blocked')).toBe(true);
   });
 
-  it('no objective text or hint of a released chapter points at something the release does not build (Aiko, the tea house, clothes, the flat)', () => {
-    const words = /tea house|بيت الشاي|Fuku|فوكو|clothes|ملابس|\bflat\b|الشقة/i;
+  it('no objective text or hint of a released chapter points at something the release does not build (the flat; Fuku-Fuku and the tea house are built in Release 2 wave A)', () => {
+    const words = /\bflat\b|الشقة|furniture|أثاث/i;
     for (const c of RELEASED_CHAPTERS) for (const ob of c.objectives) for (const g of [ob.text, ob.hint].filter(Boolean)) expect(`${g!.en} ${g!.ar}`, `${c.n}/${ob.id}`).not.toMatch(words);
   });
 

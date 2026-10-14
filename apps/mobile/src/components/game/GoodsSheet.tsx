@@ -16,7 +16,7 @@ import { Ltr, yen } from './WalletPill';
 import { opensIn } from '../../game/opensIn';
 
 /** A word-card token for a good's name (the name carries its own reading, so it need not be in the lexicon). */
-function nameToken(n: NameGloss): Token {
+export function nameToken(n: NameGloss): Token {
   return { s: n.ja, r: n.reading && n.reading !== n.ja ? n.reading : undefined, rom: kanaToRomaji(n.reading ?? n.ja), gloss: { en: n.en, ar: n.ar } };
 }
 

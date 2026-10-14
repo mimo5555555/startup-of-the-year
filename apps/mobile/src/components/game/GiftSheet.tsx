@@ -6,7 +6,10 @@ import { giftChoices } from '../../game/friendsLogic';
 import { useGameState } from '../../game/hooks';
 import { PACK, shopById } from '../../game/pack';
 import { useT } from '../../hooks';
+import { useStore } from '../../store';
 import { Icon } from '../Icon';
+import { JaText } from '../JaText';
+import { nameToken } from './GoodsSheet';
 
 /**
  * The gift sheet (§8.5): the presents the player bought and still has, one to pick, then "Hand it over" starts the hand-over
@@ -17,6 +20,8 @@ export function GiftSheet({ who, actions, onHandOver, onClose }: { who: Characte
   const { t, lang } = useT();
   const game = useGameState();
   const name = displayName(who, lang);
+  const furigana = useStore((s) => s.settings.furigana);
+  const romaji = useStore((s) => s.settings.romaji);
   const choices = useMemo(() => giftChoices(PACK, game), [game]);
   const [sel, setSel] = useState<string | null>(null);
   const picked = choices.find((c) => c.itemId === sel) ? sel : null;
@@ -63,7 +68,9 @@ export function GiftSheet({ who, actions, onHandOver, onClose }: { who: Characte
                     onClick={() => setSel(c.itemId)}
                   >
                     <span className="frd-gift-name">
-                      <strong lang="ja">{c.name.ja}</strong>
+                      <strong>
+                        <JaText tokens={[nameToken(c.name)]} furigana={furigana} romaji={romaji} size="md" />
+                      </strong>
                       <small className="muted" dir="auto">
                         {c.name[lang]}
                         {c.shop && shopById(c.shop) ? ` · ${shopById(c.shop)!.name[lang]}` : ''}

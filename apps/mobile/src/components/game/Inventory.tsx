@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
+import { CLOTHES_COLOURS, DENIM_COLOURS } from '@lw/content';
 import { formatHours, ownedQty, priceDisplay, type GamePack, type GameState, type ItemDef, type NameGloss } from '@lw/game';
 import { useT } from '../../hooks';
 import type { StringKey } from '../../i18n';
 import { dispatch } from '../../game/bridge';
-import { isWorn, toggledOutfit, wearables } from '../../game/avatarFx';
+import { WARDROBE_SLOTS, isWorn, pickedColours, pieceColour, pieceColours, toggledOutfit, wardrobeSlot, wearables } from '../../game/avatarFx';
 import { useGameState } from '../../game/hooks';
 import { PACK } from '../../game/pack';
 import { speakJa } from '../../services';
@@ -11,7 +12,8 @@ import { Icon, type IconName } from '../Icon';
 import { Ltr } from './WalletPill';
 
 // "What you own" (docs/GAME_DESIGN.md §7.5): a grid of the things the player has bought, a card for each, and the wardrobe for the pieces
-// that can be worn (only the helmet in this release; the section is absent while nothing wearable is owned). Everything shown is owned,
+// that can be worn (the helmet and Fuku-Fuku's clothes, grouped by what they cover, with a colour pick for the pieces that come in several;
+// the section is absent while nothing wearable is owned). Everything shown is owned,
 // so there is no locked or empty tile and no dead button.
 
 /** One line of "what it does": a string key and its variables. */
@@ -76,10 +78,42 @@ export function ownedRows(pack: GamePack, state: GameState): OwnedRow[] {
 
 /** Puts a worn piece on or takes it off through the game (`outfit_changed`); the world follows on the next sync. */
 export function wearToggle(state: GameState, itemId: string): void {
-  dispatch({ t: 'outfit_changed', equipped: toggledOutfit(state, itemId), colours: state.outfit.colours });
+  dispatch({ t: 'outfit_changed', equipped: toggledOutfit(state, itemId, PACK), colours: state.outfit.colours });
 }
 
-/** The wardrobe: one switch per owned wearable. Not rendered while the player owns none. */
+/** Picks the colour of an owned piece; the piece keeps it (worn or not) and the avatar follows when it is on. */
+export function colourPick(state: GameState, itemId: string, colour: string): void {
+  dispatch({ t: 'outfit_changed', equipped: state.outfit.equipped, colours: pickedColours(state, itemId, colour) });
+}
+
+/** The Wardrobe label of a colour: the six clothes colours and the denim washes (a hex outside both has no name and no swatch). */
+export function colourName(hex: string): string | null {
+  const find = (table: Readonly<Record<string, string>>) => Object.entries(table).find(([, h]) => h.toLowerCase() === hex.toLowerCase())?.[0];
+  return find(CLOTHES_COLOURS) ?? find(DENIM_COLOURS) ?? null;
+}
+
+/** The colours of one piece as a radio group of swatches (44 px targets); nothing for a piece with one look. */
+export function Swatches({ state, item }: { state: GameState; item: ItemDef }) {
+  const { t, lang } = useT();
+  const choices = pieceColours(item).filter((h) => colourName(h) !== null);
+  if (choices.length < 2) return null;
+  const now = pieceColour(state, item);
+  return (
+    <div className="wlt-swatches" role="radiogroup" aria-label={t('wallet.colourOf', { name: item.name[lang] })} data-colours={item.id}>
+      {choices.map((hex) => {
+        const name = t(`wallet.colour.${colourName(hex)}` as StringKey);
+        const on = now?.toLowerCase() === hex.toLowerCase();
+        return (
+          <button key={hex} type="button" role="radio" aria-checked={on} aria-label={name} title={name} className={`wlt-swatch${on ? ' on' : ''}`} data-colour={hex} onClick={() => colourPick(state, item.id, hex)}>
+            <i style={{ background: hex }} />
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+/** The wardrobe: pieces grouped by what they cover, one switch per owned wearable and a colour pick where there is one. Not rendered while the player owns none. */
 export function Wardrobe({ state }: { state: GameState }) {
   const { t, lang } = useT();
   const pieces = wearables(PACK, state);
@@ -93,18 +127,30 @@ export function Wardrobe({ state }: { state: GameState }) {
           <small dir="auto">{t('wallet.wardrobeHint')}</small>
         </div>
       </header>
-      <div className="wlt-wear-list">
-        {pieces.map((p) => {
-          const on = isWorn(state, p.id);
-          return (
-            <button key={p.id} type="button" role="switch" aria-checked={on} className={`wlt-wear${on ? ' on' : ''}`} data-wear={p.id} onClick={() => wearToggle(state, p.id)}>
-              <Icon name={iconFor(p)} size={20} />
-              <span dir="auto">{p.name[lang]}</span>
-              <em dir="auto">{on ? t('wallet.takeOff') : t('wallet.wear')}</em>
-            </button>
-          );
-        })}
-      </div>
+      {WARDROBE_SLOTS.map((slot) => {
+        const group = pieces.filter((p) => wardrobeSlot(p) === slot);
+        if (group.length === 0) return null;
+        return (
+          <div key={slot} className="wlt-wear-group" data-slot={slot}>
+            <h3 dir="auto">{t(`wallet.slot.${slot}` as StringKey)}</h3>
+            <div className="wlt-wear-list">
+              {group.map((p) => {
+                const on = isWorn(state, p.id);
+                return (
+                  <div key={p.id} className="wlt-piece">
+                    <button type="button" role="switch" aria-checked={on} className={`wlt-wear${on ? ' on' : ''}`} data-wear={p.id} onClick={() => wearToggle(state, p.id)}>
+                      <Icon name={iconFor(p)} size={20} />
+                      <span dir="auto">{p.name[lang]}</span>
+                      <em dir="auto">{on ? t('wallet.takeOff') : t('wallet.wear')}</em>
+                    </button>
+                    <Swatches state={state} item={p} />
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
     </section>
   );
 }

@@ -68,7 +68,8 @@ export const INTERACTIONS: Record<string, Interaction[]> = {
     gift('rin'),
   ],
   aiko: [
-    scenario('aiko_shop', 'aiko_tea', 'Tea house and gifts', 'بيت الشاي والهدايا'),
+    // the tea house opens with Chapter 2 (the flat rows below wait for their scenarios: the app hides an option whose target is not registered)
+    scenario('aiko_shop', 'aiko_tea', 'Tea house and gifts', 'بيت الشاي والهدايا', { ch: 2 }),
     scenario('aiko_viewing', 'aiko_viewing', 'See the room at Ono-sō', 'شاهد الغرفة في أونو-سو', { ch: 6 }),
     scenario('aiko_contract', 'aiko_contract', 'Sign for the room', 'وقّع على الغرفة', { ch: 6, gate: { k: 'scenario', id: 'aiko_viewing', complete: true } }),
     talk('aiko'),

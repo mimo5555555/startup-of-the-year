@@ -1,10 +1,30 @@
 import type { ScenarioMeta } from '@lw/game';
 import { JP_RULES } from '../economy';
 
-/** Game wiring for aiko_* (3D, not released yet) and motors_* (3D-lite): pay, pocket, gate, shop, steps. Only the Motors entries are here. */
+/** Game wiring for aiko_* (3D; only aiko_tea is in this wave, the flat scenarios are not) and motors_* (3D-lite): pay, pocket, gate, shop, steps. */
 const REGISTRATION_FEE = JP_RULES.registrationFee as number;
 
 export const AIKO_MOTORS_META: ScenarioMeta[] = [
+  // Aiko's tea house: the presents (§5.3, §5.6) are the main slot `giftItem`; wrapping is free and the stall takes cash only (ShopDef `aiko`)
+  {
+    id: 'aiko_tea',
+    kind: 'shop',
+    band: 'A1',
+    register: 'polite',
+    pay: 'full',
+    real: true,
+    twist: true,
+    place: 'ono',
+    pocket: ['p_aiko_1', 'p_aiko_2', 'p_aiko_3'],
+    culture: ['cc_refuse'],
+    shop: {
+      shopId: 'aiko',
+      itemSlot: 'giftItem',
+      payStep: 'pay',
+      // the lantern fund (svc_lantern) is not sold: it needs a service sink, see the report
+      itemMap: { flower: 'g_flower', wagashi: 'g_wagashi', teaSet: 'g_tea_set', tenugui: 'g_tenugui' },
+    },
+  },
   // browse the garage and decline politely: no purchase, so no `shop` block (and no yen: `pay` is still 'full' for the loop pay of the talk)
   {
     id: 'motors_visit',

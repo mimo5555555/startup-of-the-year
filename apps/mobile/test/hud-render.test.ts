@@ -141,8 +141,8 @@ describe('sheets', () => {
 
   it('the goods sheet has an empty state (a shop this release does not sell from) and never a dead end', () => {
     setLang('en');
-    // Fuku-Fuku is deferred (docs/RELEASE_1.md): no item of the pack names it
-    const out = html(createElement(GoodsSheet, { shopId: 'fukufuku', window: true, onClose: () => {} }));
+    // a shop no item of the pack names (Fuku-Fuku sells clothes since Release 2 wave A, so the empty state needs an unbuilt shop)
+    const out = html(createElement(GoodsSheet, { shopId: 'unbuilt_shop', window: true, onClose: () => {} }));
     expect(out).toContain('Look through the window');
     expect(out).toContain('Nothing to look at yet.');
     expect(out).toContain('Close');

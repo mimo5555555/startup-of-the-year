@@ -138,9 +138,9 @@ describe('FRONT_OVERRIDES', () => {
     for (const f of SOUTH_FRONTS) expect(FRONT_STYLES[f.id], f.id).toBeDefined();
   });
 
-  it('the florist (hanaya) is the registered override slot, and the stub keeps the default dressing', () => {
+  it("the florist (hanaya) is the registered override slot: Aiko's stall replaces the florist's sign with its own sign, the noren plate and a hidden shutter plate", () => {
     expect(typeof FRONT_OVERRIDES.hanaya).toBe('function');
-    expect(signCount(buildCity())).toBe(SOUTH_FRONTS.length);
+    expect(signCount(buildCity())).toBe(SOUTH_FRONTS.length - 1 + 3);
   });
 
   it('an override that returns true replaces the default sign and pots, and can mark its site built', () => {

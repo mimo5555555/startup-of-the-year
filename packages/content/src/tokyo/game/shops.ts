@@ -52,4 +52,29 @@ export const SHOPS: ShopDef[] = [
     pay: ['cash', 'card'],
     sells: itemsOf('motors'),
   },
+  // Fuku-Fuku opens with Chapter 2 (§4.5): cash and card (the IC card is for the konbini, the café, vending machines and the station only, §4.1),
+  // Sakura Points are redeemable here. It sells the clothes and the two presents of its `goods` node.
+  {
+    id: 'fukufuku',
+    placeId: 'fukufuku',
+    name: { en: 'Fuku-Fuku', ar: 'فوكو فوكو' },
+    openChapter: 2,
+    surface: 'world',
+    register: 'polite',
+    pay: ['cash', 'card'],
+    points: true,
+    sells: itemsOf('fukufuku'),
+  },
+  // Ono Tea House (Aiko's street stall) opens with Chapter 2 (§4.5): cash only (a small stall), no Sakura Points. It sells the four presents of
+  // `aiko_tea`; the lantern fund and the flat are not in this wave.
+  {
+    id: 'aiko',
+    placeId: 'ono',
+    name: { en: 'Ono Tea House', ar: 'بيت أونو للشاي' },
+    openChapter: 2,
+    surface: 'world',
+    register: 'polite',
+    pay: ['cash'],
+    sells: itemsOf('aiko'),
+  },
 ];
