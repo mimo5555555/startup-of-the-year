@@ -31,6 +31,11 @@
   font-size: 13px;
   opacity: 0.9;
 }
+/* the flash can run past the pill under the minimap (the IC balance widens the pill): the left column paints above the map */
+.hud-left {
+  position: relative;
+  z-index: 2;
+}
 .hud-flash {
   position: absolute;
   inset-inline-start: calc(100% + 6px);
@@ -464,5 +469,12 @@ html[dir='rtl'] .hud-good-price {
 @media (prefers-reduced-motion: reduce) {
   .hud-flash {
     animation: none;
+  }
+}
+
+/* landscape phones (about 360 px tall): the tracker's consequence lines would run under the joystick, so only the goal itself shows */
+@media (max-height: 430px) {
+  .hud-track .hud-cons {
+    display: none;
   }
 }

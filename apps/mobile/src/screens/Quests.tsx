@@ -198,7 +198,7 @@ function StoryTab() {
         <section className="card qst-wait" data-wait={status.waitDays}>
           <strong lang="ja">できました！</strong>
           <span>
-            <Ltr text={t('quests.waitDays', { n: status.waitDays })} />
+            <Ltr text={t(later.length > 0 ? 'quests.waitDays' : 'quests.waitDaysEnd', { n: status.waitDays })} />
           </span>
         </section>
       )}

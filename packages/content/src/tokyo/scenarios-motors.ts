@@ -19,6 +19,9 @@ const priced = (live: Line, legacy: Line): SayVariant[] => [say(live, { flag: 'p
 const BUY = ['ください', 'おねがい', 'にします', 'かいます', 'ほしい', 'これ'];
 
 const SHORT_LINE = L('申し訳ありません、|少し|足りません。', 'I am sorry, it is a little short.', 'آسف، المبلغ ناقص قليلًا.');
+/** `short` is also where a refused sale ends: an item not in stock yet, or one the player already owns, says so (flags set by the game's `charge`) */
+const SOLD_OUT_LINE = L('申し訳ありません、|それ|は|まだ|ご用意|できません。', 'I am sorry, I cannot offer that yet.', 'آسف، لا أستطيع تقديم ذلك بعد.');
+const OWNED_LINE = L('それ|は|もう|お持ち|です|よ。', 'You already have that one.', 'لديك هذا بالفعل.');
 const LEAVE_LINE = L('かしこまりました。|また|お待ち|して|おります。', 'Certainly. We look forward to seeing you again.', 'حسنًا. بانتظار زيارتك مجددًا.');
 const THINK_S = S('考えます。', 'I will think about it.', 'سأفكّر في الأمر.');
 const LATER_S = S('また|来ます。', 'I will come again.', 'سآتي مرة أخرى.');
@@ -216,7 +219,8 @@ export const MOTORS_BIKE: Scenario = {
       intents: [
         { id: 'choose_helmet', slot: 'bikeModel', slotOptions: ['helmet'], slotRequired: true, next: 'quote_helmet', request: true, ideal: CHOOSE_IDEAL },
         { id: 'choose_bike', slot: 'bikeModel', slotOptions: ['mamachari'], slotRequired: true, next: 'quote_bike', request: true, ideal: CHOOSE_IDEAL },
-        buyIntent('quote_bike'),
+        // without the helmet (or before it opens) "I will take it" is answered by the same offer line, not by a bill
+        buyIntent('quote_bike', { econ: 'in_stock', nextIfNo: 'ebike_offer' }),
         askPrice('ebike_offer'),
         later(),
       ],
@@ -288,7 +292,7 @@ export const MOTORS_BIKE: Scenario = {
     // too little money is a scripted branch, never an error (§4.4 rule 6)
     node({
       id: 'short',
-      say: [say(SHORT_LINE)],
+      say: [say(OWNED_LINE, { flag: 'owned_already' }), say(SOLD_OUT_LINE, { flag: 'sold_out' }), say(SHORT_LINE)],
       suggestions: [LATER_S, S('安い|の|は|あります|か？', 'Do you have something cheaper?', 'هل لديكم شيء أرخص؟'), THINK_S],
       intents: [later(), { id: 'cheaper', any: ['やすいの', 'やすい'], next: 'model' }],
     }),
@@ -409,8 +413,9 @@ export const MOTORS_CAR: Scenario = {
       ],
       suggestions: [S('値段|は|いくら|です|か？', 'How much is it?', 'بكم هي؟'), S('中古|の|軽自動車|を|見たい|です。', 'I would like to see the used kei car.', 'أريد أن أرى سيارة الكي المستعملة.'), THINK_S],
       intents: [
-        { id: 'ask_price', any: ['いくら', 'ねだん', 'かかく'], none: ['のりだし'], next: 'body_quote', ideal: L('値段|は|いくら|です|か？', 'How much is it?', 'بكم هي؟') },
-        askDriveAway('total_quote'),
+        // the low-mileage car while it cannot be sold: any price question gets the offer line again, not a price that is not there
+        { id: 'ask_price', any: ['いくら', 'ねだん', 'かかく'], none: ['のりだし'], econ: 'in_stock', next: 'body_quote', nextIfNo: 'good_offer', ideal: L('値段|は|いくら|です|か？', 'How much is it?', 'بكم هي؟') },
+        { ...askDriveAway('total_quote'), econ: 'in_stock', nextIfNo: 'good_offer' },
         { id: 'pick_used', slot: 'carModel', slotOptions: ['used'], slotRequired: true, next: 'look', request: true, ideal: CAR_IDEAL },
         later(),
       ],
@@ -521,7 +526,7 @@ export const MOTORS_CAR: Scenario = {
     // too little money is a scripted branch, never an error (§4.4 rule 6)
     node({
       id: 'short',
-      say: [say(SHORT_LINE)],
+      say: [say(OWNED_LINE, { flag: 'owned_already' }), say(SOLD_OUT_LINE, { flag: 'sold_out' }), say(SHORT_LINE)],
       suggestions: [LATER_S, THINK_S, S('見ている|だけ|です。', 'I am just looking.', 'أنا أتفرّج فقط.')],
       intents: [later(), { id: 'again', any: ['みているだけ'], next: 'models' }],
     }),

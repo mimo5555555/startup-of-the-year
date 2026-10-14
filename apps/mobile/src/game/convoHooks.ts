@@ -5,6 +5,8 @@ import { LEXICON, parseJaNumber, plainText, tokenize, yenToJa, type Vars } from 
 import type { RecalledLines, SessionGameHooks } from '@lw/engine';
 import {
   fareFor,
+  haggleLimit,
+  itemAvailability,
   ledgerHas,
   lineReady,
   LEDGER_IDS,
@@ -75,7 +77,7 @@ export interface ConvoGame {
   prepared: boolean;
   meta: ScenarioMeta | undefined;
   /** the numbers the lines last quoted, for the price chip */
-  amounts(): { price?: number; total?: number; fare?: number };
+  amounts(): { price?: number; total?: number; fare?: number; body?: number };
   /** committed purchases, in order */
   purchases: ConvoPurchase[];
   /** derived events of those purchases (culture cards, unlocks...) for the debrief */
@@ -134,8 +136,10 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
   const shopMeta = meta?.shop;
   const shop = shopMeta ? pack.shops.find((s) => s.id === shopMeta.shopId) : undefined;
   const log: ConvoGame['purchases'] = [];
+  /** the session's flags: the engine reads this very object on every line, so the hooks below may set `sold_out` / `owned_already` live */
+  const flags: Record<string, boolean> = { priced: true };
   const derived: DerivedEvent[] = [];
-  let last: { price?: number; total?: number; fare?: number } = {};
+  let last: { price?: number; total?: number; fare?: number; body?: number } = {};
   let n = 0;
   /** every event the hooks commit keeps its derived events for the debrief (culture cards, unlocks) */
   const commit = (ev: InputEvent): ReduceResult => {
@@ -178,8 +182,15 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
     return !shop || shop.pay.length === 0 || shop.pay.includes(asked) ? asked : 'cash';
   };
 
-  const quoteAll = (basket: BasketLine[], method: PayMethod): Quote[] =>
-    basket.map((l) => quote(pack, deps.state(), deps.view(), { shopId: shopMeta!.shopId, itemId: l.itemId, qty: l.qty, method }));
+  /** yen the one haggle of this conversation took off the negotiable line (0 until it is granted); `triedHaggle` = the one attempt is used (§4.4 rule 3) */
+  let haggled = 0;
+  let triedHaggle = false;
+  const negotiable = (itemId: string): boolean => {
+    const n = shopMeta ? pack.rules.negotiation[shopMeta.shopId] : undefined;
+    return !!n && (n.items?.includes(itemId) ?? true);
+  };
+  const quoteAll = (basket: BasketLine[], method: PayMethod, haggle = haggled): Quote[] =>
+    basket.map((l) => quote(pack, deps.state(), deps.view(), { shopId: shopMeta!.shopId, itemId: l.itemId, qty: l.qty, method, ...(haggle > 0 && negotiable(l.itemId) ? { haggle } : {}) }));
 
   /** a quote that could not be priced at all (unknown item, closed shop...); running short of money still has a total */
   const priced = (qs: Quote[]) => qs.every((q) => !q.block || q.block === 'funds');
@@ -196,10 +207,20 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
       const v: Vars = {};
       const b = basketOf(slots);
       if (b) {
-        const qs = quoteAll(b, methodOf(slots));
+        let qs = quoteAll(b, methodOf(slots));
+        // a one-time item the player already owns is still quoted (the line would read "… in total"); the charge refuses it later with its own line
+        if (qs.some((q) => q.block === 'owned')) {
+          const owned = { ...deps.state().owned };
+          for (const l of b) delete owned[l.itemId];
+          const st = { ...deps.state(), owned };
+          qs = b.map((l) => quote(pack, st, deps.view(), { shopId: shopMeta!.shopId, itemId: l.itemId, qty: l.qty, method: methodOf(slots) }));
+        }
         if (priced(qs)) {
           v.price = yenVar(qs[0].lines[0]?.unit ?? qs[0].total);
           v.total = yenVar(qs.reduce((a, q) => a + q.total, 0));
+          // a car is first quoted at its body price (本体価格, no fees): the drive-away price is what the learner has to ask for (§4.4 rule 3)
+          const body = pack.items.find((i) => i.id === b[0].itemId)?.body;
+          if (body !== undefined) v.body = yenVar(body * b[0].qty);
         }
       }
       if (slots.place && pack.fares[slots.place] !== undefined) v.fare = yenVar(fareFor(pack, deps.state(), slots.place, 'ic'));
@@ -214,12 +235,17 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
       // the whole basket is checked once, then committed line by line (a bowl and its extra are two purchases)
       const total = qs.reduce((a, q) => a + q.total, 0);
       const before = deps.state();
+      // why the shop cannot sell it, for the `short` node: not enough money is the default; an item that is not in stock yet, or that the
+      // player already owns, gets its own line instead of "a little short" (only running short of money is ever "short")
+      const refused = qs.find((q) => q.block && q.block !== 'funds')?.block;
+      flags.owned_already = refused === 'owned';
+      flags.sold_out = refused !== undefined && refused !== 'owned';
       if (!priced(qs) || (method === 'ic' ? before.wallet.ic : before.wallet.cash) < total) return { ok: false };
       const done: Quote[] = [];
       for (let i = 0; i < b.length; i++) {
         const q = qs[i];
         const id = LEDGER_IDS.purchase(sessionId, n + 1);
-        commit({ t: 'purchase', sessionId, n: n + 1, shopId: shopMeta.shopId, itemId: b[i].itemId, qty: b[i].qty, total: q.total, method, lines: q.lines });
+        commit({ t: 'purchase', sessionId, n: n + 1, shopId: shopMeta.shopId, itemId: b[i].itemId, qty: b[i].qty, total: q.total, method, lines: q.lines, ...(haggled > 0 && negotiable(b[i].itemId) ? { haggle: haggled } : {}) });
         if (!ledgerHas(deps.state(), id)) return done.length ? { ok: true } : { ok: false };
         n++;
         done.push(q);
@@ -234,13 +260,38 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
     },
 
     intent(kind, ctx) {
+      // the picked item is on sale now (a late item, the e-bike without its helmet...): otherwise the clerk says it is not in stock and the learner is
+      // not walked to a till that could never charge. Owning it already is not "out of stock": that ends at the till with its own line.
+      if (kind === 'in_stock') {
+        const b = basketOf(ctx.slotIds);
+        return { ok: !b || quoteAll(b, methodOf(ctx.slotIds), 0).every((q) => !q.block || q.block === 'funds' || q.block === 'owned') };
+      }
       // reading the total back (「合計は千円ですね」) is right when the number is the real total; asking for it always works
       if (kind === 'ask_total') return { ok: true };
       if (kind === 'say_total') {
         const t = totalNow(ctx.slotIds);
         return { ok: t !== null && ctx.number === t };
       }
-      // tax-free is a learning-only branch (D30); haggling, points and delivery arrive with their shops
+      // the one haggle of the game (§4.4 rule 3): a polite request (or a price the learner names) at a shop that negotiates, once per conversation and
+      // once per item per day (the quote refuses a second one). Granted: min(the learner's ask, min(6%, ¥8,880) of the body price), 40% of that when assisted.
+      if (kind === 'haggle') {
+        const b = basketOf(ctx.slotIds);
+        const line = b?.find((l) => negotiable(l.itemId));
+        if (!b || !shopMeta || !line || triedHaggle) return { ok: false };
+        triedHaggle = true;
+        const item = pack.items.find((i) => i.id === line.itemId);
+        const limit = haggleLimit(pack, shopMeta.shopId, (item?.body ?? item?.price ?? 0) * line.qty, ctx.assisted);
+        const plain = quoteAll(b, methodOf(ctx.slotIds), 0);
+        if (!priced(plain)) return { ok: false };
+        const asked = ctx.number !== undefined ? Math.min(limit, Math.max(0, plain.reduce((a, q) => a + q.total, 0) - ctx.number)) : limit;
+        const offered = quoteAll(b, methodOf(ctx.slotIds), asked);
+        const got = plain.reduce((a, q) => a + q.total, 0) - offered.reduce((a, q) => a + q.total, 0);
+        if (got <= 0) return { ok: false };
+        haggled = got;
+        // the clerk's next line quotes the new total: the engine merges these over the variables it computed before the intent ran
+        return { ok: true, vars: shopHooks.vars(ctx.slotIds, {}) };
+      }
+      // tax-free is a learning-only branch (D30); points and delivery arrive with their shops
       return { ok: false };
     },
   };
@@ -256,14 +307,32 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
     ...inner,
     vars(slots, flags) {
       const v = inner.vars(slots, flags);
-      last = { price: numberOf(v.price), total: numberOf(v.total), fare: numberOf(v.fare) };
+      last = { price: numberOf(v.price), total: numberOf(v.total), fare: numberOf(v.fare), body: numberOf(v.body) };
       return deps.friend ? { ...deps.friend.vars, ...v } : v;
     },
+    ...(inner.intent
+      ? {
+          intent(kind, ctx) {
+            const r = inner.intent!(kind, ctx);
+            // a granted haggle changes what the next line quotes, and so the chip under it
+            if (r.vars) last = { price: numberOf(r.vars.price) ?? last.price, total: numberOf(r.vars.total) ?? last.total, fare: last.fare, body: numberOf(r.vars.body) ?? last.body };
+            return r;
+          },
+        }
+      : {}),
   };
 
   const state = deps.state();
   const plays = state.runs[scenarioId]?.count ?? 0;
-  const flags: Record<string, boolean> = { priced: true };
+  // an item the player cannot buy yet (late chapter, Free Walk, age, stars, the helmet the e-bike needs) is "not in stock": the scenarios
+  // say so through `<option>_locked` (pro_locked, tv_locked, ebike_locked, good_locked) instead of quoting a price that is not there.
+  // An item the player already owns is not locked: it is simply not sold twice.
+  if (shopMeta) {
+    for (const [option, itemId] of Object.entries(shopMeta.itemMap)) {
+      const av = itemAvailability(pack, state, deps.view(), itemId);
+      if (av !== 'ok' && av !== 'owned') flags[`${option}_locked`] = true;
+    }
+  }
   if (meta?.twist && twistFor(state.clock.dayIndex, scenarioId, plays)) flags.twist = true;
   if (deps.friend) Object.assign(flags, deps.friend.flags);
 

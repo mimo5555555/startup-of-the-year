@@ -93,6 +93,18 @@ describe('evalPred: counts and collections', () => {
     expect(ok({ k: 'phone_chat', n: 4, friends: 3 }, chats)).toBe(false);
     expect(ok({ k: 'phone_chat', n: 5 }, chats)).toBe(false);
   });
+  it('phone_chat progress counts chats, never chats plus friends ("4 chats with 2 friends" must not read 2/6 after two chats)', () => {
+    const s = mkState();
+    const at = (n: number, friends: Record<string, number>) => ({ ...s, stats: { ...s.stats, chats: { n, friends } } });
+    const p = { k: 'phone_chat', n: 4, friends: 2 } as const;
+    expect(prog(p, at(0, {}))).toEqual({ done: 0, total: 4 });
+    expect(prog(p, at(2, { mio: 1, tanaka: 1 }))).toEqual({ done: 2, total: 4 });
+    // four chats with one friend is not done: the bar stops one short until a second friend answers
+    expect(prog(p, at(4, { mio: 4 }))).toEqual({ done: 3, total: 4 });
+    expect(prog(p, at(4, { mio: 3, tanaka: 1 }))).toEqual({ done: 4, total: 4 });
+    expect(ok(p, at(4, { mio: 4 }))).toBe(false);
+    expect(prog({ k: 'phone_chat', n: 1 }, at(1, { mio: 1 }))).toEqual({ done: 1, total: 1 });
+  });
   it('hangout: one friend or in total, default once', () => {
     const s = mkState();
     const h = { ...s, stats: { ...s.stats, hangouts: { mio: 2, aiko: 1 } } };

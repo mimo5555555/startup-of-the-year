@@ -136,3 +136,17 @@ export function mapPins(pack: GamePack, state: GameState): MapPinRow[] {
   }
   return rows.sort((a, b) => Number(b.plan) - Number(a.plan));
 }
+
+// ---------------------------------------------------------------------------------------------------------------
+// Where a debrief goes next
+// ---------------------------------------------------------------------------------------------------------------
+
+/**
+ * The screen a finished conversation belongs to: a text chat goes back to the friend's thread list on the Phone, the boss's intro goes on
+ * to the Shift screen. Anything else returns to the street (null).
+ */
+export function feedbackThen(scenarioId: string, characterId: string): { screen: 'phone'; args: { friendId?: string } } | { screen: 'shift'; args: { jobId: string } } | null {
+  if (scenarioId.startsWith('chat_')) return { screen: 'phone', args: { friendId: characterId } };
+  if (scenarioId === 'job_konbini_intro') return { screen: 'shift', args: { jobId: 'job_konbini' } };
+  return null;
+}

@@ -274,6 +274,20 @@ describe('Quests screen', () => {
     expect(out).toContain('The next chapter opens after');
   });
 
+  it('in the last chapter the waiting message ends the story instead of promising a next chapter (Chapter 5 does not exist in Release 1)', () => {
+    const ch4 = PACK.chapters.find((c) => c.n === 4)!;
+    patch((g) => ({
+      chapter: { ...g.chapter, n: 4, done: Object.fromEntries(ch4.objectives.filter((o) => !o.dream).map((o) => [o.id, 'd0'])), began: { dayIndex: 0, activeDays: 0 } },
+      clock: { ...g.clock, dayIndex: 1, activeDays: 2 },
+    }));
+    const out = html(createElement(Quests)).replace(/&#x27;/g, "'");
+    expect(out).toContain('data-wait=');
+    expect(out).toContain("The story's ending opens after");
+    expect(out).not.toContain('The next chapter opens after');
+    setLang('ar');
+    expect(html(createElement(Quests))).toContain('نهاية القصة');
+  });
+
   it('renders in Arabic, right to left', () => {
     setLang('ar');
     const out = html(createElement(Quests));

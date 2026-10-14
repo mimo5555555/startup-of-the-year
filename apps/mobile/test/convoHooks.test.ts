@@ -15,14 +15,14 @@ const VIEW: GameView = {
 };
 
 /** The conversation screen's hooks over a real reducer, with no screen: state lives in a closure the way the game store holds it. */
-function rig(scenarioId: string, patch: (s: GameState) => GameState = (s) => s, opts: { startNode?: string; view?: GameView } = {}) {
+function rig(scenarioId: string, patch: (s: GameState) => GameState = (s) => s, opts: { startNode?: string; view?: GameView; sessionId?: string } = {}) {
   let state = patch(createGameState(JP_PACK, NOW));
   const events: InputEvent[] = [];
   const view = opts.view ?? VIEW;
   const game = createConvoGame({
     pack: JP_PACK,
     scenarioId,
-    sessionId: 's_test',
+    sessionId: opts.sessionId ?? 's_test',
     state: () => state,
     view: () => view,
     commit: (ev): ReduceResult => {
@@ -39,7 +39,7 @@ function rig(scenarioId: string, patch: (s: GameState) => GameState = (s) => s, 
     l1: 'en',
     profileName: 'Sam',
     topics: [],
-    sessionId: 's_test',
+    sessionId: opts.sessionId ?? 's_test',
     game: game.hooks,
     flags: game.flags,
     startNode: opts.startNode,
@@ -320,5 +320,191 @@ describe('the debrief rows are the ledger', () => {
     expect([...tapped.session.stepsDone].sort()).toEqual(['order', 'pay', 'temp', 'wifi']);
     expect([...typed.session.stepsDone].sort()).toEqual(['order', 'pay', 'temp', 'wifi']);
     expect(settle(typed).settlement!.total).toBeGreaterThan(settle(tapped).settlement!.total);
+  });
+});
+
+describe('the one haggle of the game (Nakamura Motors, §4.4 rule 3)', () => {
+  const car = (s: GameState): GameState => ({ ...s, chapter: { ...s.chapter, n: 9 }, wallet: { ...s.wallet, cash: 400_000 } });
+  const slots = { carModel: 'used', payMethod: 'cash' };
+  const ctx = (assisted: boolean, number?: number) => ({ slotIds: slots, assisted, number });
+
+  it('an independent polite request takes the capped yen off the drive-away total, shown by the next line and charged exactly', () => {
+    const r = rig('motors_car', car);
+    expect(r.game.hooks.vars(slots, {}).total?.gloss.en).toBe('198,000 yen');
+    expect(r.game.hooks.intent!('haggle', ctx(false)).ok).toBe(true);
+    // min(6% of the 148,000 body price, 8,880) off the 198,000 drive-away price
+    expect(r.game.hooks.vars(slots, {}).total?.gloss.en).toBe('189,120 yen');
+    expect(r.game.hooks.charge!(slots).ok).toBe(true);
+    const bought = r.events.find((e) => e.t === 'purchase' && e.itemId === 'car_kei_used');
+    expect(bought).toMatchObject({ haggle: 8880 });
+    expect(r.state.wallet.cash).toBe(400_000 - 189_120);
+    expect(r.state.owned.car_kei_used?.qty).toBe(1);
+  });
+
+  it('an assisted request gets 40% of the cap, a named price is granted up to the cap, and the attempt is one per conversation', () => {
+    const a = rig('motors_car', car);
+    expect(a.game.hooks.intent!('haggle', ctx(true)).ok).toBe(true);
+    expect(a.game.hooks.vars(slots, {}).total?.gloss.en).toBe('194,448 yen');
+    expect(a.game.hooks.intent!('haggle', ctx(false)).ok).toBe(false);
+    expect(a.game.hooks.vars(slots, {}).total?.gloss.en).toBe('194,448 yen');
+
+    const named = rig('motors_car', car);
+    expect(named.game.hooks.intent!('haggle', ctx(false, 195_000)).ok).toBe(true);
+    expect(named.game.hooks.vars(slots, {}).total?.gloss.en).toBe('195,000 yen');
+    const greedy = rig('motors_car', car);
+    expect(greedy.game.hooks.intent!('haggle', ctx(false, 150_000)).ok).toBe(true);
+    expect(greedy.game.hooks.vars(slots, {}).total?.gloss.en).toBe('189,120 yen');
+  });
+
+  it('a second conversation the same day finds the haggle used, and a shop that does not negotiate refuses it', () => {
+    const first = rig('motors_car', car);
+    expect(first.game.hooks.intent!('haggle', ctx(false)).ok).toBe(true);
+    first.game.hooks.charge!(slots);
+    // the same item the same day: the quote takes no second haggle
+    const again = rig('motors_car', () => first.state);
+    expect(again.game.hooks.intent!('haggle', ctx(false)).ok).toBe(false);
+    const konbini = rig('konbini');
+    expect(konbini.game.hooks.intent!('haggle', { slotIds: { item: 'onigiri' }, assisted: false, number: 100 }).ok).toBe(false);
+  });
+});
+
+describe('the haggle reaches the clerk\'s next line and its price chip', () => {
+  it('after a granted haggle the line quotes the new total, in a real conversation', () => {
+    const r = rig('motors_car', (s) => ({ ...s, chapter: { ...s.chapter, n: 9 }, wallet: { ...s.wallet, cash: 400_000 } }));
+    r.session.start();
+    const say = (i: number) => r.session.pickSuggestion(i);
+    // look at the used car, ask the drive-away price, then the haggle chip
+    const pick = (re: RegExp) => {
+      const idx = r.session.suggestions().findIndex((x) => re.test(x.written.replace(/\s+/g, '')));
+      expect(idx, `a chip for ${re}`).toBeGreaterThanOrEqual(0);
+      return say(idx);
+    };
+    pick(/軽自動車.*見たい/);
+    pick(/中古.*見たい/);
+    pick(/いくら/);
+    pick(/乗り出し価格/);
+    expect(r.game.amounts().total).toBe(198_000);
+    const turn = pick(/安く/);
+    expect(turn.character.line.en).toContain('194,448');
+    expect(r.game.amounts().total).toBe(194_448);
+  });
+});
+
+describe('stock the player cannot buy yet is "not in stock", never a price that is not there (review: Release 1 shopping)', () => {
+  const say = (r: ReturnType<typeof rig>, texts: string[]) => texts.map((text) => r.session.submit({ text, mode: 'typed_ja' }));
+  const rich = (n: number, extra: Partial<GameState> = {}) => (s: GameState): GameState => ({ ...s, ...extra, chapter: { ...s.chapter, n }, wallet: { ...s.wallet, cash: 700_000 } });
+
+  it('the session flags follow what the shop can sell now: pro/tv before Free Walk, ebike without the helmet, good car without the stars', () => {
+    expect(rig('denki_phone', rich(4)).game.flags).toMatchObject({ pro_locked: true, tv_locked: true });
+    const fw = rig('denki_phone', rich(9)).game.flags;
+    expect(fw.pro_locked).toBeUndefined();
+    expect(fw.tv_locked).toBeUndefined();
+    const helmet = { bike_helmet: { qty: 1, day: 'd' } } as unknown as GameState['owned'];
+    expect(rig('motors_bike', rich(9)).game.flags.ebike_locked).toBe(true);
+    expect(rig('motors_bike', (s) => rich(9, { owned: helmet })(s)).game.flags.ebike_locked).toBeUndefined();
+    expect(rig('motors_car', rich(9)).game.flags.good_locked).toBe(true);
+    // owning an item does not make it "not in stock"
+    expect(rig('denki_phone', (s) => rich(4, { owned: { phone_used: { qty: 1, day: 'd' } } as unknown as GameState['owned'] })(s)).game.flags.used_locked).toBeUndefined();
+  });
+
+  it('asking for the latest phone before Free Walk: Aoi says it is not in stock, a colour or "I will take it" gets the stock answer again (no bill, no name, no till), and nothing is charged', () => {
+    const r = rig('denki_phone', rich(4));
+    r.session.start();
+    const out = say(r, ['スマホがほしいのですが', '最新スマホをください']);
+    expect(out[1].character?.line.en).toBe('The latest phone is not in stock yet. How about the refurbished phone?');
+    const colour = say(r, ['黒をお願いします'])[0];
+    expect(colour.character?.line.en).toContain('not in stock yet');
+    expect(colour.stepsDone).not.toContain('choose');
+    // the TV the same way
+    const tv = say(r, ['テレビをください', 'これをください'])[1];
+    expect(tv.character?.line.en).toContain('not in stock yet');
+    expect(r.events.filter((e) => e.t === 'purchase')).toHaveLength(0);
+    expect(r.state.wallet.cash).toBe(700_000);
+  });
+
+  it('the till of a refused sale still ends honestly if a locked item is forced through to it', () => {
+    const r = rig('denki_phone', rich(4));
+    r.session.start();
+    const out = say(r, ['スマホがほしいのですが', '中古スマホをください', '黒をお願いします', 'これをください', '現金でお願いします', 'サムです']);
+    expect(out[5].character?.line.en).toBe('Is this all right?');
+    // the learner changes their mind at the last node by naming the latest phone: it cannot be charged, and the line says why
+    expect(r.game.hooks.charge({ denkiItem: 'pro', payMethod: 'cash' }).ok).toBe(false);
+    expect(r.events.filter((e) => e.t === 'purchase')).toHaveLength(0);
+    expect(r.game.flags.sold_out).toBe(true);
+  });
+
+  it('the dealer quotes the BODY price first (¥148,000), then the drive-away price on request: the trap of the car lesson has its number', () => {
+    const r = rig('motors_car', rich(9));
+    r.session.start();
+    const out = say(r, ['軽自動車を見たいです', '中古の軽自動車を見たいです', '値段はいくらですか', '乗り出し価格はいくらですか']);
+    expect(out[2].character?.line.en).toBe('The body price is 148,000 yen.');
+    expect(r.game.amounts().body).toBe(148_000);
+    expect(out[3].character?.line.en).toContain('198,000 yen');
+  });
+
+  it('the low-mileage car before it can be sold: every price question gets the offer line, never an empty price', () => {
+    const r = rig('motors_car', rich(9));
+    r.session.start();
+    const out = say(r, ['軽自動車を見たいです', '低走行の軽自動車を見たいです', '値段はいくらですか', '乗り出し価格はいくらですか']);
+    for (const t of out.slice(2)) expect(t.character?.line.en).toBe('The low-mileage kei car is not available yet. How about the used kei car?');
+  });
+
+  it('"I will take it" for the e-bike without the helmet is answered by the offer line, not by a registration form', () => {
+    const r = rig('motors_bike', rich(9));
+    r.session.start();
+    const out = say(r, ['自転車がほしいです', '散歩に使います', '電動アシスト自転車をください', 'これをください']);
+    expect(out[2].character?.line.en).toContain('needs a helmet');
+    expect(out[3].character?.line.en).toContain('needs a helmet');
+    expect(r.events.filter((e) => e.t === 'purchase')).toHaveLength(0);
+  });
+
+  it('a one-time item the player already owns ends at "You already have that one", not at "a little short", and is never charged twice', () => {
+    const r = rig('denki_phone', rich(4, { owned: { phone_used: { qty: 1, day: 'd' } } as unknown as GameState['owned'] }));
+    r.session.start();
+    const out = say(r, ['スマホがほしいのですが', '中古スマホをください', '黒をお願いします', 'これをください', '現金でお願いします', 'サムです', 'はい']);
+    expect(out[2].character?.line.en, 'the quote still names the price').not.toContain('…');
+    expect(out[2].character?.line.en).toMatch(/yen in total/);
+    expect(out[6].character?.line.en).toBe('You already have that one.');
+    expect(r.events.filter((e) => e.t === 'purchase')).toHaveLength(0);
+    expect(r.state.wallet.cash).toBe(700_000);
+  });
+
+  it('really being short of money is still "a little short" (the flags are reset at every charge)', () => {
+    const r = rig('denki_phone', (s) => ({ ...rich(4)(s), wallet: { ...s.wallet, cash: 100 } }));
+    r.session.start();
+    const out = say(r, ['スマホがほしいのですが', '中古スマホをください', '黒をお願いします', 'これをください', '現金でお願いします', 'サムです', 'はい']);
+    expect(out[6].character?.line.en).toBe('I am sorry, it is a little short.');
+    expect(r.state.wallet.cash).toBe(100);
+  });
+
+  it('the power-assist bicycle without the helmet cannot be bought, with it the helmet comes first and then the e-bike is charged with its registration', () => {
+    const r = rig('motors_bike', rich(9));
+    expect(r.game.hooks.charge({ bikeModel: 'ebike', payMethod: 'cash' }).ok).toBe(false);
+    expect(r.events).toHaveLength(0);
+    expect(r.game.hooks.charge({ bikeModel: 'helmet', payMethod: 'cash' }).ok).toBe(true);
+    const again = rig('motors_bike', () => r.state, { sessionId: 's_second' });
+    expect(again.game.hooks.charge({ bikeModel: 'ebike', payMethod: 'cash' }).ok).toBe(true);
+    expect(again.state.ledger.find((e) => e.id === 'purchase:s_second:1')?.delta).toBe(-89_600);
+  });
+});
+
+describe('the haggle ceiling holds against whatever reaches the reducer (review: Release 1 shopping)', () => {
+  const buy = (itemId: string, haggle: unknown) => {
+    const s0 = createGameState(JP_PACK, NOW);
+    const s = { ...s0, chapter: { ...s0.chapter, n: 9 }, wallet: { ...s0.wallet, cash: 900_000 }, owned: { bike_helmet: { qty: 1, day: 'd' } } } as unknown as GameState;
+    const r = reduce(s, { t: 'purchase', sessionId: 'x', n: 1, shopId: 'motors', itemId, qty: 1, total: 1, method: 'cash', lines: [], haggle } as unknown as InputEvent, { pack: JP_PACK, now: NOW, view: VIEW, rng: () => 0.5 });
+    // the ledger line of the purchase itself (a daily goal may pay a few yen into the same wallet)
+    return -(r.state.ledger.find((e) => e.id === 'purchase:x:1')?.delta ?? 0);
+  };
+
+  it('a car never loses more than min(6% of the body price, ¥8,880), for any number, and a bicycle never loses anything', () => {
+    for (const h of [8880, 8881, 1e9, Infinity, NaN, -5, '9000', null]) {
+      const paid = buy('car_kei_used', h);
+      expect(198_000 - paid, String(h)).toBeLessThanOrEqual(8880);
+      expect(paid).toBeLessThanOrEqual(198_000);
+      expect(buy('bike_mamachari', h), String(h)).toBe(20_400);
+      expect(buy('ebike', h), String(h)).toBe(89_600);
+    }
+    expect(buy('car_kei_used', 1e9)).toBe(189_120);
   });
 });

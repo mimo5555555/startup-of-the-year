@@ -58,3 +58,12 @@ export const isWorn = (state: GameState, itemId: string): boolean => state.outfi
 export function toggledOutfit(state: GameState, itemId: string): string[] {
   return isWorn(state, itemId) ? state.outfit.equipped.filter((id) => id !== itemId) : [...state.outfit.equipped, itemId];
 }
+
+/**
+ * The `equipped` list to ask for when a purchase just brought a wearable home (the helmet goes on at once, the Wallet keeps Wear / Take off),
+ * or null when nothing new arrived. A piece the player already owned before is never put on again, so taking it off sticks.
+ */
+export function autoWearOutfit(pack: GamePack, before: GameState, after: GameState): string[] | null {
+  const fresh = wearables(pack, after).filter((i) => ownedQty(before, i.id) === 0 && !isWorn(after, i.id));
+  return fresh.length ? [...after.outfit.equipped, ...fresh.map((i) => i.id)] : null;
+}

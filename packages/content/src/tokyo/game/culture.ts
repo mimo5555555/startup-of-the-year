@@ -187,6 +187,7 @@ export const CULTURE: CultureCard[] = [
       ar: 'اخلع حذاءك في الجنكان (المدخل)، ثم اصعد وارتدِ الخفّ. لا ترتدِ الخفّ على حصير التاتامي أبدًا، وكثيرًا ما يكون للمرحاض خفّ خاص به.',
     },
     say: true,
+    deferred: true,
   }),
   c({
     id: 'cc_rent',
@@ -197,6 +198,7 @@ export const CULTURE: CultureCard[] = [
       ar: 'غالبًا ما يعني الإيجار وديعة تأمين (敷金)، وأحيانًا «مال المفتاح» (礼金، شكر لا يُسترد للمالك)، إضافةً إلى رسوم الوسيط وكفيل. أيكو تبسّط الأمر: وديعة وأول شهر فقط.',
     },
     adultOnly: true,
+    deferred: true,
   }),
   c({
     id: 'cc_shaken',
@@ -215,6 +217,7 @@ export const CULTURE: CultureCard[] = [
       en: 'Matsuri are local festivals, often at shrines, with food stalls (屋台), yukata, portable shrines and, in summer, fireworks. Stalls usually take cash only.',
       ar: 'الماتسوري مهرجانات محلية، غالبًا عند المعابد، فيها بسطات طعام (屋台) ويوكاتا ومعابد محمولة وألعاب نارية في الصيف. وتقبل البسطات النقد غالبًا فقط.',
     },
+    deferred: true,
   }),
   c({
     id: 'cc_trash',
@@ -224,5 +227,6 @@ export const CULTURE: CultureCard[] = [
       en: 'Rubbish is sorted (burnable, plastics, cans, bottles...) and collected on fixed days. Ask your landlord for the calendar and put it out only on the right morning.',
       ar: 'تُفرز النفايات (قابلة للحرق، بلاستيك، علب، زجاجات...) وتُجمع في أيام محددة. اطلب التقويم من المالك وضعها في الصباح الصحيح فقط.',
     },
+    deferred: true,
   }),
 ];

@@ -262,6 +262,8 @@ const phraseParts = (ja: string): string[] =>
 function saidCards(a: Acc, facts: ConversationFacts, pack: GamePack): string[] {
   const cards = pack.culture.filter((c) => c.say && !a.s.stats.cultureSaid.includes(c.id));
   if (cards.length === 0) return [];
+  // the host judged it with the engine's normalisation (kanji read, long vowels folded): 「これ、どうぞ」 is これどおぞ in a turn's `norm`
+  if (facts.cultureSaid) return cards.filter((c) => facts.cultureSaid?.includes(c.id)).map((c) => c.id);
   const turns = facts.turns.filter((t) => t.substantive && t.cls === 'I' && typeof t.norm === 'string').map((t) => foldJa(t.norm));
   return cards.filter((c) => phraseParts(c.phrase.ja).some((p) => turns.some((n) => n.includes(p)))).map((c) => c.id);
 }

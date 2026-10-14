@@ -128,9 +128,11 @@ export function predProgress(pred: Pred, state: GameState, ctx: Pick<ReduceCtx, 
       return prog(have ?? 0, pred.n);
     }
     case 'phone_chat': {
-      const parts = [prog(state.stats.chats.n, pred.n)];
-      if (pred.friends) parts.push(prog(Object.values(state.stats.chats.friends).filter((v) => v > 0).length, pred.friends));
-      return sum(parts);
+      // the bar counts chats ("2/4 chats"); chats with too few friends stop one short, so `done === total` is still exactly "satisfied"
+      // (adding the friends to the sum read "4/6" for "4 chats with 2 friends")
+      const chats = state.stats.chats.n;
+      const friendsMet = !pred.friends || Object.values(state.stats.chats.friends).filter((v) => v > 0).length >= pred.friends;
+      return prog(friendsMet ? chats : Math.min(chats, Math.max(0, pred.n - 1)), pred.n);
     }
     case 'hangout': {
       const need = pred.n ?? 1;
@@ -731,10 +733,12 @@ const CLOSER_FRIEND: Gloss = { en: 'Make a closer friend first', ar: 'كوّن �
 const NEXT_GATE: Gloss = { en: 'One thing is still missing before the next chapter', ar: 'ينقصك أمر واحد قبل الفصل التالي' };
 
 const reviewText = (n: number): Gloss => ({ en: `Review ${n} words that are due`, ar: `راجع ${n} كلمة مستحقة` });
-const waitText = (n: number): Gloss => ({
-  en: `Done! The next chapter opens after ${n} more days of practice`,
-  ar: `أنجزت! يُفتح الفصل التالي بعد ${n} أيام أخرى من التدريب`,
-});
+const waitText = (n: number, last: boolean): Gloss =>
+  last
+    ? // the last chapter of a capped pack is followed by the epilogue and Free Walk, not by "the next chapter"
+      { en: `Done! The story's ending opens after ${n} more days of practice`, ar: `أنجزت! تُفتح نهاية القصة بعد ${n} أيام أخرى من التدريب` }
+    : { en: `Done! The next chapter opens after ${n} more days of practice`, ar: `أنجزت! يُفتح الفصل التالي بعد ${n} أيام أخرى من التدريب` };
+
 
 /** The lesson the stuck rule offers: the first `lesson` objective not yet done, else the first lesson interaction. */
 function stuckLesson(pack: GamePack, state: GameState, view: GameView): { id: string; text: Gloss } | null {
@@ -802,7 +806,7 @@ export function nextBestGoals(pack: GamePack, state: GameState, view: GameView):
 
   // the waiting message: only the minimum number of days (or a closed start gate) is left
   const status = chapterStatus(pack, state, view);
-  if (def && done && status.waitDays > 0) goals.push({ kind: 'wait', id: `chapter:${def.n}:wait`, text: waitText(status.waitDays), days: status.waitDays });
+  if (def && done && status.waitDays > 0) goals.push({ kind: 'wait', id: `chapter:${def.n}:wait`, text: waitText(status.waitDays, !chapterDef(pack, nextChapterN(pack, def.n))), days: status.waitDays });
   else if (status.gated) {
     const gate = chapterDef(pack, nextChapterN(pack, state.chapter.n))?.startGate;
     goals.push({ kind: 'wait', id: `chapter:${state.chapter.n}:gate`, text: gate && gate.k === 'hearts_count' ? CLOSER_FRIEND : NEXT_GATE });

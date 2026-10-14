@@ -108,6 +108,7 @@ export const CHAPTERS: ChapterDef[] = [
         id: 'c2_4',
         pred: { k: 'culture_said', n: 2 },
         text: { en: 'Use 2 culture-card phrases yourself (for example いただきます at the ramen shop)', ar: 'استخدم عبارتين من البطاقات الثقافية بنفسك (مثل «いただきます» عند كينجي)' },
+        hint: { en: 'Open the stamp book, tap a card marked “Say it” and say its phrase.', ar: 'افتح دفتر الأختام، واضغط على بطاقة عليها «قلها» وانطق عبارتها.' },
       },
       dreamSlot(2),
     ],
@@ -140,7 +141,7 @@ export const CHAPTERS: ChapterDef[] = [
         id: 'c3_3',
         pred: { k: 'gift', n: 1 },
         text: { en: 'Give a gift to a friend (buy it first!)', ar: 'قدّم هدية لصديق (اشترِها أولًا!)' },
-        hint: { en: "Aiko's tea house sells small gifts.", ar: 'بيت الشاي عند أيكو يبيع هدايا صغيرة.' },
+        hint: { en: 'Buy a small present at the konbini, then give it from the Friends screen.', ar: 'اشترِ هدية صغيرة من الكونبيني ثم قدّمها من شاشة الأصدقاء.' },
       },
       {
         id: 'c3_4',

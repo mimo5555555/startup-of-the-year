@@ -96,7 +96,11 @@ export interface Suggestion {
 }
 
 /** What an intent asks of the game's economy hooks (`SessionGameHooks.intent`, docs/GAME_DESIGN.md §6.2). */
-export type IntentEcon = 'say_total' | 'ask_total' | 'haggle' | 'use_points' | 'ask_taxfree' | 'accept_delivery';
+/**
+ * `in_stock`: the item the learner has picked can be sold right now (open shop, chapter, age, stars, the helmet the e-bike needs); `ok: false`
+ * routes to `nextIfNo`, so a shop that cannot sell it yet says so instead of walking the learner through a sale that cannot end.
+ */
+export type IntentEcon = 'say_total' | 'ask_total' | 'haggle' | 'use_points' | 'ask_taxfree' | 'accept_delivery' | 'in_stock';
 
 export interface IntentDef {
   id: string;

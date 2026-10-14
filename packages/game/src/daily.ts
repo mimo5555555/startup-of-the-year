@@ -93,7 +93,7 @@ function eligible(t: DailyTemplate, pack: GamePack, state: GameState, view: Game
   if (rq.vocabCards && view.vocab.reviewedKeys.size < 1 && view.vocab.dueCount < 1) return false;
   if (rq.unseenCulture) {
     const adult = view.profile.age === 'adults' || view.profile.age === 'seniors';
-    if (!pack.culture.some((c) => state.culture[c.id] === undefined && (adult || !c.adultOnly))) return false;
+    if (!pack.culture.some((c) => !c.deferred && state.culture[c.id] === undefined && (adult || !c.adultOnly))) return false;
   }
   return true;
 }

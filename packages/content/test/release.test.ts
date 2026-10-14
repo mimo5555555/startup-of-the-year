@@ -177,10 +177,34 @@ describe('the level-4 proof: every released objective and every offered dream ca
     expect(codes.some((c) => c === 'bot_unreachable' || c === 'dream_blocked')).toBe(true);
   });
 
-  it('with the friends of the pack nothing is left at level 4 but the interaction rows of the deferred café and station shifts (this goes live when agent 4A lands the friends)', () => {
-    if (JP_PACK.friends.length === 0) return;
-    const rest = errorsOf(JP_PACK, 4).filter((i) => !(i.code === 'interaction_ref' && /job_(cafe|station)/.test(i.message)));
-    expect(rest.map((i) => `${i.code} ${i.path} ${i.message}`)).toEqual([]);
+  it('no objective text or hint of a released chapter points at something the release does not build (Aiko, the tea house, clothes, the flat)', () => {
+    const words = /tea house|بيت الشاي|Fuku|فوكو|clothes|ملابس|\bflat\b|الشقة/i;
+    for (const c of RELEASED_CHAPTERS) for (const ob of c.objectives) for (const g of [ob.text, ob.hint].filter(Boolean)) expect(`${g!.en} ${g!.ar}`, `${c.n}/${ob.id}`).not.toMatch(words);
+  });
+
+  it('every played chapter has a story scene to open it and one to close it (Chapters 3 and 4 used to start in silence), with EN and AR', () => {
+    for (const c of RELEASED_CHAPTERS) {
+      for (const id of [c.beats.open, c.beats.close]) {
+        const b = JP_PACK.beats[id];
+        expect(b, `${c.n}: ${id}`).toBeDefined();
+        expect(b!.lines.length, id).toBeGreaterThan(0);
+        for (const l of b!.lines) expect(l.line.en.trim() && hasAr(l.line.ar), id).toBeTruthy();
+      }
+    }
+  });
+
+  it('c2_4 (say two culture phrases) tells the player where to say a phrase (the stamp book), in both languages', () => {
+    const c24 = RELEASED_CHAPTERS[1]!.objectives.find((o) => o.id === 'c2_4')!;
+    expect(c24.hint?.en).toMatch(/stamp book/);
+    expect(c24.hint?.en).toMatch(/Say it/);
+    expect(hasAr(c24.hint?.ar ?? '')).toBe(true);
+  });
+
+  it('the pack validates green at level 4: no interaction row names a deferred job (the café and station shifts stay out of the released table)', () => {
+    expect(errorsOf(JP_PACK, 4).map((i) => `${i.code} ${i.path} ${i.message}`)).toEqual([]);
+    const rows = Object.values(JP_PACK.interactions).flat();
+    expect(rows.some((r) => r.id === 'yuki_shift' || r.id === 'sato_shift')).toBe(false);
+    expect(rows.some((r) => r.id === 'tanaka_shift')).toBe(true);
   });
 
   it('what the pack still reports without friends is only about friends and the deferred shifts, never about the catalog, the cap or the dreams', () => {

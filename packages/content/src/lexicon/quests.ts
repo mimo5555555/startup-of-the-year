@@ -72,4 +72,6 @@ export const QUESTS_LEXICON: LexEntry[] = [
   w('皆さん', 'みなさん', 'everyone', 'جميعًا'),
   w('土曜日', 'どようび', 'Saturday', 'يوم السبت'),
   w('たこ焼き', 'たこやき', 'takoyaki (octopus balls)', 'تاكوياكي (كرات الأخطبوط)'),
+  // Chapter 3 opening (Mio)
+  w('なりましょう', '', "let's become", 'لنصبح'),
 ];

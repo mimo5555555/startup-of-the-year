@@ -43,6 +43,14 @@ const type = async (s) => {
   await lineAfter(n);
 };
 
+/** A culture card that pops up over the screen (it blocks the taps under it): its button closes it. */
+async function dismissCulture() {
+  for (let i = 0; i < 6 && (await page.locator('.cul-scrim .btn.primary').count()); i++) {
+    await page.locator('.cul-scrim .btn.primary').click();
+    await t.sleep(300);
+  }
+}
+
 /** Closes word cards, then the panel itself. */
 async function closeWordCards() {
   while (await page.locator('.word-scrim .word-close').count()) {
@@ -66,6 +74,11 @@ async function leaveDebrief() {
 
 /** Walks to a character (stepping away first: the world only reports a change of "who is near") and presses Talk. */
 async function talkTo(id) {
+  // a culture card the last debrief unlocked pops up over the street: dismiss it first
+  while (await page.locator('.cul-scrim .btn.primary').count()) {
+    await page.locator('.cul-scrim .btn.primary').click();
+    await t.sleep(300);
+  }
   await page.evaluate(() => window.__world.teleportNear('tanaka'));
   await t.sleep(600);
   await page.evaluate((c) => window.__world.teleportNear(c), id);
@@ -334,6 +347,7 @@ g = await liveGame(page);
 assert.equal(g.wallet.ic, wV0.ic - 130, 'the card paid ¥130');
 assert.equal(g.wallet.cash, wV0.cash, 'cash untouched');
 await t.shot('19b-vending-bought');
+await dismissCulture(); // the cc_vending card pops up over the panel
 await page.locator('.pn-done .btn.primary').click();
 await t.sleep(300);
 if (await page.locator('[data-panel="vending"]').count()) await page.locator('.pn-head .icon-btn').last().click();
@@ -358,15 +372,24 @@ assert.equal(g.wallet.ic, wRam0.ic, 'the card is untouched');
 assert.deepEqual(g.tickets.ramen, { flavor: 'shoyu' });
 await assertNoHScroll(page, 'ramen ticket');
 await t.shot('21-ramen-ticket');
+await dismissCulture();
 await page.locator('.pn-actions .btn').first().click();
 await page.waitForSelector('.pn-sheet', { state: 'detached' });
 
 // ---- the short-of-cash branch ---------------------------------------------------------------------------------------
 t.step('short of cash: a ¥450 coffee with less than that in the wallet gets a polite "a little short", nothing is bought');
 g = await liveGame(page);
+if (g.wallet.cash >= 450) {
+  // what the lines paid depends on the content; the premise of this step is "less than ¥450 in the wallet", so the QA tool takes the rest away
+  await page.evaluate((amount) => {
+    window.__lw.dispatch({ t: 'profile_set', dev: true });
+    window.__lw.dispatch({ t: 'dev', cmd: 'cash', amount });
+  }, 300 - g.wallet.cash);
+  g = await liveGame(page);
+}
 const cashNow = g.wallet.cash;
 const purchasesBefore = g.stats.purchases;
-assert.ok(cashNow < 450, `after the card, the water and the ramen ticket the wallet is below the coffee's ¥450 (¥${cashNow})`);
+assert.ok(cashNow < 450, `the wallet is below the coffee's ¥450 (¥${cashNow})`);
 await talkTo('yuki');
 await page.waitForSelector('.prep, .convo, [data-opt=yuki_shop]', { timeout: 15000 });
 if (await page.locator('[data-opt=yuki_shop]').count()) await page.locator('[data-opt=yuki_shop]').click();

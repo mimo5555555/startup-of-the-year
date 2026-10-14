@@ -151,6 +151,20 @@ describe('generateDaily', () => {
     }
   });
 
+  it('a card that cannot be earned yet (deferred) does not keep g_culture on offer for a player who has every other card', () => {
+    const deferredPack = mkQuestPack({ culture: pack.culture.map((c, i) => (i === pack.culture.length - 1 ? { ...c, deferred: true as const } : c)) });
+    const last = deferredPack.culture[deferredPack.culture.length - 1]!;
+    expect(last.deferred).toBe(true);
+    const s = { ...at(3), culture: Object.fromEntries(deferredPack.culture.filter((c) => c !== last).map((c) => [c.id, 'd0'])) };
+    for (let d = 0; d < 40; d++) {
+      const goals = generateDaily(deferredPack, { ...s, clock: { ...s.clock, dayIndex: d } }, mkView({ age: 'adults', reviewed: ['k'] }));
+      expect(idsOf(goals)).not.toContain('g_culture');
+    }
+    // and a real card still to find keeps it possible
+    const wanted = { ...s, culture: {} };
+    expect(Array.from({ length: 40 }, (_, d) => idsOf(generateDaily(deferredPack, { ...wanted, clock: { ...wanted.clock, dayIndex: d } }, mkView({ age: 'adults', reviewed: ['k'] }))).includes('g_culture')).some(Boolean)).toBe(true);
+  });
+
   it('skips yesterday\'s template of a slot, and what is still open from yesterday', () => {
     const view = mkView({ reviewed: ['k1'], due: 3 });
     let s = withTrio(at(3, 0), view);

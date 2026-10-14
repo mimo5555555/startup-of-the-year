@@ -12,6 +12,8 @@ import { characterById, displayName } from '../content';
 import { SCENARIOS } from '@lw/content';
 import { blip, speakJa } from '../services';
 import { useUi } from '../ui';
+import { openScreen } from '../game/bridge';
+import { feedbackThen } from '../game/phoneLogic';
 
 function Ring({ value, label, tone, note }: { value: number | null; label: string; tone: string; note?: string }) {
   const r = 30;
@@ -56,6 +58,7 @@ export function Feedback() {
   const { report, scenarioId, xp } = data;
   const scenario = SCENARIOS.find((s) => s.id === scenarioId)!;
   const character = characterById(scenario.characterId)!;
+  const next = feedbackThen(scenarioId, debrief?.facts.characterId ?? character.id);
   const lp = levelProgress(xpTotal);
   const savedSet = new Set(vocab.map((v) => v.s));
   const catLabel = { grammar: t('f.cat.grammar'), vocabulary: t('f.cat.vocabulary'), naturalness: t('f.cat.naturalness') } as const;
@@ -235,24 +238,32 @@ export function Feedback() {
       </div>
 
       <footer className="panel-foot">
-        <button
-          className="btn soft"
-          onClick={() => {
-            if (debrief) {
-              // the same scenario in the same mode, through the conversation request (the host mounts it over the city)
-              go('world');
-              useUi.getState().startConvo({ scenarioId, characterId: character.id, mode: debrief.facts.mode });
-              return;
-            }
-            useStore.getState().setPendingTalk(character.id);
-            go('world');
-          }}
-        >
-          <Icon name="replay" size={18} /> {t('f.again')}
-        </button>
-        <button className="btn primary wide" onClick={() => go('world')}>
-          <Icon name="home" size={18} /> {t('f.back')}
-        </button>
+        {next ? (
+          <button className="btn primary wide" data-act="feedback-then" onClick={() => openScreen(next.screen, next.args as never)}>
+            {next.screen === 'phone' ? t('phone.continue') : t('phone.continue.shift')} <Icon name={dir === 'rtl' ? 'chevL' : 'chevR'} size={18} />
+          </button>
+        ) : (
+          <>
+            <button
+              className="btn soft"
+              onClick={() => {
+                if (debrief) {
+                  // the same scenario in the same mode, through the conversation request (the host mounts it over the city)
+                  go('world');
+                  useUi.getState().startConvo({ scenarioId, characterId: character.id, mode: debrief.facts.mode });
+                  return;
+                }
+                useStore.getState().setPendingTalk(character.id);
+                go('world');
+              }}
+            >
+              <Icon name="replay" size={18} /> {t('f.again')}
+            </button>
+            <button className="btn primary wide" onClick={() => go('world')}>
+              <Icon name="home" size={18} /> {t('f.back')}
+            </button>
+          </>
+        )}
       </footer>
     </div>
   );

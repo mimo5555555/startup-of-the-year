@@ -101,7 +101,10 @@ describe('the interaction table (§6.1)', () => {
     for (const who of ['tanaka', 'yuki', 'sato', 'kenji', 'hanako', 'mio', 'aoi', 'rin', 'aiko', 'nakamura']) expect(JP_PACK.interactions[who]?.length, who).toBeGreaterThan(0);
     const ids = (who: string) => JP_PACK.interactions[who].map((i) => i.id);
     expect(ids('tanaka')).toEqual(expect.arrayContaining(['tanaka_shop', 'tanaka_shift', 'tanaka_talk', 'tanaka_gift']));
-    expect(ids('sato')).toEqual(expect.arrayContaining(['sato_ic', 'sato_way', 'trip_hikarigaoka', 'sato_shift']));
+    expect(ids('sato')).toEqual(expect.arrayContaining(['sato_ic', 'sato_way', 'trip_hikarigaoka']));
+    // the café and station shifts are not built in Release 1: their rows are not in the pack at all
+    expect(ids('sato')).not.toContain('sato_shift');
+    expect(ids('yuki')).not.toContain('yuki_shift');
     expect(JP_PACK.interactions.sato.find((i) => i.id === 'trip_hikarigaoka')).toMatchObject({ kind: 'trip', ch: 5 });
     expect(JP_PACK.interactions.kenji.find((i) => i.id === 'home_kenji')).toMatchObject({ kind: 'visit', gate: { k: 'hearts', friend: 'kenji', atLeast: 4 } });
   });
@@ -109,7 +112,7 @@ describe('the interaction table (§6.1)', () => {
   it('passes the interaction checks of validatePack (level 2: fields and ids; the job and shop references need the tables of 3E / 4D)', () => {
     expect(validatePack(JP_PACK, { level: 2 }).filter((i) => i.path.startsWith('interactions'))).toEqual([]);
     const refs = all.filter((i) => i.jobId || i.shopId);
-    expect(refs.map((i) => i.jobId ?? i.shopId).sort()).toEqual(['denki', 'job_cafe', 'job_konbini', 'job_station', 'motors']);
+    expect(refs.map((i) => i.jobId ?? i.shopId).sort()).toEqual(['denki', 'job_konbini', 'motors']);
   });
 
   it('a fresh player: every ordinary NPC has exactly one open option, so Talk starts it directly', () => {
@@ -339,6 +342,20 @@ describe('hud strings', () => {
     for (const k of ['hud.quests', 'hud.friends', 'hud.phone', 'hud.lessons', 'hud.choose', 'hud.closedSay', 'hud.windowNote', 'hud.noGoods', 'hud.doorLocked']) {
       expect((STRINGS.en as Record<string, string>)[k], k).toBeTruthy();
       expect((STRINGS.ar as Record<string, string>)[k], k).toMatch(/[؀-ۿ]/);
+    }
+  });
+});
+
+describe('padlock text never names a chapter that is not played (Release 1)', () => {
+  it('chapters of the story say "Opens in Chapter N", Free Walk says when the story is finished', async () => {
+    const { opensIn } = await import('../src/game/opensIn');
+    const { translate } = await import('../src/i18n');
+    for (const lang of ['en', 'ar'] as const) {
+      const t = (k: Parameters<typeof translate>[1], v?: Record<string, string | number>) => translate(lang, k, v);
+      expect(opensIn(t, 'quests.locked', 4)).toContain('4');
+      expect(opensIn(t, 'quests.locked', 9)).toBe(t('dream.freeWalk'));
+      expect(opensIn(t, 'shop.opensIn', 9)).toBe(t('dream.freeWalk'));
+      expect(opensIn(t, 'dream.locked', 9)).not.toContain('9');
     }
   });
 });

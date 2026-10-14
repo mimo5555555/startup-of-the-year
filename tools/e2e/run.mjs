@@ -3,7 +3,7 @@
 import { mkdirSync } from 'node:fs';
 import assert from 'node:assert/strict';
 import { launch } from './browser.mjs';
-import { afterOnboarding, talkToConversation } from './flow.mjs';
+import { afterOnboarding, dismissCulture, talkToConversation } from './flow.mjs';
 
 const out = new URL('./shots/', import.meta.url).pathname;
 mkdirSync(out, { recursive: true });
@@ -132,8 +132,9 @@ await page.locator('.panel-foot .btn.primary').click();
 await sleep(800);
 
 step('words');
+await dismissCulture(page);
 await page.locator('.icon-btn.glass').first().click();
-await page.locator('.menu button').nth(0).click();
+await page.locator('[data-menu=vocab]').click();
 await page.waitForSelector('.tabs');
 await sleep(400);
 await shot('18-words-review');
@@ -149,7 +150,7 @@ await sleep(500);
 
 step('progress and settings');
 await page.locator('.icon-btn.glass').first().click();
-await page.locator('.menu button').nth(1).click();
+await page.locator('[data-menu=stats]').click();
 await page.waitForSelector('.tiles');
 await sleep(400);
 await shot('21-stats');
@@ -159,7 +160,7 @@ await shot('22-stats-bottom');
 await page.locator('.panel-head .icon-btn').first().click();
 await sleep(400);
 await page.locator('.icon-btn.glass').first().click();
-await page.locator('.menu button').nth(2).click();
+await page.locator('[data-menu=settings]').click();
 await page.waitForSelector('.row-switch');
 await sleep(300);
 await shot('23-settings');

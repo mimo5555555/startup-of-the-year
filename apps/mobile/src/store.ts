@@ -25,7 +25,7 @@ import type { UiLang } from './i18n';
 import { useGame } from './game/gameStore';
 import { useUi } from './ui';
 
-/** The closed set of routes; the game's screens (docs/GAME_DESIGN.md §15.4 row 2A) are stubs until their owners fill them. */
+/** The closed set of routes; the game's screens (docs/GAME_DESIGN.md §15.4 row 2A); every one is built except `letter` (chapter 8), which goes back to the street. */
 export type Screen =
   | 'onboarding'
   | 'world'

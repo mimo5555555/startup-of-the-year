@@ -7,6 +7,7 @@ import { displayName } from '../../content';
 import { useStore } from '../../store';
 import { Icon, type IconName } from '../Icon';
 import { Portrait } from '../Portrait';
+import { opensIn } from '../../game/opensIn';
 
 /** Carries out a plan that starts something (the plans for a sheet, `window`, are the caller's: it shows the Goods sheet). */
 export function runPlan(plan: Plan): void {
@@ -80,7 +81,7 @@ export function InteractionSheet({ character, shopName, rows, closedUntil, hasGo
   const firstOpen = rows.findIndex((r) => !r.lock);
   const lockText = (row: OptionRow): string => {
     const l = row.lock!;
-    return 'ch' in l ? t('quests.locked', { n: l.ch }) : 'hearts' in l ? t('hud.needHearts', { n: l.hearts }) : t('social.notYet');
+    return 'ch' in l ? opensIn(t, 'quests.locked', l.ch) : 'hearts' in l ? t('hud.needHearts', { n: l.hearts }) : t('social.notYet');
   };
 
   return (
@@ -104,7 +105,7 @@ export function InteractionSheet({ character, shopName, rows, closedUntil, hasGo
             </p>
             <p dir="auto">{t('hud.closedSay')}</p>
             <p className="hud-closed-ch" dir="auto">
-              <Icon name="lock" size={14} /> {t('shop.opensIn', { n: closedUntil })}
+              <Icon name="lock" size={14} /> {opensIn(t, 'shop.opensIn', closedUntil)}
             </p>
           </div>
         )}

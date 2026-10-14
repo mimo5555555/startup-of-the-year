@@ -5,6 +5,7 @@ import { characterById, displayName } from '../../content';
 import { Icon } from '../Icon';
 import { Portrait } from '../Portrait';
 import { Ltr } from './WalletPill';
+import { opensIn } from '../../game/opensIn';
 
 /**
  * The tracker card (§7.5, §11.7): same look as the old "Next up" card (portrait, title, walk button), showing the next best goal. The
@@ -51,13 +52,13 @@ export function TrackerCard({ goal, onGo }: { goal: NextGoal; onGo: () => void }
                 <Ltr
                   text={
                     locked
-                      ? `${t('dream.locked', { n: gateCh })}${dream.languageGate.objectivesLeft > 0 ? ` · ${t('hud.goalsFirst', { n: dream.languageGate.objectivesLeft })}` : ''}`
+                      ? `${opensIn(t, 'dream.locked', gateCh)}${dream.languageGate.objectivesLeft > 0 ? ` · ${t('hud.goalsFirst', { n: dream.languageGate.objectivesLeft })}` : ''}`
                       : t('hud.unlocked')
                   }
                 />
               </span>
             </span>
-            {dream.etaDays !== null && (
+            {dream.etaDays !== null && dream.etaDays !== 0 && (
               <span className="hud-con pace">
                 <Ltr text={dream.etaDays === 'many' ? t('hud.paceMany') : t('hud.pace', { n: dream.etaDays })} />
               </span>

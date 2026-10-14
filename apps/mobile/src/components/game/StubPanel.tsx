@@ -3,7 +3,7 @@ import { Icon } from '../Icon';
 import { useStore } from '../../store';
 import { useT } from '../../hooks';
 
-/** The shell of the placeholder screens (2A): a full-screen panel with a title and a back button, replaced as each owner fills its route. */
+/** The shell of the full-screen panels (a title and a back button over a scrolling body). The Culture screen is built on it; no screen is a placeholder any more. */
 export function StubPanel({ title, children }: { title: string; children?: ReactNode }) {
   const { t, dir } = useT();
   const go = useStore((s) => s.go);

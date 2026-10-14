@@ -6,6 +6,7 @@ import { PACK } from '../../game/pack';
 import type { StringKey } from '../../i18n';
 import { Icon, type IconName } from '../Icon';
 import { Ltr } from './WalletPill';
+import { opensIn } from '../../game/opensIn';
 
 /** One icon per dream (the Icon set has no festival or fresh-start glyph, so those borrow the lantern and the key). */
 const DREAM_ICON: Record<string, IconName> = { phone_pal: 'phone', bike: 'bike', flat: 'flat', festival: 'lantern', travel: 'train', fresh_start: 'key', car: 'car' };
@@ -146,13 +147,13 @@ export function DreamPanel({ progress, stickers, onChange }: { progress: DreamPr
               <Ltr
                 text={
                   gateShut
-                    ? `${t('dream.locked', { n: progress.languageGate.chapter })} · ${t('hud.goalsFirst', { n: progress.languageGate.objectivesLeft })}`
+                    ? `${opensIn(t, 'dream.locked', progress.languageGate.chapter)} · ${t('hud.goalsFirst', { n: progress.languageGate.objectivesLeft })}`
                     : t('hud.unlocked')
                 }
               />
             </span>
           </div>
-          {progress.etaDays !== null && missing > 0 && (
+          {progress.etaDays !== null && progress.etaDays !== 0 && missing > 0 && (
             <p className="muted small">
               <Ltr text={progress.etaDays === 'many' ? t('hud.paceMany') : t('hud.pace', { n: progress.etaDays })} />
             </p>
@@ -178,7 +179,7 @@ export function DreamPanel({ progress, stickers, onChange }: { progress: DreamPr
                   <strong dir="auto">{s.text[lang]}</strong>
                   {!visible && (
                     <small className="muted">
-                      <Ltr text={s.gate > 8 ? t('dream.freeWalk') : t('dream.locked', { n: s.gate })} />
+                      <Ltr text={opensIn(t, 'dream.locked', s.gate)} />
                     </small>
                   )}
                 </div>

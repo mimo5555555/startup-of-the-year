@@ -20,6 +20,14 @@ import { POCKETS } from './pockets';
 import { SCENARIO_META } from './meta';
 import { BEATS } from './beats';
 
+/**
+ * Release 1 builds the konbini shift only (docs/RELEASE_1.md): a shift row whose job is deferred (café, station) is left out of the
+ * released table, so the pack validates at level 4 and no dead row can ever show. It returns with its job.
+ */
+const RELEASED_INTERACTIONS: GamePack['interactions'] = Object.fromEntries(
+  Object.entries(INTERACTIONS).map(([who, rows]) => [who, rows.filter((r) => !r.jobId || JOBS.some((j) => j.id === r.jobId))]),
+);
+
 /** The Sakura-chō (Japan) game pack. Every table is a registry owned part by part (docs/GAME_DESIGN.md §15.2). */
 export const JP_PACK: GamePack = {
   schema: 1,
@@ -43,7 +51,7 @@ export const JP_PACK: GamePack = {
   daily: DAILY,
   beats: BEATS,
   friends: FRIENDS,
-  interactions: INTERACTIONS,
+  interactions: RELEASED_INTERACTIONS,
   scenarioMeta: SCENARIO_META,
   pockets: POCKETS,
   wordTags: WORD_TAGS,

@@ -4,13 +4,16 @@ import './_fakeStorage';
 import { beforeEach, describe, expect, it } from 'vitest';
 import { renderToStaticMarkup } from 'react-dom/server';
 import { createElement } from 'react';
-import { CHARACTERS, JP_PACK } from '@lw/content';
-import { BALANCE, createGameState, evalPred, reduce, type DerivedEvent, type GameState, type InputEvent, type UiEffect } from '@lw/game';
+import { CHARACTERS, JP_PACK, scenarioById } from '@lw/content';
+import { ConversationSession } from '@lw/engine';
+import { BALANCE, createGameState, evalPred, generateDaily, grantItem, reduce, type DerivedEvent, type GameState, type InputEvent, type UiEffect } from '@lw/game';
 import { ctx1f, facts1f, view1f } from '../../../packages/game/test/fixtures-1f';
 import { Culture } from '../src/screens/Culture';
 import { useGame } from '../src/game/gameStore';
 import { resetBridgeForTests } from '../src/game/bridge';
-import { DEFERRED_CARDS, bookCounts, cardState, phraseParts, phraseTokens, sayTarget, shownCards, takeCultureFocus, setCultureFocus } from '../src/game/cultureLogic';
+import { createConvoGame } from '../src/game/convoHooks';
+import { completeFriendFacts, planFriendConvo } from '../src/game/friendsLogic';
+import { DEFERRED_CARDS, bookCounts, cardState, cultureSaidIn, phraseParts, phraseTokens, sayTarget, shownCards, takeCultureFocus, setCultureFocus } from '../src/game/cultureLogic';
 import { useStore, type Profile } from '../src/store';
 import { useUi } from '../src/ui';
 import { STRINGS } from '../src/i18n';
@@ -45,6 +48,17 @@ describe('the cards a stamp book lists', () => {
     for (const id of DEFERRED_CARDS) expect(shown).not.toContain(id);
     const got = { ...state, culture: { cc_matsuri: '2030-01-15' } } as GameState;
     expect(shownCards(JP_PACK, got, 'adults').map((c) => c.id)).toContain('cc_matsuri');
+  });
+
+  it('hides exactly the cards the pack flags as deferred, and once the other 19 are found "learn one new thing" is no longer a daily goal', () => {
+    expect(JP_PACK.culture.filter((c) => c.deferred).map((c) => c.id).sort()).toEqual([...DEFERRED_CARDS].sort());
+    const collected = Object.fromEntries(shownCards(JP_PACK, state, 'adults').map((c) => [c.id, 'd0']));
+    expect(Object.keys(collected)).toHaveLength(19);
+    const free = { ...state, chapter: { ...state.chapter, n: BALANCE.freeWalkChapter }, culture: collected };
+    for (let d = 0; d < 40; d++) {
+      const goals = generateDaily(JP_PACK, { ...free, clock: { ...free.clock, dayIndex: d } }, view1f());
+      expect(goals.map((g) => g.id), `day ${d}`).not.toContain('g_culture');
+    }
   });
 
   it('has a hint, in both languages, for every locked card it can show', () => {
@@ -115,6 +129,56 @@ describe('collecting and saying cards through the real reducer', () => {
     expect(state.culture.cc_konbini).toBeDefined();
     send({ t: 'culture_say', id: 'cc_konbini', similarity: 1 });
     expect(state.stats.cultureSaid).toEqual([]);
+  });
+});
+
+describe('saying a culture phrase inside a conversation (the host judges it with the engine\'s normalisation)', () => {
+  /** What Conversation.tsx does: the session, the player's typed lines, the facts with `cultureSaid`, then `conversation_done` through the real reducer. */
+  function typed(scenarioId: string, characterId: string, lines: Array<string | { text: string; kana: string }>, o: { itemId?: string; startNode?: string } = {}) {
+    const sc = scenarioById(scenarioId)!;
+    const character = CHARACTERS.find((c) => c.id === characterId)!;
+    const view = view1f();
+    const friend = planFriendConvo(JP_PACK, state, { scenarioId, characterId, itemId: o.itemId, startNode: o.startNode }, { nodeIds: Object.keys(sc.nodes), interests: character.interests, rng: () => 0.3 });
+    const commit = (ev: InputEvent) => {
+      const r = reduce(state, ev, ctx1f(JP_PACK, NOW, view));
+      state = r.state;
+      return r;
+    };
+    const g = createConvoGame({ pack: JP_PACK, scenarioId, sessionId: 's_typed', state: () => state, view: () => view, commit, friend });
+    const session = new ConversationSession({ scenario: sc, character, l1: 'en', profileName: 'Sam', topics: [], sessionId: 's_typed', game: g.hooks, flags: g.flags, startNode: o.startNode ?? friend?.startNode, recalled: g.recalled, policy: BALANCE });
+    session.start();
+    for (const l of lines) if (!session.ended) session.submit(typeof l === 'string' ? { text: l, mode: 'typed_ja' } : { text: l.text, kana: l.kana, mode: 'typed_romaji' });
+    const base = session.facts({ mode: 'guided', prepared: false });
+    const facts1 = friend ? completeFriendFacts(friend, base, session.stepsDone) : base;
+    const facts = { ...facts1, cultureSaid: cultureSaidIn(JP_PACK, facts1) };
+    commit({ t: 'conversation_done', facts });
+    return facts;
+  }
+
+  it('counts a kanji phrase typed in kanji or in romaji (「よろしくお願いします」 reads おねがい in a turn\'s norm)', () => {
+    expect(typed('park', 'mio', ['よろしくお願いします。はじめまして。']).cultureSaid).toContain('cc_bow');
+    expect(state.stats.cultureSaid).toContain('cc_bow');
+    state = createGameState(JP_PACK, NOW);
+    expect(typed('park', 'mio', [{ text: 'yoroshiku onegaishimasu, hajimemashite', kana: 'よろしくおねがいします、はじめまして' }]).cultureSaid).toContain('cc_bow');
+    expect(state.stats.cultureSaid).toContain('cc_bow');
+  });
+
+  it('counts a phrase with a long vowel (「これ、どうぞ」 is これどおぞ in a turn\'s norm)', () => {
+    state = grantItem(state, JP_PACK, 'g_manga', 1, 'd0');
+    const facts = typed('give_gift', 'mio', ['これ、どうぞ']);
+    expect(facts.turns[0]?.norm).toBe('これどおぞ');
+    expect(facts.cultureSaid).toContain('cc_gift');
+    expect(state.stats.cultureSaid).toContain('cc_gift');
+  });
+
+  it('does not count a phrase that was only tapped from a suggestion, or never said', () => {
+    expect(typed('park', 'mio', ['はじめまして。わたしはサムです。']).cultureSaid).toEqual([]);
+    expect(state.stats.cultureSaid).toEqual([]);
+  });
+
+  it('without the host\'s list the reducer still reads a kana phrase from the norm (older callers and fixtures)', () => {
+    send({ t: 'conversation_done', facts: facts1f({ scenarioId: 'ramen', characterId: 'kenji', turns: [{ id: 0, cls: 'I', credit: 1, substantive: true, contentTokens: 3, stepIds: [], norm: 'いただきます', newWords: [] }] }) });
+    expect(state.stats.cultureSaid).toContain('cc_itadakimasu');
   });
 });
 

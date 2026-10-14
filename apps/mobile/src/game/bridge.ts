@@ -23,6 +23,7 @@ import { PACK, beatById, friendById } from './pack';
 import { heartEventOfBeat, pendingHeartBeats } from './friendsLogic';
 import { flushGameNow, getGame, useGame } from './gameStore';
 import { applyImplicitReview } from './srsHooks';
+import { autoWearOutfit } from './avatarFx';
 import { gameView } from './selectors';
 
 /** The beat Hanako plays when the player comes back after BALANCE.nextGoal.awayDays or more (§11.7; no streak scolding). */
@@ -34,8 +35,14 @@ export const WELCOME_BACK_BEAT = 'b_welcome_back';
 
 /** Runs one event through the reducer, stores the result and routes the effects. Returns the result so a screen can show its `derived` events (the debrief rows). */
 export function dispatch(event: InputEvent): ReduceResult {
-  const result = reduce(getGame(), event, { pack: PACK, now: Date.now(), view: gameView(useStore.getState()), rng: Math.random });
+  const before = getGame();
+  const result = reduce(before, event, { pack: PACK, now: Date.now(), view: gameView(useStore.getState()), rng: Math.random });
   useGame.getState().setGame(result.state);
+  // a wearable that just came home (the bicycle helmet) goes on the avatar at once; Wear / Take off stays in the Wallet
+  if (event.t !== 'outfit_changed') {
+    const worn = autoWearOutfit(PACK, before, result.state);
+    if (worn) dispatch({ t: 'outfit_changed', equipped: worn, colours: result.state.outfit.colours });
+  }
   // money, purchase and story events reach the disk before anything else can happen (E10); the rest waits for the debounce
   if (needsFlush(event)) flushGameNow();
   routeEffects(result.effects);

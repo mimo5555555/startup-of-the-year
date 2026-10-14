@@ -1,8 +1,10 @@
-import { StubPanel } from '../components/game/StubPanel';
-import { useT } from '../hooks';
+import { useEffect } from 'react';
+import { useStore } from '../store';
 
-// Placeholder route (2A): the owner of this screen replaces the body, the route and the back button stay.
+// The Letter Home belongs to chapter 8, which Release 1 does not play (docs/RELEASE_1.md): nothing links here, and a stray route goes
+// back to the street instead of showing an empty screen. The screen returns with the chapter.
 export function Letter() {
-  const { t } = useT();
-  return <StubPanel title={t('letter.title')} />;
+  const go = useStore((s) => s.go);
+  useEffect(() => go('world'), [go]);
+  return null;
 }

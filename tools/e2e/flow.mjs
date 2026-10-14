@@ -11,8 +11,17 @@ export async function afterOnboarding(page, { settleMs = 2500 } = {}) {
   await page.waitForTimeout(400);
 }
 
+/** Closes the culture-card pop-ups a finished conversation leaves over the street (they sit on top of every button of the HUD). */
+export async function dismissCulture(page) {
+  for (let i = 0; i < 6 && (await page.locator('.cul-scrim .btn.primary').count()); i++) {
+    await page.locator('.cul-scrim .btn.primary').click();
+    await page.waitForTimeout(300);
+  }
+}
+
 /** Presses Talk and gets to the conversation: the sheet's first open option, then Prepare's Skip, whichever show up. */
 export async function talkToConversation(page, { timeout = 15000 } = {}) {
+  await dismissCulture(page);
   await page.locator('.talk-btn').click();
   await page.waitForSelector('.msg.char, .prep, .hud-sheet', { timeout });
   if (await page.locator('.hud-sheet').count()) {

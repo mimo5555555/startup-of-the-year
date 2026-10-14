@@ -1,6 +1,7 @@
 // Pure rules of the stamp book (docs/GAME_DESIGN.md §10): which cards are shown, a card's state, the phrase a learner says. No React.
 import { LEXICON, tokenize, type Token, type Vars } from '@lw/content';
-import type { AgeGroup, CultureCard, GamePack, GameState } from '@lw/game';
+import { normTurn } from '@lw/engine';
+import type { AgeGroup, CultureCard, ConversationFacts, GamePack, GameState } from '@lw/game';
 
 /**
  * Cards whose trigger belongs to content that is not in Release 1 (home visits, the flat, Aiko's viewing, the festival;
@@ -29,6 +30,25 @@ export const phraseParts = (ja: string): string[] => ja.split(/\s+[/／]\s+/).fi
 
 /** What a learner says for a card: the first part of the phrase (the reducer counts any part in a conversation). */
 export const sayTarget = (card: CultureCard): string => phraseParts(card.phrase.ja)[0] ?? card.phrase.ja;
+
+/**
+ * The `say:true` cards whose key phrase a class-I turn of the conversation contained (feeds `ConversationFacts.cultureSaid`). Both sides go
+ * through the engine's own `normTurn`, the form a turn's `norm` has (kanji read, long vowels folded), so 「これ、どうぞ」, 「ごちそうさまでした」
+ * and 「よろしくお願いします」 (typed in kanji or romaji) count; the reducer alone cannot read kanji or fold 「う」 into 「お」.
+ */
+export function cultureSaidIn(pack: GamePack, facts: Pick<ConversationFacts, 'turns'>): string[] {
+  const said = facts.turns.filter((t) => t.substantive && t.cls === 'I' && typeof t.norm === 'string').map((t) => t.norm);
+  if (said.length === 0) return [];
+  return pack.culture
+    .filter((c) =>
+      c.say &&
+      phraseParts(c.phrase.ja).some((part) => {
+        const key = normTurn(part.replace(/\{name\}\|?/g, '').replace(/\|/g, ''));
+        return key.length >= 2 && said.some((n) => n.includes(key));
+      }),
+    )
+    .map((c) => c.id);
+}
 
 /** The tokens of each part of a card's phrase; `{name}` takes the player's (katakana) name. */
 export function phraseTokens(card: CultureCard, name: string): Token[][] {

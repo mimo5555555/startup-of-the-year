@@ -336,3 +336,19 @@ describe('navigation entry points', () => {
     expect(useUi.getState().args.prepare).toEqual({ scenarioId: 'konbini', characterId: 'tanaka' });
   });
 });
+
+describe('a wearable that was just bought goes on the avatar (Release 1 captain)', () => {
+  it('the helmet is worn right after the purchase, taking it off sticks, and a second purchase of something else leaves it alone', () => {
+    useGame.getState().setGame({ ...getGame(), wallet: { ...getGame().wallet, cash: 100_000 }, chapter: { ...getGame().chapter, n: 9 } });
+    const buy = (itemId: string, id: string) => dispatch({ t: 'purchase', sessionId: id, n: 1, shopId: 'motors', itemId, qty: 1, total: 0, method: 'cash', lines: [] });
+    buy('bike_mamachari', 'b1');
+    expect(getGame().outfit.equipped).toEqual([]);
+    buy('bike_helmet', 'b2');
+    expect(getGame().owned.bike_helmet?.qty).toBe(1);
+    expect(getGame().outfit.equipped).toEqual(['bike_helmet']);
+    dispatch({ t: 'outfit_changed', equipped: [], colours: {} });
+    expect(getGame().outfit.equipped).toEqual([]);
+    dispatch({ t: 'topup', id: 't1', amount: 0 });
+    expect(getGame().outfit.equipped).toEqual([]);
+  });
+});

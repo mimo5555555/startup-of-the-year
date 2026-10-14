@@ -97,8 +97,8 @@ export function JobCard({ jobName, helping, rank, good, mult, waivedShifts, wage
           {t('jobs.repeatNote', { m: mult })}
         </p>
       )}
-      <p className="sh-note" dir="ltr" data-wage={wage}>
-        ¥{wage.toLocaleString('en-US')}/h
+      <p className="sh-note" data-wage={wage}>
+        <bdi dir="ltr">¥{wage.toLocaleString('en-US')}/h</bdi>
       </p>
       <button type="button" className="btn primary wide" data-act="start-shift" onClick={onStart}>
         {t('jobs.start')}

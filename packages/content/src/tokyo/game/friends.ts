@@ -44,7 +44,7 @@ export const FRIENDS: FriendDef[] = [
     },
     perks: [
       present('mio', 'konbini:cake', 'Mio gives you a cake', 'تعطيك ميو كعكة'),
-      { id: 'mio_festival', heart: 5, text: { en: 'Festival partner', ar: 'شريكة المهرجان' }, fx: { t: 'cosmetic', id: 'festival_partner' } },
+      // the designed ♥5 perk, "Festival partner" (`mio_festival`, cosmetic), returns with the festival: this release has none to be partners at
     ],
     events: [{ heart: 2, beat: 'b_mio_h2' }],
   },

@@ -7,6 +7,7 @@ import { useStore } from '../store';
 import { Icon } from '../components/Icon';
 import { Joystick } from '../components/Joystick';
 import { MiniMap } from '../components/MiniMap';
+import { mapPins } from '../game/phoneLogic';
 import { Portrait } from '../components/Portrait';
 import { DreamChip } from '../components/game/DreamChip';
 import { GameMenu } from '../components/game/GameMenu';
@@ -74,6 +75,8 @@ export function WorldScreen() {
 
   // ---- game state the HUD reads ----
   const game = useGameState();
+  // friends the player agreed to meet today by chat: their dot is pink on the minimap
+  const planPins = useMemo(() => mapPins(PACK, game).filter((p) => p.plan).map((p) => p.friendId), [game]);
   const view = useGameView();
   const disclosure = useDisclosure();
   const tracked = useTracker();
@@ -313,7 +316,7 @@ export function WorldScreen() {
                 {elements.includes('dream') && <DreamChip />}
               </div>
               <div className="hud-right">
-                <MiniMap world={world} pin={pinOf(goal)} />
+                <MiniMap world={world} pin={pinOf(goal)} plans={planPins} />
                 {elements.includes('found') && (
                   <div className="found glass chip" title={t('w.found', { n: found, total: TOTAL_SIGNS })}>
                     <Icon name="sparkle" size={14} /> {found}/{TOTAL_SIGNS}

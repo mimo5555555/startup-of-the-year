@@ -543,6 +543,8 @@ export interface CultureCard {
   /** the key phrase is something the learner says (hidden-line Say-it; feeds `culture_said`) */
   say?: true;
   adultOnly?: true;
+  /** a capped release: the card's trigger is content that is not played yet. The book hides it until it is collected, and the daily goal "learn one new thing" never waits for it. */
+  deferred?: true;
 }
 
 export interface TitleDef {
@@ -1172,6 +1174,12 @@ export interface ConversationFacts {
   quiz?: { fact: string; correct: boolean; assisted?: boolean };
   /** story / friend flags the scenario raised (`plan_mio`, `genkan_ok`, `aiko_room_shown`, `ticket_bought`...); the reducer files them under `chapter.flags` or the friend's flags */
   flags?: string[];
+  /**
+   * The `say:true` culture cards whose key phrase a class-I turn contained, judged by the host with the engine's own turn normalisation
+   * (kanji read, long vowels folded, `norm`), which the reducer cannot do. When present the reducer trusts it; when absent it falls back
+   * to a plain kana comparison of `TurnFacts.norm` (kana-only phrases without long vowels).
+   */
+  cultureSaid?: string[];
 }
 
 /** One receipt row (§6.2): signed yen, negative for discounts. */

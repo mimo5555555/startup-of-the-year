@@ -76,6 +76,15 @@ describe('buildDenki', () => {
     }
   });
 
+  it('leaves no gap narrower than the player (0.84 m) between an extra collider and the shop wall', () => {
+    const { out } = build();
+    const shop = shopRect(denki);
+    for (const c of out.colliders.filter((r) => !(within(r, shop) && within(shop, r)))) {
+      const gap = c.z0 - shop.z1;
+      expect(gap === 0 || gap >= 0.84, `gap ${gap}`).toBe(true);
+    }
+  });
+
   it('keeps all its geometry inside the footprint (plus the sign, roof overhang and the street-side props)', () => {
     const { ctx } = build();
     const box = new THREE.Box3();

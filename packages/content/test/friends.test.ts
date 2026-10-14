@@ -162,6 +162,10 @@ describe('perks', () => {
     }
   });
 
+  it('names no festival, flat or home visit in any perk text (those are not in this release)', () => {
+    for (const f of JP_PACK.friends) for (const p of f.perks) expect(`${p.text.en} ${p.text.ar}`, `${f.id}/${p.id}`).not.toMatch(/festival|المهرجان|yukata|يوكاتا|\bflat\b|الشقة|home visit/i);
+  });
+
   it('gives every friend a ♥3 present that exists, and Hanako her one-time scholarship at ♥5', () => {
     for (const f of JP_PACK.friends) {
       const gift = f.perks.find((p) => p.heart === 3);

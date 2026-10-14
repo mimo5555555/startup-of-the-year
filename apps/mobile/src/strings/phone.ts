@@ -2,6 +2,8 @@
 
 export const en = {
   'phone.title': 'Messages',
+  'phone.continue': 'Continue',
+  'phone.continue.shift': 'On to the shift',
   'phone.voice': 'Voice message (tap to listen)',
   'phone.reveal': 'Show text',
   'phone.unread': '{n} new',
@@ -36,6 +38,8 @@ export const en = {
 
 export const ar: Record<keyof typeof en, string> = {
   'phone.title': 'الرسائل',
+  'phone.continue': 'متابعة',
+  'phone.continue.shift': 'إلى الوردية',
   'phone.voice': 'رسالة صوتية (اضغط للاستماع)',
   'phone.reveal': 'أظهر النص',
   'phone.unread': '{n} جديدة',

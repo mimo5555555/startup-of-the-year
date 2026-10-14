@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { chapterStatus, nextBestGoal, nextBestGoals, objectiveRows } from '../src/objectives';
-import { apFor, DAILY, friendAt, mkQuestPack, mkRun, mkState, mkView, rng, withDone } from './fixtures-quest';
+import { apFor, CHAPTERS, DAILY, friendAt, mkQuestPack, mkRun, mkState, mkView, rng, withDone } from './fixtures-quest';
 import type { DailyGoalState, GameState, NextGoal } from '../src/types';
 
 const pack = mkQuestPack();
@@ -108,6 +108,19 @@ describe('waiting for days and a closed start gate', () => {
     expect(nextBestGoals(pack, base, mkView()).find((g) => g.kind === 'wait')?.days).toBe(3);
     expect(nextBestGoals(pack, { ...base, clock: { ...base.clock, activeDays: 3 } }, mkView()).find((g) => g.kind === 'wait')?.days).toBe(1);
     expect(nextBestGoals(pack, { ...base, clock: { ...base.clock, activeDays: 4 } }, mkView()).some((g) => g.kind === 'wait')).toBe(false);
+  });
+
+  it('the last chapter of a capped pack does not promise a next chapter: Release 1 ends in the epilogue and Free Walk', () => {
+    const capped = mkQuestPack({ chapters: CHAPTERS.filter((c) => c.n <= 4) });
+    const last = withDone(mkState({ chapter: 4, activeDays: 4, dayIndex: 5, began: { dayIndex: 3, activeDays: 3 } }), 4);
+    const wait = nextBestGoals(capped, last, mkView()).find((g) => g.kind === 'wait');
+    expect(wait?.days).toBeGreaterThan(0);
+    expect(wait?.text.en).toMatch(/story's ending/);
+    expect(wait?.text.en).not.toMatch(/next chapter/);
+    expect(wait?.text.ar).not.toMatch(/الفصل التالي/);
+    // a chapter with another one behind it still says so
+    const middle = withDone(mkState({ chapter: 3, activeDays: 1, dayIndex: 1, began: { dayIndex: 0, activeDays: 0 } }), 3);
+    expect(nextBestGoals(capped, middle, mkView()).find((g) => g.kind === 'wait')?.text.en).toMatch(/next chapter/);
   });
 
   it('a chapter that began today waits for tomorrow even when the days are already enough', () => {

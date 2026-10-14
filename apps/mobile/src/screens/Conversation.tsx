@@ -29,6 +29,7 @@ import { ReceiptSheet } from '../components/game/ReceiptSheet';
 import { setDebrief, type KeepLine } from '../components/game/DebriefGame';
 import { characterById, displayName, scenarioForCharacter } from '../content';
 import { dispatch } from '../game/bridge';
+import { cultureSaidIn } from '../game/cultureLogic';
 import { createConvoGame, leaveAction } from '../game/convoHooks';
 import { completeFriendFacts, giftEventOf, planFriendConvo } from '../game/friendsLogic';
 import { planAccepted, planChat, planFlagEvent } from '../game/phoneLogic';
@@ -238,7 +239,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
   const noteQuote = (turn: Turn) => {
     if (turn.speaker !== 'character' || turn.kind !== 'say') return;
     const text = session.node.say.map((v) => v.line.ja).join(' ');
-    const kind = (['total', 'price', 'fare'] as const).find((k) => text.includes(`{${k}}`));
+    const kind = (['total', 'price', 'fare', 'body'] as const).find((k) => text.includes(`{${k}}`));
     const amount = kind && game.amounts()[kind];
     if (kind && amount !== undefined) quoted.current.set(turn.id, { amount, fare: kind === 'fare' });
   };
@@ -449,7 +450,9 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
     stopSpeech();
     const report = evaluateSession(session, feedback);
     const facts0 = session.facts({ mode, prepared: game.prepared, feedback });
-    const facts = game.friend ? completeFriendFacts(game.friend, facts0, session.stepsDone) : facts0;
+    const facts1 = game.friend ? completeFriendFacts(game.friend, facts0, session.stepsDone) : facts0;
+    // the culture phrases the player said, judged with the engine's own turn normalisation (the reducer cannot read kanji)
+    const facts = { ...facts1, cultureSaid: cultureSaidIn(PACK, facts1) };
     const turns = session.turns.map((x) => ({ id: x.id, speaker: x.speaker, written: x.line.written, en: x.line.en, ar: x.line.ar, assisted: x.assisted, tokens: x.line.tokens }));
     const data = useStore.getState().recordLoop({ scenarioId: scenario.id, report, turns });
     let derived = game.derived;

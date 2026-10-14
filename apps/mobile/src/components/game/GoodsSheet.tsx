@@ -13,6 +13,7 @@ import { speakJa } from '../../services';
 import { Icon } from '../Icon';
 import { JaText } from '../JaText';
 import { Ltr, yen } from './WalletPill';
+import { opensIn } from '../../game/opensIn';
 
 /** A word-card token for a good's name (the name carries its own reading, so it need not be in the lexicon). */
 function nameToken(n: NameGloss): Token {
@@ -78,7 +79,7 @@ export function GoodsSheet({ shopId, window: peek = false, onClose }: { shopId: 
                       t('shop.someday')
                     ) : locked ? (
                       <>
-                        <Icon name="lock" size={13} /> {t('quests.locked', { n: g.ch })}
+                        <Icon name="lock" size={13} /> {opensIn(t, 'quests.locked', g.ch)}
                       </>
                     ) : owned ? (
                       <>

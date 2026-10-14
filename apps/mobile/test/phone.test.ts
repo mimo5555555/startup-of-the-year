@@ -22,7 +22,7 @@ import {
 } from '@lw/game';
 import { createConvoGame } from '../src/game/convoHooks';
 import { canMessage, isCasual } from '../src/game/friendsLogic';
-import { PLACE_IDS, chatFlags, mapPins, openerLine, planAccepted, planChat, planFlagEvent, planToday, runnableThreads, threadRows, totalUnread } from '../src/game/phoneLogic';
+import { PLACE_IDS, chatFlags, feedbackThen, mapPins, openerLine, planAccepted, planChat, planFlagEvent, planToday, runnableThreads, threadRows, totalUnread } from '../src/game/phoneLogic';
 import { en, ar } from '../src/strings/phone';
 
 const NOW = new Date(2030, 0, 15, 12).getTime();
@@ -378,6 +378,21 @@ describe('strings', () => {
       expect(ar[k], k).toMatch(/[؀-ۿ]/);
       expect(en[k], k).not.toMatch(/[؀-ۿ]/);
       expect(en[k] + ar[k], k).not.toMatch(/[٠-٩۰-۹]/);
+    }
+  });
+});
+
+describe('where a debrief goes next', () => {
+  it('every chat template continues to the Phone, the boss intro to the Shift screen, the rest to the street', () => {
+    for (const id of ['chat_first', 'chat_greet', 'chat_plan', 'chat_food', 'chat_miss']) expect(feedbackThen(id, 'mio'), id).toEqual({ screen: 'phone', args: { friendId: 'mio' } });
+    expect(feedbackThen('job_konbini_intro', 'tanaka')).toEqual({ screen: 'shift', args: { jobId: 'job_konbini' } });
+    expect(feedbackThen('konbini', 'tanaka')).toBeNull();
+    expect(feedbackThen('smalltalk_mio', 'mio')).toBeNull();
+  });
+  it('the Continue strings exist in both languages', () => {
+    for (const k of ['phone.continue', 'phone.continue.shift'] as const) {
+      expect(en[k].length).toBeGreaterThan(0);
+      expect(/[؀-ۿ]/.test(ar[k])).toBe(true);
     }
   });
 });

@@ -7,7 +7,7 @@ import { avatarPatch, createGameState, derivedFlags, disclosure, grantItem, redu
 import { Inventory, Wardrobe, fxLines, iconFor, ownedRows } from '../src/components/game/Inventory';
 import { RECEIPTS_SHOWN, Receipts, dayLabel, receiptIcon, receiptRows } from '../src/components/game/Receipts';
 import { Wallet } from '../src/screens/Wallet';
-import { applyAvatar, avatarSpecFor, isWorn, specKey, specWithPatch, toggledOutfit, wearables } from '../src/game/avatarFx';
+import { applyAvatar, autoWearOutfit, avatarSpecFor, isWorn, specKey, specWithPatch, toggledOutfit, wearables } from '../src/game/avatarFx';
 import { resetBridgeForTests } from '../src/game/bridge';
 import { useGame } from '../src/game/gameStore';
 import { gameView } from '../src/game/selectors';
@@ -76,6 +76,17 @@ describe('avatar patches (§5.5)', () => {
     s = wear(s, toggledOutfit(s, 'bike_helmet'));
     expect(isWorn(s, 'bike_helmet')).toBe(false);
     expect(avatarPatch(JP_PACK, s).accessories).toEqual([]);
+  });
+
+  it('autoWearOutfit puts a newly bought wearable on at once, and never again one the player took off', () => {
+    const before = fresh();
+    const bought = own(before, 'bike_helmet');
+    expect(autoWearOutfit(JP_PACK, before, before)).toBeNull();
+    expect(autoWearOutfit(JP_PACK, before, bought)).toEqual(['bike_helmet']);
+    const worn = wear(bought, ['bike_helmet']);
+    expect(autoWearOutfit(JP_PACK, bought, worn)).toBeNull(); // already on
+    const off = wear(worn, []);
+    expect(autoWearOutfit(JP_PACK, worn, off)).toBeNull(); // owned before: taking it off sticks
   });
 
   it('a piece that is not owned cannot be worn', () => {

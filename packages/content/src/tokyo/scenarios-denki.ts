@@ -12,6 +12,9 @@ const priced = (live: Line, legacy: Line): SayVariant[] => [say(live, { flag: 'p
 const BUY = ['ください', 'おねがい', 'にします', 'かいます', 'ほしい', 'これ'];
 
 const SHORT_LINE = L('申し訳ありません、|少し|足りません。', 'I am sorry, it is a little short.', 'آسفة، المبلغ ناقص قليلًا.');
+/** `short` is also where a refused sale ends: an item not in stock yet, or one the player already owns, says so (flags set by the game's `charge`) */
+const SOLD_OUT_LINE = L('申し訳ありません、|それ|は|まだ|ご用意|できません。', 'I am sorry, I cannot offer that yet.', 'آسفة، لا أستطيع تقديم ذلك بعد.');
+const OWNED_LINE = L('それ|は|もう|お持ち|です|よ。', 'You already have that one.', 'لديك هذا بالفعل.');
 const LEAVE_LINE = L('かしこまりました。|また|お待ち|して|おります。', 'Certainly. We look forward to seeing you again.', 'حسنًا. بانتظار زيارتك مجددًا.');
 const THINK_S = S('考えます。', 'I will think about it.', 'سأفكّر في الأمر.');
 const LATER_S = S('また|来ます。', 'I will come again.', 'سآتي مرة أخرى.');
@@ -155,7 +158,8 @@ export const DENKI_PHONE: Scenario = {
       ],
       suggestions: [S('中古スマホ|を|ください。', 'The refurbished phone, please.', 'الهاتف المجدّد من فضلك.'), S('黒|を|お願いします。', 'Black, please.', 'الأسود من فضلك.'), S('見ている|だけ|です。', 'I am just looking.', 'أنا أتفرّج فقط.')],
       intents: [
-        colourPick,
+        // while the latest phone is not in stock a colour does not lead to a till: Aoi says so again and offers the others
+        { ...colourPick, econ: 'in_stock', nextIfNo: 'models' },
         askPrice('pro_offer'),
         { id: 'choose_used', slot: 'denkiItem', slotOptions: ['used', 'case'], slotRequired: true, next: 'colour', request: true, ideal: CHOOSE_IDEAL },
         { id: 'just_looking', any: ['みているだけ', '見ているだけ'], next: 'models' },
@@ -174,7 +178,7 @@ export const DENKI_PHONE: Scenario = {
       intents: [
         { id: 'choose_used', slot: 'denkiItem', slotOptions: ['used', 'case'], slotRequired: true, next: 'colour', request: true, ideal: CHOOSE_IDEAL },
         askPrice('tv_offer'),
-        { id: 'take_tv', any: BUY, next: 'quote_tv', request: true, ideal: L('これ|を|ください。', 'This one, please.', 'هذا من فضلك.') },
+        { id: 'take_tv', any: BUY, next: 'quote_tv', econ: 'in_stock', nextIfNo: 'models', request: true, ideal: L('これ|を|ください。', 'This one, please.', 'هذا من فضلك.') },
         { id: 'just_looking', any: ['みているだけ', '見ているだけ'], next: 'models' },
         later(),
       ],
@@ -226,7 +230,7 @@ export const DENKI_PHONE: Scenario = {
     // too little money is a scripted branch, never an error (§4.4 rule 6)
     node({
       id: 'short',
-      say: [say(SHORT_LINE)],
+      say: [say(OWNED_LINE, { flag: 'owned_already' }), say(SOLD_OUT_LINE, { flag: 'sold_out' }), say(SHORT_LINE)],
       suggestions: [LATER_S, S('安い|の|は|あります|か？', 'Do you have something cheaper?', 'هل لديكم شيء أرخص؟'), THINK_S],
       intents: [later(), { id: 'cheaper', any: ['やすいの', 'やすい'], next: 'models' }],
     }),

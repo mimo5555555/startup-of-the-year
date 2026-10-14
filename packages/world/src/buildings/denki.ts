@@ -160,11 +160,14 @@ export const buildDenki: BuildingBuilder = (ctx: BuildCtx, s: ShopDef) => {
   }
 
   // ---- outside: phone and TV standees, roof dish and light-bulb emblem ----
+  // 1.3 m off the facade: the gap between its 0.5 m collider and the wall must stay wider than the player (0.84 m), or a player
+  // who steps into it is squeezed out of both colliders and ends inside the standee
+  const SZ = FRONT_Z + 1.3;
   const standee = (x: number, w: number, h: number, screen: string) => {
-    solid.boxB(x, 0, FRONT_Z + 0.9, w, h, 0.1, L.blue, { rx: 0.12 });
-    glow.boxB(x, 0.12, FRONT_Z + 0.97, w - 0.2, h - 0.35, 0.01, screen, { rx: 0.12 });
-    glow.boxB(x, h - 0.2, FRONT_Z + 0.97, w - 0.2, 0.1, 0.01, L.yellow, { rx: 0.12 });
-    collide(x, FRONT_Z + 0.9, w + 0.1, 0.5);
+    solid.boxB(x, 0, SZ, w, h, 0.1, L.blue, { rx: 0.12 });
+    glow.boxB(x, 0.12, SZ + 0.07, w - 0.2, h - 0.35, 0.01, screen, { rx: 0.12 });
+    glow.boxB(x, h - 0.2, SZ + 0.07, w - 0.2, 0.1, 0.01, L.yellow, { rx: 0.12 });
+    collide(x, SZ, w + 0.1, 0.5);
   };
   standee(cx - 4.6, 0.9, 1.6, '#8fe3ff');
   standee(cx + 4.6, 1.2, 1.2, '#ffd78a');
