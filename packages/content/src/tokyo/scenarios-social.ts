@@ -126,7 +126,7 @@ export const GIVE_GIFT: Scenario = {
 // small talk
 // ---------------------------------------------------------------------------------------------------------------
 
-export const SMALLTALK_FRIENDS = ['mio', 'yuki', 'tanaka', 'kenji', 'sato', 'hanako'] as const;
+export const SMALLTALK_FRIENDS = ['mio', 'yuki', 'tanaka', 'kenji', 'sato', 'hanako', 'aiko'] as const;
 type FriendId = (typeof SMALLTALK_FRIENDS)[number];
 /** the friends who speak plain form at some heart */
 const PLAIN_FRIENDS: FriendId[] = ['mio', 'yuki', 'kenji'];
@@ -199,6 +199,17 @@ const FRIEND: Record<FriendId, Place> = {
       teach_songs: same(L('歌|で|日本語|を|教えます。', 'I teach Japanese with songs.', 'أعلّم اليابانية بالأغاني.')),
       calligraphy: same(L('書道|が|趣味|です。', 'My hobby is calligraphy.', 'هوايتي الخط.')),
       letters: same(L('毎年、|生徒|の|手紙|を|読みます。', "Every year I read my students' letters.", 'أقرأ كل عام رسائل طلابي.')),
+    },
+  },
+  // Release 2 wave B1: Aiko is a friend from Chapter 2 (§8.1), polite and soft at every heart
+  aiko: {
+    locationId: 'ono',
+    food: same(L('わたし|は|和菓子|が|好き|です。', 'I like wagashi.', 'أحب الواغاشي.')),
+    weekend: same(L('わたし|は|庭|で|お茶|を|飲みます。', 'I drink tea in the garden.', 'أشرب الشاي في الحديقة.')),
+    facts: {
+      shop_forty: same(L('この|お店|は|四|十|年|です。', 'This shop is forty years old.', 'عمر هذا المتجر أربعون عامًا.')),
+      garden_sakura: same(L('庭|に|桜|が|あります。', 'There is a cherry tree in the garden.', 'في الحديقة شجرة كرز.')),
+      grandchildren: same(L('孫|は|大阪|に|住んで|います。', 'My grandchildren live in Osaka.', 'أحفادي يعيشون في أوساكا.')),
     },
   },
 };
@@ -371,6 +382,14 @@ export const SPECIFIC_TOPICS: Topic[] = [
     chips: [S('はい、|書きます。', 'Yes, I write them.', 'نعم، أكتبها.'), S('ちょっと|難しい|です。', 'It is a little hard.', 'إنه صعب قليلًا.')],
     keys: ['じ', '字', 'かき', '書き', 'かんじ', '漢字', 'むずかしい', '難しい'],
     react: same(L('いい|です|ね。|字|を|書く|のは|楽しい|です|よ。', 'Nice. Writing characters is fun.', 'جميل. كتابة الحروف ممتعة.')),
+  },
+  {
+    id: 'aiko_tea',
+    only: 'aiko',
+    ask: same(L('お茶|は|好き|です|か？', 'Do you like tea?', 'هل تحب الشاي؟')),
+    chips: [S('はい、|お茶|が|好き|です。', 'Yes, I like tea.', 'نعم، أحب الشاي.'), S('おいしい|お茶|です|ね。', 'This is nice tea.', 'هذا شاي لذيذ.')],
+    keys: ['おちゃ', 'お茶', 'おいしい', 'あたたかい'],
+    react: same(L('うれしい|です。|また|お茶|を|どうぞ。', 'I am glad. Please have tea again.', 'يسعدني ذلك. تفضّل بالشاي مرة أخرى.')),
   },
 ];
 

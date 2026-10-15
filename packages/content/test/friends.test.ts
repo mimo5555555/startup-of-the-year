@@ -10,7 +10,7 @@ import { FREE_WALK } from '../src/tokyo/game/chapters';
 import { SMALLTALK_FRIENDS } from '../src/tokyo/scenarios-social';
 
 const hasAr = (s: string) => /[؀-ۿ]/.test(s);
-const ids = ['mio', 'yuki', 'tanaka', 'kenji', 'sato', 'hanako'];
+const ids = ['mio', 'yuki', 'tanaka', 'kenji', 'sato', 'hanako', 'aiko'];
 /** §8.4: the profile facts, in heart order */
 const FACTS: Record<string, string[]> = {
   mio: ['likes_anime', 'photo_sakura', 'lives_alone'],
@@ -19,6 +19,7 @@ const FACTS: Record<string, string[]> = {
   sato: ['thirty_years', 'old_trains', 'grandson'],
   kenji: ['broth', 'baseball', 'daughter_hina'],
   hanako: ['teach_songs', 'calligraphy', 'letters'],
+  aiko: ['shop_forty', 'garden_sakura', 'grandchildren'],
 };
 const friend = (id: string) => JP_PACK.friends.find((f) => f.id === id)!;
 const errorsAt = (issues: Issue[], re: RegExp) => issues.filter((i) => i.severity === 'error' && re.test(i.path));
@@ -30,7 +31,7 @@ const GIFTABLE = [
 ];
 
 describe('the friends table', () => {
-  it('lists the six friends of the release, all registered characters with a small-talk scenario', () => {
+  it('lists the seven friends of the release, all registered characters with a small-talk scenario', () => {
     expect(JP_PACK.friends.map((f) => f.id).sort()).toEqual([...ids].sort());
     expect([...SMALLTALK_FRIENDS].sort()).toEqual([...ids].sort());
     for (const f of JP_PACK.friends) {
@@ -49,6 +50,7 @@ describe('the friends table', () => {
       ['kenji', 'polite', 3],
       ['sato', 'keigo', 99],
       ['hanako', 'polite', 99],
+      ['aiko', 'polite', 99],
     ]);
   });
 

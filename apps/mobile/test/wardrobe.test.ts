@@ -504,11 +504,12 @@ describe("Aiko's tea house opens at Chapter 2 with one row: the tea house", () =
     expect([open(1), open(2), open(4)]).toEqual([false, true, true]);
   });
 
-  it('from Chapter 2 on, with the scenarios the app registers, her only row is aiko_tea (no viewing, contract, talk or home row), so Talk starts it directly', () => {
+  it('Chapter 2 opens one row, the tea house, so Talk starts it directly; Chapter 3 adds small talk and a gift (Aiko is a friend since wave B1); her flat is not built', () => {
     for (const n of [2, 3, 4]) {
       const rows = interactionRows(env(n), 'aiko');
-      expect(rows.map((r) => r.it.id), `chapter ${n}`).toEqual(['aiko_shop']);
-      expect(openRows(rows).map((r) => r.it.scenarioId)).toEqual(['aiko_tea']);
+      // the viewing and the contract wait for their scenarios; the hang-out and the visit are listed but shut until the hearts
+      expect(rows.map((r) => r.it.id), `chapter ${n}`).toEqual(['aiko_shop', 'aiko_talk', 'aiko_gift', 'aiko_hang', 'home_aiko']);
+      expect(openRows(rows).map((r) => r.it.scenarioId ?? r.it.kind), `chapter ${n}`).toEqual(n === 2 ? ['aiko_tea'] : ['aiko_tea', 'smalltalk_aiko', 'gift']);
     }
     expect(openRows(interactionRows(env(1), 'aiko'))).toEqual([]);
   });

@@ -1,9 +1,9 @@
 import type { LexEntry } from '../types';
 import { w, g } from './helpers';
 
-// Lexicon entries for the story beats of the friends (4A: Mio's heart-2 beat) and for hang-outs and home visits (4E-a). Keep surfaces
-// unique across the whole lexicon (the content tests report clashes).
-void g;
+// Lexicon entries for the story beats of the friends (4A: Mio's heart-2 beat) and for hang-outs and home visits (Release 2 wave B1:
+// `tokyo/scenarios-friends.ts`, the props of the three homes in `tokyo/game/homes.ts`). Keep surfaces unique across the whole lexicon
+// (the content tests report clashes); the words of the home props are named by the same surface the stage's word card shows.
 
 export const SOCIAL_FRIENDS_LEXICON: LexEntry[] = [
   // ---- Mio's heart-2 beat: the phone number on a paper note, and the switch to plain speech ----
@@ -13,4 +13,142 @@ export const SOCIAL_FRIENDS_LEXICON: LexEntry[] = [
   w('ない', '', 'not have, there is not', 'لا يوجد، لا يملك'),
   w('敬語', 'けいご', 'polite (honorific) speech', 'لغة الاحترام'),
   w('やめよう', '', "let's stop (casual)", 'لنتوقف (غير رسمي)'),
+
+  // ---- the props of the three homes (a tap on a prop shows its word card; `PROP_WORDS` in tokyo/game/homes.ts) ----
+  w('靴', 'くつ', 'shoes', 'حذاء'),
+  w('机', 'つくえ', 'desk', 'مكتب'),
+  w('カメラ', '', 'camera', 'كاميرا'),
+  w('ポスター', '', 'poster', 'ملصق'),
+  w('本棚', 'ほんだな', 'bookshelf', 'رفّ كتب'),
+  w('窓', 'まど', 'window', 'نافذة'),
+  w('畳', 'たたみ', 'tatami mat', 'حصير تاتامي'),
+  w('こたつ', '', 'kotatsu (heated table with a quilt)', 'كوتاتسو (طاولة دافئة بلحاف)'),
+  w('ざぶとん', '', 'floor cushion', 'وسادة جلوس'),
+  w('障子', 'しょうじ', 'shoji (paper sliding door)', 'شوجي (باب ورقي منزلق)'),
+  w('急須', 'きゅうす', 'teapot', 'إبريق شاي'),
+  w('ちゃぶ台', 'ちゃぶだい', 'low dining table', 'طاولة طعام منخفضة'),
+  w('炊飯器', 'すいはんき', 'rice cooker', 'جهاز طهو الأرز'),
+
+  // ---- the genkan and the manners at the door ----
+  w('玄関', 'げんかん', 'entrance hall (genkan)', 'المدخل (جنكان)'),
+  w('スリッパ', '', 'slippers', 'خفّ بيت'),
+  w('脱ぐ', 'ぬぐ', 'to take off (shoes, clothes)', 'يخلع'),
+  w('脱いで', 'ぬいで', 'taking off (te-form)', 'اخلع (صيغة الأمر)'),
+  w('脱ぎます', 'ぬぎます', 'to take off (polite)', 'أخلع (مهذب)'),
+  w('上がる', 'あがる', 'to step up, to come in', 'يصعد، يدخل البيت'),
+  w('上がって', 'あがって', 'step up, come in (te-form)', 'تفضّل بالدخول (صيغة الأمر)'),
+  w('上がれ', 'あがれ', 'come in! (rough)', 'ادخل! (فظّ)'),
+  w('お上がり', 'おあがり', 'coming in (honorific)', 'الدخول (تكريمًا)'),
+  w('入れません', 'いれません', 'cannot enter', 'لا يمكن الدخول'),
+  w('おじゃましました', '', 'excuse me for having intruded (said as you leave)', 'عن إذنك (تُقال عند المغادرة)'),
+
+  // ---- manners and the host's talk ----
+  w('座って', 'すわって', 'sit down (te-form)', 'اجلس (صيغة الأمر)'),
+  w('座れ', 'すわれ', 'sit! (rough)', 'اجلس! (فظّ)'),
+  w('飲む', 'のむ', 'to drink', 'يشرب'),
+  w('飲みます', 'のみます', 'to drink (polite)', 'أشرب (مهذب)'),
+  w('庭', 'にわ', 'garden, yard', 'حديقة المنزل'),
+  w('大阪', 'おおさか', 'Osaka', 'أوساكا'),
+  w('入れましょう', 'いれましょう', "let's pour (tea)", 'لنصبّ (الشاي)'),
+  w('入れました', 'いれました', 'poured, put in (polite past)', 'صببتُ، أضفتُ'),
+  w('帰る', 'かえる', 'to go home', 'يعود إلى البيت'),
+  w('帰って', 'かえって', 'going home (te-form)', 'عُد إلى البيت'),
+  w('お帰り', 'おかえり', 'going home (honorific)', 'العودة إلى البيت (تكريمًا)'),
+  w('持って', 'もって', 'holding, taking (te-form)', 'حاملًا، خذ'),
+  w('喜んだ', 'よろこんだ', 'was glad (plain)', 'فرح'),
+  w('喜びました', 'よろこびました', 'was glad (polite)', 'فرح (مهذب)'),
+  w('隣', 'となり', 'next door, next to', 'المجاور'),
+  w('同じ', 'おなじ', 'the same', 'نفسه'),
+  w('上', 'うえ', 'on, above', 'فوق'),
+  w('せまい', '', 'small, narrow (a room)', 'ضيّق، صغير'),
+  w('広い', 'ひろい', 'spacious', 'واسع'),
+  w('気になる', 'きになる', 'to be curious about', 'يثير الفضول'),
+  w('気になります', 'きになります', 'to be curious about (polite)', 'يثير الفضول (مهذب)'),
+  w('晩ごはん', 'ばんごはん', 'dinner', 'العشاء'),
+  w('おいしそう', '', 'looks delicious', 'يبدو لذيذًا'),
+  w('何歳', 'なんさい', 'how old', 'كم العمر'),
+  w('聞き', 'きき', 'ask, listen (stem)', 'اسأل، استمع (جذر)'),
+  w('来た', 'きた', 'came (plain)', 'جاء'),
+  w('来い', 'こい', 'come! (rough)', 'تعال! (فظّ)'),
+  w('ある', '', 'there is, to have (plain)', 'يوجد، لدى (غير رسمي)'),
+  w('楽しかった', 'たのしかった', 'was fun', 'كان ممتعًا'),
+  w('あげる', '', 'to give (plain)', 'يعطي (غير رسمي)'),
+  w('できた', '', 'is done, is ready (plain)', 'انتهى، أصبح جاهزًا'),
+  w('できました', '', 'is done, is ready (polite)', 'انتهى، أصبح جاهزًا (مهذب)'),
+
+  // ---- the photo walk with Mio ----
+  w('ポーズ', '', 'pose', 'وضعية'),
+  w('ピース', '', 'peace sign', 'علامة النصر'),
+  w('見える', 'みえる', 'to be visible, to see', 'يُرى، يرى'),
+  w('見えます', 'みえます', 'to be visible, to see (polite)', 'يُرى، يرى (مهذب)'),
+  w('見えた', 'みえた', 'could see (plain past)', 'استطاع أن يرى'),
+  w('見えました', 'みえました', 'could see (polite past)', 'استطاع أن يرى (مهذب)'),
+  w('空', 'そら', 'sky', 'السماء'),
+  w('鳥', 'とり', 'bird', 'طائر'),
+  w('こっち', '', 'this one, this way', 'هذا، من هنا'),
+  w('あっち', '', 'that one, that way', 'ذاك، من هناك'),
+  w('どっち', '', 'which one (of two)', 'أيهما (من اثنين)'),
+
+  // ---- the jam session with Yuki ----
+  w('ジャンル', '', 'genre', 'نوع (موسيقي)'),
+  w('ロック', '', 'rock (music)', 'روك'),
+  w('ジャズ', '', 'jazz', 'جاز'),
+  w('ポップ', '', 'pop (music)', 'بوب'),
+  w('曲', 'きょく', 'song, piece of music', 'أغنية، مقطوعة'),
+  w('リクエスト', '', 'request', 'طلب'),
+  w('弾いて', 'ひいて', 'playing (te-form)', 'اعزف (صيغة الأمر)'),
+  w('終わり', 'おわり', 'the end, finished', 'النهاية، انتهى'),
+
+  // ---- cooking with Kenji ----
+  w('材料', 'ざいりょう', 'ingredients', 'المكوّنات'),
+  w('ねぎ', '', 'green onion', 'بصل أخضر'),
+  w('卵', 'たまご', 'egg', 'بيضة'),
+  w('チャーシュー', '', 'chashu (braised pork)', 'تشاشو (لحم خنزير مطهو)'),
+  w('もやし', '', 'bean sprouts', 'براعم الفاصولياء'),
+  w('塩', 'しお', 'salt', 'ملح'),
+  w('味', 'あじ', 'taste, flavour', 'طعم'),
+  w('切って', 'きって', 'cutting (te-form)', 'قطّع (صيغة الأمر)'),
+  w('切れ', 'きれ', 'cut! (rough)', 'قطّع! (فظّ)'),
+  w('切ります', 'きります', 'to cut (polite)', 'أقطّع (مهذب)'),
+  w('入れます', 'いれます', 'to put in (polite)', 'أضع، أضيف (مهذب)'),
+  w('入れろ', 'いれろ', 'put it in! (rough)', 'ضعه! (فظّ)'),
+  w('食べて', 'たべて', 'eating (te-form)', 'كُل (صيغة الأمر)'),
+  w('食べろ', 'たべろ', 'eat! (rough)', 'كُل! (فظّ)'),
+  w('食べます', 'たべます', 'to eat (polite)', 'آكل (مهذب)'),
+  w('みて', '', 'try, look (te-form of みる)', 'جرّب، انظر (صيغة الأمر)'),
+  w('みろ', '', 'try it! (rough)', 'جرّبه! (فظّ)'),
+  w('次', 'つぎ', 'next', 'التالي'),
+
+  // ---- making wagashi with Aiko ----
+  w('奥', 'おく', 'the back, the inner part', 'الداخل، الخلف'),
+  w('作りましょう', 'つくりましょう', "let's make", 'لنصنع'),
+  w('いくつ', '', 'how many (things)', 'كم (عدد)'),
+  w('形', 'かたち', 'shape', 'شكل'),
+  w('丸', 'まる', 'round, a circle', 'دائري'),
+  w('四角', 'しかく', 'square', 'مربّع'),
+  w('数', 'かず', 'number, count', 'عدد'),
+  w('お菓子', 'おかし', 'sweets, a confection', 'حلوى'),
+  w('甘い', 'あまい', 'sweet', 'حلو'),
+  w('お土産', 'おみやげ', 'a gift to take home, souvenir', 'هدية تُؤخذ إلى البيت'),
+  w('ふふ', '', 'hehe (a soft laugh)', 'هههه (ضحكة خفيفة)'),
+
+  // ---- small words ----
+  w('おう', '', 'hey (rough greeting)', 'أهلًا (فظّ)'),
+  w('あっ', '', 'oh! (a small start)', 'آه! (مفاجأة صغيرة)'),
+  w('よし', '', 'good, all right', 'جيد، حسنًا'),
+  w('へえ', '', 'oh, really', 'آه، حقًا'),
+  w('わあ', '', 'wow', 'واو'),
+  w('さあ', '', 'now then, come on', 'والآن، هيّا'),
+  w('そうだ', '', 'that is right, oh right', 'صحيح، آه صحيح'),
+  w('またな', '', 'see you (casual)', 'إلى اللقاء (غير رسمي)'),
+  w('あれ', '', 'that over there', 'ذاك هناك'),
+  g('その', 'that (near you)', 'ذلك'),
+  g('でした', 'was (polite)', 'كان (مهذب)'),
+  g('でしょ', '..., right? (casual)', '..., أليس كذلك؟ (غير رسمي)'),
+  g('けど', 'but', 'لكن'),
+  g('って', '(he/she says, quoting)', '(يقول/تقول، اقتباس)'),
+  g('ぞ', '(emphatic sentence ending)', '(نهاية جملة للتوكيد)'),
+  g('くれ', 'please (rough)', 'من فضلك (فظّ)'),
+  g('しろ', 'do it! (rough, of する)', 'افعل! (فظّ)'),
+  g('こそ', 'indeed (emphasis)', 'حقًا (توكيد)'),
 ];

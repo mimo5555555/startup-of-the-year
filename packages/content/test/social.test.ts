@@ -21,6 +21,7 @@ const FACTS: Record<string, string[]> = {
   sato: ['thirty_years', 'old_trains', 'grandson'],
   kenji: ['broth', 'baseball', 'daughter_hina'],
   hanako: ['teach_songs', 'calligraphy', 'letters'],
+  aiko: ['shop_forty', 'garden_sakura', 'grandchildren'],
 };
 const PLAIN_FLAGS: Record<string, boolean>[] = [{}, { casual: true }];
 const REMEMBER_KEYS = ['name', 'country', 'hobby', 'favFood', 'dream', 'purchase:phone'];
@@ -111,15 +112,15 @@ const IDS = SOCIAL_SCENARIOS.map((s) => s.id);
 const topicsOf = (f: string) => [...SHARED_TOPICS, ...SPECIFIC_TOPICS.filter((t) => t.only === f)];
 
 describe('social: registration and wiring', () => {
-  it('registers give_gift and the six smalltalk scenarios with unique ids', () => {
+  it('registers give_gift and the seven smalltalk scenarios with unique ids', () => {
     expect(IDS).toEqual(['give_gift', ...SMALLTALK_FRIENDS.map((f) => `smalltalk_${f}`)]);
-    expect(SMALLTALK_FRIENDS).toEqual(['mio', 'yuki', 'tanaka', 'kenji', 'sato', 'hanako']);
+    expect(SMALLTALK_FRIENDS).toEqual(['mio', 'yuki', 'tanaka', 'kenji', 'sato', 'hanako', 'aiko']);
     expect(new Set(SCENARIOS.map((s) => s.id)).size).toBe(SCENARIOS.length);
     for (const id of IDS) expect(scenarioById(id), id).toBeTruthy();
     for (const sc of SMALLTALK_SCENARIOS) expect(sc.characterId, sc.id).toBe(sc.id.replace('smalltalk_', ''));
   });
 
-  it('has 12 shared topics and one friend-specific topic for each of the six friends', () => {
+  it('has 12 shared topics and one friend-specific topic for each of the seven friends', () => {
     expect(SHARED_TOPICS.map((t) => t.id)).toEqual(['food', 'music', 'anime', 'games', 'travel', 'weather', 'weekend', 'family', 'town', 'study', 'fashion', 'sports']);
     expect(SPECIFIC_TOPICS.map((t) => t.only)).toEqual([...SMALLTALK_FRIENDS]);
     for (const f of SMALLTALK_FRIENDS) expect(topicsOf(f)).toHaveLength(13);
@@ -386,6 +387,9 @@ describe('social: fact reveals, callbacks and what the friend remembers', () => 
       teach_songs: '歌で日本語を教えます。',
       calligraphy: '書道が趣味です。',
       letters: '毎年、生徒の手紙を読みます。',
+      shop_forty: 'このお店は四十年です。',
+      garden_sakura: '庭に桜があります。',
+      grandchildren: '孫は大阪に住んでいます。',
     };
     for (const f of SMALLTALK_FRIENDS) {
       for (const fact of FACTS[f]) {

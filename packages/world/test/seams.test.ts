@@ -124,7 +124,7 @@ describe('FRONT_OVERRIDES', () => {
     let n = 0;
     city.group.traverse((o) => {
       const m = o as THREE.Mesh;
-      if (m.isMesh && m.geometry.type === 'PlaneGeometry' && Math.abs(m.rotation.y - Math.PI) < 1e-9) n++; // the south fronts' signs face -z
+      if (m.isMesh && !m.name.startsWith('door:') && m.geometry.type === 'PlaneGeometry' && Math.abs(m.rotation.y - Math.PI) < 1e-9) n++; // the south fronts' signs face -z (the door plates are counted in doors.test.ts)
     });
     return n;
   };

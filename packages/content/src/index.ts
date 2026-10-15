@@ -11,6 +11,7 @@ export * from './tokyo/scenarios';
 export * from './tokyo/scenario-registry';
 export * from './tokyo/lesson';
 export { JP_PACK } from './tokyo/game';
+export * from './tokyo/game/homes';
 export { CLOTHES_COLOURS, DENIM_COLOURS } from './tokyo/game/items';
 export { JP_LANGUAGE, parseNumbers, parseJaNumber, setSpeechNormalizer, yenToJa } from './tokyo/game/jp-language';
 

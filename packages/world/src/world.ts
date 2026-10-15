@@ -7,8 +7,10 @@ import { buildCity, type City } from './city';
 import { clamp, clampToBounds, clipDistance, resolveCircle } from './collision';
 import { TOKYO_DISTRICT, type District } from './district';
 import { buildFestival, DAY_LIGHTING, DUSK_LIGHTING, FESTIVAL_FADE_S, mixLighting, newLighting, type FestivalHandle } from './festival';
-import { PLAYER_START, shopRect, spotsAt, type NpcSpawn, type ShopDef, type SpotId } from './layout';
+import { DOOR_RETURN, PLAYER_START, shopRect, spotsAt, type NpcSpawn, type Rect, type ShopDef, type SpotId } from './layout';
 import { COLORS } from './palette';
+import type { Stage, StageHandle, StageId, StagePick, StageState } from './stage';
+import { STAGES } from './stages';
 import { bubbleTexture, labelTexture, sparkleTexture, watchFonts, blobTexture } from './textures';
 
 export type Badge = 'none' | 'new' | 'lesson' | 'done' | 'locked';
@@ -20,7 +22,13 @@ export type WorldEvent =
   | { type: 'ready' }
   | { type: 'quality'; quality: Quality }
   /** the player walked into one of the district's spots (once per entry; leaving and coming back fires again) */
-  | { type: 'spot'; id: SpotId };
+  | { type: 'spot'; id: SpotId }
+  /**
+   * A stage (§8.8): 'enter' after `enterStage`, 'exit' after the stage is gone (`exitStage`), and 'leave' when the learner
+   * walked into the door strip (once per entry; the world does not exit by itself: the app answers with `exitStage()`).
+   * A tap on the door is the pick `stage:exit`.
+   */
+  | { type: 'stage'; phase: 'enter' | 'exit' | 'leave'; id: StageId };
 
 export interface WorldOptions {
   canvas: HTMLCanvasElement;
@@ -31,6 +39,8 @@ export interface WorldOptions {
   labels?: Record<string, string>;
   /** the place to build; a second country pack passes its own (default: Tokyo) */
   district?: District;
+  /** the interior stages (default: the registry in `stages/`); tests pass their own */
+  stages?: Partial<Record<StageId, Stage>>;
 }
 
 export interface WorldSnapshot {
@@ -39,6 +49,8 @@ export interface WorldSnapshot {
   nearby: string | null;
   npcs: Array<{ id: string; x: number; z: number }>;
   inConversation: boolean;
+  /** the stage the player is in (the city is hidden, the coordinates are the room's, `npcs` is empty), else null */
+  stage: StageId | null;
 }
 
 const PLAYER_RADIUS = 0.42;
@@ -56,6 +68,13 @@ const MULT_RANGE = { min: 0.25, max: 10 };
 /** quality-dependent light levels; the festival preset scales them */
 const HEMI_LEVEL = { high: 1.95, low: 2.3 };
 const SUN_LEVEL = { high: 2.2, low: 1.2 };
+
+/** the floor height in a stage: the raised main floor is `step` metres up, the genkan strip is at 0 */
+const stageFloorY = (def: Stage, x: number, z: number) => {
+  const r = def.floor.raised;
+  return x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1 ? def.floor.step : 0;
+};
+const inRect = (r: Rect, x: number, z: number) => x >= r.x0 && x <= r.x1 && z >= r.z0 && z <= r.z1;
 
 const damp = (a: number, b: number, rate: number, dt: number) => a + (b - a) * (1 - Math.exp(-rate * dt));
 const angleDiff = (a: number, b: number) => Math.atan2(Math.sin(b - a), Math.cos(b - a));
@@ -76,7 +95,30 @@ interface Npc {
   shop: string | null;
   /** shop closed: the avatar and label are hidden, the badge shows a padlock and the minimap dot is gone */
   hidden: boolean;
+  /** a person in a stage: turns to the learner whenever they are within 6 m */
+  greets: boolean;
+  /** avatar height factor, for the badge and label (only stage people differ: Hina is 0.62) */
+  h: number;
+  /** a stage person's talking spot (`teleportNear`) */
+  talk?: { x: number; z: number };
 }
+
+/** The stage the player is in: everything `enterStage` made and `exitStage` has to take away again. */
+interface ActiveStage {
+  def: Stage;
+  handle: StageHandle;
+  npcs: Npc[];
+  sparkles: Array<{ id: string; sprite: THREE.Sprite; base: number }>;
+  state: StageState;
+  /** the stage's own colliders plus the gate while the shoes are on */
+  colliders: Rect[];
+  /** the outdoor world, put back on exit */
+  saved: { x: number; z: number; heading: number; yaw: number; pitch: number; dist: number };
+  inExit: boolean;
+}
+
+/** One orbit angle either side of straight on: the dollhouse is built to be seen from the open front. */
+const STAGE_YAW = 0.55;
 
 interface Walker {
   avatar: Avatar;
@@ -132,6 +174,14 @@ export class TokyoWorld {
   private festivalScenery: FestivalHandle | null = null;
   private readonly lighting = newLighting();
   private inSpots = new Set<SpotId>();
+  private doorOpen = new Set<string>();
+  /** the three door facades' dynamic signs, by door id (their builder leaves a `userData.setOpen` on each) */
+  private doorSigns = new Map<string, THREE.Object3D>();
+
+  // interior stages (§8.8)
+  private readonly stageDefs: Partial<Record<StageId, Stage>>;
+  private stage: ActiveStage | null = null;
+  private sparkleTex!: THREE.Texture;
 
   // input
   private keys = new Set<string>();
@@ -174,6 +224,7 @@ export class TokyoWorld {
   constructor(private opts: WorldOptions) {
     const { canvas } = opts;
     this.district = opts.district ?? TOKYO_DISTRICT;
+    this.stageDefs = opts.stages ?? STAGES;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', alpha: false });
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.renderer.setClearColor(COLORS.fog);
@@ -209,41 +260,13 @@ export class TokyoWorld {
     this.scene.add(this.player.root);
 
     // NPCs
-    const sparkleTex = sparkleTexture();
+    this.sparkleTex = sparkleTexture();
     for (const spawn of this.district.npcSpawns) {
       const ch = opts.characters.find((c) => c.id === spawn.id);
       if (!ch) continue;
       // a new shop's NPC appears only when its building was built (a stub builder leaves the site empty)
       if (spawn.site && !this.city.built.has(spawn.site)) continue;
-      const avatar = new Avatar(ch.avatar, this.toon, this.blobMat);
-      avatar.root.position.set(spawn.x, spawn.y ?? 0, spawn.z);
-      avatar.root.rotation.y = spawn.face;
-      this.scene.add(avatar.root);
-      const badge = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.badgeTexture('talk'), transparent: true, depthWrite: false, depthTest: false, fog: false }));
-      badge.renderOrder = 20;
-      badge.scale.set(0.95, 0.95, 1);
-      badge.position.set(spawn.x, 2.55 + (spawn.y ?? 0), spawn.z);
-      this.scene.add(badge);
-      const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.labelFor(opts.labels?.[ch.id] ?? ch.name.ja), transparent: true, depthWrite: false, depthTest: false, fog: false }));
-      label.renderOrder = 21;
-      label.scale.set(1.9, 0.48, 1);
-      label.position.set(spawn.x, 2.12 + (spawn.y ?? 0), spawn.z);
-      this.scene.add(label);
-      this.npcs.push({
-        id: ch.id,
-        avatar,
-        home: new THREE.Vector3(spawn.x, spawn.y ?? 0, spawn.z),
-        face: spawn.face,
-        facing: spawn.face,
-        radius: spawn.radius,
-        kind: spawn.kind,
-        badge,
-        label,
-        badgeKind: spawn.kind === 'lesson' ? 'lesson' : 'new',
-        shop: shopIdOf(spawn, this.district.shops),
-        hidden: false,
-      });
-      (badge.material as THREE.SpriteMaterial).map = this.badgeTexture(spawn.kind === 'lesson' ? 'lesson' : 'talk');
+      this.npcs.push(this.makeNpc(ch, { x: spawn.x, y: spawn.y ?? 0, z: spawn.z, face: spawn.face, radius: spawn.radius, kind: spawn.kind }, shopIdOf(spawn, this.district.shops)));
     }
 
     // ambient walkers share the character look-alikes
@@ -263,12 +286,10 @@ export class TokyoWorld {
     }
 
     // sparkles hint at things you can tap and learn
-    for (const p of this.city.pickables) {
-      const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: sparkleTex, transparent: true, depthWrite: false, fog: false, blending: THREE.AdditiveBlending, opacity: 0.8 }));
-      sprite.scale.set(0.4, 0.4, 1);
-      sprite.position.copy(p.pos).add(new THREE.Vector3(0, p.radius > 1.5 ? 0.9 : 0.55, 0));
-      this.scene.add(sprite);
-      this.sparkles.push({ id: p.id, sprite, base: sprite.position.y });
+    for (const p of this.city.pickables) this.sparkles.push(this.makeSparkle(p));
+    for (const o of this.city.group.children) {
+      const id = o.userData?.doorId as string | undefined;
+      if (id) this.doorSigns.set(id, o);
     }
 
     // tap marker
@@ -289,6 +310,51 @@ export class TokyoWorld {
       this.ro = new ResizeObserver(() => this.resize());
       this.ro.observe(canvas.parentElement);
     }
+  }
+
+  /** A character standing at `p`: avatar, talk badge and name label. `shop` is the shutter that hides it (null: never). */
+  private makeNpc(ch: Character, p: { x: number; y: number; z: number; face: number; radius: number; kind: 'scenario' | 'lesson' }, shop: string | null, greets = false): Npc {
+    const avatar = new Avatar(ch.avatar, this.toon, this.blobMat);
+    const h = greets ? ch.avatar.height ?? 1 : 1;
+    avatar.root.position.set(p.x, p.y, p.z);
+    avatar.root.rotation.y = p.face;
+    this.scene.add(avatar.root);
+    const badge = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.badgeTexture('talk'), transparent: true, depthWrite: false, depthTest: false, fog: false }));
+    badge.renderOrder = 20;
+    badge.scale.set(0.95, 0.95, 1);
+    badge.position.set(p.x, 2.55 * h + p.y, p.z);
+    this.scene.add(badge);
+    const label = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.labelFor(this.opts.labels?.[ch.id] ?? ch.name.ja), transparent: true, depthWrite: false, depthTest: false, fog: false }));
+    label.renderOrder = 21;
+    label.scale.set(1.9, 0.48, 1);
+    label.position.set(p.x, 2.12 * h + p.y, p.z);
+    this.scene.add(label);
+    (badge.material as THREE.SpriteMaterial).map = this.badgeTexture(p.kind === 'lesson' ? 'lesson' : 'talk');
+    return {
+      id: ch.id,
+      avatar,
+      home: new THREE.Vector3(p.x, p.y, p.z),
+      face: p.face,
+      facing: p.face,
+      radius: p.radius,
+      kind: p.kind,
+      badge,
+      label,
+      badgeKind: p.kind === 'lesson' ? 'lesson' : 'new',
+      shop,
+      hidden: false,
+      greets,
+      h,
+    };
+  }
+
+  /** the sparkle that hints at a pickable (hidden once found, far away, or in a conversation) */
+  private makeSparkle(p: { id: string; pos: THREE.Vector3; radius: number }) {
+    const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: this.sparkleTex, transparent: true, depthWrite: false, fog: false, blending: THREE.AdditiveBlending, opacity: 0.8 }));
+    sprite.scale.set(0.4, 0.4, 1);
+    sprite.position.copy(p.pos).add(new THREE.Vector3(0, p.radius > 1.5 ? 0.9 : 0.55, 0));
+    this.scene.add(sprite);
+    return { id: p.id, sprite, base: sprite.position.y };
   }
 
   // ---------------- public api ----------------
@@ -345,6 +411,7 @@ export class TokyoWorld {
     if (this.stick.lengthSq() > 0.01) this.moveTarget = null;
   }
 
+  /** The bubble over a street NPC (the people inside a stage never carry one: the app starts their conversation itself). */
   setNpcBadge(id: string, badge: Badge) {
     const n = this.npcs.find((x) => x.id === id);
     if (!n) return;
@@ -353,7 +420,7 @@ export class TokyoWorld {
   }
 
   setNpcLabels(labels: Record<string, string>) {
-    for (const n of this.npcs) {
+    for (const n of [...this.npcs, ...(this.stage?.npcs ?? [])]) {
       const text = labels[n.id];
       if (!text) continue;
       const m = n.label.material as THREE.SpriteMaterial;
@@ -403,6 +470,7 @@ export class TokyoWorld {
     if (this.rideMesh) {
       this.rideMesh.position.copy(this.playerPos);
       this.rideMesh.rotation.y = this.playerHeading;
+      this.rideMesh.visible = !this.stage;
       this.scene.add(this.rideMesh);
     }
   }
@@ -426,6 +494,211 @@ export class TokyoWorld {
   }
   isFestival() {
     return this.festivalTarget === 1;
+  }
+
+  /**
+   * Opens or closes a friend's door marker (`door:mio`, `door:kenji`, `door:aiko`; pass the bare name or the full id;
+   * `door:dorm` is wave B2). Doors start closed: the sign is dimmed and has no sparkle. The tap is a `pick` either way (the
+   * app answers a closed door with 「まだ入れません」 and an open one by calling `enterStage`).
+   */
+  setDoorOpen(who: string, open: boolean) {
+    const id = who.startsWith('door:') ? who : `door:${who}`;
+    if (open) this.doorOpen.add(id);
+    else this.doorOpen.delete(id);
+    const sign = this.doorSigns.get(id);
+    (sign?.userData.setOpen as ((o: boolean) => void) | undefined)?.(open);
+  }
+  isDoorOpen(who: string) {
+    return this.doorOpen.has(who.startsWith('door:') ? who : `door:${who}`);
+  }
+
+  // ---------------- stages (§8.8) ----------------
+
+  /**
+   * Goes inside: hides the street, builds the stage (on demand), swaps the colliders, bounds and camera limits for the
+   * stage's and puts the player at its spawn on the genkan. Returns false when the stage is unknown or fails to build, and the
+   * app then shows the panel fallback. Entering a stage while in another leaves that one first; entering the stage you are in
+   * is a no-op that returns true. `state` starts the genkan done or not (the default is shoes on, slippers off).
+   */
+  enterStage(id: StageId, opts: { state?: Partial<StageState>; placed?: Record<string, string> } = {}): boolean {
+    const def = this.stageDefs[id];
+    if (!def) return false;
+    if (this.stage) {
+      if (this.stage.def.id === id) return true;
+      this.exitStage();
+    }
+    if (this.conv) this.exitConversation();
+    let handle: StageHandle;
+    try {
+      handle = def.build({ toon: this.toon, glow: this.city.materials.glow, placed: opts.placed ?? {}, playerShoes: this.player.spec.shoes });
+    } catch (e) {
+      console.warn(`stage '${id}' failed to build`, e);
+      return false;
+    }
+
+    const npcs: Npc[] = [];
+    for (const a of def.actors) {
+      const ch = this.opts.characters.find((c) => c.id === a.id);
+      if (!ch) continue;
+      const npc = this.makeNpc(ch, { x: a.x, y: stageFloorY(def, a.x, a.z), z: a.z, face: a.heading, radius: a.radius, kind: 'scenario' }, null, true);
+      npc.badgeKind = 'none';
+      npc.talk = a.talk;
+      npc.avatar.setBlob(true);
+      npcs.push(npc);
+    }
+    const sparkles = handle.pickables.map((p) => this.makeSparkle(p));
+    this.scene.add(handle.group);
+
+    // the street goes quiet: nothing of it is drawn or updated while the player is in a room
+    this.city.group.visible = false;
+    if (this.festivalScenery) this.festivalScenery.group.visible = false;
+    for (const n of this.npcs) {
+      n.avatar.root.visible = false;
+      n.badge.visible = false;
+      n.label.visible = false;
+    }
+    for (const w of this.walkers) w.avatar.root.visible = false;
+    for (const sp of this.sparkles) sp.sprite.visible = false;
+    if (this.rideMesh) this.rideMesh.visible = false;
+    this.hemi.visible = false;
+    this.sun.visible = false;
+    const backdrop = new THREE.Color(def.backdrop);
+    (this.scene.background as THREE.Color).copy(backdrop);
+    this.renderer.setClearColor(backdrop);
+
+    const state: StageState = { shoesOff: !!opts.state?.shoesOff, slippersOn: !!opts.state?.slippersOn };
+    const saved = { x: this.playerPos.x, z: this.playerPos.z, heading: this.playerHeading, yaw: this.yaw, pitch: this.pitch, dist: this.dist };
+    this.stage = { def, handle, npcs, sparkles, state, colliders: [], saved, inExit: false };
+    this.applyStageState();
+
+    this.playerPos.set(def.spawn.x, stageFloorY(def, def.spawn.x, def.spawn.z), def.spawn.z);
+    this.playerHeading = def.spawn.heading;
+    this.player.root.position.copy(this.playerPos);
+    this.player.root.rotation.y = this.playerHeading;
+    this.player.setBlob(true);
+    this.player.setWalking(0);
+    this.vel.set(0, 0, 0);
+    this.stick.set(0, 0);
+    this.moveTarget = null;
+    this.yaw = 0;
+    this.convBlend = 0;
+    const cam = def.camera;
+    this.pitch = clamp(cam.pitch, cam.minPitch, cam.maxPitch);
+    // on a phone the room is wider than the view: stand further back, by how much wider (the street does the same, 7.6 m -> 9.2 m)
+    const roomW = def.bounds.x1 - def.bounds.x0 + 0.6;
+    this.dist = clamp(cam.dist * (this.camera.aspect < 1 ? clamp(roomW / 3.7, 1, 1.45) : 1), cam.minDist, cam.maxDist);
+    this.snapCamera();
+    this.updateNearby();
+    this.emit({ type: 'stage', phase: 'enter', id });
+    return true;
+  }
+
+  /**
+   * Comes out again: disposes the stage (and its people), shows the street and puts the player on the walkable strip in
+   * front of the door they came through (`DOOR_RETURN`), or, with `toPrevious`, where they stood before `enterStage`.
+   * Emits `{type:'stage', phase:'exit'}`. False when the player is not in a stage.
+   */
+  exitStage(opts: { toPrevious?: boolean } = {}): boolean {
+    const st = this.stage;
+    if (!st) return false;
+    if (this.conv) this.exitConversation();
+    this.teardownStage();
+
+    this.city.group.visible = true;
+    for (const w of this.walkers) w.avatar.root.visible = true;
+    for (const n of this.npcs) n.avatar.root.visible = !n.hidden;
+    if (this.rideMesh) this.rideMesh.visible = true;
+    this.hemi.visible = true;
+    this.sun.visible = true;
+    this.player.setBlob(this.quality === 'low');
+    this.applyLighting();
+
+    const door = opts.toPrevious ? undefined : DOOR_RETURN[st.def.returnDoor];
+    const at = door ?? { x: st.saved.x, z: st.saved.z, heading: st.saved.heading };
+    this.playerPos.set(at.x, 0, at.z);
+    this.resolveCollisions(this.playerPos);
+    this.playerHeading = at.heading;
+    this.player.root.position.copy(this.playerPos);
+    this.player.root.rotation.y = this.playerHeading;
+    this.vel.set(0, 0, 0);
+    this.moveTarget = null;
+    this.convBlend = 0;
+    // from the street side, looking back at the door they came out of
+    this.yaw = door ? at.heading : st.saved.yaw;
+    this.pitch = st.saved.pitch;
+    this.dist = st.saved.dist;
+    this.snapCamera();
+    this.updateNearby();
+    this.updateSpots();
+    this.emit({ type: 'stage', phase: 'exit', id: st.def.id });
+    return true;
+  }
+
+  /** The stage the player is in, or null on the street. */
+  currentStage(): StageId | null {
+    return this.stage?.def.id ?? null;
+  }
+
+  /** Calls `fn` whenever a stage has been left (by `exitStage`). Returns the unsubscribe function. */
+  onStageExit(fn: (id: StageId) => void) {
+    return this.on((e) => {
+      if (e.type === 'stage' && e.phase === 'exit') fn(e.id);
+    });
+  }
+
+  /**
+   * The genkan: `shoesOff` shows the learner's shoes set on the mat and opens the step (the gate collider goes away),
+   * `slippersOn` hides the slippers. Both start false on every `enterStage`. Their picks (`genkan:shoes`, `genkan:slippers`)
+   * and sparkles go away once done.
+   */
+  setStageState(patch: Partial<StageState>) {
+    if (!this.stage) return;
+    Object.assign(this.stage.state, patch);
+    this.applyStageState();
+  }
+  getStageState(): StageState | null {
+    return this.stage ? { ...this.stage.state } : null;
+  }
+
+  /** What the stage costs to draw: its meshes (draw calls), triangles and the ids that can be tapped right now. */
+  stageInfo() {
+    const st = this.stage;
+    if (!st) return null;
+    let meshes = 0;
+    let triangles = 0;
+    st.handle.group.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!m.isMesh || !m.visible) return;
+      meshes++;
+      const g = m.geometry;
+      triangles += (g.index ? g.index.count : g.getAttribute('position').count) / 3;
+    });
+    return { id: st.def.id, meshes, triangles, picks: st.handle.pickables.filter((p) => !p.off).map((p) => p.id), people: st.npcs.map((n) => n.id) };
+  }
+
+  private applyStageState() {
+    const st = this.stage!;
+    st.handle.setState?.(st.state);
+    st.colliders = st.state.shoesOff ? st.def.colliders : [...st.def.colliders, st.def.gate];
+  }
+
+  /** Removes everything the stage added to the scene and frees it. Leaves the street untouched. */
+  private teardownStage() {
+    const st = this.stage;
+    if (!st) return;
+    this.stage = null;
+    for (const n of st.npcs) {
+      this.scene.remove(n.avatar.root, n.badge, n.label);
+      n.avatar.dispose();
+      (n.badge.material as THREE.Material).dispose();
+      (n.label.material as THREE.Material).dispose();
+    }
+    for (const sp of st.sparkles) {
+      this.scene.remove(sp.sprite);
+      (sp.sprite.material as THREE.Material).dispose();
+    }
+    this.scene.remove(st.handle.group);
+    st.handle.dispose();
   }
 
   setDiscovered(ids: Iterable<string>) {
@@ -454,7 +727,7 @@ export class TokyoWorld {
     this.sun.shadow.mapSize.set(high ? 2048 : 512, high ? 2048 : 512);
     this.sun.shadow.map?.dispose();
     (this.sun.shadow as unknown as { map: unknown }).map = null;
-    this.player?.setBlob(!high);
+    this.player?.setBlob(!high || !!this.stage); // no sun inside a room, so the contact shadow is always the blob
     for (const n of this.npcs) n.avatar.setBlob(!high);
     for (const w of this.walkers) w.avatar.setBlob(!high);
     this.applyLighting();
@@ -491,21 +764,29 @@ export class TokyoWorld {
 
   /** put the player in front of someone (used by tests and the "take me there" action) */
   teleportNear(id: string) {
-    const n = this.npcs.find((x) => x.id === id);
+    const n = this.actors().find((x) => x.id === id);
     if (!n) return;
     const fx = Math.sin(n.face);
     const fz = Math.cos(n.face);
-    this.playerPos.set(n.home.x + fx * n.radius * 0.72, 0, n.home.z + fz * n.radius * 0.72);
-    this.resolveBounds(this.playerPos);
+    if (this.stage && n.talk) {
+      // a room is small: the stage names the clear floor to stand on (a normal talking range, never the far side of the table)
+      this.playerPos.set(n.talk.x, 0, n.talk.z);
+      this.resolveCollisions(this.playerPos);
+      this.playerPos.y = stageFloorY(this.stage.def, this.playerPos.x, this.playerPos.z);
+    } else {
+      this.playerPos.set(n.home.x + fx * n.radius * 0.72, 0, n.home.z + fz * n.radius * 0.72);
+      this.resolveBounds(this.playerPos);
+    }
     this.playerHeading = Math.atan2(n.home.x - this.playerPos.x, n.home.z - this.playerPos.z);
     this.player.root.position.copy(this.playerPos);
     this.player.root.rotation.y = this.playerHeading;
     this.yaw = this.playerHeading + Math.PI;
+    if (this.stage) this.yaw = clamp(angleDiff(0, this.yaw), -STAGE_YAW, STAGE_YAW); // a room is seen from its open front
     this.moveTarget = null;
     this.vel.set(0, 0, 0);
     this.snapCamera();
     this.updateNearby();
-    this.updateSpots();
+    if (!this.stage) this.updateSpots();
   }
 
   /** walk to a spot automatically (tap-to-move for the UI's "take me there") */
@@ -515,7 +796,7 @@ export class TokyoWorld {
   }
 
   npcPosition(id: string) {
-    const n = this.npcs.find((x) => x.id === id);
+    const n = this.actors().find((x) => x.id === id);
     return n ? { x: n.home.x, z: n.home.z } : null;
   }
 
@@ -524,7 +805,7 @@ export class TokyoWorld {
   }
 
   enterConversation(id: string) {
-    const npc = this.npcs.find((n) => n.id === id);
+    const npc = this.actors().find((n) => n.id === id);
     if (!npc || npc.hidden || this.conv) return;
     this.conv = { npc, t: 0, playerBowed: false };
     this.moveTarget = null;
@@ -547,10 +828,10 @@ export class TokyoWorld {
   }
 
   setSpeaker(id: string, talking: boolean) {
-    this.npcs.find((n) => n.id === id)?.avatar.setTalking(talking);
+    this.actors().find((n) => n.id === id)?.avatar.setTalking(talking);
   }
   setEmotion(id: string, e: Emotion) {
-    this.npcs.find((n) => n.id === id)?.avatar.setEmotion(e);
+    this.actors().find((n) => n.id === id)?.avatar.setEmotion(e);
   }
   setPlayerTalking(on: boolean) {
     this.player.setTalking(on);
@@ -560,7 +841,7 @@ export class TokyoWorld {
     this.emit({ type: 'pick', id, x: this.width / 2, y: this.height / 2 });
   }
   npcWave(id: string) {
-    this.npcs.find((n) => n.id === id)?.avatar.wave();
+    this.actors().find((n) => n.id === id)?.avatar.wave();
   }
 
   snapshot(): WorldSnapshot {
@@ -568,8 +849,9 @@ export class TokyoWorld {
       player: { x: this.playerPos.x, z: this.playerPos.z, heading: this.playerHeading },
       camYaw: this.yaw,
       nearby: this.nearbyId,
-      npcs: this.npcs.filter((n) => !n.hidden).map((n) => ({ id: n.id, x: n.home.x, z: n.home.z })),
+      npcs: this.stage ? [] : this.npcs.filter((n) => !n.hidden).map((n) => ({ id: n.id, x: n.home.x, z: n.home.z })),
       inConversation: !!this.conv,
+      stage: this.stage?.def.id ?? null,
     };
   }
 
@@ -579,6 +861,7 @@ export class TokyoWorld {
 
   dispose() {
     this.stop();
+    this.teardownStage();
     this.ro?.disconnect();
     for (const [t, type, fn, o] of this.bound) t.removeEventListener(type, fn, o);
     this.city.dispose();
@@ -595,6 +878,11 @@ export class TokyoWorld {
   }
 
   // ---------------- internals ----------------
+
+  /** whoever can be talked to right now: the people of the stage, or the street's NPCs */
+  private actors(): Npc[] {
+    return this.stage ? this.stage.npcs : this.npcs;
+  }
 
   private badgeTexture(kind: 'talk' | 'lesson' | 'done' | 'locked') {
     let t = this.badgeCache.get(kind);
@@ -645,8 +933,10 @@ export class TokyoWorld {
     sky.top.value.copy(L.skyTop);
     sky.mid.value.copy(L.skyMid);
     sky.bottom.value.copy(L.skyBottom);
-    (this.scene.background as THREE.Color).copy(L.fog);
-    this.renderer.setClearColor(L.fog);
+    if (!this.stage) {
+      (this.scene.background as THREE.Color).copy(L.fog);
+      this.renderer.setClearColor(L.fog);
+    }
     (this.scene.fog as THREE.Fog).color.copy(L.fog);
     this.hemi.color.copy(L.hemiSky);
     this.hemi.groundColor.copy(L.hemiGround);
@@ -654,7 +944,7 @@ export class TokyoWorld {
     this.hemi.intensity = HEMI_LEVEL[this.quality] * L.hemiK;
     this.sun.intensity = SUN_LEVEL[this.quality] * L.sunK;
     this.city.sunDir.copy(L.sunDir);
-    if (this.festivalScenery) this.festivalScenery.group.visible = this.festivalBlend > 0 || this.festivalTarget > 0;
+    if (this.festivalScenery) this.festivalScenery.group.visible = !this.stage && (this.festivalBlend > 0 || this.festivalTarget > 0);
   }
 
   private labelFor(text: string) {
@@ -700,13 +990,15 @@ export class TokyoWorld {
       if (this.conv) return;
       if (this.pointers.size === 2) {
         const d = this.pinchDistance();
-        if (this.pinch > 0 && d > 0) this.dist = clamp(this.dist * (this.pinch / d), 4, 16);
+        if (this.pinch > 0 && d > 0) this.dist = this.clampDist(this.dist * (this.pinch / d));
         this.pinch = d;
         return;
       }
       if (p.moved) {
         this.yaw -= dx * 0.0058;
-        this.pitch = clamp(this.pitch + dy * 0.0042, 0.12, 1.3);
+        const [lo, hi] = this.pitchRange();
+        this.pitch = clamp(this.pitch + dy * 0.0042, lo, hi);
+        if (this.stage) this.yaw = clamp(this.yaw, -STAGE_YAW, STAGE_YAW);
       }
     }) as EventListener);
     const end = (e: PointerEvent) => {
@@ -724,8 +1016,17 @@ export class TokyoWorld {
     }) as EventListener);
     this.on_(canvas, 'wheel', ((e: WheelEvent) => {
       e.preventDefault();
-      if (!this.conv) this.dist = clamp(this.dist + e.deltaY * 0.008, 4, 16);
+      if (!this.conv) this.dist = this.clampDist(this.dist + e.deltaY * 0.008);
     }) as EventListener, { passive: false });
+  }
+
+  private clampDist(d: number) {
+    const cam = this.stage?.def.camera;
+    return clamp(d, cam?.minDist ?? 4, cam?.maxDist ?? 16);
+  }
+  private pitchRange(): [number, number] {
+    const cam = this.stage?.def.camera;
+    return [cam?.minPitch ?? 0.12, cam?.maxPitch ?? 1.3];
   }
 
   private pinchDistance() {
@@ -741,12 +1042,12 @@ export class TokyoWorld {
     const ray = this.raycaster.ray;
 
     // characters first
-    const bodies: THREE.Object3D[] = this.npcs.filter((n) => !n.hidden).map((n) => n.avatar.root); // a raycast ignores `visible`
+    const bodies: THREE.Object3D[] = this.actors().filter((n) => !n.hidden).map((n) => n.avatar.root); // a raycast ignores `visible`
     const hits = this.raycaster.intersectObjects(bodies, true);
     let nearestObj = Infinity;
     let npcHit: Npc | null = null;
     if (hits.length) {
-      npcHit = this.npcs.find((n) => {
+      npcHit = this.actors().find((n) => {
         let o: THREE.Object3D | null = hits[0].object;
         while (o) {
           if (o === n.avatar.root) return true;
@@ -757,33 +1058,45 @@ export class TokyoWorld {
       nearestObj = hits[0].distance;
     }
 
-    // then anything labelled in the city
+    // then anything labelled in the city, or in the room: a room is full of small props side by side, so the pick the ray
+    // passes closest to (relative to its size) wins there; on the street the nearest along the ray does
     let pickHit: { id: string; d: number } | null = null;
+    let bestScore = Infinity;
     const v = new THREE.Vector3();
-    for (const p of this.city.pickables) {
+    const stagePicks = this.stage ? this.stage.handle.pickables.filter((p: StagePick) => !p.off) : null;
+    for (const p of stagePicks ?? this.city.pickables) {
       const to = v.copy(p.pos).sub(ray.origin);
       const t = to.dot(ray.direction);
       if (t < 0 || t > 60) continue;
       const closest = ray.origin.clone().addScaledVector(ray.direction, t);
       const dist = closest.distanceTo(p.pos);
       const r = p.radius * 0.8 + t * 0.012; // a little forgiving at range, for fingers
-      if (dist < r && (!pickHit || t < pickHit.d)) pickHit = { id: p.id, d: t };
+      if (dist >= r) continue;
+      if (stagePicks) {
+        if (dist / r < bestScore) {
+          bestScore = dist / r;
+          pickHit = { id: p.id, d: t };
+        }
+      } else if (!pickHit || t < pickHit.d) pickHit = { id: p.id, d: t };
     }
 
     if (npcHit && (!pickHit || nearestObj < pickHit.d)) {
       const dir = this.playerPos.clone().sub(npcHit.home).setY(0);
       if (dir.lengthSq() < 0.01) dir.set(0, 0, 1);
       dir.normalize();
-      const stop = npcHit.home.clone().addScaledVector(dir, npcHit.radius * 0.6);
+      // in a room the range is long for the camera but the table is in the way: walk up to a talking distance
+      const stop = npcHit.home.clone().addScaledVector(dir, this.stage ? Math.min(npcHit.radius * 0.6, 1.1) : npcHit.radius * 0.6);
       this.moveTarget = stop;
       this.moveTimer = 0;
+      if (this.stage) this.emit({ type: 'pick', id: `host:${npcHit.id}`, x: clientX - rect.left, y: clientY - rect.top });
       return;
     }
     if (pickHit) {
       this.emit({ type: 'pick', id: pickHit.id, x: clientX - rect.left, y: clientY - rect.top });
       return;
     }
-    const t = -ray.origin.y / ray.direction.y;
+    const floor = this.stage ? this.stage.def.floor.step / 2 : 0;
+    const t = (floor - ray.origin.y) / ray.direction.y;
     if (t > 0 && t < 120) {
       const g = ray.origin.clone().addScaledVector(ray.direction, t);
       g.y = 0;
@@ -810,8 +1123,11 @@ export class TokyoWorld {
 
     if (!this.paused) {
       this.updatePlayer(dt);
-      this.updateNpcs(dt, t);
-      this.updateWalkers(dt);
+      if (this.stage) this.updateNpcs(this.stage.npcs, dt, t);
+      else {
+        this.updateNpcs(this.npcs, dt, t);
+        this.updateWalkers(dt);
+      }
     }
     this.updateFestival(dt, t);
     this.updateCamera(dt);
@@ -824,7 +1140,8 @@ export class TokyoWorld {
     this.sun.position.set(sx, 0, sz).addScaledVector(this.city.sunDir, 70);
     this.sun.target.updateMatrixWorld();
 
-    this.city.update(this.paused ? 0 : dt, t, this.playerPos);
+    if (this.stage) this.stage.handle.update?.(this.paused ? 0 : dt, t);
+    else this.city.update(this.paused ? 0 : dt, t, this.playerPos);
     this.updateSparkles(t);
     this.updateMarker(dt, t);
   }
@@ -886,6 +1203,7 @@ export class TokyoWorld {
       this.playerHeading += angleDiff(this.playerHeading, want) * (1 - Math.exp(-12 * dt));
     }
 
+    if (this.stage) this.playerPos.y = damp(this.playerPos.y, stageFloorY(this.stage.def, this.playerPos.x, this.playerPos.z), 20, dt);
     this.player.root.position.copy(this.playerPos);
     this.player.root.rotation.y = this.playerHeading;
     if (this.rideMesh) {
@@ -903,7 +1221,18 @@ export class TokyoWorld {
       }
     }
     this.updateNearby();
-    this.updateSpots();
+    if (this.stage) this.updateStageExit();
+    else this.updateSpots();
+  }
+
+  /** emits `stage` / 'leave' once when the player walks into the door strip; it re-arms when they step out of it */
+  private updateStageExit() {
+    const st = this.stage!;
+    const inside = inRect(st.def.exit, this.playerPos.x, this.playerPos.z);
+    if (inside && !st.inExit) {
+      st.inExit = true;
+      this.emit({ type: 'stage', phase: 'leave', id: st.def.id });
+    } else if (!inside) st.inExit = false;
   }
 
   /** emits `spot` once when the player enters a spot circle; it re-arms after they walk out */
@@ -931,7 +1260,7 @@ export class TokyoWorld {
   private updateNearby() {
     let best: Npc | null = null;
     let bd = Infinity;
-    for (const n of this.npcs) {
+    for (const n of this.actors()) {
       if (n.hidden) continue;
       const d = Math.hypot(n.home.x - this.playerPos.x, n.home.z - this.playerPos.z);
       if (d < n.radius && d < bd) {
@@ -946,9 +1275,9 @@ export class TokyoWorld {
     }
   }
 
-  private updateNpcs(dt: number, t: number) {
-    const eye = new THREE.Vector3(this.playerPos.x, 1.5, this.playerPos.z);
-    for (const n of this.npcs) {
+  private updateNpcs(list: readonly Npc[], dt: number, t: number) {
+    const eye = new THREE.Vector3(this.playerPos.x, 1.5 + this.playerPos.y, this.playerPos.z);
+    for (const n of list) {
       const dx = this.playerPos.x - n.home.x;
       const dz = this.playerPos.z - n.home.z;
       const d = Math.hypot(dx, dz);
@@ -963,7 +1292,7 @@ export class TokyoWorld {
       }
       const talking = this.conv?.npc === n;
       // face the learner during a conversation, otherwise drift back to the home pose
-      const targetFace = talking || (d < 6 && n.kind === 'lesson') ? Math.atan2(dx, dz) : n.face;
+      const targetFace = talking || (d < 6 && (n.kind === 'lesson' || n.greets)) ? Math.atan2(dx, dz) : n.face;
       n.facing += angleDiff(n.facing, targetFace) * (1 - Math.exp(-5 * dt));
       n.avatar.root.rotation.y = n.facing;
       n.avatar.lookToward(d < 9 || talking ? eye : null);
@@ -972,8 +1301,8 @@ export class TokyoWorld {
       n.label.visible = near && !this.conv;
       n.badge.visible = n.badgeKind !== 'none' && !this.conv && d < 45;
       const bob = Math.sin(t * 2.4 + n.home.x) * 0.07;
-      n.badge.position.set(n.home.x, 2.62 + n.home.y + bob, n.home.z);
-      n.label.position.set(n.home.x, 2.24 + n.home.y, n.home.z);
+      n.badge.position.set(n.home.x, 2.62 * n.h + n.home.y + bob, n.home.z);
+      n.label.position.set(n.home.x, 2.24 * n.h + n.home.y, n.home.z);
       // sprites are sized in metres, so scale them with camera distance to keep a steady size on screen
       const cd = this.camera.position.distanceTo(n.label.position);
       n.badge.scale.setScalar(clamp(0.5 + cd * 0.075, 0.7, 1.6));
@@ -1008,12 +1337,16 @@ export class TokyoWorld {
   }
 
   private updateSparkles(t: number) {
-    for (let i = 0; i < this.sparkles.length; i++) {
-      const s = this.sparkles[i];
+    const list = this.stage ? this.stage.sparkles : this.sparkles;
+    const off = this.stage ? new Set(this.stage.handle.pickables.filter((p: StagePick) => p.off).map((p) => p.id)) : null;
+    for (let i = 0; i < list.length; i++) {
+      const s = list[i];
       const d = Math.hypot(s.sprite.position.x - this.playerPos.x, s.sprite.position.z - this.playerPos.z);
       const cd = this.camera.position.distanceTo(s.sprite.position);
       // hidden once found, when far away, during conversations, or when it would fill the lens
-      const show = !this.discovered.has(s.id) && d < 17 && !this.conv && cd > 2.6;
+      // a closed door has no sparkle either (its sign is dimmed): the learner is not invited to something they cannot do yet
+      const closedDoor = s.id.startsWith('door:') && !this.doorOpen.has(s.id);
+      const show = !this.discovered.has(s.id) && d < 17 && !this.conv && cd > (this.stage ? 1.6 : 2.6) && !closedDoor && !off?.has(s.id);
       s.sprite.visible = show;
       if (show) {
         const size = clamp(cd * 0.05, 0.22, 0.46) * (0.92 + 0.08 * Math.sin(t * 3 + i));
@@ -1027,7 +1360,7 @@ export class TokyoWorld {
     const m = this.marker;
     if (this.moveTarget && !this.conv) {
       m.visible = true;
-      m.position.set(this.moveTarget.x, 0.06, this.moveTarget.z);
+      m.position.set(this.moveTarget.x, 0.06 + (this.stage ? stageFloorY(this.stage.def, this.moveTarget.x, this.moveTarget.z) : 0), this.moveTarget.z);
       const s = 1 + Math.sin(t * 7) * 0.12;
       m.scale.set(s, 1, s);
     } else {
@@ -1039,11 +1372,12 @@ export class TokyoWorld {
   // ---------------- collisions ----------------
 
   private resolveBounds(p: THREE.Vector3) {
-    clampToBounds(p, this.district.bounds);
+    clampToBounds(p, this.stage ? this.stage.def.bounds : this.district.bounds);
   }
 
   private resolveCollisions(p: THREE.Vector3) {
-    resolveCircle(p, PLAYER_RADIUS, this.city.colliders, this.district.bounds);
+    if (this.stage) resolveCircle(p, PLAYER_RADIUS, this.stage.colliders, this.stage.def.bounds);
+    else resolveCircle(p, PLAYER_RADIUS, this.city.colliders, this.district.bounds);
   }
 
   // ---------------- camera ----------------
@@ -1056,7 +1390,10 @@ export class TokyoWorld {
   }
 
   private followPose(out: { pos: THREE.Vector3; look: THREE.Vector3 }) {
-    const target = new THREE.Vector3(this.playerPos.x, 1.35, this.playerPos.z);
+    // in a room the camera looks between the player and the middle of the room, so the whole room stays in a narrow phone view
+    const target = this.stage
+      ? new THREE.Vector3(this.playerPos.x * 0.4, 1.3 + this.playerPos.y, this.playerPos.z * 0.6 - 0.15)
+      : new THREE.Vector3(this.playerPos.x, 1.35 + this.playerPos.y, this.playerPos.z);
     const cp = Math.cos(this.pitch);
     const dir = new THREE.Vector3(Math.sin(this.yaw) * cp, Math.sin(this.pitch), Math.cos(this.yaw) * cp);
     let d = this.dist;
@@ -1068,7 +1405,8 @@ export class TokyoWorld {
   }
 
   private clipDistance(origin: THREE.Vector3, dir: THREE.Vector3, maxD: number) {
-    return clipDistance(origin, dir, maxD, this.city.occluders);
+    // a room has no occluders: its walls are one-sided, so the camera sees through them from outside
+    return clipDistance(origin, dir, maxD, this.stage ? [] : this.city.occluders);
   }
 
   /** Over-the-shoulder framing: pick whichever side of the learner has a clear line of sight. */
@@ -1077,16 +1415,20 @@ export class TokyoWorld {
     const len = Math.max(0.5, d.length());
     d.divideScalar(len);
     const side = new THREE.Vector3(-d.z, 0, d.x);
-    const eye = new THREE.Vector3(this.playerPos.x, 1.6, this.playerPos.z);
+    if (this.stage) return this.stageConvPose(out, npc, d, side);
+    const eye = new THREE.Vector3(this.playerPos.x, 1.6 + this.playerPos.y, this.playerPos.z);
     let bestPos: THREE.Vector3 | null = null;
     let bestClear = -1;
+    // in a room the over-the-shoulder camera stands further back and higher, so the host and the furniture round them read
+    const back = this.stage ? 4.2 : 3.3;
+    const sideK = this.stage ? 1.7 : 1.5;
     for (const sgn of [1, -1]) {
-      const cand = eye.clone().addScaledVector(d, -3.3).addScaledVector(side, 1.5 * sgn);
-      cand.y = 1.95;
+      const cand = eye.clone().addScaledVector(d, -back).addScaledVector(side, sideK * sgn);
+      cand.y = this.stage ? 2.5 + this.playerPos.y : 1.95;
       const dir = cand.clone().sub(eye);
       const full = dir.length();
       dir.divideScalar(full);
-      const clear = clipDistance(eye, dir, full, this.city.occluders, 0.35, 1.6);
+      const clear = clipDistance(eye, dir, full, this.stage ? [] : this.city.occluders, 0.35, 1.6);
       if (clear > bestClear + 0.01 || (sgn === 1 && bestClear < 0)) {
         bestClear = clear;
         bestPos = eye.clone().addScaledVector(dir, Math.max(1.4, clear));
@@ -1094,6 +1436,30 @@ export class TokyoWorld {
     }
     out.pos.copy(bestPos!);
     out.look.set(this.playerPos.x, 1.35, this.playerPos.z).lerp(new THREE.Vector3(npc.home.x, 1.42 + npc.home.y, npc.home.z), 0.82);
+  }
+
+  /**
+   * A conversation in a room: both people in one mid shot from the open front of the dollhouse (a 3/4 view from the side
+   * nearer the middle of the room), instead of the street's over-the-shoulder shot, which needs more space than a room has.
+   */
+  private stageConvPose(out: { pos: THREE.Vector3; look: THREE.Vector3 }, npc: Npc, d: THREE.Vector3, side: THREE.Vector3) {
+    const p = this.playerPos;
+    const mid = new THREE.Vector3((p.x + npc.home.x) / 2, Math.max(p.y, npc.home.y) + 1.1, (p.z + npc.home.z) / 2);
+    const R = this.camera.aspect < 1 ? 5.4 : 4.6;
+    let best: THREE.Vector3 | null = null;
+    let bestScore = -Infinity;
+    for (const sgn of [1, -1]) {
+      const dir = side.clone().multiplyScalar(0.55 * sgn).addScaledVector(d, -0.8).normalize();
+      const cand = mid.clone().addScaledVector(dir, R);
+      cand.y = mid.y + 1.6;
+      const score = dir.z * 10 - Math.abs(cand.x); // the open front first, then the side nearer the middle of the room
+      if (score > bestScore) {
+        bestScore = score;
+        best = cand;
+      }
+    }
+    out.pos.copy(best!);
+    out.look.copy(mid);
   }
 
   private snapCamera() {
@@ -1116,7 +1482,7 @@ export class TokyoWorld {
     this.convBlend = clamp(this.convBlend + (target - this.convBlend) * (1 - Math.exp(-4.2 * dt)), 0, 1);
     if (Math.abs(this.convBlend - target) < 0.002) this.convBlend = target;
     if (this.convBlend > 0.001 && (this.conv || this.convBlend > 0.01)) {
-      const npc = this.conv?.npc ?? this.npcs.find((n) => n.id === this.nearbyId) ?? this.npcs[0];
+      const npc = this.conv?.npc ?? this.actors().find((n) => n.id === this.nearbyId) ?? this.actors()[0];
       const pose = { pos: new THREE.Vector3(), look: new THREE.Vector3() };
       this.convPose(pose, npc);
       const k = easeInOut(this.convBlend);
@@ -1133,7 +1499,7 @@ export class TokyoWorld {
     this.camera.position.copy(this.camPos);
     this.camera.lookAt(this.camLook);
     // telephoto during conversations keeps the character large and the background calm
-    const convFov = this.camera.aspect >= 1 ? 36 : 40;
+    const convFov = this.stage ? (this.camera.aspect >= 1 ? 42 : 52) : this.camera.aspect >= 1 ? 36 : 40;
     this.camera.fov = this.baseFov + (convFov - this.baseFov) * easeInOut(this.convBlend);
     this.applyViewOffset();
   }

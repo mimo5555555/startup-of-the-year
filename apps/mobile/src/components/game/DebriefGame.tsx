@@ -19,7 +19,8 @@ import {
 import { useT } from '../../hooks';
 import { characterById, displayName } from '../../content';
 import { dispatch, openScreen } from '../../game/bridge';
-import { PACK } from '../../game/pack';
+import { PACK, itemById } from '../../game/pack';
+import { rewardsOf } from '../../game/homeLogic';
 import { getGame, useGame } from '../../game/gameStore';
 import { useDisclosure, useTracker } from '../../game/hooks';
 import type { ConvoPurchase } from '../../game/convoHooks';
@@ -202,6 +203,41 @@ export function DebriefPay({ data }: { data: DebriefData }) {
       </section>
       {receipt && <ReceiptSheet receipt={receipt.receipt} onClose={() => setReceipt(null)} />}
     </>
+  );
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Keepsakes of a hang-out or a visit (Release 2 wave B1)
+// ---------------------------------------------------------------------------------------------------------------
+
+/** What a hang-out or a home visit handed over on its first completion: the keepsake and/or the item, named. Nothing for any other conversation. */
+export function KeepsakesStrip({ data }: { data: DebriefData }) {
+  const { t, lang } = useT();
+  const kind = PACK.scenarioMeta.find((m) => m.id === data.facts.scenarioId)?.kind;
+  if (kind !== 'hangout' && kind !== 'home') return null;
+  const keeps = rewardsOf(data.facts.sessionId).flatMap((id) => PACK.keepsakes?.[id] ?? []);
+  const items = data.derived.flatMap((e) => (e.t === 'unlocked' && e.what === 'item' ? (itemById(e.id)?.name ?? []) : []));
+  if (keeps.length + items.length === 0) return null;
+  return (
+    <section className="card dbf-card" data-keepsakes>
+      <h2 className="h2">{t('home.reward.title')}</h2>
+      <div className="home-keeps">
+        {keeps.map((k) => (
+          <div key={k.ja} className="home-keep" data-keepsake={k.ja}>
+            <Icon name="gift" size={22} />
+            <span dir="auto">{t('fv.reward.keepsake', { name: k[lang] })}</span>
+            <span className="ja" lang="ja">{k.ja}</span>
+          </div>
+        ))}
+        {items.map((k) => (
+          <div key={k.ja} className="home-keep" data-keepsake={k.ja}>
+            <Icon name="gift" size={22} />
+            <span dir="auto">{t('fv.reward.item', { name: k[lang] })}</span>
+            <span className="ja" lang="ja">{k.ja}</span>
+          </div>
+        ))}
+      </div>
+    </section>
   );
 }
 

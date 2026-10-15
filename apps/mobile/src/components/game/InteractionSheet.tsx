@@ -8,12 +8,18 @@ import { useStore } from '../../store';
 import { Icon, type IconName } from '../Icon';
 import { Portrait } from '../Portrait';
 import { opensIn } from '../../game/opensIn';
+import { cooldownText } from '../../game/homeLogic';
+import { beginVisit } from '../../game/homeStore';
 
 /** Carries out a plan that starts something (the plans for a sheet, `window`, are the caller's: it shows the Goods sheet). */
 export function runPlan(plan: Plan): void {
   switch (plan.t) {
     case 'convo':
       startConversation({ scenarioId: plan.scenarioId, characterId: plan.characterId, ...(plan.startNode ? { startNode: plan.startNode } : {}) });
+      break;
+    case 'home':
+      // a friend's home starts at the genkan (HomeStage), never at the conversation
+      beginVisit(plan.scenarioId);
       break;
     case 'prepare':
       openScreen('prepare', { scenarioId: plan.scenarioId, characterId: plan.characterId });
@@ -81,6 +87,7 @@ export function InteractionSheet({ character, shopName, rows, closedUntil, hasGo
   const firstOpen = rows.findIndex((r) => !r.lock);
   const lockText = (row: OptionRow): string => {
     const l = row.lock!;
+    if ('wait' in l) return cooldownText(t, l.wait);
     return 'ch' in l ? opensIn(t, 'quests.locked', l.ch) : 'hearts' in l ? t('hud.needHearts', { n: l.hearts }) : t('social.notYet');
   };
 

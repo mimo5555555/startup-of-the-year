@@ -23,6 +23,7 @@ import { PACK, beatById, friendById } from './pack';
 import { heartEventOfBeat, pendingHeartBeats } from './friendsLogic';
 import { flushGameNow, getGame, useGame } from './gameStore';
 import { applyImplicitReview } from './srsHooks';
+import { noteRewards } from './homeLogic';
 import { autoWearOutfit } from './avatarFx';
 import { gameView } from './selectors';
 
@@ -38,6 +39,8 @@ export function dispatch(event: InputEvent): ReduceResult {
   const before = getGame();
   const result = reduce(before, event, { pack: PACK, now: Date.now(), view: gameView(useStore.getState()), rng: Math.random });
   useGame.getState().setGame(result.state);
+  // the keepsakes a hang-out or a visit just handed over: the debrief names them (the reducer files them silently)
+  if (event.t === 'conversation_done') noteRewards(event.facts.sessionId, before, result.state);
   // a wearable that just came home (the bicycle helmet) goes on the avatar at once; Wear / Take off stays in the Wallet
   if (event.t !== 'outfit_changed') {
     const worn = autoWearOutfit(PACK, before, result.state);

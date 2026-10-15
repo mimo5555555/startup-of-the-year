@@ -184,6 +184,16 @@ export const DOORS: DoorDef[] = [
   { id: 'door:aiko', sign: { text: '小野荘', sub: 'ono-sō' }, pick: { x: 38.2, y: 1.2, z: 9.55 }, radius: 1.2 },
 ];
 
+/**
+ * Where the player stands when they come out of a home (`exitStage`): on the walkable strip one metre in front of the door,
+ * facing away from it. The facades are in `buildings/doors.ts`; `door:dorm` is wave B2.
+ */
+export const DOOR_RETURN: Partial<Record<DoorId, { x: number; z: number; heading: number }>> = {
+  'door:mio': { x: 12, z: 7.0, heading: Math.PI },
+  'door:kenji': { x: 27.7, z: -7.6, heading: 0 },
+  'door:aiko': { x: 39.5, z: 8.7, heading: Math.PI },
+};
+
 export type SpotId = 'spot:torii' | 'spot:pond' | 'spot:east_end' | 'spot:west_end' | 'spot:station_plaza';
 
 /** Invisible circles; walking into one emits the world event `{type:'spot', id}` (dream `bike` and `visit` objectives). */

@@ -35,6 +35,7 @@ export const FRIENDS: FriendDef[] = [
     register: 'polite',
     casualAt: 2,
     unlockChapter: 1,
+    home: { stage: 'mio_1r', door: 'door:mio' },
     ...TASTES.mio!,
     facts: ['likes_anime', 'photo_sakura', 'lives_alone'],
     factLines: {
@@ -111,6 +112,7 @@ export const FRIENDS: FriendDef[] = [
     register: 'polite',
     casualAt: 3,
     unlockChapter: 1,
+    home: { stage: 'kenji_flat', door: 'door:kenji' },
     ...TASTES.kenji!,
     facts: ['broth', 'baseball', 'daughter_hina'],
     factLines: {
@@ -141,5 +143,23 @@ export const FRIENDS: FriendDef[] = [
       present('hanako', 'cafe:greenTea', 'Hanako gives you a green tea', 'تعطيك هاناكو شايًا أخضر'),
       { id: 'hanako_scholarship', heart: 5, text: { en: 'A one-time ¥3,000 scholarship', ar: 'منحة دراسية لمرة واحدة بقيمة 3,000 ين' }, fx: { t: 'once_cash', amount: 3000 } },
     ],
+  },
+  // Release 2 wave B1: the tea-house owner. She opens with her stall in Chapter 2 (§8.1), speaks polite and soft at every heart, and
+  // has a home (the tatami room above the shop). Her ♥5 perk (the Ono-sō move-in discount) returns with the flat.
+  {
+    id: 'aiko',
+    tier: 'A',
+    register: 'polite',
+    casualAt: 99,
+    unlockChapter: 2,
+    home: { stage: 'aiko_tatami', door: 'door:aiko' },
+    ...TASTES.aiko!,
+    facts: ['shop_forty', 'garden_sakura', 'grandchildren'],
+    factLines: {
+      shop_forty: L('この|お店|は|四|十|年|です。', 'This shop is forty years old.', 'عمر هذا المتجر أربعون عامًا.'),
+      garden_sakura: L('庭|に|桜|が|あります。', 'There is a cherry tree in the garden.', 'في الحديقة شجرة كرز.'),
+      grandchildren: L('孫|は|大阪|に|住んで|います。', 'My grandchildren live in Osaka.', 'أحفادي يعيشون في أوساكا.'),
+    },
+    perks: [present('aiko', 'g_wagashi', 'Aiko gives you wagashi', 'تعطيك أيكو واغاشي')],
   },
 ];

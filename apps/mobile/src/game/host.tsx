@@ -5,6 +5,7 @@ import { WorldCtx } from '../hooks';
 import { Conversation } from '../screens/Conversation';
 import { useStore } from '../store';
 import { useUi } from '../ui';
+import { useHome } from './homeStore';
 
 /** WorldScreen publishes its world here (`window.__world`); a conversation that starts from another screen reuses it. */
 const currentWorld = (): TokyoWorld | null => (window as unknown as { __world?: TokyoWorld }).__world ?? null;
@@ -16,9 +17,11 @@ const currentWorld = (): TokyoWorld | null => (window as unknown as { __world?: 
 export function ConversationHost() {
   const convo = useUi((s) => s.convo);
   const end = useUi((s) => s.endConvo);
+  // a home visit on the panel fallback: the street behind is not the room, so the conversation leaves the 3D camera alone (Release 2 wave B1)
+  const panelRoom = useHome((s) => s.visit?.mode === 'panel');
   if (!convo) return null;
   return (
-    <WorldCtx.Provider value={currentWorld()}>
+    <WorldCtx.Provider value={panelRoom ? null : currentWorld()}>
       <Conversation key={`${convo.scenarioId}:${convo.startNode ?? ''}`} characterId={convo.characterId} onClose={end} />
     </WorldCtx.Provider>
   );

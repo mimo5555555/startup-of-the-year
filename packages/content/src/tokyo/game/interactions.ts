@@ -24,7 +24,9 @@ const gift = (who: string): Interaction => ({ id: `${who}_gift`, kind: 'gift', l
 const talk = (who: string, more: Partial<Interaction> = {}): Interaction =>
   scenario(`${who}_talk`, `smalltalk_${who}`, 'Small talk', 'دردشة', { ch: 3, ...more });
 const hang = (who: string, scenarioId: string): Interaction => scenario(`${who}_hang`, scenarioId, 'Hang out', 'اقضيا وقتًا معًا', { ch: 3, gate: hearts(who, 3) });
-const home = (who: string): Interaction => ({ id: `home_${who}`, kind: 'visit', scenarioId: `home_${who}`, label: { en: 'Visit home', ar: 'زيارة البيت' }, ch: 6, gate: hearts(who, 4) });
+// listed from Chapter 3 like the hang-out: the door in the street is active at ♥4 whatever the chapter (§8.8), so the Talk list must agree with it
+// (a Release 1 player reaches ♥4 in Free Walk, and Chapter 6's `visit home:*` objective is then already met)
+const home = (who: string): Interaction => ({ id: `home_${who}`, kind: 'visit', scenarioId: `home_${who}`, label: { en: 'Visit home', ar: 'زيارة البيت' }, ch: 3, gate: hearts(who, 4) });
 const shift = (who: string, jobId: string, ch: number): Interaction => ({ id: `${who}_shift`, kind: 'shift', jobId, label: { en: 'Work a shift', ar: 'اعمل وردية' }, ch });
 const lesson = (lessonId: string, en: string, ar: string, ch: number): Interaction => ({ id: `lesson_${lessonId}`, kind: 'lesson', lessonId, label: { en, ar }, ch });
 const peek = (who: string, shopId: string): Interaction => ({ id: `${who}_window`, kind: 'window', shopId, label: { en: 'Look through the window', ar: 'انظر عبر النافذة' }, ch: 2 });

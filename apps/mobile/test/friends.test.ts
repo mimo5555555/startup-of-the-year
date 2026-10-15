@@ -512,9 +512,9 @@ describe('Chapter 3 through the real reducer, by tapping', () => {
 });
 
 describe('the Friends screen rows', () => {
-  it('lists the six friends once their chapter is current, with the meter between two thresholds', () => {
+  it('lists the seven friends once their chapter is current, with the meter between two thresholds', () => {
     const rows = friendRows(JP_PACK, game(withAp('mio', 45)), VIEW, known);
-    expect(rows.map((r) => r.def.id)).toEqual(['mio', 'yuki', 'tanaka', 'sato', 'kenji', 'hanako']);
+    expect(rows.map((r) => r.def.id)).toEqual(['mio', 'yuki', 'tanaka', 'sato', 'kenji', 'hanako', 'aiko']);
     const mio = rows[0]!;
     expect(mio).toMatchObject({ hearts: 1, ap: 45, floor: BALANCE.ap.thresholds[0], next: BALANCE.ap.thresholds[1], met: true });
     const yuki = rows[1]!;
@@ -576,7 +576,7 @@ describe('strings', () => {
   });
 
   it('names every place a friend can be found', () => {
-    for (const id of ['park', 'cafe', 'konbini', 'ramen', 'station', 'school']) expect(`social.place.${id}` in en).toBe(true);
+    for (const id of ['park', 'cafe', 'konbini', 'ramen', 'station', 'school', 'ono']) expect(`social.place.${id}` in en).toBe(true);
     for (const c of CHARACTERS.filter((c) => JP_PACK.friends.some((f) => f.id === c.id))) expect(`social.place.${c.locationId}` in en, c.id).toBe(true);
   });
 });

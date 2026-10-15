@@ -24,8 +24,14 @@ import { BEATS } from './beats';
  * Release 1 builds the konbini shift only (docs/RELEASE_1.md): a shift row whose job is deferred (café, station) is left out of the
  * released table, so the pack validates at level 4 and no dead row can ever show. It returns with its job.
  */
+const REGISTERED_SCENARIOS = new Set(SCENARIO_META.map((m) => m.id));
+/** Hang-out rows (`<friend>_hang`) and home-visit rows (`home_<friend>`) appear only while their scenario is registered (Release 2 wave B1). */
+const FRIEND_VISIT_ROW = /^(?:.+_hang|home_.+)$/;
 const RELEASED_INTERACTIONS: GamePack['interactions'] = Object.fromEntries(
-  Object.entries(INTERACTIONS).map(([who, rows]) => [who, rows.filter((r) => !r.jobId || JOBS.some((j) => j.id === r.jobId))]),
+  Object.entries(INTERACTIONS).map(([who, rows]) => [
+    who,
+    rows.filter((r) => (!r.jobId || JOBS.some((j) => j.id === r.jobId)) && (!FRIEND_VISIT_ROW.test(r.id) || (!!r.scenarioId && REGISTERED_SCENARIOS.has(r.scenarioId)))),
+  ]),
 );
 
 /** The Sakura-chō (Japan) game pack. Every table is a registry owned part by part (docs/GAME_DESIGN.md §15.2). */

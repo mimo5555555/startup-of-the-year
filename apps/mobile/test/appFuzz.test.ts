@@ -81,8 +81,10 @@ describe('app-level fuzz', () => {
         if (errs.length) throw new Error(`${where}: ${JSON.stringify(errs).slice(0, 600)}`);
         const g = getGame();
         const m = migrate(JSON.parse(JSON.stringify(g)), 1, PACK);
-        const a = JSON.parse(JSON.stringify(g));
-        const b = JSON.parse(JSON.stringify(m));
+        // the order of keys is not state: a friend's optional days (`hangoutDay` after `giftDay`...) are written in the order they happened
+        const sorted = (_k: string, v: unknown): unknown => (v && typeof v === 'object' && !Array.isArray(v) ? Object.fromEntries(Object.entries(v as Record<string, unknown>).sort(([x], [y]) => (x < y ? -1 : x > y ? 1 : 0))) : v);
+        const a = JSON.parse(JSON.stringify(g, sorted));
+        const b = JSON.parse(JSON.stringify(m, sorted));
         if (JSON.stringify(a) !== JSON.stringify(b)) {
           const diff = Object.keys(a).filter((key) => JSON.stringify(a[key]) !== JSON.stringify(b[key]));
           throw new Error(`${where}: migrate changed a live state: ${diff.join(',')} :: ${diff.map((d) => JSON.stringify(a[d]).slice(0, 300) + ' => ' + JSON.stringify(b[d]).slice(0, 300)).join('\n')}`);

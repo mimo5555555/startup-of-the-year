@@ -122,7 +122,7 @@ describe('MapList', () => {
     const pins = mapPins(JP_PACK, game(true)).map((p) => (p.friendId === 'sato' ? { ...p, plan: true } : p)).sort((a, b) => Number(b.plan) - Number(a.plan));
     const out = html(createElement(MapList, { pins, goal: null, onWalk: () => {} }));
     expect(out).toContain('data-map-list');
-    expect(out.match(/data-act="walk"/g)).toHaveLength(JP_PACK.friends.length);
+    expect(out.match(/data-act="walk"/g)).toHaveLength(pins.length);
     expect(out).toContain('The park');
     expect(out.indexOf('data-pin="sato"')).toBeLessThan(out.indexOf('data-pin="mio"'));
     expect(out).toContain('Plan today');

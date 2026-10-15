@@ -16,6 +16,7 @@ import { characterById, displayName, meaningOf } from '../content';
 import { blip, speakJa, stt } from '../services';
 import type { StringKey } from '../i18n';
 import { applySrsOps, dispatch, startConversation } from '../game/bridge';
+import { beginVisit, isHomeScenario } from '../game/homeStore';
 import { getGame } from '../game/gameStore';
 import { useDerivedFlags, useGameState, useGameView } from '../game/hooks';
 import { PACK } from '../game/pack';
@@ -66,6 +67,8 @@ function talk(scenarioId: string, characterId: string, mode: Mode, go: (s: 'worl
   const startNode = PACK.scenarioMeta.find((m) => m.id === scenarioId)?.startNode;
   const ticket = (getGame().tickets as Record<string, unknown>)[scenarioId];
   go('world');
+  // a friend's home starts at the genkan: the visit plays the conversation itself once the slippers are on
+  if (isHomeScenario(scenarioId) && beginVisit(scenarioId, mode)) return;
   startConversation({ scenarioId, characterId, mode, ...(startNode && ticket ? { startNode } : {}) });
 }
 

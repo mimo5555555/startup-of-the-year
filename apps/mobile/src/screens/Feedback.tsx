@@ -5,7 +5,7 @@ import type { Correction } from '@lw/engine';
 import { Icon } from '../components/Icon';
 import { JaText, type Mark } from '../components/JaText';
 import { Portrait } from '../components/Portrait';
-import { DebriefPay, DebriefProgress, FriendsStrip, KeepThese, NextGoalButton, useDebriefFor } from '../components/game/DebriefGame';
+import { DebriefPay, DebriefProgress, FriendsStrip, KeepThese, KeepsakesStrip, NextGoalButton, useDebriefFor } from '../components/game/DebriefGame';
 import { useStore } from '../store';
 import { useT } from '../hooks';
 import { characterById, displayName } from '../content';
@@ -133,6 +133,7 @@ export function Feedback() {
           <>
             <DebriefPay data={debrief} />
             <FriendsStrip data={debrief} />
+            <KeepsakesStrip data={debrief} />
           </>
         )}
 

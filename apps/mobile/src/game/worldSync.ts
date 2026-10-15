@@ -5,7 +5,7 @@ import type { Badge, TokyoWorld } from '@lw/world';
 import { DOORS, NPC_SPAWNS, SHOPS, shopIdOf } from '@lw/world';
 import type { Character } from '@lw/content';
 import type { AvatarSpec } from '@lw/content';
-import { CHARACTERS, lessonById } from '@lw/content';
+import { CHARACTERS, HOMES, homeOfFriend, lessonById, type HomeDef } from '@lw/content';
 import {
   derivedFlags,
   evalPred,
@@ -25,6 +25,8 @@ import {
 import { NPC_ORDER, characterById, scenarioById, scenarioForCharacter } from '../content';
 import { useStore } from '../store';
 import { applyAvatar, avatarSpecFor } from './avatarFx';
+import { cooldownDays, doorsOpen } from './homeLogic';
+import { heartsOf } from './selectors';
 
 // ---------------------------------------------------------------------------------------------------------------
 // HUD disclosure: which elements are on screen (§2.5)
@@ -76,7 +78,7 @@ export interface InteractionEnv {
 }
 
 /** Why a listed option cannot be used yet. */
-export type Lock = { ch: number } | { hearts: number } | { other: true };
+export type Lock = { ch: number } | { hearts: number } | { wait: number } | { other: true };
 
 export interface OptionRow {
   it: Interaction;
@@ -132,6 +134,12 @@ function lockOf(env: InteractionEnv, it: Interaction): Lock | null {
   if (it.gate && !evalPred(it.gate, state, { pack, view })) {
     const h = needsHearts(it.gate);
     return h === null ? { other: true } : { hearts: h };
+  }
+  // a hang-out or a visit counts once per `everyDays` days per friend: the row says how long to wait instead of a tap that pays nothing
+  const meta = it.scenarioId ? pack.scenarioMeta.find((m) => m.id === it.scenarioId) : undefined;
+  if ((meta?.kind === 'hangout' || meta?.kind === 'home') && meta.friendId) {
+    const wait = cooldownDays(state, meta.friendId);
+    if (wait > 0) return { wait };
   }
   return null;
 }
@@ -214,6 +222,8 @@ export function keeperOf(shopId: string): string | null {
 
 export type Plan =
   | { t: 'convo'; scenarioId: string; characterId: string; startNode?: string }
+  /** a friend's home: the genkan first (HomeStage), then the conversation */
+  | { t: 'home'; scenarioId: string; characterId: string }
   | { t: 'prepare'; scenarioId: string; characterId: string }
   | { t: 'lesson'; lessonId: string }
   | { t: 'shift'; jobId: string }
@@ -241,6 +251,7 @@ export function planFor(env: InteractionEnv, it: Interaction, characterId: strin
     default: {
       const scenarioId = it.scenarioId!;
       if (wantsPrepare(env, scenarioId)) return { t: 'prepare', scenarioId, characterId };
+      if (scenarioId in HOMES) return { t: 'home', scenarioId, characterId };
       // the ramen shop's ticket from the machine is waiting: Kenji's talk starts at the firmness question
       const startNode = pack.scenarioMeta.find((m) => m.id === scenarioId)?.startNode;
       const ticket = (state.tickets as Record<string, unknown>)[scenarioId];
@@ -311,6 +322,7 @@ export function syncWorld(
     if (!NPC_SPAWNS.some((n) => n.id === c.id)) continue;
     world.setNpcBadge(c.id, npcBadge(env, c, legacy.completed, legacy.lessonsDone));
   }
+  for (const [who, open] of doorsOpen(env.state, env.scenarios)) world.setDoorOpen(who, open);
   const base = opts.base ?? useStore.getState().profile?.avatar ?? null;
   const fx = worldFx(env.pack, env.state, base ?? CHARACTERS[0].avatar);
   world.setMoveMultiplier(fx.moveMultiplier);
@@ -431,4 +443,21 @@ export function doorOpens(env: InteractionEnv, friend: string | null): boolean {
   if (!friend) return false;
   const row = interactionRows(env, friend).find((r) => r.it.kind === 'visit');
   return !!row && !row.lock;
+}
+
+/** What a tap on a friend's door does (docs/GAME_DESIGN.md §6.4, §8.8): go in, say "not yet" with the reason, or say how long to wait. */
+export type DoorStatus =
+  | { t: 'open'; home: HomeDef }
+  | { t: 'hearts'; home: HomeDef; need: number; have: number }
+  | { t: 'wait'; home: HomeDef; days: number }
+  | { t: 'none' };
+
+export function doorStatus(env: InteractionEnv, friend: string | null): DoorStatus {
+  const home = friend ? homeOfFriend(friend) : undefined;
+  if (!friend || !home) return { t: 'none' };
+  const have = heartsOf(env.state, friend);
+  const row = interactionRows(env, friend).find((r) => r.it.kind === 'visit');
+  if (have < home.hearts || !row) return { t: 'hearts', home, need: home.hearts, have };
+  if (row.lock && 'wait' in row.lock) return { t: 'wait', home, days: row.lock.wait };
+  return row.lock ? { t: 'hearts', home, need: home.hearts, have } : { t: 'open', home };
 }

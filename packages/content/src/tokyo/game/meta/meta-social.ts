@@ -6,7 +6,7 @@ import { SMALLTALK_FRIENDS } from '../../scenarios-social';
  * (kind 'talk', `friendId` = the friend); the gift hand-over is kind 'friend' (the friend is the conversation's character).
  * Goal step ids are asserted against the scenarios in `content/test/social.test.ts`.
  */
-const PLACE: Record<(typeof SMALLTALK_FRIENDS)[number], string> = { mio: 'park', yuki: 'cafe', tanaka: 'konbini', kenji: 'ramen', sato: 'station', hanako: 'school' };
+const PLACE: Record<(typeof SMALLTALK_FRIENDS)[number], string> = { mio: 'park', yuki: 'cafe', tanaka: 'konbini', kenji: 'ramen', sato: 'station', hanako: 'school', aiko: 'ono' };
 
 export const SOCIAL_META: ScenarioMeta[] = [
   {

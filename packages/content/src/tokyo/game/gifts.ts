@@ -42,9 +42,19 @@ export const TASTES: Record<string, Taste> = {
   kenji: { loves: ['g_tenugui', 'greenTea', 'coffee'], likes: ['sports', 'food', 'drink'], dislikes: ['g_flower', 'g_plush'] },
   // design: loves g_tea_set, g_wagashi, g_flower | likes tradition, flower, craft | dislikes g_choco, g_game_card
   hanako: { loves: ['g_tea_set', 'g_wagashi', 'g_flower', 'greenTea'], likes: ['tradition', 'flower', 'craft', 'tea'], dislikes: ['g_choco', 'g_game_card'] },
+  // Release 2 wave B1: Aiko is a friend. design: loves g_souvenir, cake, g_music_cd | likes craft, travel, sweet | dislikes coffee, g_game_card
+  // (the souvenir is not released: her own tenugui, a craft, stands in)
+  aiko: { loves: ['g_music_cd', 'cake', 'g_tenugui'], likes: ['craft', 'travel', 'sweet'], dislikes: ['coffee', 'g_game_card'] },
 };
 
 /** The keepsakes the friends' beats hand out (never sold): id -> name (the ids owned are in `GameState.keepsakes`). */
 export const KEEPSAKES: Record<string, NameGloss> = {
   note_mio: { ja: 'ミオのメモ', en: "Mio's number note", ar: 'مذكرة رقم ميو' },
+  // Release 2 wave B1: the keepsakes of the hang-outs (mio, yuki, kenji; Aiko's is the g_wagashi item) and of the three home visits
+  photo_mio: { ja: 'ミオの写真', en: "Mio's park photo", ar: 'صورة ميو في الحديقة' },
+  stamp_card: { ja: 'スタンプカード', en: 'Café stamp card', ar: 'بطاقة أختام المقهى' },
+  kenji_recipe: { ja: 'けんじのレシピ', en: "Kenji's recipe note", ar: 'وصفة كينجي' },
+  photo_printed: { ja: 'ミオが撮った写真', en: 'A printed photo Mio took of you', ar: 'صورة مطبوعة التقطتها ميو لك' },
+  tea_cup: { ja: 'あいこの湯のみ', en: "Aiko's tea cup", ar: 'كوب شاي أيكو' },
+  hina_drawing: { ja: 'ひなの絵', en: "Hina's drawing", ar: 'رسمة هينا' },
 };

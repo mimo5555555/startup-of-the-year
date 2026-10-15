@@ -201,7 +201,8 @@ describe('the thread list', () => {
 describe('map pins', () => {
   it('pins each friend whose place the world has, with their hearts', () => {
     const pins = mapPins(JP_PACK, game(withAp('mio', AP[1]!)));
-    expect(pins.map((p) => p.friendId).sort()).toEqual([...FRIENDS].sort());
+    // Aiko's tea house is not a place of the phone map (no `phone.place.ono`; the door in the street is the way to her)
+    expect(pins.map((p) => p.friendId).sort()).toEqual(FRIENDS.filter((f) => f !== 'aiko').sort());
     expect(pins.find((p) => p.friendId === 'mio')).toMatchObject({ placeId: 'park', hearts: 2, plan: false });
     for (const p of pins) expect(PLACE_IDS).toContain(p.placeId);
   });
