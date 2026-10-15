@@ -1,7 +1,7 @@
 // Hang-outs and home visits, the pure part (Release 2 wave B1, docs/GAME_DESIGN.md §6.4, §8.8): the cooldown message, the doors that are
 // open, the genkan in its two steps, the word cards of the props and the keepsakes a conversation just handed over. No React and no
 // WebGL, so every rule is testable; `components/game/HomeStage.tsx` is the one place that plays them.
-import { GENKAN, HOMES, PROP_WORDS, homeOfStage, type GenkanLines, type HomeDef } from '@lw/content';
+import { GENKAN, HANGOUTS, HOMES, PROP_WORDS, homeOfFriend, homeOfStage, type GenkanLines, type HomeDef } from '@lw/content';
 import type { Line } from '@lw/content';
 import { BALANCE, type GameState } from '@lw/game';
 import type { StringKey } from '../i18n';
@@ -25,6 +25,18 @@ export function cooldownText(t: T, days: number): string {
   if (days <= 1) return t('home.cooldown1');
   if (days === 2) return t('home.cooldown2');
   return t('fv.hang.cooldown', { days });
+}
+
+/**
+ * What a friend's new heart opens, for the line under "likes you more now" in the debrief: the hang-out from 3 hearts, the invitation home
+ * from 4 (the home wins when both were crossed at once). Null when neither a built hang-out nor a built home of that friend was reached.
+ */
+export function unlockHint(friendId: string, from: number, to: number): 'hang' | 'home' | null {
+  const home = homeOfFriend(friendId);
+  if (home && from < home.hearts && to >= home.hearts) return 'home';
+  const hang = Object.values(HANGOUTS).find((h) => h.friend === friendId);
+  if (hang && from < hang.hearts && to >= hang.hearts) return 'hang';
+  return null;
 }
 
 // ---------------------------------------------------------------------------------------------------------------

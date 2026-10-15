@@ -6,7 +6,7 @@ import { BALANCE } from './balance';
 import { updateDaily, swapDaily } from './daily';
 import { emptyFriend, emptyPay } from './defaults';
 import { availableDreams } from './dreams';
-import { applyGift, applyHeartEvent, applyTalk, queueThreads } from './friends';
+import { applyGift, applyHeartEvent, applyTalk, contactOpen, queueThreads } from './friends';
 import { dedupe, localDateString, markActive, observeClock, payForDay } from './integrity';
 import { applyOutfit, grantItem, hasFeature, placeItem } from './inventory';
 import { applyLedger, dayKey, LEDGER_IDS, ledgerHas, refundIc, topUp } from './ledger';
@@ -294,17 +294,20 @@ function onConversation(a: Acc, facts: ConversationFacts, ctx: ReduceCtx): void 
 
   // friends
   const friendId = meta?.friendId ?? facts.characterId;
-  if (pack.friends.some((f) => f.id === friendId)) absorb(a, applyTalk(a.s, friendId, facts, talkKind(meta), ctx));
+  const isFriend = pack.friends.some((f) => f.id === friendId);
+  // a hang-out below its heart or a visit below ♥4 pays nothing at all: no AP, no keepsake, no visit filed (judged before this talk adds AP)
+  const heartOk = !isFriend || contactOpen(a.s, friendId, talkKind(meta), facts.scenarioId);
+  if (isFriend) absorb(a, applyTalk(a.s, friendId, facts, talkKind(meta), ctx));
   fileFlags(a, facts.flags, friendId, pack);
 
   // inventory and story: what the scenario hands over on its first completion, tickets, homes visited
-  if (firstComplete) applyBeatEffects(a, meta?.effects, ctx);
+  if (firstComplete && heartOk) applyBeatEffects(a, meta?.effects, ctx);
   if (!facts.abandoned && a.s.tickets.ramen && facts.scenarioId === 'ramen' && facts.startNode) {
     const { ramen: _used, ...rest } = a.s.tickets;
     void _used;
     a.s = { ...a.s, tickets: rest };
   }
-  if (meta?.kind === 'home' && !facts.abandoned && facts.goalDone > 0 && friendId) {
+  if (meta?.kind === 'home' && !facts.abandoned && facts.goalDone > 0 && friendId && heartOk) {
     const key = `home:${friendId}`;
     if (!a.s.stats.visits.includes(key)) a.s = { ...a.s, stats: { ...a.s.stats, visits: [...a.s.stats.visits, key] } };
     a.probes.push({ on: 'visit', keys: [key] });
@@ -748,6 +751,12 @@ function apply(a: Acc, ev: InputEvent, ctx: ReduceCtx): void {
       break;
     case 'visit': {
       if (typeof ev.place !== 'string' || !ev.place) break;
+      // a friend's home (the genkan files it): only from the heart that invites the player
+      const homeOf = /^home:(.+)$/.exec(ev.place)?.[1];
+      if (homeOf !== undefined && pack.friends.some((f) => f.id === homeOf) && !contactOpen(a.s, homeOf, 'home')) {
+        a.effective = false;
+        break;
+      }
       a.s = { ...a.s, stats: { ...a.s.stats, visits: distinct(a.s.stats.visits, ev.place.slice(0, 64)) } };
       a.probes.push({ on: 'visit', keys: [ev.place] });
       if (ev.place === 'festival') a.probes.push({ on: 'festival' });

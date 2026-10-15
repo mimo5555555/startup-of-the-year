@@ -37,11 +37,18 @@
 
 /* what the host says: Japanese with its furigana, then the translation */
 .home-say {
+  /* sits just above the card it belongs to (the genkan, the chips, the Leave row), clear of the toasts at the top */
+  margin-top: auto;
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 10px 14px;
   animation: pop 0.25s ease-out;
+}
+.home-say ~ .home-genkan,
+.home-say ~ .home-props,
+.home-say ~ .home-foot {
+  margin-top: 0;
 }
 .home-say .portrait {
   flex: none;
@@ -51,6 +58,11 @@
 }
 .home-say-text .ja {
   color: #fff;
+}
+/* the readings sit on the dark glass card: the light-theme grey would vanish */
+.home-say-text .rt,
+.home-say-text .rm {
+  color: rgba(255, 255, 255, 0.85);
 }
 .home-say-text p {
   margin: 2px 0 0;
@@ -165,7 +177,7 @@
 }
 .home-chip {
   min-height: 44px;
-  padding: 0 14px;
+  padding: 4px 14px;
   border: 0;
   font-size: 18px;
   font-family: var(--font-ja);
@@ -187,7 +199,8 @@
   position: absolute;
   z-index: 8;
   inset-inline: 18px;
-  top: calc(var(--safe-top) + 84px);
+  /* above the Talk button and the stick, clear of the HUD pills and the quest card at the top */
+  bottom: calc(var(--safe-bottom) + 158px);
   display: flex;
   flex-direction: column;
   gap: 4px;
@@ -196,11 +209,25 @@
   font: inherit;
   cursor: pointer;
   animation: pop 0.25s ease-out;
+  background: rgba(36, 31, 61, 0.94);
+}
+html[dir='rtl'] .home-tip-ja {
+  text-align: right;
 }
 .home-tip-ja {
   font-family: var(--font-ja);
   font-size: 19px;
   font-weight: 800;
+}
+/* the tip is a dark card: the readings need light ink */
+.home-tip-ja .ja,
+.home-tip-ja .rt,
+.home-tip-ja .rm {
+  color: #fff;
+}
+.home-tip-ja .rt,
+.home-tip-ja .rm {
+  opacity: 0.85;
 }
 .home-tip-text {
   font-size: 14px;
@@ -287,4 +314,57 @@ html[dir='rtl'] .home-panel-host {
 }
 .home-keep .ja {
   font-weight: 700;
+}
+
+/* Leave, and Talk again when the talk was left half way */
+.home-acts {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+  direction: inherit;
+}
+.home-talk {
+  box-shadow: var(--shadow);
+}
+.home-confirm {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+}
+.home-confirm p {
+  margin: 0;
+  font-weight: 700;
+}
+.home-confirm-btns {
+  display: flex;
+  gap: 10px;
+}
+.home-confirm-btns .btn {
+  flex: 1;
+  min-height: 48px;
+}
+.home-say ~ .home-confirm,
+.home-confirm ~ .home-foot {
+  margin-top: 0;
+}
+
+/* a phone on its side (about 390 px tall): the cards keep to the start side and the host stands in the free half, not behind the cards */
+@media (max-height: 480px) {
+  .home-say,
+  .home-props,
+  .home-genkan,
+  .home-confirm,
+  .home-hint {
+    max-width: min(62%, 520px);
+  }
+  .home-props-hint {
+    display: none;
+  }
+  .home-panel-host {
+    top: 20%;
+    inset-inline-start: 82%;
+  }
 }

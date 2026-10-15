@@ -57,6 +57,18 @@ function friendNow(state: GameState, friendId: string): FriendState {
   return f.apDay === day ? f : { ...f, apDay: day, apToday: 0, chatApToday: 0 };
 }
 
+/**
+ * Whether the friend's hearts allow this kind of contact: a hang-out from BALANCE.ap.hangout.minHeart (♥3), a visit to their home from ♥4. The UI only offers them
+ * then; the reducer checks too, so a conversation or a visit filed below the heart (a stale screen, a hand-made event) earns nothing.
+ */
+export function contactOpen(state: GameState, friendId: string, kind: TalkKind, scenarioId?: string): boolean {
+  const h = heartsForAp(friendNow(state, friendId).ap);
+  // only the visit to the friend's own home (`home_<friend>`): the player's room with a guest has its own rule (♥2, wave B2)
+  if (kind === 'home') return (scenarioId !== undefined && scenarioId !== `home_${friendId}`) || h >= HOME_MIN_HEART;
+  if (kind === 'hangout') return h >= BALANCE.ap.hangout.minHeart;
+  return true;
+}
+
 /** Whether the player has talked or hung out with the friend today (a phone chat or a gift is not "a talk", §8.3). */
 const talkedToday = (f: FriendState, day: number): boolean => f.talkDay === day || f.hangoutDay === day;
 
@@ -275,7 +287,7 @@ export function applyTalk(state: GameState, friendId: string, facts: Conversatio
     parts.push({ source: 'chat', ap: facts.scenarioId.startsWith(CHAT.miss) ? A.chat.missAp : A.chat.ap });
     stats = { ...stats, chats: { n: stats.chats.n + 1, friends: { ...stats.chats.friends, [friendId]: (stats.chats.friends[friendId] ?? 0) + 1 } } };
   } else if (kind === 'hangout' || kind === 'home') {
-    if (kind === 'hangout' && h0 < A.hangout.minHeart) return none;
+    if (!contactOpen(state, friendId, kind, facts.scenarioId)) return none;
     if (f.hangoutDay !== undefined && day - f.hangoutDay < A.hangout.everyDays) return none;
     if (!f.met) {
       parts.push({ source: 'met', ap: A.met });

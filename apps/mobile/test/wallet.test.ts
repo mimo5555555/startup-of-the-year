@@ -121,6 +121,7 @@ describe('rides and speed (§5.5)', () => {
     const world = {
       setShopOpen: () => {},
       setNpcBadge: () => {},
+      setDoorOpen: () => {},
       setMoveMultiplier: (n: number) => calls.push(`mult:${n}`),
       setRide: (k: string) => calls.push(`ride:${k}`),
       setPlayerSpec: (spec: typeof BASE) => calls.push(`spec:${spec.accessories.join('+')}`),

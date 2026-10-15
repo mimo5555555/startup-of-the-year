@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { BALANCE } from '../src/balance';
+import { emptyFriend } from '../src/defaults';
 import { dayKey, reconcile } from '../src/ledger';
 import { needsFlush, reduce, createGameState } from '../src/reducer';
 import { activeDreamProgress, audioMode, awayDays, coachOffer, currentChapter, defaultsToReal, derivedFlags, disclosure, dueCount, hearts, lineReady, pocketReady, ttsRate } from '../src/selectors';
@@ -8,6 +9,12 @@ import type { ConversationFacts, GamePack, GameState, GameView, InputEvent, Redu
 import { ctx1f, dayAt, facts1f, fresh1f, NOW, pack1f, rng, turn, view1f } from './fixtures-1f';
 
 const pack = pack1f();
+
+/** the friends at ♥4: a visit to a friend's home is only filed from the heart that invites the player (review of wave B1) */
+const atHeart4 = (s: GameState, ...ids: string[]): GameState => ({
+  ...s,
+  friends: { ...s.friends, ...Object.fromEntries(ids.map((id) => [id, { ...emptyFriend(s.clock.dayIndex), met: true, ap: BALANCE.ap.thresholds[3]! }])) },
+});
 
 /** One reduce call at `at` (default: day 0). The input state is frozen first, so any mutation throws. */
 function step(s: GameState, ev: InputEvent, at = NOW, view: GameView = view1f(), p: GamePack = pack): ReduceResult {
@@ -248,8 +255,10 @@ describe('conversations', () => {
     expect(r.state.tickets.ramen).toBeUndefined();
   });
   it('a home visit files the home place for `visit` objectives', () => {
-    const r = step(fresh1f(), { t: 'conversation_done', facts: facts1f({ scenarioId: 'home_mio', characterId: 'mio', ind: 3, done: 2, total: 2 }) });
+    const r = step(atHeart4(fresh1f(), 'mio'), { t: 'conversation_done', facts: facts1f({ scenarioId: 'home_mio', characterId: 'mio', ind: 3, done: 2, total: 2 }) });
     expect(r.state.stats.visits).toContain('home:mio');
+    // below ♥4 the visit is not filed (the rows and the door are shut there; the reducer agrees)
+    expect(step(fresh1f(), { t: 'conversation_done', facts: facts1f({ scenarioId: 'home_mio', characterId: 'mio', ind: 3, done: 2, total: 2 }) }).state.stats.visits).toEqual([]);
   });
   it('the coach keeps the last conversations and offers a card from them', () => {
     let s = fresh1f();
@@ -462,8 +471,9 @@ describe('beats, culture and the story', () => {
     const adult = view1f();
     const f = facts1f({ scenarioId: 'home_mio', characterId: 'mio', ind: 2, done: 2, total: 2 });
     const visit = { t: 'visit', place: 'home:aiko' } as const;
-    expect(step(step(fresh1f(), { t: 'conversation_done', facts: f }, NOW, kids).state, visit, NOW, kids).state.culture.cc_adult).toBeUndefined();
-    expect(step(fresh1f(), visit, NOW, adult).state.culture.cc_adult).toBeDefined();
+    const start = atHeart4(fresh1f(), 'mio', 'aiko');
+    expect(step(step(start, { t: 'conversation_done', facts: f }, NOW, kids).state, visit, NOW, kids).state.culture.cc_adult).toBeUndefined();
+    expect(step(start, visit, NOW, adult).state.culture.cc_adult).toBeDefined();
   });
   it('culture_seen unlocks a card the reducer could not detect; culture_say needs an unlocked say-card and a pass', () => {
     expect(step(fresh1f(), { t: 'culture_seen', id: 'cc_trainmanner' }).state.culture.cc_trainmanner).toBeDefined();

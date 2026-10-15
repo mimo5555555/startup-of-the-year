@@ -72,7 +72,7 @@ const MORE: Record<string, [string[], string[]]> = {
   'あれ|は|何|です|か？': [['what is this', 'what is that over there', 'what is that thing', 'what is this thing', 'what is it'], ['ما هذا', 'ما ذاك', 'ما هذا الشيء']],
   'もう|少し|塩|が|いい|です。': [['more salt please', 'a little more salt', 'it needs more salt', 'it needs a bit more salt', 'a little more salt please', 'add a little salt'], ['المزيد من الملح', 'قليل من الملح', 'يحتاج ملح', 'يحتاج الى مزيد من الملح']],
   '上手|です|ね！': [['you are good', 'you are good at it', 'you play very well', 'you are so good', 'you play well'], ['انت بارعة', 'تعزفين جيدا', 'تعزفين ببراعة']],
-  'もう|一|曲|お願いします。': [['one more please', 'play another song please', 'another song please', 'one more song', 'play one more'], ['اغنية اخرى', 'واحدة اخرى من فضلك', 'اعزفي اغنية اخرى']],
+  'もう|一曲|お願いします。': [['one more please', 'play another song please', 'another song please', 'one more song', 'play one more'], ['اغنية اخرى', 'واحدة اخرى من فضلك', 'اعزفي اغنية اخرى']],
   'ありがとう|ございます。': [['thank you so much', 'thanks a lot', 'many thanks'], ['شكرا جزيلا', 'الف شكر']],
   '今日|は|楽しかった|です。': [['i had a good time today', 'today was fun', 'i enjoyed today', 'i had fun'], ['قضيت وقتا ممتعا اليوم', 'كان اليوم ممتعا', 'استمتعت']],
   'きれい|です|ね！': [['it is beautiful', 'so pretty', 'how pretty', 'it is so pretty', 'beautiful'], ['جميلة جدا', 'ما اجملها', 'انها جميلة']],
@@ -98,7 +98,7 @@ const FIXED_RAW: PhraseEntry[] = [
   P('fv_like_food', '{chatfood}|が|好き|です。', ['i like {chatfood}', 'my favourite food is {chatfood}', 'i love {chatfood}', 'i really like {chatfood}', '{chatfood}'], ['احب {chatfood}', 'طعامي المفضل هو {chatfood}', 'احب {chatfood} كثيرا', '{chatfood}'], { slot: 'chatfood', closedSlot: true }),
   P('fv_age_25', '二|十|五|歳|です。', ['i am 25', 'i am 25 years old', 'i am twenty five', 'i am twenty five years old', '25 years old', '25'], ['عمري 25', 'عمري خمسة وعشرون عاما', 'عمري 25 سنة', 'عمري خمس وعشرين سنة']),
   P('fv_age_30', '三十|歳|です。', ['i am 30', 'i am 30 years old', 'i am thirty', 'i am thirty years old', '30 years old', '30'], ['عمري 30', 'عمري ثلاثون عاما', 'عمري 30 سنة', 'عمري ثلاثين سنة']),
-  P('fv_age_18', '十|八|歳|です。', ['i am 18', 'i am 18 years old', 'i am eighteen', 'i am eighteen years old', '18 years old', '18'], ['عمري 18', 'عمري ثمانية عشر عاما', 'عمري 18 سنة', 'عمري ثماني عشرة سنة']),
+  P('fv_age_18', '十八歳|です。', ['i am 18', 'i am 18 years old', 'i am eighteen', 'i am eighteen years old', '18 years old', '18'], ['عمري 18', 'عمري ثمانية عشر عاما', 'عمري 18 سنة', 'عمري ثماني عشرة سنة']),
 ];
 
 const FIXED: PhraseEntry[] = FIXED_RAW.map((p) => {

@@ -95,6 +95,9 @@ export const SOCIAL_FRIENDS_LEXICON: LexEntry[] = [
   w('ジャズ', '', 'jazz', 'جاز'),
   w('ポップ', '', 'pop (music)', 'بوب'),
   w('曲', 'きょく', 'song, piece of music', 'أغنية، مقطوعة'),
+  // counter compounds whose reading changes (一曲 is いっきょく, 十八歳 is じゅうはっさい): one token, so the furigana is right
+  w('一曲', 'いっきょく', 'one song', 'أغنية واحدة'),
+  w('十八歳', 'じゅうはっさい', '18 years old', 'ثمانية عشر عامًا'),
   w('リクエスト', '', 'request', 'طلب'),
   w('弾いて', 'ひいて', 'playing (te-form)', 'اعزف (صيغة الأمر)'),
   w('終わり', 'おわり', 'the end, finished', 'النهاية، انتهى'),
@@ -110,6 +113,7 @@ export const SOCIAL_FRIENDS_LEXICON: LexEntry[] = [
   w('切って', 'きって', 'cutting (te-form)', 'قطّع (صيغة الأمر)'),
   w('切れ', 'きれ', 'cut! (rough)', 'قطّع! (فظّ)'),
   w('切ります', 'きります', 'to cut (polite)', 'أقطّع (مهذب)'),
+  w('切りました', 'きりました', 'cut (polite past)', 'قطّعتُ (مهذب)'),
   w('入れます', 'いれます', 'to put in (polite)', 'أضع، أضيف (مهذب)'),
   w('入れろ', 'いれろ', 'put it in! (rough)', 'ضعه! (فظّ)'),
   w('食べて', 'たべて', 'eating (te-form)', 'كُل (صيغة الأمر)'),

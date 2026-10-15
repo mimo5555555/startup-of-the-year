@@ -530,9 +530,9 @@ g = await liveGame(page);
 assert.ok(g.chapter.done.c3_1 !== undefined, 'c3_1 (meet Mio) is done');
 await check('after the park');
 
-step('Chapter 3: the Friends screen, six friends, Mio open');
+step('Chapter 3: the Friends screen, seven friends, Mio open');
 await openFriends();
-assert.equal(await page.locator('.frd-card').count(), 6, 'the six friends of the release');
+assert.equal(await page.locator('.frd-card').count(), 7, 'the seven friends (Aiko joined in wave B1)');
 assert.equal(await page.locator('[data-act=message]').count(), 0, 'no Message button before the phone');
 await assertNoHScroll(page, 'friends screen');
 await t.shot('friends-start');

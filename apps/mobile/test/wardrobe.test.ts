@@ -459,6 +459,7 @@ describe('the avatar in the world', () => {
     const world = {
       setShopOpen: () => {},
       setNpcBadge: () => {},
+      setDoorOpen: () => {},
       setMoveMultiplier: () => {},
       setRide: () => {},
       setPlayerSpec: (s: { top: string }) => calls.push(s.top),

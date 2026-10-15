@@ -1,5 +1,5 @@
 // Friends end to end in the real UI (docs/GAME_DESIGN.md §8; agent 4A): fresh profile -> the dev tools take the game to Chapter 3 -> the Friends
-// screen from the menu (six friends, Mio open, no Message button without a phone) -> Talk to Mio (Prepare, small talk, debrief) -> buy a
+// screen from the menu (seven friends, Mio open, no Message button without a phone) -> Talk to Mio (Prepare, small talk, debrief) -> buy a
 // present at the konbini by conversation -> hand it over from the gift sheet (the item is used up, the friend reacts, the objective c3_3
 // ticks) -> a later day's talk takes Mio to 2 hearts (objective c3_2) and her heart beat plays (note, casual speech) -> Tanaka reaches 2
 // hearts (objective c3_4). Run in English and, with --ar, in Arabic (RTL) at 360 px: no horizontal scroll, 44 px targets.
@@ -101,12 +101,12 @@ assert.equal(g.chapter.n, 3, 'Chapter 3 is current');
 assert.ok(g.wallet.cash >= 700, `cash for a present: ¥${g.wallet.cash}`);
 
 // ---- 2. the Friends screen from the menu ---------------------------------------------------------------------------------
-t.step('the Friends screen: six friends, Mio open, hearts, "Next at", no Message without a phone');
+t.step('the Friends screen: seven friends, Mio open, hearts, "Next at", no Message without a phone');
 await openFriends();
-assert.equal(await page.locator('.frd-card').count(), 6, 'the six friends of the release');
+assert.equal(await page.locator('.frd-card').count(), 7, 'the seven friends (Aiko joined in wave B1)');
 assert.deepEqual(
   await page.locator('.frd-card').evaluateAll((els) => els.map((e) => e.getAttribute('data-friend'))),
-  ['mio', 'yuki', 'tanaka', 'sato', 'kenji', 'hanako'],
+  ['mio', 'yuki', 'tanaka', 'sato', 'kenji', 'hanako', 'aiko'],
 );
 assert.equal(await page.locator('[data-card=mio]').count(), 1, "Mio's card is open");
 assert.equal(await page.locator('[data-card]').count(), 1, 'one card open at a time');

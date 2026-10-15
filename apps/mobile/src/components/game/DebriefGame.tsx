@@ -20,7 +20,7 @@ import { useT } from '../../hooks';
 import { characterById, displayName } from '../../content';
 import { dispatch, openScreen } from '../../game/bridge';
 import { PACK, itemById } from '../../game/pack';
-import { rewardsOf } from '../../game/homeLogic';
+import { rewardsOf, unlockHint } from '../../game/homeLogic';
 import { getGame, useGame } from '../../game/gameStore';
 import { useDisclosure, useTracker } from '../../game/hooks';
 import type { ConvoPurchase } from '../../game/convoHooks';
@@ -264,6 +264,7 @@ export function FriendsStrip({ data }: { data: DebriefData }) {
         const gift = data.derived.find((e) => e.t === 'gift_reacted' && e.friendId === id);
         const up = data.derived.find((e) => e.t === 'hearts_changed' && e.friendId === id && e.to > e.from);
         const now = heartsFor(game, id);
+        const hint = up && up.t === 'hearts_changed' ? unlockHint(id, up.from, up.to) : null;
         return (
           <div key={id} className="dbf-friend">
             <Portrait spec={c.avatar} size={40} />
@@ -282,6 +283,7 @@ export function FriendsStrip({ data }: { data: DebriefData }) {
               {up ? (
                 <small className="dbf-gain" dir="auto">
                   {t('social.heartUp', { name: displayName(c, lang) })}
+                  {hint && <span data-unlock={hint}> {t(`fv.unlock.${hint}` as const, { name: displayName(c, lang) })}</span>}
                 </small>
               ) : (
                 ap > 0 && (

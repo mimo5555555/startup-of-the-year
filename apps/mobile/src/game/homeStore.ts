@@ -18,6 +18,8 @@ export interface HomeVisit {
   phase: HomePhase;
   shoesOff: boolean;
   slippersOn: boolean;
+  /** the conversation reached its debrief (so Leave needs no "are you sure"); false again while a new one is on */
+  done: boolean;
   /** the conversation's mode, when Prepare chose one (absent = Guided) */
   talk?: 'guided' | 'real';
 }
@@ -35,7 +37,7 @@ export const useHome = create<HomeState>()((set, get) => ({
   begin(scenarioId, talk) {
     const def = HOMES[scenarioId];
     if (!def || get().visit) return false;
-    set({ visit: { def, mode: '3d', phase: 'enter', shoesOff: false, slippersOn: false, ...(talk ? { talk } : {}) } });
+    set({ visit: { def, mode: '3d', phase: 'enter', shoesOff: false, slippersOn: false, done: false, ...(talk ? { talk } : {}) } });
     return true;
   },
   patch: (p) => set((s) => (s.visit ? { visit: { ...s.visit, ...p } } : s)),

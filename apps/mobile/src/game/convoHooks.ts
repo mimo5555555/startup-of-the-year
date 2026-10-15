@@ -22,7 +22,7 @@ import {
   type ReduceResult,
   type ScenarioMeta,
 } from '@lw/game';
-import type { FriendPlan } from './friendsLogic';
+import { visitFlags, type FriendPlan } from './friendsLogic';
 import { pieceColours, tryOnSpec } from './avatarFx';
 import { IC_SCENARIO, icHooks } from './icHooks';
 
@@ -369,6 +369,8 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
   }
   if (meta?.twist && twistFor(state.clock.dayIndex, scenarioId, plays)) flags.twist = true;
   if (deps.friend) Object.assign(flags, deps.friend.flags);
+  // a hang-out or a home visit: the friend's plain speech (the scenarios read no other flag)
+  Object.assign(flags, visitFlags(pack, state, meta));
 
   return {
     hooks,

@@ -140,7 +140,7 @@ await t.shot('0-hud');
 
 t.step('Messages: the friends, the unread badges, 44 px rows');
 await openPhone();
-assert.equal(await page.locator('[data-friend-row]').count(), 6, 'the six friends');
+assert.equal(await page.locator('[data-friend-row]').count(), 7, 'the seven friends (Aiko joined in wave B1)');
 assert.equal(await page.locator('[data-friend-row][data-unread="1"]').count(), 2, 'two with a message');
 assert.equal((await text('.ph-tab .ph-badge')).trim(), '2', 'the tab badge counts them');
 const preview = await text('[data-friend-row=mio] .ja-preview');

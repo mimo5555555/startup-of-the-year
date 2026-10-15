@@ -12,6 +12,9 @@ export const en = {
   'home.host.says': '{name} says',
   'home.room': 'Inside {room}',
   'home.reward.title': 'Keepsakes',
+  'home.talk': 'Talk to {name}',
+  'home.leave.ask': "The visit is not finished. Leave anyway?",
+  'home.stay': 'Stay',
 } as const;
 
 export const ar: Record<keyof typeof en, string> = {
@@ -25,4 +28,7 @@ export const ar: Record<keyof typeof en, string> = {
   'home.host.says': 'يقول {name}',
   'home.room': 'داخل {room}',
   'home.reward.title': 'تذكارات',
+  'home.talk': 'تحدّث مع {name}',
+  'home.leave.ask': 'الزيارة لم تنتهِ بعد. هل تغادر؟',
+  'home.stay': 'ابقَ',
 };

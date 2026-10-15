@@ -63,12 +63,16 @@ export function Prepare() {
 }
 
 /** Leaves for the world and starts the conversation (the ramen shop's ticket waiting means it starts at the firmness question, as the sheet does). */
-function talk(scenarioId: string, characterId: string, mode: Mode, go: (s: 'world') => void): void {
+export function talk(scenarioId: string, characterId: string, mode: Mode, go: (s: 'world') => void): void {
   const startNode = PACK.scenarioMeta.find((m) => m.id === scenarioId)?.startNode;
   const ticket = (getGame().tickets as Record<string, unknown>)[scenarioId];
   go('world');
-  // a friend's home starts at the genkan: the visit plays the conversation itself once the slippers are on
-  if (isHomeScenario(scenarioId) && beginVisit(scenarioId, mode)) return;
+  // a friend's home starts at the genkan: the visit plays the conversation itself once the slippers are on. A visit that is already on
+  // (a next-goal button in a debrief inside another home) is never answered by a bare conversation: that would skip the genkan.
+  if (isHomeScenario(scenarioId)) {
+    beginVisit(scenarioId, mode);
+    return;
+  }
   startConversation({ scenarioId, characterId, mode, ...(startNode && ticket ? { startNode } : {}) });
 }
 

@@ -18,7 +18,7 @@ export const FRIENDS_POCKETS: Record<string, PocketLine> = Object.fromEntries([
   P('p_hang_mio_photo_1', L('ピース|！', 'Peace sign!', 'علامة النصر!'), true),
   P('p_hang_mio_photo_2', L('こっち|が|いい|です|。', 'This one is better.', 'هذه أفضل.')),
   P('p_hang_yuki_jam_1', L('上手|です|ね|！', 'You play well!', 'تعزفين بمهارة!'), true),
-  P('p_hang_yuki_jam_2', L('もう|一|曲|お願いします|。', 'One more song, please.', 'أغنية أخرى من فضلك.')),
+  P('p_hang_yuki_jam_2', L('もう|一曲|お願いします|。', 'One more song, please.', 'أغنية أخرى من فضلك.')),
   P('p_hang_kenji_cook_1', L('もう|少し|塩|が|いい|です|。', 'It needs a little more salt.', 'يحتاج إلى قليل من الملح.')),
   P('p_hang_kenji_cook_2', L('ごちそうさまでした|。', 'Thank you for the meal.', 'شكرًا على الوجبة.'), true),
   P('p_hang_aiko_wagashi_1', L('きれい|です|ね|！', 'It is pretty!', 'إنها جميلة!')),

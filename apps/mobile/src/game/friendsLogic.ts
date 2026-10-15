@@ -76,6 +76,15 @@ export function isCasual(pack: GamePack, state: GameState, friendId: string): bo
   return heartsOfFriend(state, friendId) >= def.casualAt || friendOf(state, friendId).flags.includes('casual');
 }
 
+/**
+ * The flags of a hang-out or a home visit (Release 2 wave B1): only `casual`, when the friend speaks plain form to the player now. These
+ * scenarios are not small talk (no topic, no revealed fact), so they skip `planFriendConvo`. Empty for every other scenario.
+ */
+export function visitFlags(pack: GamePack, state: GameState, meta: { kind?: string; friendId?: string } | undefined): Record<string, boolean> {
+  if ((meta?.kind !== 'hangout' && meta?.kind !== 'home') || !meta.friendId) return {};
+  return isCasual(pack, state, meta.friendId) ? { casual: true } : {};
+}
+
 // ---------------------------------------------------------------------------------------------------------------
 // Small talk: topic, profile fact, callback
 // ---------------------------------------------------------------------------------------------------------------

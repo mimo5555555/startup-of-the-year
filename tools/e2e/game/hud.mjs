@@ -171,7 +171,16 @@ let doorToast = '';
 for (let i = 0; i < 3 && !doorToast.includes('まだ入れません'); i++) {
   await page.evaluate(() => window.__world.simulatePick('door:mio'));
   await t.sleep(500);
-  doorToast = (await page.locator('.toast, [role=status]').allInnerTexts()).join(' ');
+  // the door tooltip writes 入れません with its furigana and romaji (.rt, .rm), which innerText would splice into the sentence: read the base text only
+  doorToast = await page.evaluate(() =>
+    [...document.querySelectorAll('.toast, [role=status]')]
+      .map((el) => {
+        const c = el.cloneNode(true);
+        c.querySelectorAll('rt, .rt, .rm').forEach((rt) => rt.remove());
+        return c.textContent;
+      })
+      .join(' '),
+  );
 }
 assert.ok(doorToast.includes('まだ入れません'), 'the tooltip says 「まだ入れません」');
 

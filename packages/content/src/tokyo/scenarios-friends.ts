@@ -182,11 +182,11 @@ export const HANG_YUKI_JAM: Scenario = {
         L('ありがとう！|うれしい。|リクエスト|は|ある？', 'Thank you! I am happy. Do you have a request?', 'شكرًا! أنا سعيدة. هل لديك طلب؟'),
         L('ありがとう|ございます。|うれしい|です。|リクエスト|は|あります|か？', 'Thank you. I am happy. Do you have a request?', 'شكرًا. أنا سعيدة. هل لديك طلب؟'),
       ),
-      suggestions: [S('桜|の|歌|を|お願いします。', 'The cherry blossom song, please.', 'أغنية أزهار الكرز من فضلك.'), S('もう|一|曲|お願いします。', 'One more song, please.', 'أغنية أخرى من فضلك.'), S('好きな|曲|を|弾いて|ください。', 'Please play a song you like.', 'اعزفي أغنية تحبينها من فضلك.')],
-      intents: [{ id: 'request', any: ['おねがい', 'ひいて', 'ひいてください', 'きょく', 'うた', 'リクエスト'], request: true, next: 'end', step: 'request', ideal: L('もう|一|曲|お願いします。', 'One more song, please.', 'أغنية أخرى من فضلك.') }],
+      suggestions: [S('桜|の|歌|を|お願いします。', 'The cherry blossom song, please.', 'أغنية أزهار الكرز من فضلك.'), S('もう|一曲|お願いします。', 'One more song, please.', 'أغنية أخرى من فضلك.'), S('好きな|曲|を|弾いて|ください。', 'Please play a song you like.', 'اعزفي أغنية تحبينها من فضلك.')],
+      intents: [{ id: 'request', any: ['おねがい', 'ひいて', 'ひいてください', 'きょく', 'うた', 'リクエスト'], request: true, next: 'end', step: 'request', ideal: L('もう|一曲|お願いします。', 'One more song, please.', 'أغنية أخرى من فضلك.') }],
     }),
     endNode(
-      reg(L('いい|よ！|じゃあ、|もう|一|曲。|…|楽しかった！|また|ね！', 'Sure! Then one more song. ... That was fun! See you!', 'حسنًا! إذًا أغنية أخرى. ... كان ممتعًا! إلى اللقاء!'), L('いい|です|よ。|では、|もう|一|曲。|…|楽しかった|です。|また|ね。', 'Sure. Then one more song. ... That was fun. See you.', 'حسنًا. إذًا أغنية أخرى. ... كان ممتعًا. إلى اللقاء.')),
+      reg(L('いい|よ！|じゃあ、|もう|一曲。|…|楽しかった！|また|ね！', 'Sure! Then one more song. ... That was fun! See you!', 'حسنًا! إذًا أغنية أخرى. ... كان ممتعًا! إلى اللقاء!'), L('いい|です|よ。|では、|もう|一曲。|…|楽しかった|です。|また|ね。', 'Sure. Then one more song. ... That was fun. See you.', 'حسنًا. إذًا أغنية أخرى. ... كان ممتعًا. إلى اللقاء.')),
     ),
   ]),
 };
@@ -254,7 +254,7 @@ export const HANG_KENJI_COOK: Scenario = {
         L('では、|まず|ねぎ|を|切って、|スープ|に|入れて|ください。', 'Then first cut the green onion and put it in the soup, please.', 'إذًا قطّع البصل الأخضر أولًا وأضفه إلى الحساء من فضلك.'),
       ),
       suggestions: [S('ねぎ|を|切って、|スープ|に|入れます。', 'I cut the green onion and put it in the soup.', 'أقطّع البصل الأخضر وأضعه في الحساء.'), S('ねぎ|を|切ります。', 'I cut the green onion.', 'أقطّع البصل الأخضر.'), S('スープ|に|入れます。', 'I put it in the soup.', 'أضعه في الحساء.')],
-      intents: [{ id: 'cook', any: ['きって', 'きります', 'いれます', 'いれて', 'きる', 'いれる'], next: 'taste', step: 'steps' }],
+      intents: [{ id: 'cook', any: ['きって', 'きります', 'いれます', 'いれて', 'きる', 'いれる', 'きりました', 'いれました'], next: 'taste', step: 'steps' }],
     }),
     node({
       id: 'taste',
@@ -543,7 +543,7 @@ export const HOME_KENJI: Scenario = homeVisit({
       id: 'q_age',
       emotion: 'happy',
       say: reg(L('そう|か！|ひな|が|聞き|たい|って。|{name}|は|何歳|だ？', 'Good! Hina wants to ask. How old are you, {name}?', 'جيد! تريد هينا أن تسأل. كم عمرك يا {name}؟'), L('そう|です|か。|ひな|が|聞き|たい|です|って。|何歳|です|か？', 'I see. Hina wants to ask. How old are you?', 'حسنًا. تريد هينا أن تسأل. كم عمرك؟')),
-      suggestions: [S('二|十|五|歳|です。', 'I am 25 years old.', 'عمري خمسة وعشرون عامًا.'), S('三十|歳|です。', 'I am 30 years old.', 'عمري ثلاثون عامًا.'), S('十|八|歳|です。', 'I am 18 years old.', 'عمري ثمانية عشر عامًا.')],
+      suggestions: [S('二|十|五|歳|です。', 'I am 25 years old.', 'عمري خمسة وعشرون عامًا.'), S('三十|歳|です。', 'I am 30 years old.', 'عمري ثلاثون عامًا.'), S('十八歳|です。', 'I am 18 years old.', 'عمري ثمانية عشر عامًا.')],
       intents: [{ id: 'age', any: ['さい', 'ねん'], next: 'q_from', ideal: L('二|十|五|歳|です。', 'I am 25 years old.', 'عمري خمسة وعشرون عامًا.') }],
     }),
     node({

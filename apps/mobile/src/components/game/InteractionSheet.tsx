@@ -88,6 +88,8 @@ export function InteractionSheet({ character, shopName, rows, closedUntil, hasGo
   const lockText = (row: OptionRow): string => {
     const l = row.lock!;
     if ('wait' in l) return cooldownText(t, l.wait);
+    // a hang-out row says what it needs in the friend's name (the other locked rows keep the short hearts line)
+    if ('hearts' in l && row.it.id.endsWith('_hang') && character) return t('fv.hang.locked', { name: displayName(character, lang) });
     return 'ch' in l ? opensIn(t, 'quests.locked', l.ch) : 'hearts' in l ? t('hud.needHearts', { n: l.hearts }) : t('social.notYet');
   };
 

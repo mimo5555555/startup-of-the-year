@@ -5,7 +5,7 @@
 // being inside is never persisted, a reload puts the player on the street.
 import { useEffect, useRef, useState } from 'react';
 import type { StageId, TokyoWorld } from '@lw/world';
-import { GENKAN_FLAG, LEXICON, tokenize, type Line } from '@lw/content';
+import { DOOR_LOCKED, GENKAN_FLAG, LEXICON, tokenize, type Line } from '@lw/content';
 import { BALANCE } from '@lw/game';
 import { useT } from '../../hooks';
 import { useStore } from '../../store';
@@ -46,8 +46,8 @@ export function HomeStage({ world }: { world: TokyoWorld | null }) {
   const graphics = useStore((s) => s.settings.graphics);
   const convoId = useUi((s) => s.convo?.scenarioId ?? null);
   const [said, setSaid] = useState<Said | null>(null);
+  const [confirm, setConfirm] = useState(false);
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
-  const lowRef = useRef(false);
 
   const later = (fn: () => void, ms: number) => {
     const id = setTimeout(fn, ms);
@@ -63,6 +63,7 @@ export function HomeStage({ world }: { world: TokyoWorld | null }) {
   const leave = () => {
     clearTimers();
     setSaid(null);
+    setConfirm(false);
     const v = useHome.getState().visit;
     world?.setMove(0, 0);
     if (v?.mode === '3d' && world?.currentStage()) {
@@ -75,6 +76,22 @@ export function HomeStage({ world }: { world: TokyoWorld | null }) {
     useHome.getState().end();
   };
 
+  /** Leave: straight out, unless the talk was left half way (then one question: the visit pays only when it is finished) */
+  const askLeave = () => {
+    const v = useHome.getState().visit;
+    if (v && v.phase === 'inside' && !v.done) setConfirm(true);
+    else leave();
+  };
+
+  /** the conversation of the home, from the genkan and again from the room (after leaving it half way) */
+  const startTalk = () => {
+    const cur = useHome.getState().visit;
+    if (!cur || useUi.getState().convo) return;
+    setConfirm(false);
+    patch({ phase: 'convo', done: false });
+    startConversation({ scenarioId: cur.def.scenarioId, characterId: cur.def.host, ...(cur.talk === 'real' ? { mode: 'real' as const } : {}) });
+  };
+
   const sayHost = (host: string, line: Line | null) => {
     if (!line) return;
     setSaid({ key: Date.now(), host, line });
@@ -84,15 +101,10 @@ export function HomeStage({ world }: { world: TokyoWorld | null }) {
   // ---- going in: 3D when the room loads, the panel otherwise ----
   const phase = visit?.phase;
   useEffect(() => {
-    if (!world) return;
-    return world.on((e) => {
-      if (e.type === 'quality' && e.quality === 'low') lowRef.current = true;
-    });
-  }, [world]);
-  useEffect(() => {
     const v = useHome.getState().visit;
     if (!v || v.phase !== 'enter') return;
-    const forced = panelForced(window.location.search) || graphics === 'low' || lowRef.current;
+    // light graphics (the setting, or the world's own drop on a phone too slow for the street) means the panel, never a second WebGL scene
+    const forced = panelForced(window.location.search) || graphics === 'low' || world?.getQuality() === 'low';
     let ok = false;
     if (world && !forced) {
       try {
@@ -115,9 +127,9 @@ export function HomeStage({ world }: { world: TokyoWorld | null }) {
       if (e.type === 'pick') {
         if (e.id === 'genkan:shoes') press('shoes');
         else if (e.id === 'genkan:slippers') press('slippers');
-        else if (e.id === 'stage:exit') leave();
+        else if (e.id === 'stage:exit') askLeave();
         else tapProp(e.id);
-      } else if (e.type === 'stage' && e.phase === 'leave') leave();
+      } else if (e.type === 'stage' && e.phase === 'leave') askLeave();
       else if (e.type === 'stage' && e.phase === 'exit') useHome.getState().end();
     });
     // the handlers read the live store and refs, so one subscription per visit is enough
@@ -134,6 +146,12 @@ export function HomeStage({ world }: { world: TokyoWorld | null }) {
     } else if (v.phase === 'convo') patch({ phase: 'inside' });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [convoId]);
+
+  // the debrief opened: the visit's conversation is done (the room's Leave needs no question)
+  useEffect(() => {
+    if (screen === 'feedback' && useHome.getState().visit) patch({ done: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [screen]);
 
   // the tab goes to the background with a finger on the stick: nothing keeps walking
   useEffect(() => {
@@ -172,14 +190,13 @@ export function HomeStage({ world }: { world: TokyoWorld | null }) {
       return;
     }
     sayHost(host, genkanLine(host, 'ok', casual));
-    // both steps done: the flag, and the visit that the culture card of the genkan waits for (the card pops up once the talk is over)
+    // both steps done: the flag. The visit itself (stats.visits, the objective, the genkan culture card) is filed by the reducer when the talk is
+    // finished, so entering the genkan alone never counts as a visit
     dispatch({ t: 'flag', id: GENKAN_FLAG });
-    dispatch({ t: 'visit', place: v.def.visitKey });
     later(() => {
       const cur = useHome.getState().visit;
-      if (!cur || cur.phase !== 'genkan' || useUi.getState().convo) return;
-      patch({ phase: 'convo' });
-      startConversation({ scenarioId: cur.def.scenarioId, characterId: cur.def.host, ...(cur.talk === 'real' ? { mode: 'real' as const } : {}) });
+      if (!cur || cur.phase !== 'genkan') return;
+      startTalk();
     }, START_MS);
   }
 
@@ -217,7 +234,7 @@ export function HomeStage({ world }: { world: TokyoWorld | null }) {
       {ui && (
         <div className="home-ui" dir={dir} data-home-phase={visit.phase} data-home-mode={visit.mode} data-home-stage={visit.def.stage}>
           <div className="home-top">
-            <button type="button" className="icon-btn glass home-leave-x" data-home="leave-x" aria-label={t('fv.genkan.leave')} onClick={leave}>
+            <button type="button" className="icon-btn glass home-leave-x" data-home="leave-x" aria-label={t('fv.genkan.leave')} onClick={askLeave}>
               <Icon name="x" size={22} />
             </button>
             <div className="chip glass home-room" aria-label={t('home.room', { room })}>
@@ -242,6 +259,20 @@ export function HomeStage({ world }: { world: TokyoWorld | null }) {
             </div>
           )}
 
+          {confirm && (
+            <div className="home-confirm glass-card" role="alertdialog" data-home="confirm" aria-label={t('home.leave.ask')}>
+              <p>{t('home.leave.ask')}</p>
+              <div className="home-confirm-btns">
+                <button type="button" className="btn soft" data-home="stay" onClick={() => setConfirm(false)}>
+                  {t('home.stay')}
+                </button>
+                <button type="button" className="btn primary" data-home="leave-anyway" onClick={leave}>
+                  {t('fv.genkan.leave')}
+                </button>
+              </div>
+            </div>
+          )}
+
           {visit.phase === 'genkan' && <GenkanButtons shoesOff={visit.shoesOff} slippersOn={visit.slippersOn} onPress={press} />}
 
           {visit.phase === 'inside' && visit.mode === 'panel' && <PropChips home={visit.def} discovered={discovered} onTap={tapProp} />}
@@ -251,10 +282,18 @@ export function HomeStage({ world }: { world: TokyoWorld | null }) {
           {visit.phase === 'inside' && (
             <div className="home-foot">
               {visit.mode === '3d' ? <Joystick onMove={(x, y) => world?.setMove(x, y)} /> : <span />}
-              <button type="button" className="btn primary home-leave" data-home="leave" onClick={leave}>
-                <Icon name="walk" size={20} />
-                {t('fv.genkan.leave')}
-              </button>
+              <div className="home-acts">
+                {!visit.done && (
+                  <button type="button" className="btn soft home-talk" data-home="talk" onClick={startTalk}>
+                    <Icon name="message" size={20} />
+                    {t('home.talk', { name: displayName(host, lang) })}
+                  </button>
+                )}
+                <button type="button" className={`btn ${visit.done ? 'primary' : 'soft'} home-leave`} data-home="leave" onClick={askLeave}>
+                  <Icon name="walk" size={20} />
+                  {t('fv.genkan.leave')}
+                </button>
+              </div>
             </div>
           )}
         </div>
@@ -266,6 +305,8 @@ export function HomeStage({ world }: { world: TokyoWorld | null }) {
 /** What a tap on a door says when it does not open: the Japanese 「まだ入れません」 with the reason, or how long to wait. Tap to close. */
 export function DoorTip({ status, name, onClose }: { status: Exclude<DoorStatus, { t: 'open' } | { t: 'none' }>; name: string; onClose: () => void }) {
   const { t } = useT();
+  const furigana = useStore((s) => s.settings.furigana);
+  const romaji = useStore((s) => s.settings.romaji);
   const close = useRef(onClose);
   close.current = onClose;
   useEffect(() => {
@@ -275,14 +316,8 @@ export function DoorTip({ status, name, onClose }: { status: Exclude<DoorStatus,
   const wait = status.t === 'wait';
   return (
     <button type="button" className="home-tip glass-card" role="status" data-home="door-tip" data-door-status={status.t} onClick={onClose}>
-      <span className="home-tip-ja" lang="ja">
-        {wait ? (
-          'また今度ね。'
-        ) : (
-          <>
-            まだ<ruby>入<rt>はい</rt></ruby>れません。
-          </>
-        )}
+      <span className="home-tip-ja">
+        <JaText tokens={tokenize(wait ? 'また|今度|ね。' : DOOR_LOCKED.ja, LEXICON).tokens} furigana={furigana} romaji={romaji} size="md" />
       </span>
       <span className="home-tip-text" dir="auto">
         {wait ? cooldownText(t, status.days) : t('home.door.invite', { need: status.need, have: status.have, name })}
