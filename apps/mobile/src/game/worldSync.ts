@@ -26,7 +26,7 @@ import { NPC_ORDER, characterById, scenarioById, scenarioForCharacter } from '..
 import { useStore } from '../store';
 import { applyAvatar, avatarSpecFor } from './avatarFx';
 import { cooldownDays, doorsOpen } from './homeLogic';
-import { inviteStatus, ownDoors } from './ownLogic';
+import { furnitureOpen, inviteStatus, ownDoors } from './ownLogic';
 import { heartsOf } from './selectors';
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -179,7 +179,9 @@ function inviteRow(env: InteractionEnv, characterId: string): OptionRow | null {
   if (!pack.friends.some((f) => f.id === characterId) || !env.scenarios.has(OWN_GUEST.scenarioId)) return null;
   const st = inviteStatus(pack, state, characterId);
   if (st.t === 'hearts') return null;
-  const it: Interaction = { id: `${characterId}_invite`, kind: 'scenario', scenarioId: OWN_GUEST.scenarioId, label: { en: 'Invite to your room', ar: 'ادعُه إلى غرفتك' } };
+  // before Rin sells furniture the room cannot get comfortable: no row to a lock nobody can open
+  if (st.t === 'comfort' && !furnitureOpen(pack, state)) return null;
+  const it: Interaction = { id: `${characterId}_invite`, kind: 'scenario', scenarioId: OWN_GUEST.scenarioId, label: { en: 'Invite to your room', ar: 'دعوة إلى غرفتك' } };
   const lock: Lock | null = st.t === 'ok' ? null : st.t === 'comfort' ? { comfort: st.need, have: st.have } : { wait: st.days };
   return { it, lock };
 }
@@ -203,9 +205,14 @@ export interface Good {
   /** single ownership */
   once: boolean;
   kind: 'item' | 'menu';
+  /** a contract, not a thing on a shelf (the room at Ono-sō): an under-18 profile never sees it listed (D28) */
+  service?: true;
 }
 
-const fromItem = (i: ItemDef): Good => ({ id: i.id, name: i.name, price: i.price, ch: i.gate.ch, ageMin: i.gate.ageMin, once: !!i.once, kind: 'item' });
+const fromItem = (i: ItemDef): Good => ({ id: i.id, name: i.name, price: i.price, ch: i.gate.ch, ageMin: i.gate.ageMin, once: !!i.once, kind: 'item', ...(i.cat === 'service' ? { service: true as const } : {}) });
+
+/** The goods a profile sees on a shop's shelf: a contract (the flat) is hidden from a profile too young for it, where a young shopper still sees a car as "someday" (D28). */
+export const shelfFor = (goods: Good[], floor: number): Good[] => goods.filter((g) => !(g.service && g.ageMin !== undefined && floor < g.ageMin));
 const fromMenu = (m: MenuItem): Good => ({ id: m.id, name: m.name, price: m.price, ch: 1, once: false, kind: 'menu' });
 
 /** The goods of a shop: what `ShopDef.sells` names plus anything whose `shop` points here, earliest chapter first, then cheapest. */

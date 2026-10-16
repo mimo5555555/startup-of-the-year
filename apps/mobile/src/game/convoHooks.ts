@@ -9,6 +9,8 @@ import {
   itemAvailability,
   ledgerHas,
   lineReady,
+  ownedQty,
+  pendingQty,
   LEDGER_IDS,
   pocketReady,
   quote,
@@ -247,7 +249,9 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
         if (qs.some((q) => q.block === 'owned')) {
           const owned = { ...deps.state().owned };
           for (const l of b) delete owned[l.itemId];
-          const st = { ...deps.state(), owned };
+          // a piece that is paid for and on its way counts as held too (`pendingQty`): it is quoted the same way
+          const deliveries = (deps.state().deliveries ?? []).filter((d) => !b.some((l) => l.itemId === d.item));
+          const st = { ...deps.state(), owned, deliveries };
           qs = b.map((l) => quote(pack, st, deps.view(), { shopId: shopMeta!.shopId, itemId: l.itemId, qty: l.qty, method: methodOf(slots) }));
         }
         if (priced(qs)) {
@@ -274,7 +278,10 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
       // why the shop cannot sell it, for the `short` node: not enough money is the default; an item that is not in stock yet, or that the
       // player already owns, gets its own line instead of "a little short" (only running short of money is ever "short")
       const refused = qs.find((q) => q.block && q.block !== 'funds')?.block;
-      flags.owned_already = refused === 'owned';
+      // a piece that is paid for and still on its way is "ordered", not "owned": Rin says so (fuku_home)
+      const ordered = refused === 'owned' && b.some((l) => pendingQty(before, l.itemId) > 0 && ownedQty(before, l.itemId) === 0);
+      flags.on_its_way = ordered;
+      flags.owned_already = refused === 'owned' && !ordered;
       flags.sold_out = refused !== undefined && refused !== 'owned';
       if (!priced(qs) || (method === 'ic' ? before.wallet.ic : before.wallet.cash) < total) return { ok: false };
       const done: Quote[] = [];
@@ -307,7 +314,9 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
       if (kind === 'ask_total') return { ok: true };
       if (kind === 'say_total') {
         const t = totalNow(ctx.slotIds);
-        return { ok: t !== null && ctx.number === t };
+        // 「三万円と三万円で六万円です」: the parts first, then the sum. Any number the learner said counts, so the right sum is never lost behind the first one
+        // (a wrong sum is still wrong: it matches nothing). A host without `numbers` reads the first number as before.
+        return { ok: t !== null && (ctx.numbers ?? (ctx.number !== undefined ? [ctx.number] : [])).includes(t) };
       }
       // the one haggle of the game (§4.4 rule 3): a polite request (or a price the learner names) at a shop that negotiates, once per conversation and
       // once per item per day (the quote refuses a second one). Granted: min(the learner's ask, min(6%, ¥8,880) of the body price), 40% of that when assisted.

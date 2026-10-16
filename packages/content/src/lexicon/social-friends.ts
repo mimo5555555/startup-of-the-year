@@ -39,7 +39,7 @@ export const SOCIAL_FRIENDS_LEXICON: LexEntry[] = [
   w('上がって', 'あがって', 'step up, come in (te-form)', 'تفضّل بالدخول (صيغة الأمر)'),
   w('上がれ', 'あがれ', 'come in! (rough)', 'ادخل! (فظّ)'),
   w('お上がり', 'おあがり', 'coming in (honorific)', 'الدخول (تكريمًا)'),
-  w('入れません', 'いれません', 'cannot enter', 'لا يمكن الدخول'),
+  w('入れません', 'はいれません', 'cannot enter', 'لا يمكن الدخول'),
   w('おじゃましました', '', 'excuse me for having intruded (said as you leave)', 'عن إذنك (تُقال عند المغادرة)'),
 
   // ---- manners and the host's talk ----

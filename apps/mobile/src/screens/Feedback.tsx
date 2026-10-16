@@ -14,6 +14,8 @@ import { blip, speakJa } from '../services';
 import { useUi } from '../ui';
 import { openScreen } from '../game/bridge';
 import { feedbackThen } from '../game/phoneLogic';
+import { shownScenario } from '../game/ownLogic';
+import { PACK } from '../game/pack';
 
 function Ring({ value, label, tone, note }: { value: number | null; label: string; tone: string; note?: string }) {
   const r = 30;
@@ -44,6 +46,7 @@ export function Feedback() {
   const say = useStore((s) => s.say);
   const xpTotal = useStore((s) => s.xp);
   const openWord = useUi((s) => s.openWord);
+  const age = useStore((s) => s.profile?.age ?? 'adults');
   const debrief = useDebriefFor(data);
 
   useEffect(() => {
@@ -101,7 +104,7 @@ export function Feedback() {
         <div className="who">
           <Portrait spec={character.avatar} size={44} />
           <div>
-            <small>{scenario.title[lang]}</small>
+            <small>{shownScenario(PACK, age, scenario).title[lang]}</small>
             <h1>{t('f.title')}</h1>
           </div>
         </div>

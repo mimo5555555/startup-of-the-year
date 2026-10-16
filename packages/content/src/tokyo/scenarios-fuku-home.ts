@@ -47,6 +47,8 @@ const quoteLines = (ids: string[], extra: number, live: Line, build: (yenJa: str
 const SHORT_LINE = L('すみません、|少し|足りません。', 'I am sorry, it is a little short.', 'آسفة، المبلغ ناقص قليلًا.');
 const SOLD_OUT_LINE = L('すみません、|それ|は|品切れ|です。', 'I am sorry, that is sold out.', 'آسفة، هذا نفد.');
 const OWNED_LINE = L('それ|は|もう|お持ち|です|よ。', 'You already have that one.', 'لديك هذا بالفعل.');
+/** a piece that is paid for and still on its way (the game's `charge` hook raises `on_its_way`) */
+const ORDERED_LINE = L('それ|は|もう|お届け|の|予定|です|よ。', 'That one is already on its way to you.', 'هذه القطعة في طريقها إليك بالفعل.');
 const LEAVE_LINE = L('はい。|また|お待ち|して|おります。', 'All right. We look forward to seeing you again.', 'حسنًا. بانتظار زيارتك مجددًا.');
 const THINK_S = S('考えます。', 'I will think about it.', 'سأفكّر في الأمر.');
 const LATER_S = S('また|来ます。', 'I will come again.', 'سآتي مرة أخرى.');
@@ -222,7 +224,7 @@ export const FUKU_HOME: Scenario = {
     // too little money is a scripted branch, never an error (§4.4 rule 6)
     node({
       id: 'short',
-      say: [say(OWNED_LINE, { flag: 'owned_already' }), say(SOLD_OUT_LINE, { flag: 'sold_out' }), say(SHORT_LINE)],
+      say: [say(ORDERED_LINE, { flag: 'on_its_way' }), say(OWNED_LINE, { flag: 'owned_already' }), say(SOLD_OUT_LINE, { flag: 'sold_out' }), say(SHORT_LINE)],
       suggestions: [LATER_S, S('安い|の|は|あります|か？', 'Do you have something cheaper?', 'هل لديكم شيء أرخص؟'), THINK_S],
       intents: [later(), { id: 'cheaper', any: ['やすいの', 'やすい'], next: 'shelves' }],
     }),

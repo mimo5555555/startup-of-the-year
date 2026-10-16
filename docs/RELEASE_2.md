@@ -23,8 +23,19 @@ release cap (`JP_PACK.release.lastChapter`) moves up only when the content behin
   `kenji_flat`, the door facades (open at ♥4), the genkan (shoes, then slippers) and the panel fallback
   (`?panel=1`, low graphics, a stage that cannot load) are in; the e2e is `tools/e2e/game/home.mjs` (+ `stages.mjs`).
   The reducer checks the hearts too (a hang-out below ♥3 or a visit to a friend's home below ♥4 pays and files nothing).
-  B2 still to do: the dorm and Ono-sō stages, furniture placement, `aiko_viewing`/`aiko_contract`, `fuku_home`,
-  `home_own_guest`, heart-5 scenes.
+  Heart-5 scenes are still to do (wave C).
+* **B2 (built): the player's own room.** The dorm (4 places) and the Ono-sō flat (a 6-jo tatami room, 8 places;
+  move-in ¥60,000 = deposit ¥30,000 + first month ¥30,000, adults only) are stages with door facades `door:dorm` /
+  `door:flat` (one draw call each) and the panel fallback. `aiko_viewing` (a minor gets Aiko's tea room, nobody
+  mentions rent) and `aiko_contract` (the learner says 六万円, signs, pays cash exactly once, the tier turns `ono`, the
+  dorm door closes and the flat's opens). `fuku_home`: seven second-hand pieces from Rin (futon, desk, bookshelf,
+  houseplant; kotatsu, rice cooker, lamp need the flat); a bulky piece may be delivered (+¥2,200, booked by wall-calendar
+  day, owned and placeable only when it arrives, shown in the Wallet). Furnish sheet, comfort (base + placed pieces,
+  dorm max 7, flat max 16; a kotatsu raises hang-out AP x1.5) and the housewarming (`home_own_guest`, a friend from ♥2,
+  comfort ≥ 4, once per 3 days, flag `housewarming`). `cc_rent` and `cc_trash` are released; the flat and fresh-start
+  dreams are offered. Release cap unchanged (Free Walk opens the chapter 5-6 pieces). E2E: `tools/e2e/game/home-own.mjs`
+  (EN and `--ar`). Not built: inviting a friend from the phone chat (only from her Talk list), a tappable rent chip in
+  the viewing (typed only), a delivery question for the Denki TV, selling furniture.
 
 ## Wave C — Story and places
 * Chapters 5–8: the Hikarigaoka trip, café and station jobs, the festival and speech, Letter Home; raise the

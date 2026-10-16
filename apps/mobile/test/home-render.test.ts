@@ -37,10 +37,10 @@ describe('home screens and the reading settings', () => {
 
   it('the door tooltip writes 入れません with furigana only when it is on', () => {
     setReadings(true, false);
-    expect(tip()).toContain('いれません');
+    expect(tip()).toContain('はいれません');
     setReadings(false, false);
     const off = tip();
     expect(off).toContain('入れません');
-    expect(off).not.toContain('いれません');
+    expect(off).not.toContain('はいれません');
   });
 });

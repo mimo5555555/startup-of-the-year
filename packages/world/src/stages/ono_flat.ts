@@ -73,6 +73,7 @@ export const ONO_FLAT: Stage = {
         solid.boxB(cx, F, cz, 1.78, MAT, 0.88, c === r % 2 ? igusa : '#c0ca87');
         for (const dz of [-0.435, 0.435]) solid.boxB(cx, F + MAT, cz + dz, 1.78, 0.006, 0.03, heri);
       }
+      solid.boxB(0, F + MAT, -1.8 + r * 0.9, 0.04, 0.006, 0.88, heri); // the seam between the two mats of a row (else the floor shows through as an orange line)
     }
 
     // ---- the shoji on the right wall: glowing paper in a lattice, with a low sill ----

@@ -246,7 +246,9 @@ assert.equal(await page.locator('.hud').count(), 0, 'the street HUD is out of th
 assert.equal(await comfortNow(), 1, 'comfort 1 in the dorm');
 await assertTargets('[data-own=furnish-open], [data-home=leave], [data-home=leave-x]', 'dorm buttons');
 await shot3d('2-dorm');
+await world((w) => w.setMove(0, 1)); // a thumb still on the stick when Furnish is tapped: the stick goes away, the walking must stop
 await openFurnish();
+assert.equal(await world((w) => w.stick.lengthSq()), 0, 'opening Furnish stops the walk');
 assert.equal(await page.locator('[data-own=slots] [data-slot]').count(), 4, 'four places in the dorm');
 assert.deepEqual(await world((w) => w.stageInfo().slots), ['bed', 'shelf', 'desk', 'plant'], 'the stage has the same four places');
 assert.equal(await world((w) => w.getStageState().showSlots), true, 'the markers show while the sheet is open');

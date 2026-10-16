@@ -272,7 +272,8 @@ const nonEmpty = (o: Rec): boolean => Object.values(o).some((v) => (Array.isArra
 // ---------------------------------------------------------------------------------------------------------------
 
 /** The top-level keys of a GameState: any other key of a saved value is an unknown field and is kept under `_extra.fields`. */
-const KNOWN_FIELDS: ReadonlySet<string> = new Set(Object.keys(createGameState({ id: 'x', economy: { startCash: 0 } } as unknown as GamePack, 0)));
+// `deliveries` is optional (absent = none), so a fresh state does not list it, yet it is a known field: left out here, every load parked a stale copy under `_extra`
+const KNOWN_FIELDS: ReadonlySet<string> = new Set([...Object.keys(createGameState({ id: 'x', economy: { startCash: 0 } } as unknown as GamePack, 0)), 'deliveries']);
 
 /**
  * Brings any persisted value to the current GameState: fills missing fields, applies `pack.idAliases`, keeps unknown ids and

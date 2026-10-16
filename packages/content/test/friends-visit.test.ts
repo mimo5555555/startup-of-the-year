@@ -597,6 +597,10 @@ describe('homes and hang-outs: the tables the app and the world read', () => {
     expect(DOOR_LOCKED.ja.replace(/\|/g, '')).toBe('まだ入れません。');
   });
 
+  it('the door tooltip word 入れません is read はいれません (not いれません, "to put in")', () => {
+    expect(LEXICON.get('入れません')?.r).toBe('はいれません');
+  });
+
   it('HANGOUTS matches the scenarios, the interaction rows and the rewards of the metadata', () => {
     expect(Object.keys(HANGOUTS)).toEqual(HANGS);
     for (const [id, h] of Object.entries(HANGOUTS)) {

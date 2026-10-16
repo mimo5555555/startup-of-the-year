@@ -568,9 +568,10 @@ html[dir='rtl'] .home-panel-host {
   font-size: 13px;
 }
 @media (max-height: 480px) {
+  /* the room is in the middle of a landscape view: the sheet keeps to one side (about half) so the other half of the room stays in sight */
   .own-sheet {
     max-height: 78dvh;
-    max-width: min(70%, 560px);
+    max-width: min(50%, 420px);
   }
   .own-things {
     top: 40%;

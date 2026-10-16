@@ -19,7 +19,7 @@ export const HOME_PHRASES: PhraseEntry[] = [
   // ---- aiko_contract ----
   P('home_take_it', 'ここ|に|します。', ['i will take this one', 'i will take this room', 'i will take the room', 'i decided', 'i have decided on this room'], ['سآخذ هذه', 'سآخذها', 'سآخذ هذه الغرفة', 'قررت', 'اخترت هذه الغرفة', 'هذه الغرفة']),
   P('home_take_it_please', 'ここ|で|お願いします。', ['this room please', 'this one is fine', 'this one is good'], ['هذه الغرفة من فضلك', 'هذه مناسبة']),
-  P('home_total_60000', '六|万|円|です。', ['it is sixty thousand yen in total', 'sixty thousand yen', 'the total is sixty thousand yen', 'it is sixty thousand yen', 'sixty thousand', '60000 yen', '60,000 yen', 'it is 60000 yen', 'the total is 60000 yen', 'it is 60,000 yen'], ['المجموع ستون الف ين', 'ستون الف ين', 'ستون الف', 'المجموع ستون الفا', '60000 ين', 'انه ستون الف ين']),
+  P('home_total_60000', '六|万|円|です。', ['it is sixty thousand yen in total', 'sixty thousand yen', 'the total is sixty thousand yen', 'it is sixty thousand yen', 'sixty thousand', '60000 yen', '60,000 yen', 'it is 60000 yen', 'the total is 60000 yen', 'it is 60,000 yen'], ['المجموع ستون الف ين', 'ستون الف ين', 'ستون الف', 'المجموع ستون الفا', '60000 ين', 'انه ستون الف ين', 'ستين الف ين', 'ستين الف', 'المجموع ستين الف ين', '60,000 ين']),
 
   // ---- home_own_guest ----
   P('home_welcome_in', 'いらっしゃい。|どうぞ、|上がって|ください。', ['welcome please come in', 'welcome please come up', 'welcome come in please', 'please come in and welcome'], ['اهلا بك تفضل بالدخول', 'اهلا تفضل بالصعود', 'مرحبا بك تفضل بالدخول']),

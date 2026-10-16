@@ -95,7 +95,7 @@ export interface SessionGameHooks {
   /** called when entering a node with econ:'charge'. If ok === false the engine enters node.onShort instead */
   charge(slotIds: Record<string, string>): { ok: boolean; vars?: Vars };
   /** called after an intent with `econ` matched. ok:false routes to intent.nextIfNo (and earns no goal step) */
-  intent?(kind: IntentEcon, ctx: { slotIds: Record<string, string>; assisted: boolean; number?: number }): { ok: boolean; vars?: Vars };
+  intent?(kind: IntentEcon, ctx: { slotIds: Record<string, string>; assisted: boolean; number?: number; numbers?: number[] }): { ok: boolean; vars?: Vars };
 }
 
 export interface SessionOptions {
@@ -393,7 +393,7 @@ export class ConversationSession {
       if (it.econ && this.opts.game?.intent) {
         // a chip, a hint or a translation made this turn assisted whatever the mode says (the haggle share depends on it)
         const assisted = this.classify(learner, text, true, false).cls !== 'I';
-        const r = this.opts.game.intent(it.econ, { slotIds: { ...this.slotIds }, assisted, number: hit.number });
+        const r = this.opts.game.intent(it.econ, { slotIds: { ...this.slotIds }, assisted, number: hit.number, numbers: hit.numbers });
         ok = r.ok;
         if (r.vars) this.gameVars = { ...this.gameVars, ...r.vars };
       }

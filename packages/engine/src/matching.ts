@@ -78,6 +78,8 @@ export interface IntentHit {
   rawName?: string;
   /** the first number in the utterance (`say_total`, `haggle`), however it was written */
   number?: number;
+  /** every number in the utterance, in order (`say_total`: 「三万円と三万円で六万円です」 says the total as its last number) */
+  numbers?: number[];
 }
 
 const GREETING_PREFIX = /^(?:はじめまして|こんにちは|こんばんは|おはようございます|おはよう|どうも)[、。!！\s]*/;
@@ -167,8 +169,11 @@ export function matchNodeIntent(node: SceneNode, text: string): IntentHit | null
     if (hit && (!best || hit.score > best.score)) best = hit;
   }
   if (best) {
-    const [n] = parseNumbersIn(text.normalize('NFKC')).numbers;
-    if (n !== undefined) best.number = n;
+    const { numbers } = parseNumbersIn(text.normalize('NFKC'));
+    if (numbers[0] !== undefined) {
+      best.number = numbers[0];
+      best.numbers = numbers;
+    }
   }
   return best;
 }

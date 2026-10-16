@@ -94,6 +94,18 @@ const answerNode = (round: 1 | 2 | 3, q: ViewQ): SceneNode => {
   });
 };
 
+/**
+ * What a profile under 18 reads about the viewing (D28): the same scenario is a visit to Aiko's tea room next door, so the title and the setup
+ * (shown in Prepare, over the conversation and in the debrief) say nothing about renting. The host swaps them in for a minor (`shownScenario`).
+ */
+export const VIEWING_MINOR_TEXT = {
+  title: { en: "Visit Aiko's tea room", ar: 'زُر بيت شاي أيكو' },
+  setup: {
+    en: 'Aiko invites you to the tea room next door. Take your shoes off at the genkan, then ask her three questions about the room (its size, the sunlight, how quiet it is, how old it is) and thank her.',
+    ar: 'تدعوك أيكو إلى غرفة الشاي المجاورة. اخلع حذاءك عند الجنكان، ثم اسألها ثلاثة أسئلة عن الغرفة (مساحتها وضوء الشمس وهدوؤها وعمرها) واشكرها.',
+  },
+} as const;
+
 export const AIKO_VIEWING: Scenario = {
   id: 'aiko_viewing',
   locationId: 'ono',
@@ -101,8 +113,8 @@ export const AIKO_VIEWING: Scenario = {
   level: 'A2',
   title: { en: 'See the room at Ono-sō', ar: 'شاهد الغرفة في أونو-سو' },
   setup: {
-    en: "Aiko shows you the room she can rent out at Ono-sō. Take your shoes off at the genkan, then ask her three questions about the room (its size, the sunlight, how quiet it is, how old it is) and thank her. For under-18 players this is a visit to Aiko's tea room next door.",
-    ar: 'تُريك أيكو الغرفة التي يمكنها تأجيرها في أونو-سو. اخلع حذاءك عند الجنكان، ثم اسألها ثلاثة أسئلة عن الغرفة (مساحتها وضوء الشمس وهدوؤها وعمرها) واشكرها. للاعبين دون 18 سنة هذه زيارة إلى غرفة الشاي المجاورة.',
+    en: "Aiko shows you the room she can rent out at Ono-sō. Take your shoes off at the genkan, then ask her three questions about the room (its size, the sunlight, how quiet it is, how old it is) and thank her.",
+    ar: 'تُريك أيكو الغرفة التي يمكنها تأجيرها في أونو-سو. اخلع حذاءك عند الجنكان، ثم اسألها ثلاثة أسئلة عن الغرفة (مساحتها وضوء الشمس وهدوؤها وعمرها) واشكرها.',
   },
   minutes: 5,
   steps: [
@@ -253,7 +265,7 @@ export const AIKO_CONTRACT: Scenario = {
       econ: 'charge',
       onShort: 'short',
       say: same(L('はい、|確かに|いただきました。|ありがとう|ございます。', 'Yes, I have received it. Thank you very much.', 'نعم، استلمتها. شكرًا جزيلًا.')),
-      suggestions: [S('ありがとう|ございます。', 'Thank you very much.', 'شكرًا جزيلًا.'), S('よろしく|お願いします。', 'Nice to be in your care.', 'أرجو حسن الرعاية.')],
+      suggestions: [S('ありがとう|ございます。', 'Thank you very much.', 'شكرًا جزيلًا.'), S('よろしく|お願いします。', 'Please treat me well.', 'أرجو حسن التعامل.')],
       intents: [{ id: 'thanks', any: ['ありがとう', 'よろしく', 'はい', 'どうも'], next: 'keys' }],
     }),
     node({

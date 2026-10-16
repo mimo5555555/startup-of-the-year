@@ -43,7 +43,10 @@ export function normEn(input: string): string {
 }
 
 export function normAr(input: string): string {
+  // Arabic-Indic and Persian digits are digits ("٦٠٠٠٠" is 60000): the diacritic range below spans U+0660-U+0669 and would erase them
   let s = input
+    .replace(/[٠-٩]/g, (d) => String(d.charCodeAt(0) - 0x660))
+    .replace(/[۰-۹]/g, (d) => String(d.charCodeAt(0) - 0x6f0))
     .replace(/[ً-ٰٟـ]/g, '')
     .replace(/[أإآٱ]/g, 'ا')
     .replace(/ى/g, 'ي')

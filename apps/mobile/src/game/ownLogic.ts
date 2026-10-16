@@ -1,8 +1,8 @@
 // The player's own room, the pure part (Release 2 wave B2, docs/GAME_DESIGN.md §8.8, D12, D23): which door is open, which pieces can be placed,
 // which are on their way, the comfort line, who can be invited, and the flags the conversations of the room need. No React and no WebGL, so
 // every rule is testable; `components/game/HomeOwn.tsx` and `FurniturePlacer.tsx` play them.
-import { FURNITURE, OWN_GUEST, OWN_ROOMS, type OwnRoomDef } from '@lw/content';
-import { BALANCE, comfort, ownedQty, pendingDeliveries, type GamePack, type GameState, type NameGloss } from '@lw/game';
+import { FURNITURE, OWN_GUEST, OWN_ROOMS, VIEWING_MINOR_TEXT, type OwnRoomDef } from '@lw/content';
+import { BALANCE, HOME_SLOTS, comfort, ownedQty, pendingDeliveries, type GamePack, type GameState, type NameGloss } from '@lw/game';
 import type { StringKey } from '../i18n';
 import { cooldownDays } from './homeLogic';
 import { isCasual } from './friendsLogic';
@@ -87,10 +87,28 @@ export function slotRows(pack: GamePack, state: GameState): SlotRow[] {
   return ownRoomOf(state).slots.map((slot) => ({ slot, piece: pieces.find((p) => p.slot === slot) ?? null }));
 }
 
+/**
+ * Whether Rin sells furniture yet: her second-hand row (`rin_home`) opens with its chapter, and before that nothing can be bought for the room.
+ * The Furnish sheet then says the room fills up later instead of sending the player to a counter that has nothing, and nobody is invited to a
+ * room that cannot be made comfortable (no dead end).
+ */
+export const furnitureOpen = (pack: GamePack, state: GameState): boolean => state.chapter.n >= (pack.interactions.rin?.find((i) => i.scenarioId === 'fuku_home')?.ch ?? 0);
+
+/** The most comfort this room can ever reach: its base plus the best piece of every one of its places (dorm 7, flat 16; never above the game's cap). */
+export function tierMax(pack: GamePack, tier: GameState['home']['tier']): number {
+  let sum: number = BALANCE.comfort.base[tier];
+  for (const slot of HOME_SLOTS[tier]) {
+    let best = 0;
+    for (const it of pack.items) for (const fx of it.fx) if (fx.t === 'home' && fx.slot === slot) best = Math.max(best, fx.comfort);
+    sum += best;
+  }
+  return Math.min(BALANCE.comfort.max, sum);
+}
+
 /** The comfort of the room and what it opens (a friend can visit from `visitMin`). */
 export function comfortInfo(pack: GamePack, state: GameState): { value: number; max: number; visitMin: number; open: boolean } {
   const value = comfort(pack, state);
-  return { value, max: BALANCE.comfort.max, visitMin: BALANCE.comfort.visitMin, open: value >= BALANCE.comfort.visitMin };
+  return { value, max: tierMax(pack, state.home.tier), visitMin: BALANCE.comfort.visitMin, open: value >= BALANCE.comfort.visitMin };
 }
 
 /** "Tue, 14 Oct": the arrival date of a piece on its way, in the app's language (the date is a wall-calendar date, so UTC noon keeps the day). */
@@ -143,3 +161,12 @@ export function ownRoomFlags(pack: GamePack, state: GameState, age: keyof GamePa
 
 /** The guest of the housewarming is the conversation's friend, so the feedback judges plain speech as right when they speak it. */
 export const isOwnGuestScenario = (scenarioId: string): boolean => scenarioId === OWN_GUEST.scenarioId;
+
+/**
+ * The scenario as the screen shows it (title and setup): for a profile under 18 the viewing is Aiko's tea room and says nothing about renting
+ * (D28). The conversation itself already plays the tea-room variant through the `minor` flag; this covers the text around it (Prepare, the
+ * intro of the conversation, the debrief). Every other scenario is returned as it is.
+ */
+export function shownScenario<S extends { id: string; title: { en: string; ar: string }; setup: { en: string; ar: string } }>(pack: GamePack, age: keyof GamePack['ageProfiles'], sc: S): S {
+  return sc.id === 'aiko_viewing' && (pack.ageProfiles[age]?.ageFloor ?? 0) < 18 ? { ...sc, title: VIEWING_MINOR_TEXT.title, setup: VIEWING_MINOR_TEXT.setup } : sc;
+}

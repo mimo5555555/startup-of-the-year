@@ -38,7 +38,7 @@ import { planAccepted, planChat, planFlagEvent } from '../game/phoneLogic';
 import { getGame } from '../game/gameStore';
 import { PACK } from '../game/pack';
 import { gameView } from '../game/selectors';
-import { isOwnGuestScenario } from '../game/ownLogic';
+import { isOwnGuestScenario, shownScenario } from '../game/ownLogic';
 import { blip, haptic, stt, tts } from '../services';
 import type { StringKey } from '../i18n';
 import { useUi } from '../ui';
@@ -554,8 +554,8 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
         <div className="messages" ref={listRef}>
           {phase === 'intro' && (
             <div className="setup" dir="auto">
-              <strong>{scenario.title[lang]}</strong>
-              <p>{scenario.setup[lang]}</p>
+              <strong>{shownScenario(PACK, profile.age, scenario).title[lang]}</strong>
+              <p>{shownScenario(PACK, profile.age, scenario).setup[lang]}</p>
             </div>
           )}
           {shownTurns.map((turn) => {

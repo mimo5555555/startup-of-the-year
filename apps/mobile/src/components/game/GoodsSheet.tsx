@@ -4,7 +4,7 @@ import { yenToJa, type Token } from '@lw/content';
 import { BALANCE, formatHours, ownedQty, workHours, type NameGloss } from '@lw/game';
 import { useT } from '../../hooks';
 import { shopById, PACK } from '../../game/pack';
-import { goodsOf } from '../../game/worldSync';
+import { goodsOf, shelfFor } from '../../game/worldSync';
 import { useGameState } from '../../game/hooks';
 import { useStore } from '../../store';
 import { useUi } from '../../ui';
@@ -33,8 +33,8 @@ export function GoodsSheet({ shopId, window: peek = false, onClose }: { shopId: 
   const romaji = useStore((s) => s.settings.romaji);
   const openWord = useUi((s) => s.openWord);
   const shop = shopById(shopId);
-  const goods = useMemo(() => goodsOf(PACK, shopId), [shopId]);
   const floor = PACK.ageProfiles[age]?.ageFloor ?? 0;
+  const goods = useMemo(() => shelfFor(goodsOf(PACK, shopId), floor), [shopId, floor]);
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === 'Escape' && onClose();

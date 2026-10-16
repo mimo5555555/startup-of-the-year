@@ -5,7 +5,7 @@ import { FURNITURE, OWN_GUEST } from '@lw/content';
 import { useT } from '../../hooks';
 import { useStore } from '../../store';
 import { useGameState } from '../../game/hooks';
-import { comfortInfo, pieceRows, slotRows, transitLine } from '../../game/ownLogic';
+import { comfortInfo, furnitureOpen, pieceRows, slotRows, transitLine } from '../../game/ownLogic';
 import { PACK } from '../../game/pack';
 import { Icon } from '../Icon';
 import { JaText } from '../JaText';
@@ -29,7 +29,7 @@ export function FurniturePlacer({ pick, onPick, onSlot, onClose }: FurniturePlac
   const picked = pick ? pieces.find((p) => p.id === pick) : undefined;
   const hasReady = pieces.some((p) => p.state === 'ready');
   const anyPlaced = slotRows(PACK, state).some((r) => r.piece);
-  const hint = picked ? t('ho.furnish.hint.pick', { item: picked.name[lang] }) : hasReady ? t('ho.furnish.hint') : pieces.length === 0 ? t(anyPlaced ? 'ho.furnish.allPlaced' : 'ho.furnish.none') : null;
+  const hint = picked ? t('ho.furnish.hint.pick', { item: picked.name[lang] }) : hasReady ? t('ho.furnish.hint') : pieces.length === 0 ? t(anyPlaced ? 'ho.furnish.allPlaced' : furnitureOpen(PACK, state) ? 'ho.furnish.none' : 'ho.furnish.none.early') : null;
   return (
     <section className="own-sheet glass-card" data-own="furnish" role="dialog" aria-label={t('ho.furnish.title')}>
       <header className="own-sheet-head">

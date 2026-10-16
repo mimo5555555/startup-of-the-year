@@ -11,7 +11,7 @@ import type { TokyoWorld } from '@lw/world';
 import { STRINGS } from '../src/i18n';
 import { gameView } from '../src/game/selectors';
 import { createConvoGame } from '../src/game/convoHooks';
-import { arrivalText, comfortInfo, firstEntry, inviteStatus, ownDoors, ownRoomFlags, ownRoomOf, pieceRows, slotRows, transitLine, worldPlaced } from '../src/game/ownLogic';
+import { arrivalText, comfortInfo, firstEntry, furnitureOpen, inviteStatus, ownDoors, ownRoomFlags, ownRoomOf, pieceRows, slotRows, transitLine, worldPlaced } from '../src/game/ownLogic';
 import { beginOwn, useOwn } from '../src/game/ownStore';
 import { beginVisit, useHome } from '../src/game/homeStore';
 import { interactionRows, ownDoorStatus, planFor, routePick, syncWorld, type InteractionEnv } from '../src/game/worldSync';
@@ -105,10 +105,12 @@ describe('the pieces and the places', () => {
   });
   it('comfort rises with the placed pieces and opens the room to friends from 4', () => {
     let s = free();
-    expect(comfortInfo(JP_PACK, s)).toMatchObject({ value: 1, max: 16, visitMin: BALANCE.comfort.visitMin, open: false });
+    expect(comfortInfo(JP_PACK, s)).toMatchObject({ value: 1, max: 7, visitMin: BALANCE.comfort.visitMin, open: false });
     s = place(own(s, 'futon_set', 'desk_study'), 'bed', 'futon_set');
     s = place(s, 'desk', 'desk_study');
     expect(comfortInfo(JP_PACK, s)).toMatchObject({ value: 5, open: true });
+    // the line says "of" what the room can reach: the dorm 7, the flat 16 (never "of 16" for a room that cannot get there)
+    expect(comfortInfo(JP_PACK, flatOf(free())).max).toBe(16);
     // owned but not placed adds nothing
     expect(comfortInfo(JP_PACK, own(free(), 'futon_set')).value).toBe(1);
   });
@@ -143,6 +145,14 @@ describe('who can be invited', () => {
     expect(row(ready(AP.h2, { hangoutDay: free().clock.dayIndex }))?.lock).toEqual({ wait: 3 });
     // a character who is not a friend has no such row
     expect(interactionRows(envOf(free()), 'nakamura').some((r) => r.it.id.endsWith('_invite'))).toBe(false);
+  });
+  it('before Rin sells furniture (chapters 1 to 4) there is no invite row to a lock nobody can open', () => {
+    const early = (s: GameState): GameState => ({ ...s, chapter: { ...s.chapter, n: 3 } });
+    expect(furnitureOpen(JP_PACK, early(free()))).toBe(false);
+    expect(furnitureOpen(JP_PACK, free())).toBe(true);
+    const row = (s: GameState) => interactionRows(envOf(s), 'mio').find((r) => r.it.id === 'mio_invite');
+    expect(row(early(withFriend(free(), 'mio', AP.h2)))).toBeUndefined();
+    expect(row(withFriend(free(), 'mio', AP.h2))?.lock).toEqual({ comfort: 4, have: 1 });
   });
   it('the invitation plans the housewarming in the room, not a conversation in the street', () => {
     const s = ready(AP.h2);

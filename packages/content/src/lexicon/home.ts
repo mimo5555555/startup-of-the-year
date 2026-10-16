@@ -64,6 +64,7 @@ export const HOME_LEXICON: LexEntry[] = [
   w('和風ランプ', 'わふうランプ', 'Japanese-style paper lamp', 'مصباح ورقي ياباني'),
   w('配送', 'はいそう', 'delivery (to your home)', 'التوصيل (إلى البيت)'),
   w('お届け', 'おとどけ', 'delivery (polite)', 'توصيل (بأدب)'),
+  w('予定', 'よてい', 'plan, schedule', 'خطة، موعد مقرر'),
   w('届きます', 'とどきます', 'arrives', 'يصل'),
   w('あさって', '', 'the day after tomorrow', 'بعد غد'),
   w('お持ち帰り', 'おもちかえり', 'taking it with you (polite)', 'أخذه معك (بأدب)'),

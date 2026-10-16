@@ -80,6 +80,7 @@ export function HomeOwn({ world }: { world: TokyoWorld | null }) {
     const r = useOwn.getState().room;
     if (!r?.guest || useUi.getState().convo) return;
     setConfirm(false);
+    world?.setMove(0, 0);
     flagBefore.current = getGame().chapter.flags.includes(OWN_GUEST.flag);
     patch({ phase: 'convo', done: false, furnish: false, talkStarted: true });
     startConversation({ scenarioId: OWN_GUEST.scenarioId, characterId: r.guest, ...(r.talk === 'real' ? { mode: 'real' as const } : {}) });
@@ -195,6 +196,8 @@ export function HomeOwn({ world }: { world: TokyoWorld | null }) {
   };
 
   const openFurnish = () => {
+    // the stick goes away with the footer: a thumb still on it (a second finger tapped Furnish) must not leave the player walking
+    world?.setMove(0, 0);
     patch({ furnish: true, pick: null });
     blip('tap', useStore.getState().settings.autoSpeak);
   };

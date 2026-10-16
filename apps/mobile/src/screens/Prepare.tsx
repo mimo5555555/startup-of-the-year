@@ -18,7 +18,7 @@ import type { StringKey } from '../i18n';
 import { applySrsOps, dispatch, startConversation } from '../game/bridge';
 import { beginVisit, isHomeScenario } from '../game/homeStore';
 import { beginOwn } from '../game/ownStore';
-import { isOwnGuestScenario } from '../game/ownLogic';
+import { isOwnGuestScenario, shownScenario } from '../game/ownLogic';
 import { getGame } from '../game/gameStore';
 import { useDerivedFlags, useGameState, useGameView } from '../game/hooks';
 import { PACK } from '../game/pack';
@@ -144,7 +144,7 @@ function PrepareBody({ scenarioId, characterId, initialMode, pocket }: { scenari
     go('world');
   };
 
-  const title = sc?.title[lang] ?? '';
+  const title = sc ? shownScenario(PACK, profile.age, sc).title[lang] : '';
   const withWho = who ? `${title} · ${displayName(who, lang)}` : title;
 
   return (
