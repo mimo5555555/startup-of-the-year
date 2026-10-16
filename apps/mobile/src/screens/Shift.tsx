@@ -671,7 +671,7 @@ function ShiftJob({ job }: { job: JobDef }) {
           <Verdict
             label={t('jobs.wrong')}
             markup={p.verdict.markup}
-            detail={p.verdict.detail ? `${isDesk(customer!) ? t('jobs.answerWas') : t('jobs.orderWas')}: ${p.verdict.detail}` : p.verdict.gloss}
+            detail={p.verdict.detail ? (isDesk(customer!) ? p.verdict.detail : `${t('jobs.orderWas')}: ${p.verdict.detail}`) : p.verdict.gloss}
             onContinue={() => patch((q) => ({ ...q, stage: q.verdict!.next, verdict: null }))}
             cta={t('common.continue')}
           />

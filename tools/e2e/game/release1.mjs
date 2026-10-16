@@ -3,9 +3,11 @@
 //   my own words, the ramen shop and the said culture phrases, the konbini shift by typing) -> Chapter 3 (real small talks with Mio and Yuki
 //   across advanced days up to two hearts each, a present bought at the konbini and handed over) -> Chapter 4 (the phone bought at Hikari
 //   Denki through the conversation, the HUD icon, chats with two friends, Continue back to the Phone, today's plan pin on the minimap) ->
-//   the epilogue beat and Free Walk (chapter 9) -> Nakamura Motors opens: the bicycle, the helmet (worn at once), the used kei car with
-//   the drive-away fees and a haggle -> a reload keeps everything.
-// Dev tools are used only for yen, for advancing days and for the one objective ("know 25 words") whose real route is weeks of review.
+//   Mio's closing beat and Chapter 5 (the release cap is Chapter 6 since Release 2 wave C1) -> Nakamura Motors opens: the bicycle, the helmet
+//   (worn at once) -> the dev fast-forward through Chapters 5-6 (played for real by chapters56.mjs) to Free Walk -> the used kei car with the
+//   drive-away fees and a haggle -> a reload keeps everything.
+// Dev tools are used only for yen, for advancing days, for the one objective ("know 25 words") whose real route is weeks of review, and for
+// the fast-forward through Chapters 5-6.
 // After every step: no horizontal scroll, no console error, and the wallet equals the ledger totals (cash + ic = start + earned - spent).
 // Supersedes tools/e2e/game/shops.mjs. Usage: BASE=http://127.0.0.1:5173/ node tools/e2e/game/release1.mjs [--ar]
 import assert from 'node:assert/strict';
@@ -52,7 +54,7 @@ async function check(where) {
 // ---------------------------------------------------------------------------------------------------------------
 
 /** Plays every queued story beat by tapping (the dream question is answered with the first dream, the katakana step is saved as offered). */
-async function beats({ shotIds = ['b_release_epilogue'] } = {}) {
+async function beats({ shotIds = ['b_ch4_close', 'b_ch5_open'] } = {}) {
   let played = 0;
   for (let i = 0; i < 80; i++) {
     if ((await screen()) !== 'beat') return played;
@@ -628,7 +630,7 @@ await page.waitForSelector('[data-opt$=_window]', { timeout: 10000 });
 await page.locator('[data-opt$=_window]').click();
 await page.waitForSelector('.hud-goods', { timeout: 10000 });
 assert.ok((await page.locator('.hud-goods .hud-good').count()) >= 3, 'the shelves are listed');
-assert.equal(await page.locator('.hud-goods .hud-good.locked').count(), await page.locator('.hud-goods .hud-good').count(), 'every good is locked before Free Walk');
+assert.equal(await page.locator('.hud-goods .hud-good.locked').count(), await page.locator('.hud-goods .hud-good').count(), 'every good is locked before Chapter 5');
 const lockLine = await page.locator('.hud-goods .hud-good-state').first().innerText();
 assert.ok(!/Chapter 9|الفصل 9/.test(lockLine), `the padlock does not name a chapter that is not played (${lockLine})`);
 await assertNoHScroll(page, 'garage window');
@@ -686,7 +688,7 @@ assert.equal(g.stats.chats.n, 4, 'four chats');
 assert.ok(g.chapter.done.c4_3 !== undefined, 'c4_3 (four chats, two friends) is done');
 await check('after the plan chats');
 
-step('Chapter 4: know 25 words (weeks of review: the one dev fast-forward), then the days pass; the epilogue beat plays; Free Walk starts');
+step("Chapter 4: know 25 words (weeks of review: the one dev fast-forward), then the days pass; Mio's closing beat plays; Chapter 5 starts");
 g = await liveGame(page);
 const left = ['c4_1', 'c4_2', 'c4_3', 'c4_4'].filter((id) => g.chapter.done[id] === undefined);
 assert.deepEqual(left, ['c4_4'], 'only the word count is left');
@@ -694,25 +696,26 @@ await dev('complete_objective');
 await go('world');
 await page.waitForFunction(() => window.__lw.useStore.getState().screen === 'beat' || window.__lw.getGame().chapter.n !== 4, null, { timeout: 8000 }).catch(() => {});
 await t.sleep(600);
-for (let k = 0; k < 5 && (await liveGame(page)).chapter.n !== 9; k++) {
+for (let k = 0; k < 5 && (await liveGame(page)).chapter.n !== 5; k++) {
   await go('world');
-  await settle({ shotIds: ['b_release_epilogue'] });
-  if ((await liveGame(page)).chapter.n !== 9) {
+  await settle();
+  if ((await liveGame(page)).chapter.n !== 5) {
     await dev('advance_day');
     await talkViaFriends('mio'); // a day only counts as active when something is done in it
   }
 }
-await settle({ shotIds: ['b_release_epilogue'] });
+await settle();
 g = await liveGame(page);
-assert.equal(g.chapter.n, 9, 'Free Walk (chapter 9)');
-assert.ok(g.beats.includes('b_release_epilogue'), 'the epilogue beat was played');
+assert.equal(g.chapter.n, 5, 'Chapter 5 follows Chapter 4 (the release cap is Chapter 6)');
+assert.ok(g.beats.includes('b_ch4_close'), "Mio's closing beat of Chapter 4 was played");
+assert.ok(!g.beats.includes('b_release_epilogue'), 'the epilogue waits for the end of Chapter 6');
 assert.deepEqual(g.chapter.completed, [1, 2, 3, 4]);
-await check('free walk');
+await check('chapter 5');
 
 // ===============================================================================================================
-// FREE WALK: Nakamura Motors
+// CHAPTER 5: Nakamura Motors (the rest of Chapters 5-6 is tools/e2e/game/chapters56.mjs)
 // ===============================================================================================================
-step('Free Walk: Nakamura Motors opens (cars outside)');
+step('Chapter 5: Nakamura Motors opens (cars outside)');
 assert.equal(await world(() => window.__world.isShopOpen('motors')), true, 'Nakamura Motors is open');
 await dev('cash', 260_000);
 await streetShot('motors-scene', 'nakamura');
@@ -796,6 +799,22 @@ await t.shot('wallet-receipts');
 await go('world');
 await t.sleep(600);
 await check('wallet');
+
+step('dev fast-forward through Chapters 5-6 (chapters56.mjs plays them): the epilogue beat, Free Walk; the cars are for sale');
+await page.evaluate(() => {
+  // Chapter 6 starts with a friend at 3 hearts (its start gate)
+  const g = window.__lw.getGame();
+  window.__lw.useGame.getState().setGame({ ...g, friends: { ...g.friends, mio: { ...g.friends.mio, ap: Math.max(g.friends.mio.ap, 150) } } });
+});
+for (let k = 0; k < 4 && (await liveGame(page)).chapter.n !== 9; k++) {
+  await dev('advance_chapter');
+  await settle({ shotIds: ['b_release_epilogue'] });
+}
+g = await liveGame(page);
+assert.equal(g.chapter.n, 9, 'Free Walk (chapter 9) after Chapter 6');
+assert.ok(g.beats.includes('b_release_epilogue'), 'the epilogue beat was played');
+assert.deepEqual(g.chapter.completed, [1, 2, 3, 4, 5, 6]);
+await check('free walk');
 
 step('Motors: the used kei car; the drive-away price, one haggle within the cap; the car mesh and x2.5');
 before = await snap();

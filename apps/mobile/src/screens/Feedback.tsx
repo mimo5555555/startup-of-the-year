@@ -12,7 +12,7 @@ import { characterById, displayName } from '../content';
 import { SCENARIOS } from '@lw/content';
 import { blip, speakJa } from '../services';
 import { useUi } from '../ui';
-import { openScreen } from '../game/bridge';
+import { openScreen, startConversation } from '../game/bridge';
 import { feedbackThen } from '../game/phoneLogic';
 import { shownScenario } from '../game/ownLogic';
 import { PACK } from '../game/pack';
@@ -252,9 +252,10 @@ export function Feedback() {
               className="btn soft"
               onClick={() => {
                 if (debrief) {
-                  // the same scenario in the same mode, through the conversation request (the host mounts it over the city)
+                  // the same scenario in the same mode, through the bridge (the host mounts it over the city): a trip is a new ride and
+                  // charges its round trip again, or starts nothing when the wallet is short (regression: the replay rode for free)
                   go('world');
-                  useUi.getState().startConvo({ scenarioId, characterId: character.id, mode: debrief.facts.mode });
+                  startConversation({ scenarioId, characterId: character.id, mode: debrief.facts.mode });
                   return;
                 }
                 useStore.getState().setPendingTalk(character.id);

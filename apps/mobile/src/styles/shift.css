@@ -281,6 +281,8 @@
 .sh-item.on .sh-item-main {
   border-color: var(--accent);
   background: var(--accent-soft);
+  /* the count badge and the remove button sit on the top corners: the name moves below them (a long name such as カフェラテ was cut) */
+  padding-block: 22px 2px;
 }
 .sh-item-main:disabled {
   opacity: 0.6;
@@ -314,6 +316,12 @@
   display: grid;
   place-items: center;
   pointer-events: none;
+}
+/* the badge is dir="ltr" (×2 reads left to right), so its own inline start is the left: in Arabic it moves to the right, the start of the
+   tile, and the remove button (inline end, the left) no longer covers the count (regression: the count was hidden in Arabic) */
+[dir='rtl'] .sh-qty {
+  inset-inline-start: auto;
+  right: -4px;
 }
 .sh-minus {
   position: absolute;
@@ -595,6 +603,8 @@
   font-weight: 800;
   font-size: 14px;
   margin-inline-end: 4px;
+  /* its own line: the six tables then fit one row at 360 px (beside the label, table 6 wrapped alone onto a second row) */
+  flex-basis: 100%;
 }
 .sh-table {
   width: 44px;
@@ -676,7 +686,7 @@
   color: #fff;
 }
 
-/* the plan: a T of corridors, you at the bottom, the place at one end */
+/* the plan: a crossing of corridors, you at the bottom, a place at each of the three ends */
 .sh-mapbox {
   display: flex;
   flex-direction: column;
@@ -699,12 +709,12 @@
 .sh-corr.v {
   left: calc(50% - 22px);
   width: 44px;
-  top: 14%;
+  top: 0;
   bottom: 0;
-  border-bottom: 0;
+  border-block: 0;
 }
 .sh-corr.h {
-  top: 14%;
+  top: 36%;
   height: 44px;
   left: 8%;
   right: 8%;
@@ -740,12 +750,12 @@
 }
 .sh-dest.at-left {
   left: 3%;
-  top: calc(14% + 22px);
+  top: calc(36% + 22px);
   transform: translateY(-50%);
 }
 .sh-dest.at-right {
   right: 3%;
-  top: calc(14% + 22px);
+  top: calc(36% + 22px);
   transform: translateY(-50%);
 }
 .sh-dest.at-straight {

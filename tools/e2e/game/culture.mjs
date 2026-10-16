@@ -61,7 +61,7 @@ await page.locator('.dbf-culture .btn.soft').last().click();
 await page.waitForSelector('[data-culture-book]');
 const locked = await page.locator('[data-state="locked"]').count();
 const total = cardIds.length + locked;
-assert.equal(total, 21, 'the book lists the 21 earnable cards (cc_rent and cc_trash were released in wave B2)');
+assert.equal(total, 22, 'the book lists the 22 earnable cards (cc_rent and cc_trash released in wave B2, cc_shoesoff in wave C1; only cc_matsuri waits)');
 await t.shot('3-book-top');
 await assertNoHScroll(page, 'stamp book');
 await page.locator('.cul-grid').scrollIntoViewIfNeeded();

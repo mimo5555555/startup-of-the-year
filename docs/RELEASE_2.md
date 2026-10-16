@@ -40,6 +40,25 @@ release cap (`JP_PACK.release.lastChapter`) moves up only when the content behin
 ## Wave C — Story and places
 * Chapters 5–8: the Hikarigaoka trip, café and station jobs, the festival and speech, Letter Home; raise the
   release cap; the four deferred culture cards unlock.
+* **C1 (built): Chapters 5 and 6 are playable; the release cap is 6.** `JP_PACK.release.lastChapter = 6`: Chapter 4
+  now continues into Chapter 5 (Mio's `b_ch4_close`, Sato's `b_ch5_open`), and completing Chapter 6 plays the epilogue
+  (`b_release_epilogue`, new wording) and starts Free Walk. Chapter 5 "Let's Go Out": the Hikarigaoka trip from Sato's
+  "Take the train" row (round-trip fare charged up front, once, exactly: ledger `fare:trip:<place>:<day>:<runs>`, IC
+  card when it holds both legs, else paper tickets; short of money charges nothing), the talk with Kato over a CSS
+  station backdrop (`TripBackdrop`, no 3D town; an optional omiyage `g_souvenir`), asking Sato the way, Sato's station
+  job (`jobintro_station`, desk widgets: departure board, plan, timetable, fare table; the answer is then SAID), browsing
+  Nakamura Motors politely. Chapter 6 "Visiting Homes": 4 hearts and a friend's home, `aiko_viewing`, 5 good shifts
+  over konbini, café (`jobintro_cafe`, hot/iced, table, change of mind, split bill) and station; Hanako's
+  `b_real_try` holds the first Real-capable shop talk of Chapter 6 and plays it once without chips. Rewards and
+  culture cards as designed (only `cc_matsuri` stays deferred; title ids are granted, but `TITLES` is still empty and
+  no screen shows titles, as in Release 1); the `travel` dream is offered (its last step is
+  the souvenir). Motors and the bicycle open in Chapter 5; the cars, e-bike and flagship phone stay at Free Walk.
+  Saves: a save in Chapter 4 continues into Chapter 5; a save already in Free Walk stays there (its `completed` cache
+  re-derives as 1-6, no reward or beat replays). E2E: `tools/e2e/game/chapters56.mjs` (EN and `--ar`), `shift.mjs`
+  (all three jobs), `release1.mjs` (Chapters 1-4, Motors in Chapter 5, then a dev fast-forward to Free Walk for the
+  car). Not built (wave C2): Chapters 7-8, festival, Letter Home and its Chapter 6 preview line, heart-5 scenes, the
+  Chapter 6 closing beats `b_ch6_close(_flat)` (the epilogue closes it in this release), `TITLES`/`b_rankup`, the
+  rank-3 station phrase 恐れ入りますが, the diary prompt.
 
 ## Always
 No dead ends (unbuilt things stay hidden), EN + AR, 360 px, usage-limit aware (two agents at a time).

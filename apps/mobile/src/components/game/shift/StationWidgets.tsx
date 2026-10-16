@@ -11,7 +11,7 @@ import { useT } from '../../../hooks';
 import { placeLabel } from '../FareMap';
 import { yen } from '../panelLogic';
 import { Ja } from './ShiftParts';
-import { DIRS, DIR_JA, boardFor, deskKindOf, dirOf, fareRowsFor, fmtTime, minutesOf, targetIn, timetableFor, type Dir } from './stationLogic';
+import { DIRS, DIR_JA, boardFor, deskKindOf, fareRowsFor, fmtTime, mapSpotsFor, minutesOf, timetableFor, type Dir } from './stationLogic';
 
 /** What the player has tapped: a key to mark it and the value the rules judge. */
 export interface DeskPick {
@@ -91,13 +91,11 @@ function PlatformBoard({ customer, picked, onPick }: WidgetProps) {
   );
 }
 
-/** The plan of the station: you at the bottom, a corridor with a crossing, and the place the customer asks for at the end of one way. */
+/** The plan of the station: you at the bottom, a crossing, and a place at each end; the one the customer asks for is where the answer points. */
 function MiniMap({ customer, picked, onPick }: WidgetProps) {
   const { t } = useT();
   const furigana = useStore((s) => s.settings.furigana);
-  const answer = customer.task.kind === 'direction' ? dirOf(customer.task.answer) : null;
-  const target = targetIn(customer.line.ja);
-  const tokens = tokenize(target, LEXICON).tokens;
+  const spots = mapSpotsFor(customer);
   return (
     <div className="sh-mapbox" data-map>
       {/* a plan: left stays left whatever the language */}
@@ -107,11 +105,12 @@ function MiniMap({ customer, picked, onPick }: WidgetProps) {
         <span className="sh-you">
           <Icon name="pin" size={18} /> {t('jobs.desk.you')}
         </span>
-        {answer && (
-          <span className={`sh-dest at-${answer}`} data-target={answer}>
-            <JaText tokens={tokens} furigana={furigana} romaji={false} size="sm" />
+        {/* the three spots look alike: which one was asked is the listening (or reading) part */}
+        {spots.map((s) => (
+          <span key={s.dir} className={`sh-dest at-${s.dir}`} data-target={s.dir} data-asked={s.asked ? 'true' : undefined}>
+            <JaText tokens={tokenize(s.ja, LEXICON).tokens} furigana={furigana} romaji={false} size="sm" />
           </span>
-        )}
+        ))}
       </div>
       <p className="sh-note" dir="auto" data-target-name>
         {t('jobs.desk.mapNote')}

@@ -33,6 +33,9 @@ Letter Home, the extra five lessons. Their interaction rows stay hidden until th
 ## The release cap (how the story ends without a dead end)
 
 * `JP_PACK.release.lastChapter = 4` (data + the smallest generic support in `@lw/game`).
+  *Release 2 wave C1 raised the cap to 6* (`RELEASE_LAST_CHAPTER` in `packages/content/src/tokyo/game/chapters.ts`): Chapter 4
+  now continues into Chapter 5 and the epilogue closes Chapter 6; Nakamura Motors and the bicycle open in Chapter 5, the cars
+  still at Free Walk. A save already in Free Walk stays there; see `docs/RELEASE_2.md` (Wave C1).
 * Completing Chapter 4 plays a short "to be continued" epilogue beat from Hanako and starts **Free Walk**
   (`chapter.n = 9`): everything released stays open, daily goals continue, dreams continue.
 * Nakamura Motors and the car items open at Free Walk in this release (in the full design they open in

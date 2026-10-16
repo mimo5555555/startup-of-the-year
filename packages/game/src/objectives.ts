@@ -542,8 +542,11 @@ export function prerequisiteIssues(pack: GamePack): ValidationIssue[] {
 }
 
 /** Files a culture card (state, derived event, the card pop-up and the cosmetic XP); a known card is a no-op. */
-function unlockCulture(state: GameState, id: string, out: EvalOut): GameState {
+function unlockCulture(state: GameState, id: string, out: EvalOut, ctx: Ctx): GameState {
   if (state.culture[id] !== undefined) return state;
+  // an adult-flagged card (Chapter 6's cc_rent) is never filed or shown for kids and teens (§11.9), as the reducer's own unlock does
+  const card = ctx.pack.culture.find((c) => c.id === id);
+  if (card?.adultOnly && ctx.pack.ageProfiles[ctx.view.profile.age]?.adultTopics === false) return state;
   out.derived.push({ t: 'culture_unlocked', id });
   out.effects.push({ t: 'culture', id }, { t: 'xp', amount: BALANCE.cultureXp, why: 'culture' });
   return { ...state, culture: { ...state.culture, [id]: dayKey(state.clock.dayIndex) } };
@@ -620,7 +623,7 @@ function completeChapter(state: GameState, def: ChapterDef, ctx: Ctx & { now: nu
     }
   }
   if (def.rewardTitle) s = grantTitle(s, def.rewardTitle, out);
-  for (const c of def.rewardCulture ?? []) s = unlockCulture(s, c, out);
+  for (const c of def.rewardCulture ?? []) s = unlockCulture(s, c, out, ctx);
   out.derived.push({ t: 'chapter_done', n: def.n });
   out.effects.push({ t: 'toast', key: 'quests.chapterDone', vars: { n: def.n } }, { t: 'fanfare', kind: 'chapter' });
   if (!s.beats.includes(def.beats.close)) out.effects.push({ t: 'beat', id: def.beats.close });

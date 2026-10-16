@@ -81,8 +81,11 @@
   color: #fff;
 }
 .trip-sign-ja ruby,
-.trip-sign-ja rt {
+.trip-sign-ja rt,
+.trip-sign-ja .rt {
+  /* JaText's reading line is grey for the light cards; on the blue sign it would vanish */
   color: #fff;
+  opacity: 0.92;
 }
 .trip-sign-ja > span[lang='ja'] {
   padding-bottom: 1px;

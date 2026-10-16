@@ -167,7 +167,7 @@ describe('the station job: boards, plan, timetable and fare table come from the 
     expect(timeSaid('十時半', 630)).toBe(true);
     expect(minutesOf(958)).toBe(598);
     expect(minutesOf('14:25')).toBe(865);
-    expect(timePhrase(598)).toBe('九|時|五|十|八|分|です|。');
+    expect(timePhrase(598)).toBe('九時|五|十|八分|です|。'); // くじ ごじゅうはっぷん: the fused readings (lexicon/jobs.ts)
     expect(timePhrase(600)).toBe('十|時|です|。');
     for (const s of ['右', 'みぎ', '右です', 'migi']) expect(dirSaid(s), s).toBe('right');
     expect(dirSaid('左です')).toBe('left');

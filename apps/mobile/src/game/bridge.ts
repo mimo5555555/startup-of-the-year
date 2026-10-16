@@ -274,20 +274,23 @@ export function resetBridgeForTests(): void {
 // Entry points for the screens (mount points 2B, 2C, 2E, 2G, 4C, 4D call)
 // ---------------------------------------------------------------------------------------------------------------
 
-/** Charges the round trip (`legs: 2`) unless it is already in the ledger; false when the player cannot pay it (nothing is charged). */
+/** Charges the round trip (`legs: 2`; only the way back when a machine ticket there is in hand) unless it is already in the ledger; false when the player cannot pay it (nothing is charged). */
 function payTrip(scenarioId: string, place: string): boolean {
   const q = tripQuote(PACK, getGame(), scenarioId, place);
   if (tripPaid(getGame(), q)) return true;
   // the amount stays left-to-right inside an Arabic sentence
   const fmt = (n: number) => `\u2066¥${n.toLocaleString('en-US')}\u2069`;
   if (!q.method) {
+    // cash pays the paper fare and the card the IC fare: neither pocket alone covers it, so the sum of both is never quoted as "what you have"
     const g = getGame();
-    useStore.getState().say(translate(useStore.getState().uiLang, 'trip.short', { fare: fmt(q.total), have: fmt(g.wallet.cash + g.wallet.ic) }), 'info');
+    const lang = useStore.getState().uiLang;
+    const vars = { fare: fmt(q.total), icFare: fmt(q.icTotal), have: fmt(g.wallet.cash), ic: fmt(g.wallet.ic) };
+    useStore.getState().say(translate(lang, g.wallet.ic > 0 ? 'trip.shortIc' : q.legs === 1 ? 'trip.shortBack' : 'trip.short', vars), 'info');
     return false;
   }
-  dispatch({ t: 'fare', id: q.id, place, method: q.method, legs: 2 });
+  dispatch({ t: 'fare', id: q.id, place, method: q.method, legs: q.legs });
   if (!tripPaid(getGame(), q)) return false;
-  useStore.getState().say(translate(useStore.getState().uiLang, 'trip.paid', { fare: fmt(q.total) }), 'good');
+  useStore.getState().say(translate(useStore.getState().uiLang, q.legs === 1 ? 'trip.paidBack' : 'trip.paid', { fare: fmt(q.total) }), 'good');
   return true;
 }
 

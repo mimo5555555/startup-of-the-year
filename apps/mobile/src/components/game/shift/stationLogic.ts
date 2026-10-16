@@ -134,13 +134,33 @@ export function timetableFor(next: number): Timetable {
   return { now: wrap(next - 7), next: wrap(next), rows: [next - 22, next, next + 16, next + 31].map(wrap) };
 }
 
-const hourWords = (h: number): string => numMarkup(h);
+/** Hours and minutes whose last digit fuses with the counter (lexicon/jobs.ts): 四時 よじ, 九時 くじ; 八分 はっぷん, 十分 じゅっぷん. */
+const IRREGULAR_HOUR: Record<number, string> = { 4: '四時', 7: '七時', 9: '九時' };
+const IRREGULAR_MIN: Record<number, string> = { 1: '一分', 3: '三分', 4: '四分', 6: '六分', 8: '八分' };
 
-/** `九|時|五十八|分|です|。`; on the hour `十|時|です|。`. */
+/** `十|四時` (じゅうよじ), `九時` (くじ), `十|時`. */
+function hourWords(h: number): string {
+  const ones = h % 10;
+  const tens = h - ones;
+  if (IRREGULAR_HOUR[ones]) return tens ? `${numMarkup(tens)}|${IRREGULAR_HOUR[ones]}` : IRREGULAR_HOUR[ones]!;
+  return `${numMarkup(h)}|時`;
+}
+
+/** `五|十|八分` (ごじゅうはっぷん), `二|十|五|分`, `二|十分` (にじゅっぷん). */
+function minuteWords(mm: number): string {
+  const ones = mm % 10;
+  const tens = Math.floor(mm / 10);
+  const lead = tens > 1 ? `${numMarkup(tens)}|` : '';
+  if (ones === 0) return `${lead}十分`;
+  if (IRREGULAR_MIN[ones]) return `${tens ? `${numMarkup(tens * 10)}|` : ''}${IRREGULAR_MIN[ones]}`;
+  return `${numMarkup(mm)}|分`;
+}
+
+/** `九時|五|十|八分|です|。` (くじ ごじゅうはっぷん); on the hour `十|時|です|。`. The readings of the fused forms are the lexicon's. */
 export function timePhrase(m: number): string {
   const h = Math.floor(wrap(m) / 60);
   const mm = wrap(m) % 60;
-  return `${hourWords(h === 0 ? 12 : h)}|時|${mm ? `${numMarkup(mm)}|分|` : ''}です|。`;
+  return `${hourWords(h === 0 ? 12 : h)}|${mm ? `${minuteWords(mm)}|` : ''}です|。`;
 }
 
 /** Whether a typed or spoken time says `m`: `9:58`, `9時58分`, `九時五十八分`, `くじごじゅうはっぷん`; on the hour `9時` and `9時ちょうど`. */
@@ -150,9 +170,13 @@ export function timeSaid(text: string, m: number): boolean {
   const mm = target % 60;
   const raw = digits(text).replace(/\s+/g, '');
   const tries = [raw, normJa(raw), romajiAsKana(raw) ?? ''].filter(Boolean);
-  for (const t of tries) {
-    const hm = /^(\d{1,2}):(\d{2})/.exec(t);
+  for (const raw0 of tries) {
+    const hm = /^(\d{1,2}):(\d{2})/.exec(raw0);
     if (hm) return Number(hm[1]) === hh && Number(hm[2]) === mm;
+    // 「午後二時二十五分」 / 「二時二十五分」 for 14:25: the twelve-hour clock people speak (午前 / 午後 must then agree with the board)
+    const ampm = /^(午前|ごぜん|午後|ごご)/.exec(raw0)?.[1];
+    if (ampm && (/^(午前|ごぜん)$/.test(ampm) ? hh >= 12 : hh < 12)) continue;
+    const t = ampm ? raw0.slice(ampm.length) : raw0;
     const parts = /^(.+?)(?:時|じ)(.*)$/.exec(t);
     if (!parts) continue;
     const h = plainNumber(parts[1]!);
@@ -160,7 +184,7 @@ export function timeSaid(text: string, m: number): boolean {
     const half = /^(半|はん)$/.test(rest);
     const mi = rest === '' ? 0 : half ? 30 : plainNumber(rest);
     if (h === null || mi === null) continue;
-    if ((h === hh || (h === 12 && hh === 0)) && mi === mm) return true;
+    if ((h === hh || (h === 12 && hh === 0) || (h >= 1 && h <= 12 && h % 12 === hh % 12)) && mi === mm) return true;
   }
   return false;
 }
@@ -321,4 +345,37 @@ export function deskPickOk(c: ShiftCustomer, value: string | number): boolean {
   if (t.kind === 'time') return minutesOf(t.answer) === Number(value);
   if (t.kind === 'fare') return (typeof t.answer === 'number' ? t.answer : plainNumber(String(t.answer))) === Number(value);
   return dirOf(t.answer) === value;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// The plan's three ends (direction)
+// ---------------------------------------------------------------------------------------------------------------
+
+/** The places a plan can show, one spelling each (お手洗い is the toilet). */
+const MAP_PLACES = ['トイレ', '出口', '券売機', '改札', 'エレベーター'];
+const SAME_PLACE: Record<string, string> = { お手洗い: 'トイレ' };
+
+export interface MapSpot {
+  dir: Dir;
+  /** the place's Japanese name */
+  ja: string;
+  /** the place the customer asks for */
+  asked: boolean;
+}
+
+/**
+ * The three ends of the crossing on the plan: the place the customer asks for where the answer points, and two OTHER places at the other two
+ * ends (chosen from the template id, so a customer always sees the same plan). The spots all look the same: the learner has to understand which
+ * place was asked (heard, or read with the text shown) before the way can be found; one marked place would give the answer away.
+ */
+export function mapSpotsFor(c: ShiftCustomer): MapSpot[] {
+  const answer = c.task.kind === 'direction' ? dirOf(c.task.answer) : null;
+  if (!answer) return [];
+  const asked = targetIn(c.line.ja);
+  const key = SAME_PLACE[asked] ?? asked;
+  const others = MAP_PLACES.filter((p) => p !== key);
+  let h = 0;
+  for (const ch of c.templateId) h = (h * 31 + ch.charCodeAt(0)) >>> 0;
+  let k = h % others.length;
+  return DIRS.map((d) => (d === answer ? { dir: d, ja: asked, asked: true } : { dir: d, ja: others[k++ % others.length]!, asked: false }));
 }

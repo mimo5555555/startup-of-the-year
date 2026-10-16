@@ -109,7 +109,7 @@ assert.deepEqual(await page.locator('.qst-tabs button').evaluateAll((b) => b.map
 assert.equal(await page.locator('.qst-chapter[data-chapter="1"]').count(), 1, 'Chapter 1 card');
 assert.equal(await page.locator('[data-pane=story] .qst-obj[data-obj]').count(), 5, 'five objectives');
 assert.equal(await page.locator('[data-obj=c1_1]').getAttribute('data-done'), '0', 'objective 1 is open');
-assert.equal(await page.locator('.qst-teaser').count(), 3, 'the other three chapters of Release 1 are teased by name (5-8 are not in this release)');
+assert.equal(await page.locator('.qst-teaser').count(), 5, 'the other five released chapters are teased by name (the cap is Chapter 6 since wave C1; 7-8 are not in this release)');
 assert.equal(await page.locator('[data-slot=dream]').count(), 0, 'no dream slot before the picker');
 await assertNoHScroll(page, 'story tab');
 await assertInside('[data-screen=quests]', 'story tab');
@@ -179,10 +179,10 @@ assert.ok(await page.locator('.qst-beat-ja .rt', { hasText: 'なんですか' })
 await t.shot('06-dream-question');
 await page.locator('.qst-beat [data-continue]').click();
 await page.waitForSelector('[data-ask=dream] .qst-picker');
-assert.equal(await page.locator('.qst-dream').count(), 5, 'five dream cards (phone_pal, bike, flat, fresh_start, car; wave B2 released the flat and the fresh start)');
+assert.equal(await page.locator('.qst-dream').count(), 6, 'six dream cards (phone_pal, bike, flat, travel, fresh_start, car; wave B2 released the flat and the fresh start, wave C1 the travel dream)');
 assert.equal(await page.locator('.qst-dream[data-dream=car]:disabled').count(), 1, 'the car waits for Free Walk');
 const goal = await page.evaluate(() => window.__lw.useStore.getState().profile.goal);
-const suggested = { travel: 'bike', work: 'phone_pal', relocation: 'flat', casual: 'phone_pal' }[goal];
+const suggested = { travel: 'travel', work: 'phone_pal', relocation: 'flat', casual: 'phone_pal' }[goal];
 assert.equal(await page.locator('.qst-suggested').count(), 1, 'one suggested dream');
 assert.equal(await page.locator(`[data-dream=${suggested}] .qst-suggested`).count(), 1, `the onboarding goal (${goal}) suggests ${suggested}`);
 assert.equal(await page.locator(`[data-dream=${suggested}]`).getAttribute('aria-pressed'), 'true', 'and it is preselected');
