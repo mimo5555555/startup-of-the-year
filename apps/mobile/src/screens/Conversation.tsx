@@ -38,6 +38,7 @@ import { planAccepted, planChat, planFlagEvent } from '../game/phoneLogic';
 import { getGame } from '../game/gameStore';
 import { PACK } from '../game/pack';
 import { gameView } from '../game/selectors';
+import { isOwnGuestScenario } from '../game/ownLogic';
 import { blip, haptic, stt, tts } from '../services';
 import type { StringKey } from '../i18n';
 import { useUi } from '../ui';
@@ -84,12 +85,13 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
     const friend = chat
       ? planChat(PACK, state, characterId)
       : planFriendConvo(PACK, state, { scenarioId: scenario.id, characterId, startNode: req?.startNode, itemId: req?.itemId }, { nodeIds: Object.keys(scenario.nodes), interests: character.interests });
-    const game = createConvoGame({ pack: PACK, scenarioId: scenario.id, sessionId, state: getGame, view: () => gameView(useStore.getState()), commit: dispatch, friend });
+    const game = createConvoGame({ pack: PACK, scenarioId: scenario.id, sessionId, state: getGame, view: () => gameView(useStore.getState()), commit: dispatch, friend, characterId });
     const meta = game.meta;
     // Real mode only where the scenario allows it; the ramen shop starts after the ticket machine when a ticket is held
     const mode: 'guided' | 'real' = req?.mode === 'real' && meta?.real ? 'real' : 'guided';
     const startNode = req?.startNode ?? friend?.startNode ?? (meta?.startNode && state.tickets.ramen && scenario.id === 'ramen' ? meta.startNode : undefined);
-    const friendId = meta?.friendId ?? (chat ? characterId : undefined);
+    // the guest of the housewarming is the conversation's friend (the scenario has no `friendId` of its own)
+    const friendId = meta?.friendId ?? (chat || isOwnGuestScenario(scenario.id) ? characterId : undefined);
     const friendDef = friendId ? PACK.friends.find((f) => f.id === friendId) : undefined;
     // a friend who has switched to plain speech makes casual forms correct, and stiff ones merely distant (§11.4)
     const casual = !!friendDef && (heartsOf(state, friendDef.id) >= friendDef.casualAt || (state.friends[friendDef.id]?.flags ?? []).includes('casual'));

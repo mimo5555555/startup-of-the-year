@@ -473,3 +473,45 @@
     animation: none;
   }
 }
+
+/* "Your room" (Release 2 wave B2): the room card over the things grid */
+.wlt-room {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px 14px;
+}
+.wlt-room header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--accent-text);
+}
+.wlt-room header div {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
+  color: var(--fg);
+}
+.wlt-room header small {
+  color: var(--fg-2);
+}
+.wlt-room-go {
+  min-height: 44px;
+  width: 100%;
+}
+.wlt-coming {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 13.5px;
+}
+.wlt-coming li {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

@@ -163,7 +163,7 @@ export const AIKO_STALL = {
   pots: [{ x: 32.4, z: 8.8 }, { x: 38.0, z: 8.8 }, { x: 38.5, z: 8.8 }],
 };
 
-export type DoorId = 'door:dorm' | 'door:mio' | 'door:kenji' | 'door:aiko';
+export type DoorId = 'door:dorm' | 'door:mio' | 'door:kenji' | 'door:aiko' | 'door:flat';
 
 export interface DoorDef {
   id: DoorId;
@@ -176,22 +176,26 @@ export interface DoorDef {
 }
 
 export const DOORS: DoorDef[] = [
-  { id: 'door:dorm', body: { rect: boxRect(-4, -10.5, 3.6, 3), h: 4.2 }, sign: { text: '寮', sub: 'ryō' }, pick: { x: -4, y: 1.2, z: -8.8 }, radius: 1.2 },
+  { id: 'door:dorm', body: { rect: boxRect(-4, -10.5, 3.6, 3), h: 4.2 }, sign: { text: '寮', sub: 'ryō' }, pick: { x: -3.15, y: 1.2, z: -8.8 }, radius: 1.2 },
   // stairs lead up to the flat above the ramen shop
   { id: 'door:kenji', body: { rect: boxRect(27.7, -11, 3.6, 4), h: 6.4 }, sign: { text: '住居', sub: 'jūkyo' }, pick: { x: 27.7, y: 1.2, z: -8.8 }, radius: 1.2 },
   // flush against the north face of the alley block (z 9..21)
   { id: 'door:mio', body: { rect: boxRect(12, 8.6, 3.6, 0.8), h: 6.4 }, sign: { text: 'ミオ', sub: 'mio' }, pick: { x: 12, y: 1.2, z: 8.2 }, radius: 1.2 },
   { id: 'door:aiko', sign: { text: '小野荘', sub: 'ono-sō' }, pick: { x: 38.2, y: 1.2, z: 9.55 }, radius: 1.2 },
+  // the player's rented room: a second balcony door on the same Ono-sō wall, at its west end (open once the flat is rented)
+  { id: 'door:flat', sign: { text: '小野荘', sub: '2F' }, pick: { x: 32.2, y: 1.2, z: 9.55 }, radius: 1.0 },
 ];
 
 /**
  * Where the player stands when they come out of a home (`exitStage`): on the walkable strip one metre in front of the door,
- * facing away from it. The facades are in `buildings/doors.ts`; `door:dorm` is wave B2.
+ * facing away from it. The facades are in `buildings/doors.ts`; `door:dorm` and `door:flat` are the player's own rooms (wave B2).
  */
 export const DOOR_RETURN: Partial<Record<DoorId, { x: number; z: number; heading: number }>> = {
   'door:mio': { x: 12, z: 7.0, heading: Math.PI },
   'door:kenji': { x: 27.7, z: -7.6, heading: 0 },
   'door:aiko': { x: 39.5, z: 8.7, heading: Math.PI },
+  'door:dorm': { x: -3.15, z: -7.6, heading: 0 },
+  'door:flat': { x: 32.2, z: 7.4, heading: Math.PI },
 };
 
 export type SpotId = 'spot:torii' | 'spot:pond' | 'spot:east_end' | 'spot:west_end' | 'spot:station_plaza';

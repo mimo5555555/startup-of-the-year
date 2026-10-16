@@ -16,6 +16,7 @@ import * as phone from './strings/phone';
 import * as home from './strings/home';
 import * as story from './strings/story';
 import * as friendsVisit from './strings/friends-visit';
+import * as homeOwn from './strings/home-own';
 
 type Key =
   | keyof typeof core.en
@@ -31,10 +32,11 @@ type Key =
   | keyof typeof phone.en
   | keyof typeof home.en
   | keyof typeof story.en
-  | keyof typeof friendsVisit.en;
+  | keyof typeof friendsVisit.en
+  | keyof typeof homeOwn.en;
 
 /** One module per key prefix (docs/GAME_DESIGN.md §7.6); each owner edits only its own file. */
-const MODULES = [core, wallet, quests, social, jobs, culture, audio, hud, debrief, prepare, phone, home, story, friendsVisit];
+const MODULES = [core, wallet, quests, social, jobs, culture, audio, hud, debrief, prepare, phone, home, story, friendsVisit, homeOwn];
 const merge = (lang: UiLang) => Object.assign({}, ...MODULES.map((m) => m[lang])) as Record<Key, string>;
 export const STRINGS: Record<UiLang, Record<Key, string>> = { en: merge('en'), ar: merge('ar') };
 export type StringKey = Key;

@@ -25,6 +25,7 @@ import {
 import { visitFlags, type FriendPlan } from './friendsLogic';
 import { pieceColours, tryOnSpec } from './avatarFx';
 import { IC_SCENARIO, icHooks } from './icHooks';
+import { ownRoomFlags } from './ownLogic';
 
 /** Slot option ids of `qty` (slots/shop.ts) and of `payMethod`. */
 const QTY: Record<string, number> = { one: 1, two: 2, three: 3 };
@@ -111,6 +112,8 @@ export interface ConvoGameDeps {
   commit(ev: InputEvent): ReduceResult;
   /** the host's plan for a friend conversation (small talk, gift): its flags and variables are added to the session's */
   friend?: FriendPlan | null;
+  /** who the player talks to (the guest of the housewarming speaks plain form to a friend of the player: `casual`) */
+  characterId?: string;
 }
 
 /** Pocket lines of a scenario that count as recalled (§3.2): ready (a recall pass within 7 days) or a known card. */
@@ -278,7 +281,7 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
       for (let i = 0; i < b.length; i++) {
         const q = qs[i];
         const id = LEDGER_IDS.purchase(sessionId, n + 1);
-        commit({ t: 'purchase', sessionId, n: n + 1, shopId: shopMeta.shopId, itemId: b[i].itemId, qty: b[i].qty, total: q.total, method, lines: q.lines, ...(haggled > 0 && negotiable(b[i].itemId) ? { haggle: haggled } : {}) });
+        commit({ t: 'purchase', sessionId, n: n + 1, shopId: shopMeta.shopId, itemId: b[i].itemId, qty: b[i].qty, total: q.total, method, lines: q.lines, ...(haggled > 0 && negotiable(b[i].itemId) ? { haggle: haggled } : {}), ...(slots.deliveryDay ? { deliveryDay: slots.deliveryDay } : {}) });
         if (!ledgerHas(deps.state(), id)) return done.length ? { ok: true } : { ok: false };
         n++;
         done.push(q);
@@ -371,6 +374,8 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
   if (deps.friend) Object.assign(flags, deps.friend.flags);
   // a hang-out or a home visit: the friend's plain speech (the scenarios read no other flag)
   Object.assign(flags, visitFlags(pack, state, meta));
+  // the player's own room: the viewing as a tea-room visit for a minor, the housewarming guest's plain speech
+  Object.assign(flags, ownRoomFlags(pack, state, deps.view().profile.age, scenarioId, deps.characterId));
 
   return {
     hooks,

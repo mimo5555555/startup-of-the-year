@@ -309,7 +309,8 @@ describe('picks and doors', () => {
     expect(routePick('ramen_machine')).toEqual({ t: 'ticket', kind: 'ramen' });
     expect(routePick('ticket')).toEqual({ t: 'ticket', kind: 'station' });
     expect(routePick('door:mio')).toEqual({ t: 'door', friend: 'mio' });
-    expect(routePick('door:dorm')).toEqual({ t: 'door', friend: null });
+    expect(routePick('door:dorm')).toEqual({ t: 'own', door: 'dorm' });
+    expect(routePick('door:flat')).toEqual({ t: 'own', door: 'flat' });
     expect(routePick('shop:denki')).toEqual({ t: 'shop', shopId: 'denki' });
     for (const id of ['sakura', 'pond', 'konbini', 'station', 'torii']) expect(routePick(id)).toBeNull();
   });

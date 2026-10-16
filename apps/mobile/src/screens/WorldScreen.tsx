@@ -15,7 +15,8 @@ import { GoodsSheet } from '../components/game/GoodsSheet';
 import { InteractionSheet, runPlan } from '../components/game/InteractionSheet';
 import { TrackerCard } from '../components/game/TrackerCard';
 import { WalletPill } from '../components/game/WalletPill';
-import { DoorTip, HomeStage } from '../components/game/HomeStage';
+import { DoorTip, HomeStage, type DoorTipStatus } from '../components/game/HomeStage';
+import { HomeOwn } from '../components/game/HomeOwn';
 import { TicketPanel } from './TicketPanel';
 import { VendingPanel } from './VendingPanel';
 import { TOTAL_SIGNS, characterById, displayName, entryForSign, npcLabels, registeredLessonIds, registeredScenarioIds, tokenOf } from '../content';
@@ -23,6 +24,7 @@ import { useUi } from '../ui';
 import { blip, haptic } from '../services';
 import { dispatch, openScreen } from '../game/bridge';
 import { useHome } from '../game/homeStore';
+import { beginOwn, useOwn } from '../game/ownStore';
 import { useDisclosure, useGameState, useGameView, useTracker } from '../game/hooks';
 import { PACK, shopById } from '../game/pack';
 import {
@@ -37,11 +39,11 @@ import {
   legacyPlan,
   needsSheet,
   openRows,
+  ownDoorStatus,
   pinOf,
   planFor,
   routePick,
   syncWorld,
-  type DoorStatus,
   type InteractionEnv,
   type Plan,
   type PickRoute,
@@ -61,10 +63,12 @@ export function WorldScreen() {
   const [goods, setGoods] = useState<{ shopId: string; window: boolean } | null>(null);
   const [panel, setPanel] = useState<{ t: 'vending' } | { t: 'ticket'; kind: 'ramen' | 'station' } | null>(null);
   /** a door that did not open: 「まだ入れません」 with the reason, or how long to wait (Release 2 wave B1) */
-  const [doorTip, setDoorTip] = useState<{ status: Exclude<DoorStatus, { t: 'open' } | { t: 'none' }>; friend: string } | null>(null);
+  const [doorTip, setDoorTip] = useState<{ status: DoorTipStatus; friend: string } | null>(null);
   /** a friend's home is on (the 3D room or the panel fallback): the street HUD stays out of the way */
   const visit = useHome((s) => s.visit);
-  const panelRoom = visit?.mode === 'panel';
+  /** the player's own room is on (the dorm or the flat; Release 2 wave B2): the same hush */
+  const own = useOwn((s) => s.room);
+  const panelRoom = visit?.mode === 'panel' || own?.mode === 'panel';
 
   const screen = useStore((s) => s.screen);
   const xp = useStore((s) => s.xp);
@@ -141,6 +145,11 @@ export function WorldScreen() {
         openWord({ token: tokenOf(entry), source: 'sign' });
       }
       setPanel(route.t === 'vending' ? { t: 'vending' } : { t: 'ticket', kind: route.kind });
+    } else if (route.t === 'own') {
+      // the player's own room: the dorm is theirs until they move, the flat from the day it is rented; the other door says why it is shut
+      const st = ownDoorStatus(e.state, route.door);
+      if (st.t === 'open') beginOwn();
+      else setDoorTip({ status: st, friend: '' });
     } else if (route.t === 'door') {
       // one entry path: an open door and the "Visit home" row both end in HomeStage (planFor: Prepare first when the pocket is not ready)
       const st = doorStatus(e, route.friend);
@@ -231,7 +240,7 @@ export function WorldScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [world, pendingTalk]);
 
-  const busy = inConvo || !!sheet || !!goods || !!panel || !!visit;
+  const busy = inConvo || !!sheet || !!goods || !!panel || !!visit || !!own;
   // E or Enter talks to whoever is closest
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -294,7 +303,7 @@ export function WorldScreen() {
           </div>
         )}
 
-        {world && !inConvo && screen === 'world' && !visit && (
+        {world && !inConvo && screen === 'world' && !visit && !own && (
           <div className="hud">
             <div className="hud-top">
               <div className="hud-left">
@@ -388,7 +397,8 @@ export function WorldScreen() {
         )}
 
         <HomeStage world={world} />
-        {doorTip && !visit && screen === 'world' && !inConvo && (
+        <HomeOwn world={world} />
+        {doorTip && !visit && !own && screen === 'world' && !inConvo && (
           <DoorTip
             status={doorTip.status}
             name={(() => {

@@ -4,10 +4,11 @@ import { normTurn } from '@lw/engine';
 import type { AgeGroup, CultureCard, ConversationFacts, GamePack, GameState } from '@lw/game';
 
 /**
- * Cards whose trigger belongs to content that is not in Release 1 (home visits, the flat, Aiko's viewing, the festival;
- * docs/RELEASE_1.md). They stay in the pack but the stamp book hides them until they are collected: no locked card that cannot be earned.
+ * Cards whose trigger belongs to content that is not released yet (the genkan card of the home visits and the festival; Aiko's viewing `cc_rent`
+ * and the flat `cc_trash` are released with wave B2). They stay in the pack but the stamp book hides them until they are collected: no locked card
+ * that cannot be earned. Equal to the cards the pack flags as `deferred` (tested).
  */
-export const DEFERRED_CARDS: readonly string[] = ['cc_shoesoff', 'cc_rent', 'cc_trash', 'cc_matsuri'];
+export const DEFERRED_CARDS: readonly string[] = ['cc_shoesoff', 'cc_matsuri'];
 
 export type CardState = 'locked' | 'seen' | 'said';
 

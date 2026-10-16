@@ -99,9 +99,10 @@ describe('enterStage', () => {
     world.dispose();
   });
 
-  it('returns false for a stage that is unknown, not built yet (the dorm, the Ono flat) or fails to build, and stays on the street', () => {
+  it('returns false for a stage that is unknown, not registered or fails to build, and stays on the street', () => {
     const boom: Stage = { ...STAGES.mio_1r!, id: 'dorm', build: () => { throw new Error('no GL'); } };
-    const { world, w, events } = make({ ...STAGES, dorm: boom });
+    const { ono_flat: _gone, ...without } = STAGES;
+    const { world, w, events } = make({ ...without, dorm: boom });
     const warn = vi.spyOn(console, 'warn').mockImplementation(() => {});
     expect(world.enterStage('ono_flat')).toBe(false); // not registered
     expect(world.enterStage('nonsense' as StageId)).toBe(false);

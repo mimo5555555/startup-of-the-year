@@ -75,9 +75,9 @@ describe('the doors in the world', () => {
   it('syncWorld opens a door with the hearts and shuts it again', () => {
     const { world, doors } = fake();
     syncWorld(world, envOf(withFriend(base(), 'mio', AP.h4)), { completed: [], lessonsDone: [] });
-    expect(doors).toEqual({ mio: true, aiko: false, kenji: false });
+    expect(doors).toEqual({ mio: true, aiko: false, kenji: false, dorm: true, flat: false });
     syncWorld(world, envOf(withFriend(withFriend(base(), 'mio', AP.h3), 'kenji', AP.h4)), { completed: [], lessonsDone: [] });
-    expect(doors).toEqual({ mio: false, aiko: false, kenji: true });
+    expect(doors).toEqual({ mio: false, aiko: false, kenji: true, dorm: true, flat: false });
   });
 });
 

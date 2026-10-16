@@ -1,6 +1,6 @@
-// The door facades of the friends' homes (wave B1): door:mio, door:kenji, door:aiko. They are merged into the city's batches
-// (the only meshes of their own are the three door plates), keep the layout's colliders, and the player comes out on
-// walkable ground in front of each. door:dorm is wave B2 and must not exist yet.
+// The door facades of the homes: door:mio, door:kenji, door:aiko (wave B1), door:dorm and door:flat (wave B2, the player's own
+// rooms). They are merged into the city's batches (the only meshes of their own are the five door plates), keep the layout's
+// colliders, and the player comes out on walkable ground in front of each.
 import * as THREE from 'three';
 import { describe, expect, it, vi } from 'vitest';
 import { fakeCanvas, installFakeDom } from './fakeDom';
@@ -16,9 +16,10 @@ import { CHARACTERS } from '@lw/content';
 
 installFakeDom(); // at collection time: the DOOR_RETURN block builds a city while the file is read
 
-/** the door facades together: at most 3 draw calls and 2k triangles (the three door plates are the only meshes of their own) */
-const MAX_DOOR_CALLS = 3;
-const MAX_DOOR_TRIANGLES = 2000;
+/** the door facades together: one draw call each (five plates) and 3k triangles; the plates are the only meshes of their own */
+const MAX_DOOR_CALLS = 5;
+const MAX_DOOR_TRIANGLES = 3000;
+const ALL_DOORS = ['door:aiko', 'door:dorm', 'door:flat', 'door:kenji', 'door:mio'];
 const hits = (r: Rect, x: number, z: number, radius: number) => {
   const dx = x - Math.min(Math.max(x, r.x0), r.x1);
   const dz = z - Math.min(Math.max(z, r.z0), r.z1);
@@ -32,33 +33,39 @@ const run = () => {
 const plates = (group: THREE.Group) => group.children.filter((o) => o.name.startsWith('door:')) as THREE.Mesh[];
 
 describe('buildDoors', () => {
-  it('builds the three friends\' doors and leaves door:dorm to wave B2', () => {
+  it('builds the friends\' doors, the dorm and the flat', () => {
     const { ctx, out } = run();
     const ids = new Set(out.pickables.map((p) => p.id));
-    expect([...ids].sort()).toEqual(['door:aiko', 'door:kenji', 'door:mio']);
-    expect(plates(ctx.group).map((m) => m.name).sort()).toEqual(['door:aiko', 'door:kenji', 'door:mio']);
-    expect(out.colliders.some((c) => c.x0 === -5.8 && c.x1 === -2.2)).toBe(false); // no dorm box (cx -4, w 3.6)
+    expect([...ids].sort()).toEqual(ALL_DOORS);
+    expect(plates(ctx.group).map((m) => m.name).sort()).toEqual(ALL_DOORS);
+    expect(out.colliders.some((c) => c.x0 === -5.8 && c.x1 === -2.2)).toBe(true); // the dorm box (cx -4, w 3.6)
   });
 
-  it('keeps the layout picks (the exact points the design names) and adds the balcony door as a second pick of door:aiko', () => {
+  it('keeps the layout picks (the exact points the design names) and adds the balcony door as a second pick of door:aiko and door:flat', () => {
     const { out } = run();
-    for (const d of DOORS.filter((x) => x.id !== 'door:dorm')) {
+    for (const d of DOORS) {
       const p = out.pickables.find((q) => q.id === d.id)!;
       expect(p.pos.toArray(), d.id).toEqual([d.pick.x, d.pick.y, d.pick.z]);
       expect(p.radius).toBe(d.radius);
     }
-    const aiko = out.pickables.filter((p) => p.id === 'door:aiko');
-    expect(aiko).toHaveLength(2);
-    expect(aiko.some((p) => p.pos.y > 3)).toBe(true); // the visible door is on the balcony above the awning
+    for (const id of ['door:aiko', 'door:flat']) {
+      const balcony = out.pickables.filter((p) => p.id === id);
+      expect(balcony, id).toHaveLength(2);
+      expect(balcony.some((p) => p.pos.y > 3), id).toBe(true); // the visible door is on the balcony above the awning
+    }
+    // the two balconies are at the two ends of the sign, 6 m apart
+    const flat = out.pickables.find((p) => p.id === 'door:flat' && p.pos.y > 3)!;
+    const aiko = out.pickables.find((p) => p.id === 'door:aiko' && p.pos.y > 3)!;
+    expect(aiko.pos.x - flat.pos.x).toBeGreaterThan(5.5);
   });
 
-  it('is a collider and a camera occluder of the facade box, the layout\'s own rect and height (door:aiko has no box)', () => {
+  it('is a collider and a camera occluder of the facade box, the layout\'s own rect and height (door:aiko and door:flat have no box)', () => {
     const { out } = run();
-    for (const d of DOORS.filter((x) => x.body && x.id !== 'door:dorm')) {
+    for (const d of DOORS.filter((x) => x.body)) {
       expect(out.colliders, d.id).toContainEqual(d.body!.rect);
       expect(out.occluders.find((o) => o.x0 === d.body!.rect.x0 && o.x1 === d.body!.rect.x1 && o.z0 === d.body!.rect.z0), d.id).toMatchObject({ y1: d.body!.h });
     }
-    expect(out.colliders).toHaveLength(2);
+    expect(out.colliders).toHaveLength(3);
   });
 
   it(`costs at most ${MAX_DOOR_CALLS} draw calls and ${MAX_DOOR_TRIANGLES} triangles in all`, () => {
@@ -72,7 +79,7 @@ describe('buildDoors', () => {
     }
     expect(tris).toBeGreaterThan(300); // they are real facades, not a sign
     expect(tris).toBeLessThanOrEqual(MAX_DOOR_TRIANGLES);
-    // and in the city they add exactly the three plates to the group (the batches are the city's own)
+    // and in the city they add exactly the five plates to the group (the batches are the city's own)
     expect(plates(buildCity().group)).toHaveLength(MAX_DOOR_CALLS);
   });
 
@@ -81,8 +88,8 @@ describe('buildDoors', () => {
     const mesh = ctx.solid.build(ctx.toon)!;
     mesh.geometry.computeBoundingBox();
     const bb = mesh.geometry.boundingBox!;
-    // the facades span x 10.2..13.8 (mio), 25.9..29.5 (kenji), 38..38.8 (aiko): they never leave the street's bounds
-    expect(bb.min.x).toBeGreaterThanOrEqual(10.2 - 0.3);
+    // the facades span x -5.8..-2.2 (dorm), 10.2..13.8 (mio), 25.9..29.5 (kenji), 31.8..32.6 (flat), 38..38.8 (aiko)
+    expect(bb.min.x).toBeGreaterThanOrEqual(-5.8 - 0.3);
     expect(bb.max.x).toBeLessThanOrEqual(39.2);
     expect(bb.min.z).toBeGreaterThanOrEqual(-13.2);
     expect(bb.max.z).toBeLessThanOrEqual(10);
@@ -113,12 +120,14 @@ describe('the plate: sign and door leaf in one plane', () => {
     }
   });
 
-  it('faces the street: mio and aiko look north (-z), kenji south (+z)', () => {
+  it('faces the street: mio, aiko and the flat look north (-z), kenji and the dorm south (+z)', () => {
     const { ctx } = run();
     const by = Object.fromEntries(plates(ctx.group).map((m) => [m.name, m]));
     expect(by['door:mio'].rotation.y).toBeCloseTo(Math.PI, 6);
     expect(by['door:aiko'].rotation.y).toBeCloseTo(Math.PI, 6);
+    expect(by['door:flat'].rotation.y).toBeCloseTo(Math.PI, 6);
     expect(by['door:kenji'].rotation.y).toBe(0);
+    expect(by['door:dorm'].rotation.y).toBe(0);
   });
 });
 
@@ -126,11 +135,11 @@ describe('DOOR_RETURN: where the player comes out', () => {
   const city = buildCity();
   const solids: Rect[] = [...city.colliders, ...layoutColliders().map((c) => c.rect)];
 
-  it('has a spot for each of the three friends\' doors and none for the dorm yet', () => {
-    expect(Object.keys(DOOR_RETURN).sort()).toEqual(['door:aiko', 'door:kenji', 'door:mio']);
+  it('has a spot for every door, the dorm and the flat included', () => {
+    expect(Object.keys(DOOR_RETURN).sort()).toEqual(ALL_DOORS);
   });
 
-  it.each(['door:mio', 'door:kenji', 'door:aiko'] as const)('%s: in the bounds, clear of every collider with the player\'s radius, within a couple of metres of the door', (id) => {
+  it.each(['door:mio', 'door:kenji', 'door:aiko', 'door:dorm', 'door:flat'] as const)('%s: in the bounds, clear of every collider with the player\'s radius, within a couple of metres of the door', (id) => {
     const r = DOOR_RETURN[id]!;
     const d = DOORS.find((x) => x.id === id)!;
     expect(r.x).toBeGreaterThanOrEqual(BOUNDS.x0);
@@ -150,8 +159,9 @@ describe('world.setDoorOpen', () => {
 
   it('starts closed, toggles with or without the door: prefix, ignores nothing it was told, and swaps the plate', () => {
     const { world, w } = make();
-    for (const who of ['mio', 'kenji', 'aiko']) expect(world.isDoorOpen(who)).toBe(false);
-    expect([...w.doorSigns.keys()].sort()).toEqual(['door:aiko', 'door:kenji', 'door:mio']);
+    for (const who of ['mio', 'kenji', 'aiko', 'flat']) expect(world.isDoorOpen(who)).toBe(false);
+    expect(world.isDoorOpen('dorm')).toBe(true); // your own dorm is never locked
+    expect([...w.doorSigns.keys()].sort()).toEqual(ALL_DOORS);
     const map = (id: string) => (w.doorSigns.get(id)!.material as THREE.MeshBasicMaterial).map;
     const closed = map('door:mio');
     world.setDoorOpen('mio', true);

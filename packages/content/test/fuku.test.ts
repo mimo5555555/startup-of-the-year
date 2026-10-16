@@ -241,9 +241,10 @@ describe('fuku_clothes: ScenarioMeta and pockets', () => {
     for (const id of ['plush', 'guitarPick']) expect(SLOTS.giftItem.map((o) => o.id)).toContain(id);
     expect(sc.steps.some((s) => s.id === meta.shop!.payStep)).toBe(true);
     expect(meta.twist).toBe(true);
-    // no furniture and no yukata in this wave
+    // no furniture and no yukata in the clothes conversation (the furniture is fuku_home, wave B2)
     expect(Object.keys(meta.shop!.itemMap)).not.toContain('yukata');
-    expect(SCENARIO_META.some((m) => m.id === 'fuku_home')).toBe(false);
+    expect(Object.keys(meta.shop!.itemMap)).not.toContain('kotatsu');
+    expect(SCENARIO_META.some((m) => m.id === 'fuku_home')).toBe(true);
   });
 
   it('pocket lines p_fuku_1.. exist, are registered, have at most 2 key lines and EN + AR', () => {

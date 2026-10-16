@@ -888,6 +888,19 @@ export interface HomeState {
   placed: Record<string, string>;
 }
 
+/**
+ * A bulky purchase on its way (Release 2 wave B2): paid for, not yet owned. It arrives on the wall-calendar date `due` (tomorrow, the day after, the
+ * next Saturday) and is only placeable then: `clock.dayIndex` counts observed days, not calendar days, so it cannot say when a Saturday is.
+ */
+export interface PendingDelivery {
+  /** the ledger id of the purchase (a repeated purchase event cannot book a second delivery) */
+  id: string;
+  item: string;
+  qty: number;
+  /** the local date (YYYY-MM-DD) it arrives on: it is handed over by the first event on or after it */
+  due: string;
+}
+
 export interface TicketsState {
   ramen?: { flavor: string };
   station?: { place: string };
@@ -1077,6 +1090,8 @@ export interface GameState {
   outfit: OutfitState;
   home: HomeState;
   tickets: TicketsState;
+  /** bulky goods paid for and on their way (absent = none); see `scheduleDelivery` / `arriveDeliveries` */
+  deliveries?: PendingDelivery[];
   chapter: ChapterState;
   dream: DreamState;
   daily: DailyState;
@@ -1232,6 +1247,8 @@ export type InputEvent =
       lines: QuoteLine[];
       eatIn?: boolean;
       delivery?: boolean;
+      /** the chosen delivery day of a bulky item (slot option of `deliveryDay`: 'tomorrow' | 'dayAfter' | 'saturday'); without it a bulky item is handed over at once */
+      deliveryDay?: string;
       usePoints?: boolean;
       /** yen the haggle hook granted in this conversation */
       haggle?: number;
@@ -1309,6 +1326,8 @@ export type DerivedEvent =
   /** chapter n became current (its `opens` take effect, D36); its opening beat plays */
   | { t: 'chapter_started'; n: number }
   | { t: 'sticker_earned'; id: string }
+  /** a bulky purchase arrived (it is owned and placeable from now on) */
+  | { t: 'delivered'; itemId: string; qty: number }
   /** the whole conversation settlement, so the debrief rows equal the ledger (§11.3) */
   | { t: 'loop_settled'; sessionId: string; scenarioId: string; settlement: LoopSettlement }
   /** AP of one friend from one event, for the debrief friends strip */

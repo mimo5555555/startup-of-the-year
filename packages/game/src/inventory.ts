@@ -1,6 +1,7 @@
 // Inventory, outfit, home slots and the derived item effects (agent 1E).
 import { BALANCE } from './balance';
-import type { AgeGroup, AvatarPatch, GamePack, GameState, ItemDef, ItemEffect, ItemTrait, MenuItem, PlaceResult, RideState } from './types';
+import { dayKey } from './ledger';
+import type { AgeGroup, AvatarPatch, GamePack, GameState, ItemDef, ItemEffect, ItemTrait, MenuItem, PendingDelivery, PlaceResult, RideState } from './types';
 
 /** Placeable furniture slots per home tier (§8.8): the dorm shows 4, the Ono-sō room 8. Ids match `ItemEffect { t: 'home' }.slot`. */
 export const HOME_SLOTS = {
@@ -101,6 +102,76 @@ export function traitValue(pack: GamePack, state: GameState, trait: ItemTrait): 
 export function ageAllowed(pack: GamePack, age: AgeGroup, itemId: string): boolean {
   const min = findItem(pack, itemId)?.gate.ageMin;
   return min === undefined || (pack.ageProfiles[age]?.ageFloor ?? 0) >= min;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Delivery (Release 2 wave B2): bulky furniture is paid for at the counter and arrives on the day the learner chose
+// ---------------------------------------------------------------------------------------------------------------
+
+/** The delivery days a bulky purchase can name (the options of the slot `deliveryDay`: 明日, あさって, 土曜日). */
+export const DELIVERY_DAYS = ['tomorrow', 'dayAfter', 'saturday'] as const;
+
+/** The deliveries on their way (an old save without the field has none). */
+export const pendingDeliveries = (state: GameState): PendingDelivery[] => state.deliveries ?? [];
+
+/** How many of an item are paid for and on their way. */
+export function pendingQty(state: GameState, itemId: string): number {
+  return pendingDeliveries(state).reduce((n, d) => (d.item === itemId ? n + d.qty : n), 0);
+}
+
+const DATE_RE = /^(\d{4})-(\d{2})-(\d{2})$/;
+const utcNoon = (d: string): Date | null => {
+  const m = DATE_RE.exec(d);
+  return m ? new Date(Date.UTC(Number(m[1]), Number(m[2]) - 1, Number(m[3]), 12)) : null;
+};
+
+/**
+ * Days from today until a named delivery day: tomorrow 1, the day after 2, the next Saturday 1 to 7 (a purchase made on a Saturday
+ * is delivered the Saturday after; there is no same-day delivery). The weekday comes from the wall calendar the clock last observed.
+ * Null for a name that is not a delivery day.
+ */
+export function deliveryLead(state: GameState, option: string): number | null {
+  if (option === 'tomorrow') return 1;
+  if (option === 'dayAfter') return 2;
+  if (option !== 'saturday') return null;
+  const today = utcNoon(state.clock.lastLocalDate);
+  return today ? (6 - today.getUTCDay() + 7) % 7 || 7 : 7;
+}
+
+/** The local date `lead` days after the date the clock last observed (an unreadable date stays unreadable: that delivery is handed over at once). */
+function dateAfter(state: GameState, lead: number): string {
+  const today = utcNoon(state.clock.lastLocalDate);
+  if (!today) return state.clock.lastLocalDate;
+  today.setUTCDate(today.getUTCDate() + lead);
+  return today.toISOString().slice(0, 10);
+}
+
+/** Books a delivery `lead` days from today (`id` = the purchase's ledger id: booking it twice changes nothing). */
+export function scheduleDelivery(state: GameState, itemId: string, qty: number, lead: number, id: string): GameState {
+  const list = pendingDeliveries(state);
+  if (list.some((d) => d.id === id)) return state;
+  return { ...state, deliveries: [...list, { id, item: itemId, qty, due: dateAfter(state, Math.max(1, Math.trunc(lead))) }] };
+}
+
+/** Whether a booked delivery has come: the clock's date is on or after it (a date nobody can read counts as come, so nothing is stuck for ever). */
+const isDue = (state: GameState, d: PendingDelivery): boolean => !DATE_RE.test(d.due) || !DATE_RE.test(state.clock.lastLocalDate) || state.clock.lastLocalDate >= d.due;
+
+/**
+ * Hands over every delivery whose day has come: the item becomes owned, and so placeable. Returns what arrived, in booking order. Run by the
+ * reducer after the clock on every event, so a reload or a skipped day still delivers.
+ */
+export function arriveDeliveries(state: GameState, pack: GamePack): { state: GameState; arrived: PendingDelivery[] } {
+  const list = pendingDeliveries(state);
+  const due = list.filter((d) => isDue(state, d));
+  if (due.length === 0) return { state, arrived: [] };
+  let next: GameState = { ...state, deliveries: list.filter((d) => !isDue(state, d)) };
+  const arrived: PendingDelivery[] = [];
+  for (const d of due) {
+    const granted = grantItem(next, pack, d.item, d.qty, dayKey(next.clock.dayIndex));
+    if (granted !== next) arrived.push(d);
+    next = granted;
+  }
+  return { state: next, arrived };
 }
 
 // ---------------------------------------------------------------------------------------------------------------

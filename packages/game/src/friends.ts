@@ -44,6 +44,8 @@ const GENERIC_CHATS: Array<{ id: string; minHeart?: number; flat?: true }> = [
 const CHAT_RECENT = 3;
 /** the heart at which a friend's home opens (§8.6 ♥4; BALANCE has no key for it, only the hang-out's) */
 const HOME_MIN_HEART = 4;
+/** A friend comes to the player's own room (the housewarming, `home_own_guest`) from ♥2 (docs/GAME_DESIGN.md §8.8). */
+export const GUEST_MIN_HEART = 2;
 /** a remembered fact is a short word or phrase (a hobby, a food); anything longer is not stored */
 const FACT_MAX_LEN = 40;
 
@@ -64,7 +66,7 @@ function friendNow(state: GameState, friendId: string): FriendState {
 export function contactOpen(state: GameState, friendId: string, kind: TalkKind, scenarioId?: string): boolean {
   const h = heartsForAp(friendNow(state, friendId).ap);
   // only the visit to the friend's own home (`home_<friend>`): the player's room with a guest has its own rule (♥2, wave B2)
-  if (kind === 'home') return (scenarioId !== undefined && scenarioId !== `home_${friendId}`) || h >= HOME_MIN_HEART;
+  if (kind === 'home') return scenarioId !== undefined && scenarioId !== `home_${friendId}` ? h >= GUEST_MIN_HEART : h >= HOME_MIN_HEART;
   if (kind === 'hangout') return h >= BALANCE.ap.hangout.minHeart;
   return true;
 }

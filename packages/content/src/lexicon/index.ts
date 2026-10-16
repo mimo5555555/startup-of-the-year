@@ -15,6 +15,7 @@ import { SOCIAL_FRIENDS_LEXICON } from './social-friends';
 import { SOCIAL_HEARTS_LEXICON } from './social-hearts';
 import { JOBS_LEXICON } from './jobs';
 import { CULTURE_LEXICON } from './culture';
+import { HOME_LEXICON } from './home';
 
 export { w, g } from './helpers';
 
@@ -35,6 +36,7 @@ const PARTS: LexEntry[][] = [
   SOCIAL_HEARTS_LEXICON,
   JOBS_LEXICON,
   CULTURE_LEXICON,
+  HOME_LEXICON,
 ];
 
 /** Every module's entries. A surface that appears in several modules keeps its first entry; clashing
@@ -69,6 +71,7 @@ export const LEXICON_PARTS: Record<string, LexEntry[]> = {
   'social-hearts': SOCIAL_HEARTS_LEXICON,
   jobs: JOBS_LEXICON,
   culture: CULTURE_LEXICON,
+  home: HOME_LEXICON,
 };
 
 export const LEXICON = new Lexicon(LEXICON_ENTRIES);

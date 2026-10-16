@@ -50,7 +50,18 @@ export function dispatch(event: InputEvent): ReduceResult {
   if (needsFlush(event)) flushGameNow();
   routeEffects(result.effects);
   queueHeartBeats(result.derived);
+  announceDeliveries(result.derived);
   return result;
+}
+
+/** A piece of furniture that was on its way came (the clock reached its day: a new day, a reload, a week away): one toast per piece. */
+function announceDeliveries(derived: DerivedEvent[]): void {
+  const st = useStore.getState();
+  for (const d of derived) {
+    if (d.t !== 'delivered') continue;
+    const name = PACK.items.find((i) => i.id === d.itemId)?.name;
+    if (name) st.say(translate(st.uiLang, 'ho.delivery.arrived', { item: name[st.uiLang] ?? name.en }), 'good');
+  }
 }
 
 /** A friend reached a heart that has a beat (Mio's ♥2 note): it is queued and plays in the world once the conversation and its debrief are closed (4A). */

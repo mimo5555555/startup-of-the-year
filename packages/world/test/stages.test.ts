@@ -57,10 +57,8 @@ const inExit = (s: Stage, x: number, z: number) => x >= s.exit.x0 && x <= s.exit
 const near = (p: { x: number; z: number }, q: { x: number; z: number }, d: number) => Math.hypot(p.x - q.x, p.z - q.z) <= d;
 
 describe('the stage registry', () => {
-  it('registers the three friend homes (the dorm and the Ono flat are wave B2)', () => {
-    expect(Object.keys(STAGES).sort()).toEqual(['aiko_tatami', 'kenji_flat', 'mio_1r']);
-    expect(STAGES.dorm).toBeUndefined();
-    expect(STAGES.ono_flat).toBeUndefined();
+  it('registers the three friend homes and the player\'s own two rooms (wave B2)', () => {
+    expect(Object.keys(STAGES).sort()).toEqual(['aiko_tatami', 'dorm', 'kenji_flat', 'mio_1r', 'ono_flat']);
   });
 
   it.each(HOMES)('%s: the design room size, the host first, the door it returns to', (id) => {

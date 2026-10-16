@@ -175,7 +175,7 @@ describe('hang-outs and home visits: registration', () => {
     expect(errs4.map((i) => `${i.code} ${i.path} ${i.message}`)).toEqual([]);
     // level 5 still reports content that later waves build (titles, the trip, the flat); nothing it reports is about these seven
     const mine = /hang_|home_|_hang|photo_|stamp_card|kenji_recipe|tea_cup|hina_drawing|friends\[|aiko_room_shown|p_hang|p_home/;
-    const errs5 = validatePack(JP_PACK, { level: 5, index }).filter((i) => i.severity === 'error' && mine.test(`${i.path} ${i.message}`) && !/aiko_viewing|rin_home|fuku_home/.test(i.message));
+    const errs5 = validatePack(JP_PACK, { level: 5, index }).filter((i) => i.severity === 'error' && mine.test(`${i.path} ${i.message}`) && !/aiko_viewing|rin_home|fuku_home|p_home_own/.test(`${i.path} ${i.message}`));
     expect(errs5.map((i) => `${i.code} ${i.path} ${i.message}`)).toEqual([]);
   });
 
@@ -531,7 +531,8 @@ describe('hang-outs and home visits: what finishing them pays', () => {
 
   it('the objective engine counts a hang-out for the hearts: the pack now has a hang-out scenario for the `hangout` predicate', () => {
     expect(JP_PACK.scenarioMeta.filter((m) => m.kind === 'hangout').map((m) => m.friendId).sort()).toEqual(['aiko', 'kenji', 'mio', 'yuki']);
-    expect(JP_PACK.scenarioMeta.filter((m) => m.kind === 'home').map((m) => m.friendId).sort()).toEqual(['aiko', 'kenji', 'mio']);
+    // the housewarming (home_own_guest) is a home too, but its guest is whichever friend the player invites: no fixed friend
+    expect(JP_PACK.scenarioMeta.filter((m) => m.kind === 'home' && m.id !== 'home_own_guest').map((m) => m.friendId).sort()).toEqual(['aiko', 'kenji', 'mio']);
   });
 });
 

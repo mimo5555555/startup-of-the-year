@@ -4,14 +4,15 @@ import type { DoorDef, DoorId } from '../layout';
 import { FONT_STACK } from '../textures';
 import type { DoorsBuilder } from './index';
 
-// The door facades of the friends' homes (§6.4, wave B1): `door:mio` (a slim apartment block face in the alley mouth),
-// `door:kenji` (the stair-up to the family flat in the gap beside the ramen shop) and `door:aiko` (the little door at the
-// east end of the tea stall's wall). `door:dorm` is wave B2: TODO(B2) add its 3.6 x 3 x 4.2 box (sign 「寮」) beside the others.
+// The door facades of the homes (§6.4): `door:mio` (a slim apartment block face in the alley mouth), `door:kenji` (the
+// stair-up to the family flat in the gap beside the ramen shop) and `door:aiko` (the little door at the east end of the tea
+// stall's wall) from wave B1; `door:dorm` (the dormitory box in the -6..-2 gap, sign 「寮」) and `door:flat` (a second balcony
+// door at the west end of the Ono-so wall: the player's rented room, sign 「小野荘」) from wave B2.
 //
 // Each facade is merged into the city's two batches (no draw calls of its own) except for one plane: the door plate, a sign
 // and a door leaf drawn on one canvas. Closed (the default) the leaf is shut with a padlock and the sign is dimmed; open the
 // sign is bright and the leaf swings aside to show the warm doorway behind it. `world.setDoorOpen` calls the plate's
-// `userData.setOpen`. So the three doors cost 3 draw calls in all.
+// `userData.setOpen`. So each door costs one draw call (five in all).
 
 interface Look {
   wall: string;
@@ -26,10 +27,12 @@ interface Look {
   dim: string;
 }
 
-const LOOK: Record<'mio' | 'kenji' | 'aiko', Look> = {
+const LOOK: Record<'mio' | 'kenji' | 'aiko' | 'dorm' | 'flat', Look> = {
   mio: { wall: '#efe3d3', trim: '#e8789e', roof: '#c9b9a8', signBg: '#e8789e', signFg: '#fff8ef', leaf: '#b98757', lit: '#fff0c8', dim: '#8aa6c9' },
   kenji: { wall: '#d9b48a', trim: '#8a5a3a', roof: '#6b5047', signBg: '#f4c64a', signFg: '#4a2e1e', leaf: '#a8744a', lit: '#ffe2a0', dim: '#7f93ab' },
   aiko: { wall: '#f3dfe3', trim: '#5a4030', roof: '#c9b9a8', signBg: '#5f9a55', signFg: '#fff6e6', leaf: '#8a6a4a', lit: '#ffe2a0', dim: '#8aa6c9' },
+  dorm: { wall: '#e6ede4', trim: '#6f9a86', roof: '#8d9a96', signBg: '#3f7a64', signFg: '#fff8ef', leaf: '#a8825a', lit: '#fff0c8', dim: '#8aa6c9' },
+  flat: { wall: '#f3dfe3', trim: '#5a4030', roof: '#c9b9a8', signBg: '#3f6f9a', signFg: '#fff6e6', leaf: '#8a6a4a', lit: '#ffe2a0', dim: '#8aa6c9' },
 };
 
 const PX_PER_M = 220;
@@ -277,15 +280,14 @@ const buildKenji = (ctx: BuildCtx, def: DoorDef) => {
 };
 
 /**
- * Aiko's door has no box of its own: the flat above her stall has its entrance on a small balcony in the wall above the
- * awning, east of the sign (the stall below, shutter or not, covers the ground floor of that wall). The layout's pick
- * (38.2, 1.2, 9.55) stays as the low tap target; the balcony door is the second pick of the same id.
+ * The Ono-so balcony doors have no box of their own: the flat above Aiko's stall has its entrances on small balconies in the
+ * wall above the awning, one at each end of the sign (the stall below, shutter or not, covers the ground floor of that wall).
+ * `door:aiko` (east, x 38.42) is Aiko's own room; `door:flat` (west, x 32.18) is the room the player rents. Each layout pick
+ * (low, at the foot of the wall) stays as the easy tap target; the balcony door is the second pick of the same id.
  */
-const buildAiko = (ctx: BuildCtx, def: DoorDef) => {
+const balconyDoor = (ctx: BuildCtx, def: DoorDef, L: Look, x: number) => {
   const { solid, glow } = ctx;
-  const L = LOOK.aiko;
   const wallZ = 9.7; // the face of the florist front (SOUTH_FRONT.z0)
-  const x = 38.42;
   const hw = 0.28;
   const y0 = 3.6; // the balcony floor: above the awning's back edge (3.15)
   const dh = 1.8;
@@ -307,7 +309,69 @@ const buildAiko = (ctx: BuildCtx, def: DoorDef) => {
   doorPlate(ctx, def, { x, y0, z: wallZ - 0.075, ry: Math.PI, w: 0.74, h: dh + 0.4, signH: 0.4, leafW: 2 * hw, text: def.sign.text, sub: def.sign.sub, look: L });
 };
 
+const buildAiko = (ctx: BuildCtx, def: DoorDef) => balconyDoor(ctx, def, LOOK.aiko, 38.42);
+const buildFlat = (ctx: BuildCtx, def: DoorDef) => {
+  balconyDoor(ctx, def, LOOK.flat, 32.18);
+  // a small potted shrub on the balcony tells the two doors apart
+  ctx.solid.cyl(31.98, 3.6, 9.4, 0.07, 0.06, 0.12, '#c46a45', { seg: 6 });
+  ctx.solid.sphere(31.98, 3.82, 9.4, 0.1, '#5f9a55', { ws: 6, hs: 4 });
+};
+
+/**
+ * The dormitory: a pale mint box in the gap between the cafe and the school (x -5.8..-2.2, z -12..-9), an entrance right of the
+ * middle with a bicycle rack beside it, two storeys of small windows above and a flat roof. The door is the player's own: it is open
+ * from the start (`TokyoWorld` opens it when it is built).
+ */
+const buildDorm = (ctx: BuildCtx, def: DoorDef) => {
+  const { solid, glow } = ctx;
+  const L = LOOK.dorm;
+  const r = def.body!.rect;
+  const H = def.body!.h;
+  const cx = (r.x0 + r.x1) / 2;
+  const zf = r.z1; // the face the street sees (it faces +z)
+  const D = r.z1 - r.z0;
+  const hw = 0.62;
+  const dh = 2.2;
+  const rec = 0.4;
+  // the entrance stands right of the middle: the street lamp (x -4) would hide a door on the centre line
+  const dx = cx + 0.85;
+  const lw = dx - hw - r.x0; // the left pier
+  const rw = r.x1 - (dx + hw); // the right pier
+  solid.boxB(r.x0 + lw / 2, 0, (r.z0 + r.z1) / 2, lw, H, D, L.wall);
+  solid.boxB(r.x1 - rw / 2, 0, (r.z0 + r.z1) / 2, rw, H, D, L.wall);
+  solid.boxB(dx, dh, (r.z0 + r.z1) / 2, 2 * hw, H - dh, D, L.wall);
+  solid.boxB(dx, 0, r.z0 + (D - rec) / 2, 2 * hw, dh, D - rec, '#b9a88c'); // the back of the entrance
+  glow.boxB(dx, 0.12, zf - rec, 2 * hw - 0.04, dh - 0.12, 0.02, WARM);
+  solid.boxB(dx, 0, zf - rec / 2, 2 * hw, 0.1, rec, '#bdb4a6'); // the doorstep
+  solid.boxB(cx, H, (r.z0 + r.z1) / 2, r.x1 - r.x0 + 0.3, 0.22, D + 0.3, L.roof);
+  solid.boxB(cx, 2.85, zf + 0.04, r.x1 - r.x0 + 0.1, 0.12, 0.1, L.trim); // a mint band over the sign
+  solid.boxB(cx, 0, zf + 0.02, r.x1 - r.x0, 0.14, 0.05, '#a9b3a6'); // plinth
+  solid.boxB(cx, 3.12, zf + 0.04, r.x1 - r.x0 + 0.1, 0.06, 0.08, L.trim);
+  // four upper windows, lit and unlit
+  const winY = 3.25;
+  for (const [x, lit] of [[cx - 1.25, true], [cx - 0.45, false], [cx + 0.45, true], [cx + 1.25, false]] as const) {
+    solid.boxB(x, winY - 0.05, zf + 0.04, 0.62, 0.05, 0.1, L.trim);
+    solid.boxB(x, winY + 0.6, zf + 0.04, 0.62, 0.05, 0.08, L.trim);
+    (lit ? glow : solid).boxB(x, winY, zf + 0.015, 0.52, 0.6, 0.02, lit ? L.lit : L.dim);
+    solid.boxB(x, winY, zf + 0.03, 0.03, 0.6, 0.02, L.trim);
+  }
+  // a bicycle rack with a bike on the left pier, a mailbox and a lamp by the door
+  const rx = cx - 1.3;
+  solid.boxB(rx, 0, zf + 0.34, 0.9, 0.05, 0.05, '#6d6f7a');
+  for (const ox of [-0.35, 0, 0.35]) solid.boxB(rx + ox, 0, zf + 0.34, 0.03, 0.55, 0.03, '#6d6f7a');
+  solid.torus(rx + 0.2, 0.32, zf + 0.34, 0.3, 0.025, '#2b2b36');
+  solid.torus(rx - 0.2, 0.32, zf + 0.34, 0.3, 0.025, '#2b2b36');
+  solid.boxB(rx, 0.3, zf + 0.34, 0.4, 0.025, 0.025, '#d8433f');
+  solid.boxB(dx - 0.95, 1.0, zf + 0.04, 0.3, 0.24, 0.08, '#8a8f9a');
+  glow.sphere(dx + 0.38, 2.5, zf + 0.12, 0.09, '#ffe2a0', { ws: 6, hs: 4 });
+  body(ctx, def);
+  ctx.pickAt(def.id, def.pick.x, def.pick.y, def.pick.z, def.radius);
+  doorPlate(ctx, def, { x: dx, y0: 0, z: zf + 0.02, ry: 0, w: 1.7, h: 2.9, signH: 0.62, leafW: 2 * hw, text: def.sign.text, sub: def.sign.sub, look: L });
+};
+
 const BUILDERS: Partial<Record<DoorId, (ctx: BuildCtx, def: DoorDef) => void>> = {
+  'door:dorm': buildDorm,
+  'door:flat': buildFlat,
   'door:mio': buildMio,
   'door:kenji': buildKenji,
   'door:aiko': buildAiko,

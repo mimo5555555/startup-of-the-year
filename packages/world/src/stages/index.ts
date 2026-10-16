@@ -1,16 +1,26 @@
-// The stage registry (§8.8). Wave B1 builds the three friend homes; the dorm and the Ono flat (`ono_flat`) are wave B2:
-// TODO(B2): register `dorm` and `ono_flat` here (4.0 x 3.6 dorm with four furniture slots, then the unfurnished tatami
-// layout with eight), reading `StageBuildCtx.placed`.
+// The stage registry (§8.8). Wave B1 builds the three friend homes; wave B2 adds the player's own rooms: the dorm (4.0 x 3.6,
+// four furniture slots) and the Ono-so flat (`ono_flat`, the unfurnished tatami layout with eight), which draw
+// `StageBuildCtx.placed` (see `furniture.ts`).
 import type { Stage, StageId } from '../stage';
 import { AIKO_TATAMI } from './aiko_tatami';
+import { DORM } from './dorm';
 import { KENJI_FLAT } from './kenji_flat';
 import { MIO_1R } from './mio_1r';
+import { ONO_FLAT } from './ono_flat';
 
 export const STAGES: Partial<Record<StageId, Stage>> = {
+  dorm: DORM,
   mio_1r: MIO_1R,
   aiko_tatami: AIKO_TATAMI,
   kenji_flat: KENJI_FLAT,
+  ono_flat: ONO_FLAT,
 };
+
+/** The player's own rooms: no host, furniture slots, an optional guest. */
+export const OWN_STAGES = ['dorm', 'ono_flat'] as const satisfies readonly StageId[];
+export { FURNITURE_IDS, FURNITURE_SLOT, parseSlotPick, slotPickId } from './furniture';
+export { DORM_SLOTS } from './dorm';
+export { ONO_SLOTS } from './ono_flat';
 
 /** A tappable prop's word-card label: the JA text as the design writes it and its hiragana/katakana reading. EN and AR come from the content lexicon. */
 export interface StagePropLabel {

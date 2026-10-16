@@ -13,6 +13,7 @@ import { SOCIAL_FRIENDS_PHRASES } from './social-friends';
 import { SOCIAL_HEARTS_PHRASES } from './social-hearts';
 import { JOBS_PHRASES } from './jobs';
 import { CULTURE_PHRASES } from './culture';
+import { HOME_PHRASES } from './home';
 
 export { P } from './helpers';
 
@@ -31,4 +32,5 @@ export const PHRASEBOOK: PhraseEntry[] = [
   ...SOCIAL_HEARTS_PHRASES,
   ...JOBS_PHRASES,
   ...CULTURE_PHRASES,
+  ...HOME_PHRASES,
 ];

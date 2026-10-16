@@ -402,6 +402,11 @@ export function migrate(persisted: unknown, from: number, pack: GamePack): GameS
   if (typeof a.ttsRateScale === 'number' && Number.isFinite(a.ttsRateScale)) audio.ttsRateScale = num(a.ttsRateScale, 1, 0.5, 1.5);
   if (typeof a.lastMode === 'string') audio.lastMode = a.lastMode.slice(0, 32);
   if (typeof a.lastCheckedAt === 'number' && Number.isFinite(a.lastCheckedAt)) audio.lastCheckedAt = a.lastCheckedAt;
+  const deliveries = arr(src.deliveries)
+    .map(rec)
+    .filter((d) => typeof d.id === 'string' && d.id !== '' && typeof d.item === 'string' && d.item !== '')
+    .map((d) => ({ id: d.id as string, item: d.item as string, qty: int(d.qty, 1, 1, 99), due: typeof d.due === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(d.due) ? d.due : '' }))
+    .slice(0, 20);
   const homeSrc = rec(src.home);
   const holds = (id: string): boolean => (ownedSplit.keep[id]?.qty ?? 0) >= 1;
   const out: GameState = {
@@ -433,6 +438,7 @@ export function migrate(persisted: unknown, from: number, pack: GamePack): GameS
     // what is worn or placed must be owned (an item the pack dropped, or a hand-edited save, would otherwise wear or place a ghost)
     outfit: { equipped: uniq(strs(rec(src.outfit).equipped, 30).map(alias)).filter(holds), colours: strMap(rec(src.outfit).colours) },
     home: { tier: homeSrc.tier === 'ono' ? 'ono' : 'dorm', placed: Object.fromEntries(Object.entries(strMap(homeSrc.placed)).filter(([, id]) => holds(id))) },
+    ...(deliveries.length > 0 ? { deliveries } : {}),
     tickets: {
       ...(typeof rec(rec(src.tickets).ramen).flavor === 'string' ? { ramen: { flavor: rec(rec(src.tickets).ramen).flavor as string } } : {}),
       ...(typeof rec(rec(src.tickets).station).place === 'string' ? { station: { place: rec(rec(src.tickets).station).place as string } } : {}),

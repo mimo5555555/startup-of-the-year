@@ -10,6 +10,7 @@ import { Portrait } from '../Portrait';
 import { opensIn } from '../../game/opensIn';
 import { cooldownText } from '../../game/homeLogic';
 import { beginVisit } from '../../game/homeStore';
+import { beginOwn } from '../../game/ownStore';
 
 /** Carries out a plan that starts something (the plans for a sheet, `window`, are the caller's: it shows the Goods sheet). */
 export function runPlan(plan: Plan): void {
@@ -20,6 +21,10 @@ export function runPlan(plan: Plan): void {
     case 'home':
       // a friend's home starts at the genkan (HomeStage), never at the conversation
       beginVisit(plan.scenarioId);
+      break;
+    case 'invite':
+      // the housewarming: the friend comes into the player's own room, where the conversation starts
+      beginOwn({ guest: plan.characterId });
       break;
     case 'prepare':
       openScreen('prepare', { scenarioId: plan.scenarioId, characterId: plan.characterId });
@@ -56,7 +61,7 @@ function iconOf(row: OptionRow): IconName {
     case 'window':
       return 'eye';
     default:
-      return it.id.endsWith('_shop') ? 'bag' : it.id.endsWith('_hang') ? 'heart' : 'message';
+      return it.id.endsWith('_shop') ? 'bag' : it.id.endsWith('_hang') ? 'heart' : it.id.endsWith('_invite') ? 'home' : 'message';
   }
 }
 
@@ -90,6 +95,7 @@ export function InteractionSheet({ character, shopName, rows, closedUntil, hasGo
     if ('wait' in l) return cooldownText(t, l.wait);
     // a hang-out row says what it needs in the friend's name (the other locked rows keep the short hearts line)
     if ('hearts' in l && row.it.id.endsWith('_hang') && character) return t('fv.hang.locked', { name: displayName(character, lang) });
+    if ('comfort' in l) return t('ho.invite.comfort', { n: l.comfort, have: l.have });
     return 'ch' in l ? opensIn(t, 'quests.locked', l.ch) : 'hearts' in l ? t('hud.needHearts', { n: l.hearts }) : t('social.notYet');
   };
 

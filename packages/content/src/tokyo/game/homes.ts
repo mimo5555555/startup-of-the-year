@@ -131,3 +131,51 @@ export const HANGOUTS: Record<string, HangoutDef> = {
   hang_kenji_cook: { scenarioId: 'hang_kenji_cook', friend: 'kenji', place: 'ramen', interactionId: 'kenji_hang', hearts: 3, reward: { kind: 'keepsake', id: 'kenji_recipe' } },
   hang_aiko_wagashi: { scenarioId: 'hang_aiko_wagashi', friend: 'aiko', place: 'ono', interactionId: 'aiko_hang', hearts: 3, reward: { kind: 'item', id: 'g_wagashi', qty: 1 } },
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// The player's own room (Release 2 wave B2, docs/GAME_DESIGN.md §8.8, D12, D23)
+// ---------------------------------------------------------------------------------------------------------------
+
+/**
+ * `OWN_ROOMS`: the home tier -> the stage the world builds and the furniture slots it shows. The dorm (the room you start with) has four slots,
+ * the Ono-sō flat (a 6-jō tatami room, 60,000 yen to move in) eight. A slot is filled with `item_placed { slot, itemId }`; `comfort` (BALANCE.comfort)
+ * is the base of the tier plus the placed pieces. The tier changes when `home_room_ono` is owned (`ItemEffect homeTier`), never before.
+ * `door` is the street pick that leads in: the dorm has its own facade; the flat is reached from Aiko's Ono-sō door (`door:aiko`) once it is yours.
+ */
+export interface OwnRoomDef {
+  tier: 'dorm' | 'ono';
+  /** the stage id (`world.enterStage`) */
+  stage: 'dorm' | 'ono_flat';
+  door: string;
+  /** furniture slots, in the order of the room (the same lists as `@lw/game` `HOME_SLOTS`) */
+  slots: readonly string[];
+  /** the place id the visit is filed under: `{ t: 'visit', place }` (the first entry of the flat files `cc_trash`) */
+  visit: string;
+}
+
+export const OWN_ROOMS: Record<'dorm' | 'ono', OwnRoomDef> = {
+  dorm: { tier: 'dorm', stage: 'dorm', door: 'door:dorm', slots: ['bed', 'desk', 'shelf', 'plant'], visit: 'dorm' },
+  ono: { tier: 'ono', stage: 'ono_flat', door: 'door:aiko', slots: ['bed', 'desk', 'shelf', 'table', 'plant', 'kitchen', 'light', 'tv'], visit: 'flat' },
+};
+
+/** The slot each catalog piece goes into (equal to its `ItemEffect home` slot, checked in the tests) and the lexicon surface of its word card. */
+export const FURNITURE: Record<string, { slot: string; word: string }> = {
+  futon_set: { slot: 'bed', word: '布団' },
+  desk_study: { slot: 'desk', word: '勉強机' },
+  bookshelf: { slot: 'shelf', word: '本棚' },
+  plant_pothos: { slot: 'plant', word: '観葉植物' },
+  kotatsu: { slot: 'table', word: 'こたつ' },
+  rice_cooker: { slot: 'kitchen', word: '炊飯器' },
+  paper_lamp: { slot: 'light', word: '和風ランプ' },
+  tv_small: { slot: 'tv', word: 'テレビ' },
+};
+
+/**
+ * The housewarming (`fresh_start_6`): a friend of at least `hearts` hearts comes to a room whose comfort is at least `comfort` (BALANCE.comfort.visitMin).
+ * `scenarioId` is played with the guest friend as the conversation's character; it raises `flag` on its first completion. The friend gets the usual
+ * +25 AP once per 3 days (the reducer), and the visit is NOT filed as `visit home:<friend>` (that is the visit to the friend's own home).
+ */
+export const OWN_GUEST = { scenarioId: 'home_own_guest', hearts: 2, comfort: 4, flag: 'housewarming' } as const;
+
+/** The place id of the first entry into the flat (`{ t: 'visit', place: FLAT_VISIT }` files the culture card `cc_trash`). */
+export const FLAT_VISIT = 'flat';

@@ -39,9 +39,11 @@ const RELEASED_ITEMS = [
   'tee_basic', 'cap', 'hoodie', 'jeans', 'sneakers', 'jacket_winter', 'glasses_round', 'backpack', 'suit_set', 'g_plush', 'g_guitar_pick',
   // Release 2 wave A: Aiko's four presents (the lantern fund and the flat are not sold)
   'g_flower', 'g_wagashi', 'g_tea_set', 'g_tenugui',
+  // Release 2 wave B2: the seven pieces of second-hand furniture and the room at Ono-sō
+  'futon_set', 'desk_study', 'bookshelf', 'plant_pothos', 'kotatsu', 'rice_cooker', 'paper_lamp', 'home_room_ono',
 ];
-/** Fuku-Fuku clothes, furniture, Aiko's tea house and the flat are deferred: no scenario sells them, so the catalog must not price them. */
-const DEFERRED_ITEMS = ['yukata', 'futon_set', 'desk_study', 'bookshelf', 'plant_pothos', 'kotatsu', 'rice_cooker', 'paper_lamp', 'home_room_ono', 'g_souvenir'];
+/** The yukata (the festival) and the souvenir (the trip) are deferred: no scenario sells them, so the catalog must not price them. */
+const DEFERRED_ITEMS = ['yukata', 'g_souvenir'];
 
 describe('the released catalog (§5.2, §5.3)', () => {
   it('holds exactly the items this release sells, each once', () => {
@@ -83,10 +85,19 @@ describe('the released catalog (§5.2, §5.3)', () => {
       g_wagashi: 1_280,
       g_tea_set: 1_500,
       g_tenugui: 1_100,
+      // wave B2: the furniture of fuku_home and the move-in cost of aiko_contract
+      futon_set: 8_000,
+      desk_study: 6_000,
+      bookshelf: 4_500,
+      plant_pothos: 1_200,
+      kotatsu: 7_000,
+      rice_cooker: 3_500,
+      paper_lamp: 2_000,
+      home_room_ono: 60_000,
     });
     for (const i of JP_PACK.items) expect(Number.isInteger(i.price) && i.price >= 1, i.id).toBe(true);
     // the total of the released rows is a constant the design can be checked against
-    expect(JP_PACK.items.reduce((sum, i) => sum + i.price, 0)).toBe(1_122_990);
+    expect(JP_PACK.items.reduce((sum, i) => sum + i.price, 0)).toBe(1_215_190);
   });
 
   it('every item has an English, Japanese and Arabic name, with a reading for kanji', () => {

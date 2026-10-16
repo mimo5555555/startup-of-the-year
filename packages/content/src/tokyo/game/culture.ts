@@ -198,7 +198,6 @@ export const CULTURE: CultureCard[] = [
       ar: 'غالبًا ما يعني الإيجار وديعة تأمين (敷金)، وأحيانًا «مال المفتاح» (礼金، شكر لا يُسترد للمالك)، إضافةً إلى رسوم الوسيط وكفيل. أيكو تبسّط الأمر: وديعة وأول شهر فقط.',
     },
     adultOnly: true,
-    deferred: true,
   }),
   c({
     id: 'cc_shaken',
@@ -227,6 +226,5 @@ export const CULTURE: CultureCard[] = [
       en: 'Rubbish is sorted (burnable, plastics, cans, bottles...) and collected on fixed days. Ask your landlord for the calendar and put it out only on the right morning.',
       ar: 'تُفرز النفايات (قابلة للحرق، بلاستيك، علب، زجاجات...) وتُجمع في أيام محددة. اطلب التقويم من المالك وضعها في الصباح الصحيح فقط.',
     },
-    deferred: true,
   }),
 ];

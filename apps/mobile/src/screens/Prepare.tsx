@@ -17,6 +17,8 @@ import { blip, speakJa, stt } from '../services';
 import type { StringKey } from '../i18n';
 import { applySrsOps, dispatch, startConversation } from '../game/bridge';
 import { beginVisit, isHomeScenario } from '../game/homeStore';
+import { beginOwn } from '../game/ownStore';
+import { isOwnGuestScenario } from '../game/ownLogic';
 import { getGame } from '../game/gameStore';
 import { useDerivedFlags, useGameState, useGameView } from '../game/hooks';
 import { PACK } from '../game/pack';
@@ -71,6 +73,11 @@ export function talk(scenarioId: string, characterId: string, mode: Mode, go: (s
   // (a next-goal button in a debrief inside another home) is never answered by a bare conversation: that would skip the genkan.
   if (isHomeScenario(scenarioId)) {
     beginVisit(scenarioId, mode);
+    return;
+  }
+  // the housewarming: the friend comes to the player's own room (HomeOwn plays the conversation once they are in)
+  if (isOwnGuestScenario(scenarioId)) {
+    beginOwn({ guest: characterId, talk: mode });
     return;
   }
   startConversation({ scenarioId, characterId, mode, ...(startNode && ticket ? { startNode } : {}) });

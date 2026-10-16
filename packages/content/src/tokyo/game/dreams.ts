@@ -166,13 +166,16 @@ const RELEASED_CAR_STEPS: DreamStep[] = [
   step('car_5', FREE_WALK, { k: 'visit', place: 'spot:east_end' }, 'Drive to the east end of the street', 'قُد سيارتك إلى نهاية الشارع الشرقية'),
 ];
 
-/** The dreams whose ladders can be finished with the content of Release 1; the others stay authored above and are not offered. */
-const RELEASED_DREAM_IDS = ['phone_pal', 'bike', 'car'] as const;
-/** Onboarding goals that map onto a released dream (the unreleased flat, festival and travel dreams are not offered). */
-const RELEASED_DEFAULTS: Record<(typeof RELEASED_DREAM_IDS)[number], string[]> = { phone_pal: ['work', 'casual', 'relocation'], bike: ['travel'], car: [] };
+/** The dreams whose ladders can be finished with the content of the release; the others stay authored above and are not offered. */
+const RELEASED_DREAM_IDS = ['phone_pal', 'bike', 'flat', 'fresh_start', 'car'] as const;
+/**
+ * Onboarding goals that map onto a released dream (the unreleased festival and travel dreams are not offered). The flat is the default of the
+ * relocation goal as designed (§7.3); an under-18 profile never gets it (`ageMin`), the picker then falls back to the first dream they may see.
+ */
+const RELEASED_DEFAULTS: Record<(typeof RELEASED_DREAM_IDS)[number], string[]> = { phone_pal: ['work', 'casual'], bike: ['travel'], flat: ['relocation'], fresh_start: [], car: [] };
 
 /**
- * The Dream picker's table in this release (`JP_PACK.dreams`): phone_pal, bike and car. Step gates and chapters that are never played
+ * The Dream picker's table in this release (`JP_PACK.dreams`): phone_pal, bike, the flat, the fresh start (phone + bike + flat) and the car (wave B2 adds the flat ones). Step gates and chapters that are never played
  * become Free Walk (`releasedGate`); `validatePack` proves every step of every dream here is finishable (`dream_blocked`).
  */
 export const RELEASED_DREAMS: DreamDef[] = RELEASED_DREAM_IDS.map((id) => {

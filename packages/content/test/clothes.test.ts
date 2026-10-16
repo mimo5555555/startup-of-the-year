@@ -41,8 +41,10 @@ describe('the clothes catalog (§5.2)', () => {
     for (const id of FUKU) expect(Number.isInteger(item(id).price), id).toBe(true);
   });
 
-  it('the yukata and the furniture are not sold in wave A', () => {
-    for (const id of ['yukata', 'futon_set', 'desk_study', 'bookshelf', 'plant_pothos', 'kotatsu', 'rice_cooker', 'paper_lamp']) expect(item(id), id).toBeUndefined();
+  it('the yukata is not sold yet (the festival is wave C); the furniture is wave B2 and sold by fuku_home, not by fuku_clothes', () => {
+    expect(item('yukata')).toBeUndefined();
+    const sold = new Set(Object.values(JP_PACK.scenarioMeta.find((m) => m.id === 'fuku_clothes')!.shop!.itemMap));
+    for (const id of ['futon_set', 'desk_study', 'bookshelf', 'plant_pothos', 'kotatsu', 'rice_cooker', 'paper_lamp']) expect(sold.has(id), id).toBe(false);
   });
 
   it('every piece is clothing sold by Fuku-Fuku, owned once, with an avatar patch and an English, Japanese and Arabic name (reading for kanji)', () => {
@@ -81,9 +83,11 @@ describe('the Fuku-Fuku shop (§4.5)', () => {
     expect(JP_PACK.chapters.find((c) => c.n === 2)!.opens).toContainEqual({ kind: 'shop', id: 'fukufuku' });
   });
 
-  it('sells exactly the eleven things the catalog names it for', () => {
-    expect([...shop.sells].sort()).toEqual([...FUKU].sort());
-    expect(JP_PACK.items.filter((i) => i.shop === 'fukufuku').map((i) => i.id).sort()).toEqual([...FUKU].sort());
+  it('sells exactly the eleven things the catalog names it for, and (wave B2) the seven pieces of second-hand furniture', () => {
+    const FURNITURE = ['futon_set', 'desk_study', 'bookshelf', 'plant_pothos', 'kotatsu', 'rice_cooker', 'paper_lamp'];
+    expect([...shop.sells].sort()).toEqual([...FUKU, ...FURNITURE].sort());
+    expect(JP_PACK.items.filter((i) => i.shop === 'fukufuku' && i.cat !== 'home').map((i) => i.id).sort()).toEqual([...FUKU].sort());
+    expect(JP_PACK.items.filter((i) => i.shop === 'fukufuku' && i.cat === 'home').map((i) => i.id).sort()).toEqual([...FURNITURE].sort());
   });
 
   it('Rin lists "Shop for clothes" from the start; the shutter, not the row, waits for Chapter 2', () => {

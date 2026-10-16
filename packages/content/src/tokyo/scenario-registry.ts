@@ -3,6 +3,8 @@ import { CORE_SCENARIOS } from './scenarios';
 import { SHOPS_SCENARIOS } from './scenarios-shops';
 import { DENKI_SCENARIOS } from './scenarios-denki';
 import { FUKU_SCENARIOS } from './scenarios-fuku';
+import { FUKU_HOME_SCENARIOS } from './scenarios-fuku-home';
+import { HOME_SCENARIOS } from './scenarios-home';
 import { AIKO_SCENARIOS } from './scenarios-aiko';
 import { MOTORS_SCENARIOS } from './scenarios-motors';
 import { SOCIAL_SCENARIOS } from './scenarios-social';
@@ -17,6 +19,8 @@ export const SCENARIOS: Scenario[] = [
   ...SHOPS_SCENARIOS,
   ...DENKI_SCENARIOS,
   ...FUKU_SCENARIOS,
+  ...FUKU_HOME_SCENARIOS,
+  ...HOME_SCENARIOS,
   ...AIKO_SCENARIOS,
   ...MOTORS_SCENARIOS,
   ...SOCIAL_SCENARIOS,

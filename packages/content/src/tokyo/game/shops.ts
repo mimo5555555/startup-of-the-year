@@ -53,7 +53,8 @@ export const SHOPS: ShopDef[] = [
     sells: itemsOf('motors'),
   },
   // Fuku-Fuku opens with Chapter 2 (§4.5): cash and card (the IC card is for the konbini, the café, vending machines and the station only, §4.1),
-  // Sakura Points are redeemable here. It sells the clothes and the two presents of its `goods` node.
+  // Sakura Points are redeemable here. It sells the clothes and the two presents of its `goods` node, and (wave B2) the seven pieces of second-hand
+  // furniture of `fuku_home`: the big ones are delivered on the day the learner picks.
   {
     id: 'fukufuku',
     placeId: 'fukufuku',
@@ -66,7 +67,7 @@ export const SHOPS: ShopDef[] = [
     sells: itemsOf('fukufuku'),
   },
   // Ono Tea House (Aiko's street stall) opens with Chapter 2 (§4.5): cash only (a small stall), no Sakura Points. It sells the four presents of
-  // `aiko_tea`; the lantern fund and the flat are not in this wave.
+  // `aiko_tea`, and the room at Ono-sō (`aiko_contract`, wave B2: ¥60,000 in cash, 18+); the lantern fund is not in this release.
   {
     id: 'aiko',
     placeId: 'ono',

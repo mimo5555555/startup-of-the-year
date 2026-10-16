@@ -302,8 +302,14 @@ export function HomeStage({ world }: { world: TokyoWorld | null }) {
   );
 }
 
+/** Why a door did not open: a friend's door by hearts or by the 3 days, the player's own flat before it is rented, the dorm after moving out. */
+export type DoorTipStatus = Exclude<DoorStatus, { t: 'open' } | { t: 'none' }> | { t: 'flat_closed' } | { t: 'dorm_moved' };
+
+/** The Japanese line of a door tip (「また今度ね」 for the wait, 「もう入れません」 for the dorm left behind, 「まだ入れません」 otherwise). */
+const tipJa = (status: DoorTipStatus): string => (status.t === 'wait' ? 'また|今度|ね。' : status.t === 'dorm_moved' ? 'もう|入れません。' : DOOR_LOCKED.ja);
+
 /** What a tap on a door says when it does not open: the Japanese 「まだ入れません」 with the reason, or how long to wait. Tap to close. */
-export function DoorTip({ status, name, onClose }: { status: Exclude<DoorStatus, { t: 'open' } | { t: 'none' }>; name: string; onClose: () => void }) {
+export function DoorTip({ status, name, onClose }: { status: DoorTipStatus; name: string; onClose: () => void }) {
   const { t } = useT();
   const furigana = useStore((s) => s.settings.furigana);
   const romaji = useStore((s) => s.settings.romaji);
@@ -313,14 +319,21 @@ export function DoorTip({ status, name, onClose }: { status: Exclude<DoorStatus,
     const id = setTimeout(() => close.current(), 5200);
     return () => clearTimeout(id);
   }, [status]);
-  const wait = status.t === 'wait';
+  const text =
+    status.t === 'wait'
+      ? cooldownText(t, status.days)
+      : status.t === 'flat_closed'
+        ? t('ho.door.flat')
+        : status.t === 'dorm_moved'
+          ? t('ho.door.dorm')
+          : t('home.door.invite', { need: status.need, have: status.have, name });
   return (
     <button type="button" className="home-tip glass-card" role="status" data-home="door-tip" data-door-status={status.t} onClick={onClose}>
       <span className="home-tip-ja">
-        <JaText tokens={tokenize(wait ? 'また|今度|ね。' : DOOR_LOCKED.ja, LEXICON).tokens} furigana={furigana} romaji={romaji} size="md" />
+        <JaText tokens={tokenize(tipJa(status), LEXICON).tokens} furigana={furigana} romaji={romaji} size="md" />
       </span>
       <span className="home-tip-text" dir="auto">
-        {wait ? cooldownText(t, status.days) : t('home.door.invite', { need: status.need, have: status.have, name })}
+        {text}
       </span>
     </button>
   );

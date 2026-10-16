@@ -2,7 +2,7 @@
 import { BALANCE } from './balance';
 import { emptyPay } from './defaults';
 import { heartsForAp } from './friends';
-import { grantItem } from './inventory';
+import { deliveryLead, grantItem, pendingQty, scheduleDelivery } from './inventory';
 import { applyLedgerAll, dayKey, LEDGER_IDS, ledgerHas } from './ledger';
 import { canAfford, formatHours, pocketFor, scaleAmount, walletLimits, workHours, yenFormat } from './money';
 import type {
@@ -82,6 +82,8 @@ function todayPay(state: GameState): PayState {
 }
 
 const ownedOf = (state: GameState, id: string): number => state.owned[id]?.qty ?? 0;
+/** owned plus paid-for-and-on-its-way: a one-time item that is being delivered cannot be bought again */
+const heldOf = (state: GameState, id: string): number => ownedOf(state, id) + pendingQty(state, id);
 
 function availability(pack: GamePack, state: GameState, view: GameView, s: Sellable): ItemAvailability {
   const shop = pack.shops.find((x) => x.id === s.shop);
@@ -93,7 +95,7 @@ function availability(pack: GamePack, state: GameState, view: GameView, s: Sella
   const st = it.gate.stars;
   if (st && Object.values(state.runs).filter((r) => r.stars >= st.atLeast).length < st.n) return 'stars';
   if (it.gate.needs?.some((n) => ownedOf(state, n) < 1)) return 'needs';
-  if (it.once && ownedOf(state, it.id) >= 1) return 'owned';
+  if (it.once && heldOf(state, it.id) >= 1) return 'owned';
   return 'ok';
 }
 
@@ -373,7 +375,9 @@ export function commitPurchase(state: GameState, ev: PurchaseEvent, ctx: ReduceC
 
   const day = dayKey(state.clock.dayIndex);
   const pay = todayPay(r.state);
-  let next: GameState = grantItem(r.state, pack, s.id, q.qty, day);
+  // a bulky item with a chosen delivery day is booked, not handed over: it is owned (and placeable) when the day comes
+  const lead = s.item?.bulky === true && ev.deliveryDay !== undefined ? deliveryLead(r.state, ev.deliveryDay) : null;
+  let next: GameState = lead !== null ? scheduleDelivery(r.state, s.id, q.qty, lead, id) : grantItem(r.state, pack, s.id, q.qty, day);
   next = {
     ...next,
     stats: {

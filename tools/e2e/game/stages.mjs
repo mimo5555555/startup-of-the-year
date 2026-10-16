@@ -1,4 +1,4 @@
-// Release 2 wave B1, the 3D side: the three friend homes (stages) and the door facades, driven through `window.__world` in the
+// Release 2 wave B1 + B2, the 3D side: the three friend homes and the player's own two rooms (stages) and the door facades, driven through `window.__world` in the
 // REAL app at 360 px (the app wires the UI around them; see the home-visit scripts). For each of Mio's 1R, Aiko's tatami room and
 // Kenji's flat: enter, check the stage's own draw calls and triangles against the budget (<= 12 calls), do the genkan, walk the
 // host's way, hold a conversation shot, leave and land in front of the door. Then the three doors: closed by default, opened
@@ -89,8 +89,38 @@ for (const h of HOMES) {
   await world((w, id) => w.setDoorOpen(id, false), h.door);
 }
 
-step('a stage that is not built yet (the dorm) is refused, and the street is untouched');
-assert.equal(await world((w) => w.enterStage('dorm')), false);
+// wave B2: the player's own rooms (no host; furniture drawn from `placed`, the placement view, the guest), and their two doors
+const ALL = { bed: 'futon_set', desk: 'desk_study', shelf: 'bookshelf', table: 'kotatsu', plant: 'plant_pothos', kitchen: 'rice_cooker', light: 'paper_lamp', tv: 'tv_small' };
+for (const [id, door, slots] of [['dorm', 'door:dorm', ['bed', 'desk', 'shelf', 'plant']], ['ono_flat', 'door:flat', Object.keys(ALL)]]) {
+  step(`${id}: enter empty, furnish, placement view, a guest, leave`);
+  assert.equal(await world((w, i) => w.enterStage(i, { state: { shoesOff: true, slippersOn: true } }), id), true, `${id} enters`);
+  await t.sleep(800);
+  await canvasShot(`${id}-1-empty`);
+  const placed = Object.fromEntries(slots.map((s) => [s, ALL[s]]));
+  await world((w, p) => w.setStagePlaced(p), placed);
+  const info = await world((w) => w.stageInfo());
+  assert.ok(info.meshes <= 12 && info.triangles <= 8000, `${id}: ${info.meshes} calls / ${info.triangles} tris furnished`);
+  assert.deepEqual(info.people, [], 'nobody lives in your own room');
+  await t.sleep(500);
+  await canvasShot(`${id}-2-furnished`);
+  await world((w) => w.setStageState({ showSlots: true, slotFocus: 'desk' }));
+  const view = await world((w) => w.stageInfo());
+  for (const s of slots) assert.ok(view.picks.includes(`slot:${s}`), `${id}: slot:${s} is tappable in the placement view`);
+  await world((w) => w.setStageState({ showSlots: false, slotFocus: null }));
+  assert.ok(!(await world((w) => w.stageInfo().picks)).some((p) => p.startsWith('slot:')), 'slot picks go away with the view');
+  await world((w) => w.exitStage());
+  await t.sleep(600);
+  assert.equal(await world((w, i) => w.currentStage(), id), null);
+  await world((w, i, p) => w.enterStage(i, { state: { shoesOff: true, slippersOn: true }, placed: p, guest: 'mio' }), id, placed);
+  assert.deepEqual((await world((w) => w.stageInfo())).people, ['mio'], 'the housewarming guest');
+  await world((w) => w.exitStage());
+  await t.sleep(600);
+  assert.equal(await world((w, d) => w.isDoorOpen(d), door), door === 'door:dorm', `${door}: the dorm is open from the start, the flat is closed until rented`);
+}
+await world((w) => w.setDoorOpen('flat', true));
+assert.equal(await world((w) => w.isDoorOpen('door:flat')), true);
+await world((w) => w.setDoorOpen('flat', false));
+assert.equal(await world((w) => w.enterStage('nonsense')), false, 'an unknown stage is refused');
 assert.equal(await world((w) => w.currentStage()), null);
 
 assertNoConsoleErrors(t.logs);

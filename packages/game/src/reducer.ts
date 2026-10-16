@@ -8,7 +8,7 @@ import { emptyFriend, emptyPay } from './defaults';
 import { availableDreams } from './dreams';
 import { applyGift, applyHeartEvent, applyTalk, contactOpen, queueThreads } from './friends';
 import { dedupe, localDateString, markActive, observeClock, payForDay } from './integrity';
-import { applyOutfit, grantItem, hasFeature, placeItem } from './inventory';
+import { applyOutfit, arriveDeliveries, grantItem, hasFeature, placeItem } from './inventory';
 import { applyLedger, dayKey, LEDGER_IDS, ledgerHas, refundIc, topUp } from './ledger';
 import { walletLimits } from './money';
 import { acceptEasier, chapterDef, evaluateAll } from './objectives';
@@ -307,7 +307,8 @@ function onConversation(a: Acc, facts: ConversationFacts, ctx: ReduceCtx): void 
     void _used;
     a.s = { ...a.s, tickets: rest };
   }
-  if (meta?.kind === 'home' && !facts.abandoned && facts.goalDone > 0 && friendId && heartOk) {
+  // only a visit to the friend's own home is `visit home:<friend>`: a friend who comes to the player's room (home_own_guest) is a guest, not a visit
+  if (meta?.kind === 'home' && !facts.abandoned && facts.goalDone > 0 && friendId && heartOk && facts.scenarioId === `home_${friendId}`) {
     const key = `home:${friendId}`;
     if (!a.s.stats.visits.includes(key)) a.s = { ...a.s, stats: { ...a.s.stats, visits: [...a.s.stats.visits, key] } };
     a.probes.push({ on: 'visit', keys: [key] });
@@ -873,6 +874,10 @@ export function reduce(state: GameState, ev: InputEvent, ctx: ReduceCtx): Reduce
   const a: Acc = { s: clock.state, derived: [], effects: [], probes: [], effective: true, active: false, catalogSpent: 0 };
   const netBefore = a.s.totals.earned - a.s.totals.spent;
   if (clock.rolled) rollover(a, c);
+  // bulky goods whose delivery day has come are handed over before anything else reads the inventory (a reload or a skipped day still delivers)
+  const delivery = arriveDeliveries(a.s, c.pack);
+  a.s = delivery.state;
+  for (const d of delivery.arrived) a.derived.push({ t: 'delivered', itemId: d.item, qty: d.qty }, { t: 'unlocked', what: 'item', id: d.item });
 
   // economy -> friends -> inventory -> mastery -> srs bridge
   apply(a, ev, c);

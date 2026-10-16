@@ -4,7 +4,7 @@ import { releasedGate } from './chapters';
 /**
  * Pack data: the catalog of docs/GAME_DESIGN.md §5.2 and the gift items of §5.3 that THIS RELEASE sells (docs/RELEASE_1.md, RELEASE_2.md
  * wave A). Fuku-Fuku's clothes (nine of the ten: the yukata waits for the festival) and its two presents are sold from Release 2 wave A; the
- * furniture and the flat are not sold yet (no scenario sells them); Aiko's four presents (bouquet, wagashi, tea set, tenugui) are sold from Chapter 2 by `aiko_tea`, so they have no row here; the ids and prices of the full
+ * seven pieces of second-hand furniture (`fuku_home`) and the room at Ono-sō (`aiko_contract`) from wave B2; Aiko's four presents (bouquet, wagashi, tea set, tenugui) are sold from Chapter 2 by `aiko_tea`, so they have no row here; the ids and prices of the full
  * catalog stay in the design document.
  *
  * Every id equals the `itemMap` of the scenario metas that sell it (konbini, station_ic, denki_phone, motors_bike, motors_car), so
@@ -76,6 +76,21 @@ const clothes = (id: string, ja: string, reading: string | undefined, en: string
   tags: ['clothing', ...tags],
   once: true,
   ...(more.beat ? { beat: more.beat } : {}),
+});
+
+/** The comfort and slot of every piece of furniture (§5.2, §8.8): the dorm's four slots sum to 6 on top of the base 1, the flat's eight to 13 on top of 3 (max 16). */
+const furniture = (id: string, ja: string, reading: string, en: string, ar: string, price: number, ch: number, slot: string, comfort: number, more: Partial<ItemDef> = {}): ItemDef => ({
+  id,
+  name: { ja, ...(reading ? { reading } : {}), en, ar },
+  price,
+  cat: 'home',
+  shop: 'fukufuku',
+  // a piece for a slot the dorm does not have (table, kitchen, light) is sold to a tenant of the flat only: a kotatsu in a box warms nobody
+  gate: { ch: releasedGate(ch), ...(['table', 'kitchen', 'light'].includes(slot) ? { needs: ['home_room_ono'] } : {}) },
+  fx: [{ t: 'home', slot, comfort }, ...(more.fx ?? [])],
+  tags: ['home', 'furniture'],
+  ...(more.bulky ? { bulky: true } : {}),
+  once: true,
 });
 
 export const ITEMS: ItemDef[] = [
@@ -239,6 +254,31 @@ export const ITEMS: ItemDef[] = [
   clothes('suit_set', 'スーツ', undefined, 'Business suit + tie', 'بدلة رسمية مع ربطة عنق', 19800, 6, { top: SUIT_COLOUR, bottom: SUIT_COLOUR, accessories: ['tie'] }, ['top', 'bottom', 'formal'], {
     fx: [{ t: 'trait', id: 'formal_register' }],
   }),
+  // ---- Fuku-Fuku's second-hand corner (fuku_home, Release 2 wave B2): the dorm's pieces open in Chapter 5, the flat's in Chapter 6 ----
+  furniture('futon_set', '布団セット', 'ふとんセット', 'Futon set', 'طقم فوتون (فراش ياباني)', 8000, 5, 'bed', 2, { bulky: true }),
+  furniture('desk_study', '勉強机', 'べんきょうづくえ', 'Study desk', 'مكتب للدراسة', 6000, 5, 'desk', 2, { bulky: true }),
+  furniture('bookshelf', '本棚', 'ほんだな', 'Bookshelf', 'رف كتب', 4500, 5, 'shelf', 1, { bulky: true }),
+  furniture('plant_pothos', '観葉植物', 'かんようしょくぶつ', 'Pothos plant', 'نبتة زينة', 1200, 5, 'plant', 1),
+  // the friend-visit hangout bonus (kotatsu x1.5 AP) only counts while it is placed
+  furniture('kotatsu', 'こたつ', '', 'Kotatsu table', 'كوتاتسو (طاولة تدفئة)', 7000, 6, 'table', 3, { bulky: true, fx: [{ t: 'trait', id: 'hangout_mult', value: 1.5 }] }),
+  furniture('rice_cooker', '炊飯器', 'すいはんき', 'Rice cooker', 'جهاز طهي الأرز', 3500, 6, 'kitchen', 1, { fx: [{ t: 'trait', id: 'cook_together' }] }),
+  furniture('paper_lamp', '和風ランプ', 'わふうランプ', 'Paper lantern lamp', 'مصباح ورقي ياباني', 2000, 6, 'light', 1),
+
+  // ---- the room at Ono-sō (aiko_contract): deposit 30,000 + first month 30,000, no rent afterwards, 18+ (D12, D28) ----
+  {
+    id: 'home_room_ono',
+    name: { ja: '小野荘の部屋', reading: 'おのそうのへや', en: 'Room at Ono-sō (move-in costs)', ar: 'غرفة في عمارة أونو (تكاليف الانتقال)' },
+    price: 60000,
+    // a rental is a service, not a good you place (the dream tracker counts only `home` goods as furniture)
+    cat: 'service',
+    shop: 'aiko',
+    gate: { ch: releasedGate(6), ageMin: ADULT },
+    fx: [{ t: 'homeTier', tier: 'ono' }],
+    // `own category:flat`
+    tags: ['flat'],
+    once: true,
+  },
+
   // Aiko's tea house (aiko_tea): sold from Chapter 2, when the stall opens
   gift('g_flower', '花束', 'はなたば', 'Small bouquet', 'باقة زهور صغيرة', 1500, 'aiko', 2, ['flower', 'nature']),
   gift('g_wagashi', '和菓子の詰め合わせ', 'わがしのつめあわせ', 'Wagashi assortment', 'علبة حلويات يابانية (واغاشي)', 1280, 'aiko', 2, ['sweet', 'tradition']),

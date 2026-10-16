@@ -27,6 +27,7 @@ import { AIKO_MOTORS_POCKETS } from '../src/tokyo/game/pockets/pockets-aiko-moto
 import { SOCIAL_POCKETS } from '../src/tokyo/game/pockets/pockets-social';
 import { FRIENDS_POCKETS } from '../src/tokyo/game/pockets/pockets-friends';
 import { JOBS_POCKETS } from '../src/tokyo/game/pockets/pockets-jobs';
+import { HOME_POCKETS } from '../src/tokyo/game/pockets/pockets-home';
 import { CORE_META } from '../src/tokyo/game/meta/meta-core';
 import { STATION_META } from '../src/tokyo/game/meta/meta-station';
 import { DENKI_FUKU_META } from '../src/tokyo/game/meta/meta-denki-fuku';
@@ -37,6 +38,7 @@ import { JOBS_META } from '../src/tokyo/game/meta/meta-jobs';
 import { FRIENDS_META } from '../src/tokyo/game/meta/meta-friends';
 import { HEARTS_META } from '../src/tokyo/game/meta/meta-hearts';
 import { STORY_META } from '../src/tokyo/game/meta/meta-story';
+import { HOME_META } from '../src/tokyo/game/meta/meta-home';
 import { CORE_BEATS } from '../src/tokyo/game/beats/beats-core';
 import { FRIENDS_BEATS } from '../src/tokyo/game/beats/beats-friends';
 import { HEARTS_BEATS } from '../src/tokyo/game/beats/beats-hearts';
@@ -358,7 +360,7 @@ describe('content modules', () => {
   });
   it('registers every lexicon module of docs/GAME_DESIGN.md §15.2', () => {
     expect(Object.keys(LEXICON_PARTS).sort()).toEqual(
-      ['core', 'numbers', 'shop', 'station', 'quests', 'shop-denki', 'shop-fuku', 'shop-aiko', 'shop-motors', 'social', 'social-chat', 'social-friends', 'social-hearts', 'jobs', 'culture'].sort(),
+      ['core', 'numbers', 'shop', 'station', 'quests', 'shop-denki', 'shop-fuku', 'shop-aiko', 'shop-motors', 'social', 'social-chat', 'social-friends', 'social-hearts', 'jobs', 'culture', 'home'].sort(),
     );
   });
   it('scenario and character ids are unique', () => {
@@ -378,9 +380,9 @@ describe('game pack registries (JP_PACK)', () => {
   });
 
   it('part files never define the same pocket line, beat or scenario meta twice', () => {
-    const pockets = [CORE_POCKETS, DENKI_FUKU_POCKETS, AIKO_MOTORS_POCKETS, SOCIAL_POCKETS, FRIENDS_POCKETS, JOBS_POCKETS].flatMap((p) => Object.keys(p));
+    const pockets = [CORE_POCKETS, DENKI_FUKU_POCKETS, AIKO_MOTORS_POCKETS, SOCIAL_POCKETS, FRIENDS_POCKETS, JOBS_POCKETS, HOME_POCKETS].flatMap((p) => Object.keys(p));
     const beats = [CORE_BEATS, FRIENDS_BEATS, HEARTS_BEATS, STORY_BEATS].flatMap((p) => Object.keys(p));
-    const metas = [CORE_META, STATION_META, DENKI_FUKU_META, AIKO_MOTORS_META, SOCIAL_META, CHAT_META, JOBS_META, FRIENDS_META, HEARTS_META, STORY_META].flatMap((p) => p.map((m) => m.id));
+    const metas = [CORE_META, STATION_META, DENKI_FUKU_META, AIKO_MOTORS_META, SOCIAL_META, CHAT_META, JOBS_META, FRIENDS_META, HEARTS_META, STORY_META, HOME_META].flatMap((p) => p.map((m) => m.id));
     expect(dupes(pockets)).toEqual([]);
     expect(dupes(beats)).toEqual([]);
     expect(dupes(metas)).toEqual([]);

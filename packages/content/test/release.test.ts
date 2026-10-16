@@ -117,10 +117,10 @@ describe('the epilogue beat (Hanako: "to be continued")', () => {
 });
 
 describe('the Dream picker offers only dreams that can be finished', () => {
-  it('phone_pal, bike and car: the dreams of the released content, in the design\'s order', () => {
-    expect(JP_PACK.dreams.map((d) => d.id)).toEqual(['phone_pal', 'bike', 'car']);
+  it('phone_pal, bike, flat, fresh_start and car: the dreams of the released content (wave B2 adds the flat ones), in the design\'s order', () => {
+    expect(JP_PACK.dreams.map((d) => d.id)).toEqual(['phone_pal', 'bike', 'flat', 'fresh_start', 'car']);
     expect(RELEASED_DREAMS).toBe(JP_PACK.dreams);
-    // the others stay authored (flat, festival, travel, fresh_start need the flat, the festival and Hikarigaoka)
+    // the others stay authored (festival and travel need the festival and Hikarigaoka)
     expect(DREAMS.map((d) => d.id)).toEqual(['phone_pal', 'bike', 'flat', 'festival', 'travel', 'fresh_start', 'car']);
   });
 

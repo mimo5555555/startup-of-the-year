@@ -150,10 +150,10 @@ describe('daily goals', () => {
 });
 
 describe('dream picker', () => {
-  it('shows the three released dreams to an adult with the goal-matched one suggested, and the car shut until Free Walk', () => {
+  it('shows the five released dreams to an adult with the goal-matched one suggested, and the car shut until Free Walk', () => {
     const out = html(createElement(DreamPicker, { onChoose: () => {}, onLater: () => {} }));
-    expect([...out.matchAll(/data-dream="(\w+)"/g)].map((m) => m[1])).toEqual(['phone_pal', 'bike', 'car']);
-    // goal 'casual' -> the phone dream (the festival dream is not in Release 1)
+    expect([...out.matchAll(/data-dream="(\w+)"/g)].map((m) => m[1])).toEqual(['phone_pal', 'bike', 'flat', 'fresh_start', 'car']);
+    // goal 'casual' -> the phone dream (the festival dream is not released)
     expect(out).toMatch(/data-dream="phone_pal"[^>]*>.*?Suggested for you/s);
     expect(out).toMatch(/data-dream="car"[^>]*disabled/);
     expect(out).toContain('Decide later');
@@ -161,7 +161,7 @@ describe('dream picker', () => {
     expect(out).toContain('What do you want to achieve here?');
   });
 
-  it('never draws the car for a child (D28; the flat and the fresh start are not in Release 1)', () => {
+  it('never draws the car, the flat or the fresh start for a child (D28)', () => {
     useStore.setState({ profile: { ...profile, age: 'kids', goal: 'relocation' } });
     sync();
     const out = html(createElement(DreamPicker, { onChoose: () => {} }));

@@ -41,9 +41,9 @@ describe('aiko_tea: scenario', () => {
     expect(CHARACTERS.find((c) => c.id === 'aiko')!.scenarioId).toBe('aiko_tea');
     expect(sc.title.en && sc.title.ar && sc.setup.en && sc.setup.ar).toBeTruthy();
     for (const s of sc.steps) expect(s.text.en && s.text.ar).toBeTruthy();
-    // the flat is not in this wave
-    expect(scenarioById('aiko_viewing')).toBeUndefined();
-    expect(scenarioById('aiko_contract')).toBeUndefined();
+    // the flat (viewing, contract) is wave B2: its scenarios are tested in home-own.test.ts
+    expect(scenarioById('aiko_viewing')?.characterId).toBe('aiko');
+    expect(scenarioById('aiko_contract')?.characterId).toBe('aiko');
   });
 
   it('has a valid graph: start exists, every node is reachable, no dead intent target, ends exist, short and leave', () => {
@@ -235,17 +235,17 @@ describe('aiko_tea: ScenarioMeta, pockets, items, shop', () => {
     }
   });
 
-  it('the shop opens with Chapter 2, takes cash, sells exactly the four presents; Chapter 2 opens it', () => {
+  it('the shop opens with Chapter 2, takes cash, sells exactly the four presents and the room at Ono-sō (wave B2); Chapter 2 opens it', () => {
     const shop = JP_PACK.shops.find((s) => s.id === 'aiko')!;
     expect(shop).toMatchObject({ placeId: 'ono', openChapter: 2, surface: 'world', register: 'polite', pay: ['cash'] });
-    expect(shop.sells.sort()).toEqual(['g_flower', 'g_tea_set', 'g_tenugui', 'g_wagashi']);
+    expect(shop.sells.sort()).toEqual(['g_flower', 'g_tea_set', 'g_tenugui', 'g_wagashi', 'home_room_ono']);
     expect(JP_PACK.chapters.find((c) => c.n === 2)!.opens).toContainEqual({ kind: 'shop', id: 'aiko' });
   });
 
-  it('the Aiko row of the interaction table is the tea house from Chapter 2; the flat rows wait for their scenarios', () => {
+  it('the Aiko row of the interaction table is the tea house from Chapter 2; the flat rows point at the viewing and the contract (wave B2)', () => {
     const rows = JP_PACK.interactions.aiko;
     expect(rows[0]).toMatchObject({ id: 'aiko_shop', kind: 'scenario', scenarioId: 'aiko_tea', ch: 2 });
-    for (const id of ['aiko_viewing', 'aiko_contract']) expect(scenarioById(rows.find((r) => r.id === id)!.scenarioId!), id).toBeUndefined();
+    for (const id of ['aiko_viewing', 'aiko_contract']) expect(scenarioById(rows.find((r) => r.id === id)!.scenarioId!), id).toBeDefined();
   });
 });
 

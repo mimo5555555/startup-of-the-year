@@ -368,3 +368,211 @@ html[dir='rtl'] .home-panel-host {
     inset-inline-start: 82%;
   }
 }
+
+/* ---- the player's own room (Release 2 wave B2): the Furnish sheet, the places list, the panel fallback's furniture ---- */
+.own-ui .home-foot {
+  margin-top: auto;
+}
+.own-furnish {
+  box-shadow: var(--shadow);
+}
+.own-sheet {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  max-height: min(58dvh, 470px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.own-sheet-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+.own-sheet-head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-family: var(--font-display);
+}
+.own-done {
+  min-height: 44px;
+  min-width: 84px;
+}
+.own-comfort {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  margin: 0;
+  font-size: 12.5px;
+  line-height: 1.35;
+  opacity: 0.95;
+}
+.own-comfort svg {
+  flex: none;
+  margin-top: 2px;
+}
+.own-hint {
+  margin: 0;
+  font-size: 13px;
+  font-weight: 700;
+}
+.own-pieces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.own-piece {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 4px 12px;
+  border-radius: 14px;
+  border: 2px solid transparent;
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+  text-align: start;
+}
+.own-piece small {
+  font-size: 11.5px;
+  opacity: 0.8;
+}
+.own-piece.on {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft, rgba(255, 90, 150, 0.25));
+}
+.own-piece.later {
+  cursor: default;
+  opacity: 0.85;
+  border-style: dashed;
+  border-color: var(--glass-line);
+  background: transparent;
+  color: inherit;
+}
+.own-piece-name {
+  font-weight: 800;
+  font-size: 13.5px;
+}
+.own-slots {
+  display: grid;
+  /* minmax(0, 1fr): a long name (Arabic, a rice cooker) shrinks and ellipsises instead of pushing the column out of the sheet */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+.own-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 1px;
+  position: relative;
+  min-height: 52px;
+  padding: 6px 12px;
+  border-radius: 14px;
+  border: 2px dashed var(--glass-line);
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.own-slot-name {
+  font-size: 11.5px;
+  font-weight: 800;
+  opacity: 0.8;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.own-slot-what {
+  font-size: 13.5px;
+  font-weight: 700;
+  line-height: 1.2;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  overflow-wrap: anywhere;
+}
+.own-slot.filled {
+  border-style: solid;
+  border-color: transparent;
+  background: var(--good-soft);
+  color: var(--good);
+}
+.own-slot.filled svg {
+  position: absolute;
+  inset-inline-end: 8px;
+  top: 8px;
+  opacity: 0.7;
+}
+.own-slot.target {
+  border-style: solid;
+  border-color: var(--accent);
+  background: var(--accent-soft, rgba(255, 90, 150, 0.18));
+  animation: pop 0.25s ease-out;
+}
+
+/* the panel fallback of the own room: its colours and the furniture as chips */
+.home-panel[data-room='dorm'] {
+  --wall: #e9eef2;
+  --floor: #c9a67c;
+  --sky: #cfeaf7;
+  --trim: #8c8f99;
+}
+.home-panel[data-room='ono_flat'] {
+  --wall: #eadfc0;
+  --floor: #b8a070;
+  --sky: #f6f0dc;
+  --trim: #5a4030;
+}
+.home-panel[data-room='ono_flat'] .home-panel-window {
+  background:
+    linear-gradient(90deg, transparent 48%, var(--trim) 48%, var(--trim) 52%, transparent 52%),
+    linear-gradient(0deg, transparent 48%, var(--trim) 48%, var(--trim) 52%, transparent 52%), var(--sky);
+}
+.own-things {
+  position: absolute;
+  inset-inline: 14px;
+  top: 52%;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+}
+.own-thing {
+  min-height: 44px;
+  padding: 4px 14px;
+  border: 0;
+  cursor: pointer;
+  color: var(--fg);
+  background: var(--card);
+  font-family: var(--font-ja);
+  font-weight: 800;
+}
+.own-things-empty {
+  padding: 6px 12px;
+  border-radius: 12px;
+  background: var(--glass);
+  color: #fff;
+  font-size: 13px;
+}
+@media (max-height: 480px) {
+  .own-sheet {
+    max-height: 78dvh;
+    max-width: min(70%, 560px);
+  }
+  .own-things {
+    top: 40%;
+  }
+}

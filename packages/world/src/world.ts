@@ -291,6 +291,7 @@ export class TokyoWorld {
       const id = o.userData?.doorId as string | undefined;
       if (id) this.doorSigns.set(id, o);
     }
+    this.setDoorOpen('door:dorm', true); // the player's own dorm is never locked (the app closes it once they have moved out)
 
     // tap marker
     const ring = new THREE.RingGeometry(0.28, 0.4, 28);
@@ -497,8 +498,9 @@ export class TokyoWorld {
   }
 
   /**
-   * Opens or closes a friend's door marker (`door:mio`, `door:kenji`, `door:aiko`; pass the bare name or the full id;
-   * `door:dorm` is wave B2). Doors start closed: the sign is dimmed and has no sparkle. The tap is a `pick` either way (the
+   * Opens or closes a home's door marker (`door:mio`, `door:kenji`, `door:aiko`, `door:dorm`, `door:flat`; pass the bare name
+   * or the full id). Doors start closed except `door:dorm` (your own room, open from the start; `door:flat` opens once the flat
+   * is rented): the sign is dimmed and has no sparkle. The tap is a `pick` either way (the
    * app answers a closed door with 「まだ入れません」 and an open one by calling `enterStage`).
    */
   setDoorOpen(who: string, open: boolean) {
@@ -518,9 +520,11 @@ export class TokyoWorld {
    * Goes inside: hides the street, builds the stage (on demand), swaps the colliders, bounds and camera limits for the
    * stage's and puts the player at its spawn on the genkan. Returns false when the stage is unknown or fails to build, and the
    * app then shows the panel fallback. Entering a stage while in another leaves that one first; entering the stage you are in
-   * is a no-op that returns true. `state` starts the genkan done or not (the default is shoes on, slippers off).
+   * is a no-op that returns true. `state` starts the genkan done or not (the default is shoes on, slippers off). In the
+   * player's own rooms (`dorm`, `ono_flat`) `placed` is the furniture (slot -> item id) and `guest` is the Character id of a
+   * visitor who stands on the room's guest spot (the housewarming).
    */
-  enterStage(id: StageId, opts: { state?: Partial<StageState>; placed?: Record<string, string> } = {}): boolean {
+  enterStage(id: StageId, opts: { state?: Partial<StageState>; placed?: Record<string, string>; guest?: string } = {}): boolean {
     const def = this.stageDefs[id];
     if (!def) return false;
     if (this.stage) {
@@ -537,7 +541,8 @@ export class TokyoWorld {
     }
 
     const npcs: Npc[] = [];
-    for (const a of def.actors) {
+    const actors = opts.guest && def.guest ? [...def.actors, { id: opts.guest, ...def.guest }] : def.actors;
+    for (const a of actors) {
       const ch = this.opts.characters.find((c) => c.id === a.id);
       if (!ch) continue;
       const npc = this.makeNpc(ch, { x: a.x, y: stageFloorY(def, a.x, a.z), z: a.z, face: a.heading, radius: a.radius, kind: 'scenario' }, null, true);
@@ -567,6 +572,10 @@ export class TokyoWorld {
     this.renderer.setClearColor(backdrop);
 
     const state: StageState = { shoesOff: !!opts.state?.shoesOff, slippersOn: !!opts.state?.slippersOn };
+    if (def.slots) {
+      state.showSlots = !!opts.state?.showSlots;
+      state.slotFocus = opts.state?.slotFocus ?? null;
+    }
     const saved = { x: this.playerPos.x, z: this.playerPos.z, heading: this.playerHeading, yaw: this.yaw, pitch: this.pitch, dist: this.dist };
     this.stage = { def, handle, npcs, sparkles, state, colliders: [], saved, inExit: false };
     this.applyStageState();
@@ -660,6 +669,18 @@ export class TokyoWorld {
     return this.stage ? { ...this.stage.state } : null;
   }
 
+  /**
+   * The player's furniture changed (placed, replaced or taken away): `placed` is the whole map, slot -> item id. Only the
+   * furniture is redrawn and its colliders refreshed; nothing else in the room is rebuilt. A no-op outside the player's own
+   * rooms (and in a friend's home).
+   */
+  setStagePlaced(placed: Readonly<Record<string, string>>) {
+    const st = this.stage;
+    if (!st?.handle.setPlaced) return;
+    st.handle.setPlaced(placed);
+    this.applyStageState();
+  }
+
   /** What the stage costs to draw: its meshes (draw calls), triangles and the ids that can be tapped right now. */
   stageInfo() {
     const st = this.stage;
@@ -673,13 +694,14 @@ export class TokyoWorld {
       const g = m.geometry;
       triangles += (g.index ? g.index.count : g.getAttribute('position').count) / 3;
     });
-    return { id: st.def.id, meshes, triangles, picks: st.handle.pickables.filter((p) => !p.off).map((p) => p.id), people: st.npcs.map((n) => n.id) };
+    return { id: st.def.id, meshes, triangles, picks: st.handle.pickables.filter((p) => !p.off).map((p) => p.id), people: st.npcs.map((n) => n.id), slots: st.def.slots?.map((s) => s.name) ?? [] };
   }
 
   private applyStageState() {
     const st = this.stage!;
     st.handle.setState?.(st.state);
-    st.colliders = st.state.shoesOff ? st.def.colliders : [...st.def.colliders, st.def.gate];
+    const own = st.handle.colliders ?? [];
+    st.colliders = st.state.shoesOff ? [...st.def.colliders, ...own] : [...st.def.colliders, ...own, st.def.gate];
   }
 
   /** Removes everything the stage added to the scene and frees it. Leaves the street untouched. */
@@ -1346,7 +1368,7 @@ export class TokyoWorld {
       // hidden once found, when far away, during conversations, or when it would fill the lens
       // a closed door has no sparkle either (its sign is dimmed): the learner is not invited to something they cannot do yet
       const closedDoor = s.id.startsWith('door:') && !this.doorOpen.has(s.id);
-      const show = !this.discovered.has(s.id) && d < 17 && !this.conv && cd > (this.stage ? 1.6 : 2.6) && !closedDoor && !off?.has(s.id);
+      const show = !this.discovered.has(s.id) && d < 17 && !this.conv && cd > (this.stage ? 1.6 : 2.6) && !closedDoor && !off?.has(s.id) && !s.id.startsWith('slot:');
       s.sprite.visible = show;
       if (show) {
         const size = clamp(cd * 0.05, 0.22, 0.46) * (0.92 + 0.08 * Math.sin(t * 3 + i));

@@ -5,7 +5,7 @@ import type { Badge, TokyoWorld } from '@lw/world';
 import { DOORS, NPC_SPAWNS, SHOPS, shopIdOf } from '@lw/world';
 import type { Character } from '@lw/content';
 import type { AvatarSpec } from '@lw/content';
-import { CHARACTERS, HOMES, homeOfFriend, lessonById, type HomeDef } from '@lw/content';
+import { CHARACTERS, HOMES, OWN_GUEST, homeOfFriend, lessonById, type HomeDef } from '@lw/content';
 import {
   derivedFlags,
   evalPred,
@@ -26,6 +26,7 @@ import { NPC_ORDER, characterById, scenarioById, scenarioForCharacter } from '..
 import { useStore } from '../store';
 import { applyAvatar, avatarSpecFor } from './avatarFx';
 import { cooldownDays, doorsOpen } from './homeLogic';
+import { inviteStatus, ownDoors } from './ownLogic';
 import { heartsOf } from './selectors';
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -78,7 +79,7 @@ export interface InteractionEnv {
 }
 
 /** Why a listed option cannot be used yet. */
-export type Lock = { ch: number } | { hearts: number } | { wait: number } | { other: true };
+export type Lock = { ch: number } | { hearts: number } | { wait: number } | { comfort: number; have: number } | { other: true };
 
 export interface OptionRow {
   it: Interaction;
@@ -150,14 +151,37 @@ function lockOf(env: InteractionEnv, it: Interaction): Lock | null {
  */
 export function interactionRows(env: InteractionEnv, characterId: string): OptionRow[] {
   const rows: OptionRow[] = [];
-  for (const it of env.pack.interactions[characterId] ?? []) {
-    if (!listable(env, it, characterId)) continue;
+  for (const raw of env.pack.interactions[characterId] ?? []) {
+    if (!listable(env, raw, characterId)) continue;
+    // the flat is rented once: the viewing and the contract are done with when the room is the player's (no row to a conversation that only says so)
+    if (env.state.home.tier === 'ono' && (raw.scenarioId === 'aiko_viewing' || raw.scenarioId === 'aiko_contract')) continue;
+    const it = raw.scenarioId === 'aiko_viewing' && isMinorProfile(env) ? { ...raw, label: TEA_ROOM_LABEL } : raw;
     const lock = lockOf(env, it);
     // teasers: a lock further than the next chapter is noise
     if (lock && 'ch' in lock && lock.ch > env.state.chapter.n + 1) continue;
     rows.push({ it, lock });
   }
+  const invite = inviteRow(env, characterId);
+  if (invite) rows.push(invite);
   return rows;
+}
+
+/** D28: under 18 the viewing plays as a visit to Aiko's tea room next door, and the row says so (nothing about rent). */
+const TEA_ROOM_LABEL = { en: "Visit Aiko's tea room", ar: 'زُر بيت شاي أيكو' } as const;
+const isMinorProfile = (env: InteractionEnv): boolean => (env.pack.ageProfiles[env.view.profile.age]?.ageFloor ?? 0) < 18;
+
+/**
+ * "Invite to your room" (the housewarming): a row of every friend's list from 2 hearts, open when the room is comfortable enough (4) and the friend
+ * was not met in the last 3 days, otherwise locked with the reason (the comfort the room needs, or how long to wait).
+ */
+function inviteRow(env: InteractionEnv, characterId: string): OptionRow | null {
+  const { pack, state } = env;
+  if (!pack.friends.some((f) => f.id === characterId) || !env.scenarios.has(OWN_GUEST.scenarioId)) return null;
+  const st = inviteStatus(pack, state, characterId);
+  if (st.t === 'hearts') return null;
+  const it: Interaction = { id: `${characterId}_invite`, kind: 'scenario', scenarioId: OWN_GUEST.scenarioId, label: { en: 'Invite to your room', ar: 'ادعُه إلى غرفتك' } };
+  const lock: Lock | null = st.t === 'ok' ? null : st.t === 'comfort' ? { comfort: st.need, have: st.have } : { wait: st.days };
+  return { it, lock };
 }
 
 export const openRows = (rows: OptionRow[]): OptionRow[] => rows.filter((r) => !r.lock);
@@ -224,6 +248,8 @@ export type Plan =
   | { t: 'convo'; scenarioId: string; characterId: string; startNode?: string }
   /** a friend's home: the genkan first (HomeStage), then the conversation */
   | { t: 'home'; scenarioId: string; characterId: string }
+  /** the housewarming: the friend comes to the player's own room (HomeOwn) */
+  | { t: 'invite'; scenarioId: string; characterId: string }
   | { t: 'prepare'; scenarioId: string; characterId: string }
   | { t: 'lesson'; lessonId: string }
   | { t: 'shift'; jobId: string }
@@ -252,6 +278,7 @@ export function planFor(env: InteractionEnv, it: Interaction, characterId: strin
       const scenarioId = it.scenarioId!;
       if (wantsPrepare(env, scenarioId)) return { t: 'prepare', scenarioId, characterId };
       if (scenarioId in HOMES) return { t: 'home', scenarioId, characterId };
+      if (scenarioId === OWN_GUEST.scenarioId) return { t: 'invite', scenarioId, characterId };
       // the ramen shop's ticket from the machine is waiting: Kenji's talk starts at the firmness question
       const startNode = pack.scenarioMeta.find((m) => m.id === scenarioId)?.startNode;
       const ticket = (state.tickets as Record<string, unknown>)[scenarioId];
@@ -323,6 +350,8 @@ export function syncWorld(
     world.setNpcBadge(c.id, npcBadge(env, c, legacy.completed, legacy.lessonsDone));
   }
   for (const [who, open] of doorsOpen(env.state, env.scenarios)) world.setDoorOpen(who, open);
+  // the player's own doors: the dorm while it is their room, the flat from the day it is rented (also after a reload)
+  for (const [door, open] of ownDoors(env.state)) world.setDoorOpen(door, open);
   const base = opts.base ?? useStore.getState().profile?.avatar ?? null;
   const fx = worldFx(env.pack, env.state, base ?? CHARACTERS[0].avatar);
   world.setMoveMultiplier(fx.moveMultiplier);
@@ -422,6 +451,8 @@ export type PickRoute =
   | { t: 'vending' }
   | { t: 'ticket'; kind: 'ramen' | 'station' }
   | { t: 'door'; friend: string | null }
+  /** the player's own room: the dorm door or the flat's */
+  | { t: 'own'; door: 'dorm' | 'flat' }
   | { t: 'shop'; shopId: string }
   | null;
 
@@ -430,7 +461,9 @@ export function routePick(id: string): PickRoute {
   if (id === 'vending') return { t: 'vending' };
   if (id === 'ramen_machine') return { t: 'ticket', kind: 'ramen' };
   if (id === 'ticket') return { t: 'ticket', kind: 'station' };
-  if (id.startsWith('door:')) return { t: 'door', friend: id === 'door:dorm' ? null : id.slice(5) };
+  if (id === 'door:dorm') return { t: 'own', door: 'dorm' };
+  if (id === 'door:flat') return { t: 'own', door: 'flat' };
+  if (id.startsWith('door:')) return { t: 'door', friend: id.slice(5) };
   if (id.startsWith('shop:')) return { t: 'shop', shopId: id.slice(5) };
   return null;
 }
@@ -460,4 +493,13 @@ export function doorStatus(env: InteractionEnv, friend: string | null): DoorStat
   if (have < home.hearts || !row) return { t: 'hearts', home, need: home.hearts, have };
   if (row.lock && 'wait' in row.lock) return { t: 'wait', home, days: row.lock.wait };
   return row.lock ? { t: 'hearts', home, need: home.hearts, have } : { t: 'open', home };
+}
+
+/** What a tap on one of the player's own doors does: go in, or say why not (the flat is Aiko's building until it is rented; the dorm is left behind after moving). */
+export type OwnDoorStatus = { t: 'open' } | { t: 'flat_closed' } | { t: 'dorm_moved' };
+
+export function ownDoorStatus(state: GameState, door: 'dorm' | 'flat'): OwnDoorStatus {
+  const tier = state.home.tier;
+  if (door === 'dorm') return tier === 'dorm' ? { t: 'open' } : { t: 'dorm_moved' };
+  return tier === 'ono' ? { t: 'open' } : { t: 'flat_closed' };
 }

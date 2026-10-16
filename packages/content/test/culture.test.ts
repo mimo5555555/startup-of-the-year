@@ -54,7 +54,7 @@ describe('culture cards', () => {
   });
 
   it('point scenario triggers at scenarios (and intents) that exist', () => {
-    const deferred = new Set(['cc_rent', 'cc_shoesoff', 'cc_trash', 'cc_matsuri']);
+    const deferred = new Set(['cc_shoesoff', 'cc_matsuri']);
     for (const c of cards.filter((x) => !deferred.has(x.id))) {
       for (const t of [c.trigger, ...(c.also ?? [])]) {
         for (const id of t.ids ?? []) {

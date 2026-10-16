@@ -8,6 +8,9 @@ import { WARDROBE_SLOTS, isWorn, pickedColours, pieceColour, pieceColours, toggl
 import { useGameState } from '../../game/hooks';
 import { PACK } from '../../game/pack';
 import { speakJa } from '../../services';
+import { useStore } from '../../store';
+import { beginOwn } from '../../game/ownStore';
+import { comfortInfo, ownRoomOf, pieceRows, transitLine } from '../../game/ownLogic';
 import { Icon, type IconName } from '../Icon';
 import { Ltr } from './WalletPill';
 
@@ -225,6 +228,51 @@ export function ItemCard({ row, state, onClose }: { row: OwnedRow; state: GameSt
   );
 }
 
+/**
+ * "Your room" (Release 2 wave B2): the room the player lives in, its comfort, the furniture on its way and the way in. The way in is the same
+ * room the door in the street leads to (the dorm until the flat is rented); it shows from the first day, since everyone has a room.
+ */
+export function RoomCard({ state }: { state: GameState }) {
+  const { t, lang } = useT();
+  const go = useStore((s) => s.go);
+  const c = comfortInfo(PACK, state);
+  const coming = pieceRows(PACK, state).filter((p) => p.state === 'transit');
+  return (
+    <section className="wlt-room card" data-room-card aria-label={t('ho.wallet.title')}>
+      <header>
+        <Icon name="home" size={20} />
+        <div>
+          <strong>{t(`ho.room.${ownRoomOf(state).stage}` as StringKey)}</strong>
+          <small dir="auto">{t('ho.comfort', { n: c.value, max: c.max })}</small>
+        </div>
+      </header>
+      <button
+        type="button"
+        className="btn soft wlt-room-go"
+        data-room-go
+        onClick={() => {
+          go('world');
+          beginOwn();
+        }}
+      >
+        {t('ho.wallet.go')}
+      </button>
+      {coming.length > 0 && (
+        <ul className="wlt-coming" data-deliveries aria-label={t('ho.wallet.onTheWay')}>
+          {coming.map((p) => (
+            <li key={p.id} data-delivery={p.id}>
+              <Icon name="bag" size={16} />
+              <span dir="auto">
+                {p.name[lang]} · {transitLine(t, p.due!, lang)}
+              </span>
+            </li>
+          ))}
+        </ul>
+      )}
+    </section>
+  );
+}
+
 /** "What you own": the wardrobe (when something wearable is owned) over the grid of tiles; a tile opens its card. */
 export function Inventory() {
   const { t, lang } = useT();
@@ -234,6 +282,7 @@ export function Inventory() {
   const shown = rows.find((r) => r.id === open) ?? null;
   return (
     <div className="wlt-things" data-pane="things">
+      <RoomCard state={state} />
       <Wardrobe state={state} />
       {rows.length === 0 ? (
         <p className="muted center wlt-empty" dir="auto">

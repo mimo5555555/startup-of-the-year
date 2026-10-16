@@ -156,7 +156,7 @@ describe('layout: bounds and the east extension', () => {
     }
     for (const s of SPOTS) expect(inBounds(s.x, s.z), s.id).toBe(true);
     expect(SPOTS.map((s) => s.id).sort()).toEqual(['spot:east_end', 'spot:pond', 'spot:station_plaza', 'spot:torii', 'spot:west_end']);
-    expect(DOORS.map((d) => d.id).sort()).toEqual(['door:aiko', 'door:dorm', 'door:kenji', 'door:mio']);
+    expect(DOORS.map((d) => d.id).sort()).toEqual(['door:aiko', 'door:dorm', 'door:flat', 'door:kenji', 'door:mio']);
   });
 
   it('keeps door picks out of colliders and reachable from a standable spot', () => {
