@@ -130,8 +130,8 @@ describe('what spam can earn', () => {
 });
 
 describe('release cap and saves', () => {
-  it('the release still plays chapters 1-4 and then Free Walk', () => {
-    expect(JP_PACK.release.lastChapter).toBe(4);
+  it('the release plays chapters 1-6 (wave C1) and then Free Walk', () => {
+    expect(JP_PACK.release.lastChapter).toBe(6);
     expect(FREE_WALK).toBe(9);
   });
   it.each(['v1-empty', 'v1-typical', 'v1-heavy'])('the frozen save %s loads beside the seventh friend', (name) => {

@@ -6,6 +6,7 @@ import { LEXICON, characterById, resolveLine, scenarioById, type Line, type Toke
 import { BALANCE, emptyFriend, heartsForAp, type FriendState, type GamePack, type GameState, type InputEvent } from '@lw/game';
 import { NPC_SPAWNS } from '@lw/world';
 import { isCasual, type FriendPlan } from './friendsLogic';
+import { PACK } from './pack';
 
 /** the goal step of `chat_plan` that an accepted plan completes (a polite refusal completes `reply` only) */
 export const PLAN_SCENARIO = 'chat_plan';
@@ -147,6 +148,8 @@ export function mapPins(pack: GamePack, state: GameState): MapPinRow[] {
  */
 export function feedbackThen(scenarioId: string, characterId: string): { screen: 'phone'; args: { friendId?: string } } | { screen: 'shift'; args: { jobId: string } } | null {
   if (scenarioId.startsWith('chat_')) return { screen: 'phone', args: { friendId: characterId } };
-  if (scenarioId === 'job_konbini_intro') return { screen: 'shift', args: { jobId: 'job_konbini' } };
+  // the boss's intro of any job (konbini, café, station) goes on to that job's Shift screen
+  const job = PACK.jobs.find((j) => j.intro === scenarioId);
+  if (job) return { screen: 'shift', args: { jobId: job.id } };
   return null;
 }

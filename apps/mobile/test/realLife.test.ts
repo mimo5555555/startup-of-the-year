@@ -1,4 +1,4 @@
-// Release 1 as a life, through the REAL reducer and the real conversation sessions (not hand-made states): day by day from the first
+// The whole story (Chapters 1-6, then Free Walk) as a life, through the REAL reducer and the real conversation sessions (not hand-made states): day by day from the first
 // lesson to Free Walk, then random lives that must keep every invariant. The helper `realLife.ts` drives the pack the way the screens do
 // (host plans for friends, gifts and phone threads, the ticket machine, purchases, shifts, the beats a screen would play).
 //
@@ -13,8 +13,8 @@ const done = (id: string): boolean => H.state.chapter.done[id] !== undefined;
 const rowOf = (id: string) => objectiveRows(JP_PACK, H.state, view).find((r) => r.id === id)!;
 const errors = (s: GameState) => validateState(s, JP_PACK).filter((i) => i.severity === 'error').map((i) => `${i.code} ${i.path} ${i.message}`);
 
-describe('a whole Release 1 life', () => {
-  it('walks Chapters 1-4 and ends in Free Walk: every objective is reachable by what the screens send, and no day gate waits for the impossible', () => {
+describe('a whole life', () => {
+  it('walks Chapters 1-6 (wave C1) and ends in Free Walk: every objective is reachable by what the screens send, and no day gate waits for the impossible', () => {
     reset();
     dispatch({ t: 'day_observed', nowMs: H.now });
     beats();
@@ -95,15 +95,90 @@ describe('a whole Release 1 life', () => {
         expect(rowOf('c4_3').progress).toEqual({ done: Math.min(chatsOn, 4), total: 4 });
       }
     }
-    expect(H.state.chapter.n, 'Chapter 4 ends in Free Walk').toBe(BALANCE.freeWalkChapter);
+    expect(H.state.chapter.n, 'Chapter 4 ends and Chapter 5 begins').toBe(5);
     expect(H.state.chapter.completed).toEqual([1, 2, 3, 4]);
     expect(H.state.stats.chats.n).toBeGreaterThanOrEqual(4);
     expect(Object.values(H.state.stats.chats.friends).filter((n) => n > 0).length).toBeGreaterThanOrEqual(2);
     expect(H.state.titles).toEqual(expect.arrayContaining(['t_newcomer', 't_friend', 't_connected']));
-    expect(H.state.beats).toEqual(expect.arrayContaining(['b_ch4_open', 'b_release_epilogue']));
-
-    // ---- Free Walk: the garage and the car dream are open, nothing is left to finish or re-announce
+    expect(H.state.beats).toEqual(expect.arrayContaining(['b_ch4_open', 'b_ch4_close', 'b_ch5_open']));
+    // the garage opened with Chapter 5, not at Free Walk; the cars and the e-bike wait
     expect(isOpen(JP_PACK, H.state, 'shop', 'motors')).toBe(true);
+    expect(isOpen(JP_PACK, H.state, 'job', 'job_station')).toBe(true);
+
+    // ---- Chapter 5 (wave C1): the round trip is paid up front, Kato's shop, the way asked of Sato in three lines of my own, a station shift, the garage
+    const cash0 = H.state.wallet.cash;
+    expect(cash0, 'the Chapter 4 reward and the shifts left enough for the round trip').toBeGreaterThanOrEqual(2 * (JP_PACK.fares.hikarigaoka! + BALANCE.fares.paperExtra));
+    dispatch({ t: 'fare', id: 'trip-1', place: 'hikarigaoka', method: 'paper', legs: 2 });
+    expect(H.state.wallet.cash, 'exactly the quote, both ways, once').toBeLessThanOrEqual(cash0 - 2 * (JP_PACK.fares.hikarigaoka! + BALANCE.fares.paperExtra) + 500);
+    convo('trip_hikarigaoka', 'kato');
+    expect(H.state.owned.g_souvenir?.qty, 'the omiyage was bought in the talk').toBe(1);
+    dispatch({ t: 'trip_done', id: 'hikarigaoka' });
+    expect(done('c5_1')).toBe(true);
+    convo('sato_directions', 'sato', { lines: ['トイレはどこですか', '左ですね', 'ありがとうございます'] });
+    expect(done('c5_2')).toBe(true);
+    convo('jobintro_station', 'sato');
+    shift(500, { jobId: 'job_station' });
+    expect(done('c5_3')).toBe(true);
+    convo('motors_visit', 'nakamura', { lines: ['自転車はいくらですか', 'ちょっと難しいです'] });
+    expect(done('c5_4')).toBe(true);
+    for (const id of ['cc_trainmanner', 'cc_refuse']) expect(H.state.culture[id], id).toBeDefined();
+    // the day gate of Chapter 5 (10 active days) and the start gate of Chapter 6 (one friend at three hearts): play on, a friend a day, until Chapter 6 begins
+    let day5 = 0;
+    while (H.state.chapter.n === 5 && day5++ < 30) {
+      newDay();
+      for (const [friend, gift] of [['mio', 'g_manga'], ['tanaka', 'g_game_card']] as const) {
+        convo(`smalltalk_${friend}`, friend);
+        if ((H.state.owned[gift]?.qty ?? 0) === 0) buy('konbini', gift);
+        convo('give_gift', friend, { itemId: gift });
+      }
+      convo('smalltalk_yuki', 'yuki');
+    }
+    expect(H.state.chapter.completed, 'Chapter 5 completes').toContain(5);
+    expect(H.state.titles).toContain('t_traveller');
+    for (const id of ['cc_ic', 'cc_trainmanner', 'cc_ticketmachine', 'cc_refuse']) expect(H.state.culture[id], id).toBeDefined();
+    expect(H.state.beats).toEqual(expect.arrayContaining(['b_ch5_close']));
+    expect(H.state.clock.activeDays, 'the day gate of Chapter 5 (10 active days) held').toBeGreaterThanOrEqual(10);
+
+    // ---- Chapter 6 (wave C1): four hearts with one friend, his home, Aiko's viewing, and five shifts in all
+    let day6 = 0;
+    while (H.state.chapter.n === 5 && day6++ < 20) {
+      newDay();
+      convo('smalltalk_mio', 'mio');
+      convo('give_gift', 'mio', { itemId: 'g_manga' });
+    }
+    expect(H.state.chapter.n, 'Chapter 6 begins once a friend is at three hearts').toBe(6);
+    expect(H.state.beats).toEqual(expect.arrayContaining(['b_ch6_open']));
+    let day7 = 0;
+    while (!done('c6_1') && day7++ < 40) {
+      newDay();
+      convo('smalltalk_mio', 'mio');
+      if ((H.state.owned.g_manga?.qty ?? 0) === 0) buy('konbini', 'g_manga');
+      convo('give_gift', 'mio', { itemId: 'g_manga' });
+    }
+    expect(done('c6_1'), 'four hearts with Mio').toBe(true);
+    convo('home_mio', 'mio', { lines: ['おじゃまします'] });
+    expect(done('c6_2'), 'a friend\'s home visited').toBe(true);
+    expect(H.state.culture.cc_shoesoff, 'the genkan card').toBeDefined();
+    convo('aiko_viewing', 'aiko', { lines: ['おじゃまします', '何畳ですか', '日当たりはいいですか', '静かですか', 'ありがとうございました'] });
+    expect(done('c6_3')).toBe(true);
+    convo('jobintro_cafe', 'yuki');
+    // five good shifts in all: the konbini (1), the station (1), and three more over two days (at most two a day, the second worth less)
+    let day8 = 0;
+    const jobs = ['job_cafe', 'job_konbini', 'job_station'];
+    while (H.state.chapter.n === 6 && day8++ < 20) {
+      newDay();
+      shift(600 + 2 * day8, { jobId: jobs[day8 % 3]! });
+      shift(601 + 2 * day8, { jobId: jobs[(day8 + 1) % 3]! });
+      convo('smalltalk_mio', 'mio');
+    }
+    expect(done('c6_4'), 'five shifts').toBe(true);
+    expect(H.state.chapter.n, 'Chapter 6 ends in Free Walk').toBe(BALANCE.freeWalkChapter);
+    expect(H.state.chapter.completed).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(H.state.titles).toEqual(expect.arrayContaining(['t_newcomer', 't_friend', 't_connected', 't_traveller', 't_guest']));
+    expect(H.state.beats).toEqual(expect.arrayContaining(['b_ch6_open', 'b_release_epilogue']));
+    for (const id of ['cc_shoesoff', 'cc_rent', 'cc_trash']) expect(H.state.culture[id], id).toBeDefined();
+
+    // ---- Free Walk: the car dream is open, nothing is left to finish or re-announce
     expect(availableDreams(JP_PACK, H.state, view).map((d) => d.id)).toContain('car');
     expect(chapterStatus(JP_PACK, H.state, view)).toMatchObject({ n: 9, total: 0, waitDays: 0 });
     expect(evaluateAll(H.state, { pack: JP_PACK, now: H.now, view, rng: H.rng }).derived.filter((d) => d.t !== 'wallet_changed')).toEqual([]);
@@ -130,7 +205,7 @@ function rngOf(seed: number): () => number {
 }
 const FRIENDS = ['mio', 'yuki', 'tanaka', 'kenji', 'sato', 'hanako'];
 
-describe('random Release 1 lives', () => {
+describe('random lives (Chapters 1-6 and Free Walk)', () => {
   it('keep every invariant: AP never falls and never beats the daily cap, no heart 5 before day 5, unread = waiting threads, gifts and chats add up, the state validates, evaluation is idempotent, a reload changes nothing', () => {
     for (let seed = 1; seed <= 12; seed++) {
       reset();
@@ -142,7 +217,7 @@ describe('random Release 1 lives', () => {
       beats();
       dispatch({ t: 'profile_set', dev: true });
       // start anywhere in the story (the dev command finishes a chapter and lets the days pass)
-      const target = 1 + Math.floor(r() * 5);
+      const target = 1 + Math.floor(r() * 7);
       for (let k = 1; k < target; k++) {
         dispatch({ t: 'dev', cmd: 'advance_chapter' });
         beats();
@@ -211,7 +286,7 @@ describe('random Release 1 lives', () => {
         }
         expect(Object.values(H.state.friends).reduce((a, f) => a + f.gifts, 0), `${where}: gifts`).toBe(H.state.stats.gifts.n);
         expect(Object.values(H.state.stats.chats.friends).reduce((a, b) => a + b, 0), `${where}: chats`).toBe(H.state.stats.chats.n);
-        expect(H.state.chapter.n === 9 || H.state.chapter.n <= 4, `${where}: chapter ${H.state.chapter.n}`).toBe(true);
+        expect(H.state.chapter.n === 9 || H.state.chapter.n <= 6, `${where}: chapter ${H.state.chapter.n}`).toBe(true);
       }
     }
   }, 300_000);

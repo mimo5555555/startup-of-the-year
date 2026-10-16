@@ -1,5 +1,5 @@
 import type { LexEntry } from '../types';
-import { w } from './helpers';
+import { w, g } from './helpers';
 
 // Lexicon entries for part-time jobs and shifts (agent 4D; docs/GAME_DESIGN.md §9, §7.6). The konbini shift: what the customers say,
 // what the staff say back, the boss's lines and the rank names. Keep surfaces unique across the whole lexicon (the content tests report clashes).
@@ -26,6 +26,31 @@ export const JOBS_LEXICON: LexEntry[] = [
   w('時給', 'じきゅう', 'hourly wage', 'الأجر بالساعة'),
   w('上がります', 'あがります', 'goes up', 'يرتفع'),
   w('なりました', '', 'became', 'أصبح'),
+
+  // ---- the café (Release 2 wave C1): the hall, the table and the changes of mind ----
+  w('テーブル', '', 'table', 'طاولة'),
+  w('一番', 'いちばん', 'number 1 (a table)', 'رقم 1'),
+  w('二番', 'にばん', 'number 2 (a table)', 'رقم 2'),
+  w('三番', 'さんばん', 'number 3 (a table)', 'رقم 3'),
+  w('四番', 'よんばん', 'number 4 (a table)', 'رقم 4'),
+  w('やっぱり', '', 'after all, actually', 'في النهاية، بل'),
+  w('別々', 'べつべつ', 'separately', 'كلٌّ على حدة'),
+  w('出します', 'だします', 'serve, put out', 'يقدّم'),
+  w('できました', '', 'it is ready / done', 'جاهز'),
+
+  // ---- the station help desk: platforms, times and what the staff announce ----
+  w('案内', 'あんない', 'guidance, information desk', 'إرشاد، مكتب استعلامات'),
+  w('道', 'みち', 'way, road', 'طريق'),
+  g('や', '(and, among others)', '(و، ومنها)'),
+  w('番線', 'ばんせん', 'platform number (counter)', 'رقم الرصيف'),
+  w('二番線', 'にばんせん', 'platform 2', 'الرصيف 2'),
+  w('四番線', 'よんばんせん', 'platform 4', 'الرصيف 4'),
+  w('時', 'じ', "o'clock", 'الساعة'),
+  w('分', 'ふん', 'minutes', 'دقائق'),
+  w('まもなく', '', 'soon, shortly', 'قريبًا'),
+  w('参ります', 'まいります', 'arrives (humble, station announcement)', 'يصل (إعلان المحطة)'),
+  w('行く', 'いく', 'go', 'يذهب'),
+  w('お気をつけて', 'おきをつけて', 'take care', 'اعتنِ بنفسك'),
 
   // ---- ranks ----
   w('見習い', 'みならい', 'trainee', 'متدرّب'),

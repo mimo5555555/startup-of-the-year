@@ -114,8 +114,8 @@ export function buy(shopId: string, itemId: string): boolean {
   return true;
 }
 
-export function shift(n: number, o: { quit?: boolean; served?: number; ok?: boolean } = {}): void {
-  const job = JP_PACK.jobs[0]!;
+export function shift(n: number, o: { quit?: boolean; served?: number; ok?: boolean; jobId?: string } = {}): void {
+  const job = (o.jobId ? JP_PACK.jobs.find((j) => j.id === o.jobId) : undefined) ?? JP_PACK.jobs[0]!;
   const ok = o.ok ?? true;
   const customers = job.archetypes.slice(0, o.served ?? 5).map((a) => ({ templateId: a.id, served: true, assist: 'none' as const, tasks: [{ kind: 'order' as const, ok }, { kind: 'total' as const, ok, input: 'typed' as const }, { kind: 'thanks' as const, ok, input: 'typed' as const }] }));
   dispatch({ t: 'shift_done', jobId: job.id, result: { id: `shift${n}`, jobId: job.id, customers, quit: o.quit ?? false, durationSec: 100, assistWaived: true } });

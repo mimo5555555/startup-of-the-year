@@ -6,6 +6,7 @@ import { SOCIAL_POCKETS } from './pockets-social';
 import { FRIENDS_POCKETS } from './pockets-friends';
 import { JOBS_POCKETS } from './pockets-jobs';
 import { HOME_POCKETS } from './pockets-home';
+import { STORY_POCKETS } from './pockets-story';
 
 /** Registry rule (docs/GAME_DESIGN.md §15.1): one part file per owner, spread here. */
 export const POCKETS: Record<string, PocketLine> = {
@@ -16,4 +17,5 @@ export const POCKETS: Record<string, PocketLine> = {
   ...FRIENDS_POCKETS,
   ...JOBS_POCKETS,
   ...HOME_POCKETS,
+  ...STORY_POCKETS,
 };

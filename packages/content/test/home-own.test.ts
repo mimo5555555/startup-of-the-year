@@ -230,13 +230,13 @@ describe('own room: ScenarioMeta, pockets and the pack', () => {
     expect(errs5.map((i) => `${i.code} ${i.path} ${i.message}`)).toEqual([]);
   });
 
-  it('every released dream is finishable (the flat and the fresh start are offered now) and the release cap did not move', () => {
-    expect(JP_PACK.dreams.map((d) => d.id)).toEqual(['phone_pal', 'bike', 'flat', 'fresh_start', 'car']);
+  it('every released dream is finishable (the flat and the fresh start are offered; wave C1 adds travel and moves the cap to Chapter 6)', () => {
+    expect(JP_PACK.dreams.map((d) => d.id)).toEqual(['phone_pal', 'bike', 'flat', 'travel', 'fresh_start', 'car']);
     for (const d of JP_PACK.dreams) expect(dreamBlockers(JP_PACK, d), d.id).toEqual([]);
-    expect(JP_PACK.release?.lastChapter).toBe(4);
-    expect(JP_PACK.chapters.map((c) => c.n)).toEqual([1, 2, 3, 4]);
-    // a flat step is shown from Chapter 2..4 or Free Walk, never from a chapter the release does not play
-    for (const d of JP_PACK.dreams.filter((x) => ['flat', 'fresh_start'].includes(x.id))) for (const st of d.steps) expect([2, 3, 4, 9], `${d.id}/${st.id}`).toContain(st.gate);
+    expect(JP_PACK.release?.lastChapter).toBe(6);
+    expect(JP_PACK.chapters.map((c) => c.n)).toEqual([1, 2, 3, 4, 5, 6]);
+    // a flat step is shown from a played chapter (2-6) or Free Walk, never from a chapter the release does not play (7 and 8)
+    for (const d of JP_PACK.dreams.filter((x) => ['flat', 'fresh_start'].includes(x.id))) for (const st of d.steps) expect([2, 3, 4, 5, 6, 9], `${d.id}/${st.id}`).toContain(st.gate);
     expect(JP_PACK.dreams.find((d) => d.id === 'flat')).toMatchObject({ ageMin: 18, furnish: 3, items: ['home_room_ono'] });
     expect(JP_PACK.dreams.find((d) => d.id === 'fresh_start')).toMatchObject({ ageMin: 18, furnish: 3 });
   });
@@ -279,8 +279,9 @@ describe('own room: the catalog (prices, slots, comfort)', () => {
     expect(JP_PACK.shops.find((s) => s.id === 'aiko')!.pay).toEqual(['cash']);
   });
 
-  it('chapter gates: the dorm pieces open in Chapter 5, the flat ones in Chapter 6, both Free Walk in this release; the flat ones need the flat', () => {
-    for (const id of ['futon_set', 'desk_study', 'bookshelf', 'plant_pothos', 'kotatsu', 'rice_cooker', 'paper_lamp', 'home_room_ono']) expect(item(id).gate.ch, id).toBe(BALANCE.freeWalkChapter);
+  it('chapter gates: the dorm pieces open in Chapter 5, the flat ones and the room in Chapter 6 (both are played since wave C1); the flat ones need the flat', () => {
+    for (const id of ['futon_set', 'desk_study', 'bookshelf', 'plant_pothos']) expect(item(id).gate.ch, id).toBe(5);
+    for (const id of ['kotatsu', 'rice_cooker', 'paper_lamp', 'home_room_ono']) expect(item(id).gate.ch, id).toBe(6);
     for (const id of ['kotatsu', 'rice_cooker', 'paper_lamp']) expect(item(id).gate.needs, id).toEqual(['home_room_ono']);
     for (const id of ['futon_set', 'desk_study', 'bookshelf', 'plant_pothos']) expect(item(id).gate.needs, id).toBeUndefined();
   });
@@ -479,7 +480,7 @@ describe('own room: culture cards, the viewing and the housewarming through the 
     expect(w.derived.some((d) => d.t === 'ap_gained' && d.parts.some((p) => p.source === 'hangout' && p.ap === 38))).toBe(true);
   });
 
-  it('the interaction rows: Rin\'s furniture from Chapter 5, Aiko\'s viewing from Chapter 6 and the contract only after the viewing (18+); all open at Free Walk', () => {
+  it('the interaction rows: Rin\'s furniture from Chapter 5, Aiko\'s viewing from Chapter 6 and the contract only after the viewing (18+); open in Chapters 5 and 6', () => {
     const rin = JP_PACK.interactions.rin.find((r) => r.id === 'rin_home')!;
     expect(rin).toMatchObject({ kind: 'scenario', scenarioId: 'fuku_home', ch: 5 });
     const aiko = JP_PACK.interactions.aiko;
@@ -489,8 +490,8 @@ describe('own room: culture cards, the viewing and the housewarming through the 
     expect(viewing.gate).toBeUndefined();
     expect(contract).toMatchObject({ scenarioId: 'aiko_contract', ch: 6, gate: { k: 'scenario', id: 'aiko_viewing', complete: true } });
     expect(aiko.indexOf(viewing)).toBeLessThan(aiko.indexOf(contract));
-    // the rows open once the epilogue is done (Free Walk is chapter 9), not in the chapters of this release
-    for (const r of [rin, viewing, contract]) expect(r.ch).toBeGreaterThan(JP_PACK.release!.lastChapter);
+    // the rows open in the chapters of the design: both are played since wave C1 (the cap is Chapter 6)
+    for (const r of [rin, viewing, contract]) expect(r.ch).toBeLessThanOrEqual(JP_PACK.release!.lastChapter);
     // minors keep the viewing (the tea room) and never see the contract: the app filters a row by the age of its scenario
     expect(meta('aiko_viewing').ageMin).toBeUndefined();
     expect(meta('aiko_contract').ageMin).toBe(18);

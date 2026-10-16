@@ -46,13 +46,15 @@ export interface JobCardProps {
   /** the pay multiplier of this shift today (1, 0.6 or 0.5) */
   mult: number;
   waivedShifts: boolean;
+  /** the key of the "how it works" line of this job */
+  how?: 'jobs.howItWorks' | 'jobs.howItWorksCafe' | 'jobs.howItWorksStation';
   wage: number;
   onStart(): void;
   onBack(): void;
 }
 
 /** Before the shift: the rank, how it works, the day's multiplier and the Start button. */
-export function JobCard({ jobName, helping, rank, good, mult, waivedShifts, wage, onStart, onBack }: JobCardProps) {
+export function JobCard({ jobName, helping, rank, good, mult, waivedShifts, how = 'jobs.howItWorks', wage, onStart, onBack }: JobCardProps) {
   const { t } = useT();
   const marks = BALANCE.shift.promoteAt;
   const next = marks[rank];
@@ -90,7 +92,7 @@ export function JobCard({ jobName, helping, rank, good, mult, waivedShifts, wage
             })
           : t('jobs.topRank')}
       </p>
-      <p>{t('jobs.howItWorks')}</p>
+      <p>{t(how)}</p>
       {waivedShifts && <p className="sh-note">{t('jobs.firstFree')}</p>}
       {mult < 1 && (
         <p className="sh-note" data-mult={mult}>
@@ -111,14 +113,14 @@ export function JobCard({ jobName, helping, rank, good, mult, waivedShifts, wage
 }
 
 /** The boss wants a word before the first shift: starts the intro conversation. */
-export function IntroGate({ onTalk, onBack }: { onTalk(): void; onBack(): void }) {
+export function IntroGate({ name, onTalk, onBack }: { name: string; onTalk(): void; onBack(): void }) {
   const { t } = useT();
   return (
     <div className="sh-card" data-shift-card="intro">
-      <h2>{t('jobs.introTitle')}</h2>
-      <p>{t('jobs.introBody')}</p>
+      <h2>{t('jobs.introTitle', { name })}</h2>
+      <p>{t('jobs.introBody', { name })}</p>
       <button type="button" className="btn primary wide" data-act="talk-boss" onClick={onTalk}>
-        <Icon name="message" size={20} /> {t('jobs.introGo')}
+        <Icon name="message" size={20} /> {t('jobs.introGo', { name })}
       </button>
       <button type="button" className="btn soft wide" onClick={onBack}>
         {t('jobs.backToStreet')}
@@ -180,6 +182,8 @@ export interface ResultData {
   quit: boolean;
   assisted: number;
   bonusItem: boolean;
+  /** the name of the free item a perfect shift gives, in the player's language */
+  bonusName?: string;
   words: Token[];
   savedWords: boolean;
   canAgain: boolean;
@@ -242,7 +246,7 @@ export function ResultCard({
       )}
       {data.bonusItem && (
         <p className="sh-bonus" data-bonus>
-          {t('jobs.bonusItem')}
+          {t('jobs.bonusItem', { item: data.bonusName ?? '' })}
         </p>
       )}
       {data.words.length > 0 && (

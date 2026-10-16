@@ -1,5 +1,5 @@
 // The catalog of Release 1 (docs/GAME_DESIGN.md §5, docs/RELEASE_1.md): the items, the shops and the sale routes of the Japanese pack.
-// The release cap itself (chapters 1-4, the epilogue, Free Walk, the dreams) is in release.test.ts.
+// The release cap itself (chapters 1-6, the epilogue, Free Walk, the dreams) is in release.test.ts.
 import { describe, expect, it } from 'vitest';
 import { createGameState, itemAvailability, validatePack, type ContentIndex, type GameView, type ItemDef, type ValidationIssue } from '@lw/game';
 import { CHARACTERS, JP_PACK, LEXICON, SCENARIOS, SLOTS } from '../src';
@@ -41,9 +41,11 @@ const RELEASED_ITEMS = [
   'g_flower', 'g_wagashi', 'g_tea_set', 'g_tenugui',
   // Release 2 wave B2: the seven pieces of second-hand furniture and the room at Ono-sō
   'futon_set', 'desk_study', 'bookshelf', 'plant_pothos', 'kotatsu', 'rice_cooker', 'paper_lamp', 'home_room_ono',
+  // Release 2 wave C1: Kato's omiyage (sold on the Hikarigaoka trip; also the station desk's perfect-shift bonus)
+  'g_souvenir',
 ];
-/** The yukata (the festival) and the souvenir (the trip) are deferred: no scenario sells them, so the catalog must not price them. */
-const DEFERRED_ITEMS = ['yukata', 'g_souvenir'];
+/** The yukata (the festival) is deferred: no scenario sells it, so the catalog must not price it. */
+const DEFERRED_ITEMS = ['yukata'];
 
 describe('the released catalog (§5.2, §5.3)', () => {
   it('holds exactly the items this release sells, each once', () => {
@@ -94,10 +96,12 @@ describe('the released catalog (§5.2, §5.3)', () => {
       rice_cooker: 3_500,
       paper_lamp: 2_000,
       home_room_ono: 60_000,
+      // wave C1
+      g_souvenir: 1_000,
     });
     for (const i of JP_PACK.items) expect(Number.isInteger(i.price) && i.price >= 1, i.id).toBe(true);
     // the total of the released rows is a constant the design can be checked against
-    expect(JP_PACK.items.reduce((sum, i) => sum + i.price, 0)).toBe(1_215_190);
+    expect(JP_PACK.items.reduce((sum, i) => sum + i.price, 0)).toBe(1_216_190);
   });
 
   it('every item has an English, Japanese and Arabic name, with a reading for kanji', () => {
@@ -144,7 +148,7 @@ describe('the released catalog (§5.2, §5.3)', () => {
 
   it('presents are giftable: category gift, a gift effect carrying the tags, the same tags on the item', () => {
     const gifts = JP_PACK.items.filter((i) => i.cat === 'gift');
-    expect(gifts.map((i) => i.id).sort()).toEqual(['g_carfresh', 'g_choco', 'g_flower', 'g_game_card', 'g_guitar_pick', 'g_manga', 'g_music_cd', 'g_plush', 'g_tea_set', 'g_tenugui', 'g_wagashi']);
+    expect(gifts.map((i) => i.id).sort()).toEqual(['g_carfresh', 'g_choco', 'g_flower', 'g_game_card', 'g_guitar_pick', 'g_manga', 'g_music_cd', 'g_plush', 'g_souvenir', 'g_tea_set', 'g_tenugui', 'g_wagashi']);
     for (const g of gifts) {
       const fx = g.fx.find((f) => f.t === 'gift');
       expect(fx, g.id).toBeTruthy();
@@ -160,6 +164,7 @@ describe('the released catalog (§5.2, §5.3)', () => {
     expect(item('g_wagashi').tags).toEqual(['sweet', 'tradition']);
     expect(item('g_tea_set').tags).toEqual(['tea', 'tradition']);
     expect(item('g_tenugui').tags).toEqual(['craft', 'tradition']);
+    expect(item('g_souvenir').tags).toEqual(['travel', 'sweet']);
   });
 
   it('cars are for adults (D28) and the low-mileage car also wants six scenarios at two stars', () => {
@@ -171,9 +176,9 @@ describe('the released catalog (§5.2, §5.3)', () => {
 describe('shops (D36 openChapter)', () => {
   const shop = (id: string) => JP_PACK.shops.find((s) => s.id === id)!;
 
-  it('Hikari Denki opens with Chapter 4, takes cash and card, and gives points; Nakamura Motors opens at Free Walk (9)', () => {
+  it('Hikari Denki opens with Chapter 4, takes cash and card, and gives points; Nakamura Motors opens with Chapter 5 (its cars at Free Walk)', () => {
     expect(shop('denki')).toMatchObject({ placeId: 'denki', openChapter: 4, surface: 'world', register: 'polite', pay: ['cash', 'card'], points: true });
-    expect(shop('motors')).toMatchObject({ placeId: 'motors', openChapter: 9, surface: 'world', register: 'polite', pay: ['cash', 'card'] });
+    expect(shop('motors')).toMatchObject({ placeId: 'motors', openChapter: 5, surface: 'world', register: 'polite', pay: ['cash', 'card'] });
     expect(shop('motors').points).toBeUndefined();
   });
 
@@ -193,7 +198,7 @@ describe('shops (D36 openChapter)', () => {
       const s = shop(i.shop);
       expect(s, i.id).toBeTruthy();
       expect(s.openChapter, i.id).toBeLessThanOrEqual(i.gate.ch);
-      expect(i.gate.ch <= 4 || i.gate.ch === 9, `${i.id} gate ${i.gate.ch}`).toBe(true);
+      expect(i.gate.ch <= 6 || i.gate.ch === 9, `${i.id} gate ${i.gate.ch}`).toBe(true);
       expect(i.gate.ch).toBeLessThanOrEqual(9);
     }
   });

@@ -1,0 +1,217 @@
+/* The Hikarigaoka trip panel (Release 2 wave C1): a CSS station square behind the conversation with Kato, and a two-second train-window ride.
+   Flat colours in the style of the room backdrops of a home visit (home.css .home-panel). Every class is prefixed trip-. */
+.trip-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 19; /* under the conversation (.convo is 20), over the 3D street */
+  overflow: hidden;
+  --sky-top: #8fd0f2;
+  --sky-low: #e6f6fd;
+  --platform: #cdbfae;
+  --platform-edge: #a89885;
+  background: linear-gradient(180deg, var(--sky-top) 0%, var(--sky-low) 44%, var(--platform) 44%, var(--platform) 100%);
+}
+.trip-sky,
+.trip-town {
+  position: absolute;
+  inset: 0 0 56% 0;
+}
+.trip-cloud {
+  position: absolute;
+  height: 18px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.85);
+}
+.trip-cloud.c1 {
+  top: 18%;
+  left: 12%;
+  width: 84px;
+}
+.trip-cloud.c2 {
+  top: 30%;
+  right: 10%;
+  width: 62px;
+}
+.trip-town .b {
+  position: absolute;
+  bottom: 0;
+  background: #b9c6d6;
+  border-radius: 4px 4px 0 0;
+}
+.trip-town .b1 { left: 2%; width: 15%; height: 46%; }
+.trip-town .b2 { left: 20%; width: 11%; height: 30%; background: #c8d3e0; }
+.trip-town .b3 { left: 50%; width: 14%; height: 38%; background: #aebdcf; }
+.trip-town .b4 { right: 22%; width: 12%; height: 52%; background: #c1ccdb; }
+.trip-town .b5 { right: 4%; width: 15%; height: 34%; }
+.trip-platform {
+  position: absolute;
+  inset: 44% 0 0;
+  background: repeating-linear-gradient(90deg, transparent 0 58px, rgba(0, 0, 0, 0.06) 58px 60px), var(--platform);
+  border-top: 5px solid var(--platform-edge);
+}
+.trip-line {
+  position: absolute;
+  inset-inline: 0;
+  top: 8px;
+  height: 6px;
+  background: #f2c230;
+}
+
+/* the station sign: kanji over the Latin / Arabic name, like the blue-white signs on a platform */
+.trip-sign {
+  position: absolute;
+  top: 17%;
+  inset-inline-end: 6%;
+  min-width: 132px;
+  max-width: 52%;
+  padding: 6px 14px 7px;
+  border-radius: 10px;
+  background: #1f5fbf;
+  color: #fff;
+  text-align: center;
+  box-shadow: 0 4px 10px rgba(20, 40, 80, 0.28);
+}
+.trip-sign-ja {
+  display: inline-flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 2px;
+  font-weight: 800;
+  font-size: 22px;
+  color: #fff;
+}
+.trip-sign-ja ruby,
+.trip-sign-ja rt {
+  color: #fff;
+}
+.trip-sign-ja > span[lang='ja'] {
+  padding-bottom: 1px;
+}
+.trip-sign small {
+  display: block;
+  font-size: 12.5px;
+  opacity: 0.9;
+}
+
+/* the souvenir stall of Kato: an awning, a counter and the keeper behind it */
+.trip-stall {
+  position: absolute;
+  inset-inline-start: 5%;
+  bottom: 56%;
+  width: 176px;
+  height: 150px;
+}
+.trip-awning {
+  position: absolute;
+  inset-inline: 0;
+  top: 0;
+  height: 30px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px 10px 4px 4px;
+  background: repeating-linear-gradient(90deg, #e5527c 0 22px, #fff 22px 44px);
+  color: #7a1f3b;
+  font-weight: 800;
+  font-size: 15px;
+  text-shadow: 0 0 4px #fff, 0 0 4px #fff;
+  z-index: 3;
+}
+.trip-counter {
+  position: absolute;
+  inset-inline: 6px;
+  bottom: 0;
+  height: 40px;
+  border-radius: 6px;
+  background: #8a5a3a;
+  border-top: 5px solid #a8714a;
+  z-index: 2;
+}
+.trip-host {
+  position: absolute;
+  inset-inline-start: 50%;
+  bottom: 28px;
+  transform: translateX(-50%);
+  z-index: 1;
+  filter: drop-shadow(0 8px 10px rgba(36, 31, 61, 0.25));
+}
+html[dir='rtl'] .trip-host {
+  transform: translateX(50%);
+}
+
+/* the ride: the window of the train for two seconds, then the square */
+.trip-ride {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  justify-items: center;
+  /* the conversation sheet covers the lower part: the window sits in the visible top */
+  align-content: start;
+  padding-top: 19%;
+  gap: 10px;
+  background: linear-gradient(180deg, #2d3a5a 0%, #3d5078 100%);
+  color: #fff;
+  font-weight: 800;
+  pointer-events: none;
+  animation: trip-ride-out 2.6s ease-in forwards;
+}
+.trip-ride p {
+  margin: 0;
+  padding: 0 24px;
+  text-align: center;
+  font-size: 17px;
+}
+.trip-window {
+  position: relative;
+  width: min(300px, 80%);
+  height: 96px;
+  border-radius: 18px;
+  border: 8px solid #cfd6e4;
+  background: linear-gradient(180deg, #9bd8f5 0%, #e3f5ff 70%, #7fb069 70%);
+  overflow: hidden;
+}
+.trip-pass {
+  position: absolute;
+  bottom: 30%;
+  width: 14px;
+  height: 56px;
+  border-radius: 3px;
+  background: #5b6478;
+  animation: trip-pass 0.8s linear infinite;
+}
+.trip-pass.p1 { inset-inline-start: 110%; }
+.trip-pass.p2 { inset-inline-start: 110%; animation-delay: 0.27s; height: 40px; }
+.trip-pass.p3 { inset-inline-start: 110%; animation-delay: 0.53s; height: 70px; }
+@keyframes trip-pass {
+  from { transform: translateX(0); }
+  to { transform: translateX(-420px); }
+}
+html[dir='rtl'] .trip-pass { animation-name: trip-pass-rtl; }
+@keyframes trip-pass-rtl {
+  from { transform: translateX(0); }
+  to { transform: translateX(420px); }
+}
+@keyframes trip-ride-out {
+  0%, 72% { opacity: 1; visibility: visible; }
+  100% { opacity: 0; visibility: hidden; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .trip-ride { display: none; }
+}
+
+/* Hanako's "try it without chips" note on the Prepare screen (Chapter 6) */
+.prep-realtry {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--accent-soft);
+  color: var(--accent-text);
+  font-weight: 700;
+  font-size: 14px;
+}
+.prep-realtry svg {
+  flex: none;
+}

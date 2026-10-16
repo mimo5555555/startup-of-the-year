@@ -581,3 +581,316 @@
 .sh-assist .btn svg {
   flex: none;
 }
+
+/* ---------------------------------------------------------------------------------------------------------------
+   The café table picker and the station desk (Release 2 wave C1): departure board, plan, timetable, fare table
+   --------------------------------------------------------------------------------------------------------------- */
+.sh-tables {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+}
+.sh-tables-label {
+  font-weight: 800;
+  font-size: 14px;
+  margin-inline-end: 4px;
+}
+.sh-table {
+  width: 44px;
+  height: 44px;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  font-weight: 800;
+  font-size: 17px;
+  cursor: pointer;
+}
+.sh-table.on {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent-text);
+}
+
+/* the departure board: a dark panel, one row per platform */
+.sh-board,
+.sh-times,
+.sh-fares {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sh-plat {
+  width: 100%;
+  min-height: 60px;
+  display: grid;
+  grid-template-columns: 56px minmax(0, 1fr) 24px;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px;
+  border-radius: 16px;
+  border: 2px solid #2c2a45;
+  background: #25233d;
+  color: #fff;
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+}
+.sh-plat.on {
+  border-color: #ffd166;
+  background: #3a3560;
+  box-shadow: 0 0 0 2px #ffd16666;
+}
+.sh-plat-n {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+.sh-plat-n b {
+  font-size: 30px;
+  color: #ffd166;
+  font-variant-numeric: tabular-nums;
+}
+.sh-plat-n small {
+  font-size: 11px;
+  opacity: 0.85;
+}
+.sh-plat-dest {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.sh-plat-dest small {
+  opacity: 0.75;
+  font-size: 12.5px;
+}
+.sh-plat .ja-md,
+.sh-plat ruby {
+  color: #fff;
+}
+
+/* the plan: a T of corridors, you at the bottom, the place at one end */
+.sh-mapbox {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sh-map {
+  position: relative;
+  height: 190px;
+  border-radius: 18px;
+  border: 1.5px solid var(--line);
+  background: #f3efe6;
+  overflow: hidden;
+}
+.sh-corr {
+  position: absolute;
+  background: #fff;
+  border: 2px solid #d9d0c0;
+  box-sizing: border-box;
+}
+.sh-corr.v {
+  left: calc(50% - 22px);
+  width: 44px;
+  top: 14%;
+  bottom: 0;
+  border-bottom: 0;
+}
+.sh-corr.h {
+  top: 14%;
+  height: 44px;
+  left: 8%;
+  right: 8%;
+}
+.sh-you {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-weight: 800;
+  font-size: 13px;
+}
+.sh-dest {
+  position: absolute;
+  padding: 4px 10px;
+  border-radius: 12px;
+  background: #ffd166;
+  color: #3b2a00;
+  font-weight: 800;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.18);
+  max-width: 38%;
+}
+.sh-dest .ja-sm,
+.sh-dest ruby {
+  color: #3b2a00;
+}
+.sh-dest.at-left {
+  left: 3%;
+  top: calc(14% + 22px);
+  transform: translateY(-50%);
+}
+.sh-dest.at-right {
+  right: 3%;
+  top: calc(14% + 22px);
+  transform: translateY(-50%);
+}
+.sh-dest.at-straight {
+  left: 50%;
+  top: 3%;
+  transform: translateX(-50%);
+}
+.sh-arrows {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+.sh-arrow {
+  min-height: 76px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 4px;
+  border-radius: 16px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+}
+.sh-arrow small {
+  color: var(--fg-2);
+  font-size: 12px;
+}
+.sh-arrow.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.sh-arrow-ic {
+  display: grid;
+  place-items: center;
+  line-height: 0;
+}
+.sh-arrow-ic.left {
+  transform: rotate(180deg);
+}
+.sh-arrow-ic.straight {
+  transform: rotate(-90deg);
+}
+
+/* the timetable */
+.sh-timetable {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.sh-clock {
+  margin: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  padding: 8px 14px;
+  border-radius: 14px;
+  background: #25233d;
+  color: #fff;
+}
+.sh-clock b {
+  font-size: 28px;
+  color: #ffd166;
+  font-variant-numeric: tabular-nums;
+}
+.sh-clock small {
+  opacity: 0.8;
+}
+.sh-clock .ja-sm,
+.sh-clock ruby {
+  color: #fff;
+}
+.sh-time {
+  width: 100%;
+  min-height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 16px;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+}
+.sh-time b {
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+.sh-time small {
+  color: var(--fg-2);
+}
+.sh-time.left b {
+  text-decoration: line-through;
+  opacity: 0.6;
+}
+.sh-time.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+/* the fare table */
+.sh-fare-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 88px 88px;
+  align-items: center;
+  gap: 8px;
+}
+.sh-fare-dest {
+  min-width: 0;
+  font-weight: 800;
+}
+.sh-fare {
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  cursor: pointer;
+  line-height: 1.15;
+}
+.sh-fare small {
+  color: var(--fg-2);
+  font-size: 11px;
+}
+.sh-fare b {
+  font-size: 17px;
+  font-variant-numeric: tabular-nums;
+}
+.sh-fare.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.sh-big .sh-plat,
+.sh-big .sh-time,
+.sh-big .sh-fare {
+  min-height: 64px;
+}

@@ -102,9 +102,9 @@ describe('the interaction table (§6.1)', () => {
     const ids = (who: string) => JP_PACK.interactions[who].map((i) => i.id);
     expect(ids('tanaka')).toEqual(expect.arrayContaining(['tanaka_shop', 'tanaka_shift', 'tanaka_talk', 'tanaka_gift']));
     expect(ids('sato')).toEqual(expect.arrayContaining(['sato_ic', 'sato_way', 'trip_hikarigaoka']));
-    // the café and station shifts are not built in Release 1: their rows are not in the pack at all
-    expect(ids('sato')).not.toContain('sato_shift');
-    expect(ids('yuki')).not.toContain('yuki_shift');
+    // the café and station shifts are built in Release 2 wave C1: their rows are in the pack with their jobs
+    expect(ids('sato')).toContain('sato_shift');
+    expect(ids('yuki')).toContain('yuki_shift');
     expect(JP_PACK.interactions.sato.find((i) => i.id === 'trip_hikarigaoka')).toMatchObject({ kind: 'trip', ch: 5 });
     expect(JP_PACK.interactions.kenji.find((i) => i.id === 'home_kenji')).toMatchObject({ kind: 'visit', gate: { k: 'hearts', friend: 'kenji', atLeast: 4 } });
   });
@@ -112,7 +112,7 @@ describe('the interaction table (§6.1)', () => {
   it('passes the interaction checks of validatePack (level 2: fields and ids; the job and shop references need the tables of 3E / 4D)', () => {
     expect(validatePack(JP_PACK, { level: 2 }).filter((i) => i.path.startsWith('interactions'))).toEqual([]);
     const refs = all.filter((i) => i.jobId || i.shopId);
-    expect(refs.map((i) => i.jobId ?? i.shopId).sort()).toEqual(['denki', 'job_konbini', 'motors']);
+    expect(refs.map((i) => i.jobId ?? i.shopId).sort()).toEqual(['denki', 'job_cafe', 'job_konbini', 'job_station', 'motors']);
   });
 
   it('a fresh player: every ordinary NPC has exactly one open option, so Talk starts it directly', () => {

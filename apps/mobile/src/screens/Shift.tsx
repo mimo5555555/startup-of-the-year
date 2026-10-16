@@ -14,6 +14,7 @@ import {
   shiftRepeatMult,
   type DerivedEvent,
   type JobDef,
+  type ShiftCustomer,
   type ShiftInput,
   type ShiftPlan,
   type ShiftResult,
@@ -29,6 +30,8 @@ import {
   type AnswerSpec,
   type StepState,
 } from '../components/game/shift/ShiftParts';
+import { DeskPad, type DeskPick } from '../components/game/shift/StationWidgets';
+import { deskAnswerOf, deskPhrase, deskPickOk, deskSaid, deskWrong, isDesk } from '../components/game/shift/stationLogic';
 import { IntroGate, JobCard, QuitSheet, RefuseCard, ResultCard, type ResultData } from '../components/game/shift/ShiftCards';
 import {
   NO_FLAGS,
@@ -38,6 +41,9 @@ import {
   buildResult,
   changeOf,
   changePhrase,
+  flagsFor,
+  isSplit,
+  splitTotals,
   thanksWrong,
   lowerInput,
   menuFor,
@@ -51,6 +57,7 @@ import {
   wantedOf,
   wordsFromShift,
   type Cart,
+  type FlagId,
   type Flags,
   type Track,
 } from '../components/game/shift/shiftLogic';
@@ -58,6 +65,7 @@ import { applySrsOps, dispatch, startConversation } from '../game/bridge';
 import { getGame } from '../game/gameStore';
 import { useGameState, useGameView } from '../game/hooks';
 import { PACK } from '../game/pack';
+import { characterById, displayName } from '../content';
 import { useT } from '../hooks';
 import { tts } from '../services';
 import { useStore } from '../store';
@@ -86,8 +94,12 @@ interface Play {
   cart: Cart;
   flags: Flags;
   verdict: Verdict | null;
-  /** the total answer held while the change is asked */
+  /** the total answer held while the change (or the second bill of a split) is asked */
   totalPart: { ok: boolean; input: ShiftInput } | null;
+  /** the café's table number, once tapped */
+  table: number | null;
+  /** the station widget's tap, before it is confirmed */
+  pick: DeskPick | null;
 }
 
 type Phase = { t: 'card' } | { t: 'play'; play: Play } | { t: 'result'; data: ResultData };
@@ -106,7 +118,7 @@ export function Shift() {
       </Shell>
     );
   }
-  return <ShiftJob job={job} />;
+  return <ShiftJob key={job.id} job={job} />;
 }
 
 function ShiftJob({ job }: { job: JobDef }) {
@@ -187,6 +199,8 @@ function ShiftJob({ job }: { job: JobDef }) {
         flags: NO_FLAGS,
         verdict: null,
         totalPart: null,
+        table: null,
+        pick: null,
       },
     });
   };
@@ -223,6 +237,7 @@ function ShiftJob({ job }: { job: JobDef }) {
         quit,
         assisted: p.tracks.filter((tr) => assistOf(tr) !== 'none').length,
         bonusItem: derived.some((d) => d.t === 'unlocked' && d.what === 'item' && d.id === job.bonus.itemId),
+        bonusName: PACK.items.find((i) => i.id === job.bonus.itemId)?.name[lang] ?? PACK.menu.find((m) => m.id === job.bonus.itemId)?.name[lang] ?? '',
         words: wordsFromShift(p.plan.customers, p.tracks, menu, saved),
         savedWords: false,
         canAgain: next > 0,
@@ -266,21 +281,48 @@ function ShiftJob({ job }: { job: JobDef }) {
   const customer = play ? play.plan.customers[play.i]! : null;
   const track = play ? play.tracks[play.i]! : null;
   const want = customer ? wantedOf(customer, menu) : null;
+  const flagIds = flagsFor(job.place);
+  const isCafe = job.place === 'cafe';
+  /** the correct answer of a desk customer, in words ("Platform 2", "10:20", "¥170", "Right") */
+  const deskText = (c: ShiftCustomer): string => {
+    const a = deskAnswerOf(c);
+    if (!a) return '';
+    if (a.kind === 'platform' || a.kind === 'announce') return t('jobs.ans.platform', { n: String(a.value) });
+    if (a.kind === 'fare') return yenLtr(Number(a.value));
+    if (a.kind === 'time') return String(a.value);
+    return t(`jobs.dir.${a.value}` as 'jobs.dir.left');
+  };
   const wantText = (): string => {
     if (!customer || !want) return '';
+    if (isDesk(customer)) return deskText(customer);
     const names = Object.entries(want.cart).map(([id, q]) => {
       const m = menu.find((x) => x.id === id);
       return `${m ? m.name[lang === 'ar' ? 'ar' : 'en'] : id} ×${q}`;
     });
     if (want.flags.heat) names.push(t('jobs.heat'));
     if (want.flags.nobag) names.push(t('jobs.noBag'));
+    if (want.flags.hot) names.push(t('jobs.hot'));
+    if (want.flags.iced) names.push(t('jobs.iced'));
+    if (want.table !== undefined) names.push(t('jobs.tableN', { n: want.table }));
     return names.join(' · ');
   };
+
+  /** the amounts a counter customer owes: one total, then (change or a split bill) a second thing to say */
+  const splitOf = (c: ShiftCustomer) => splitTotals(c, menu);
+  const firstTotal = (c: ShiftCustomer): number => splitOf(c)?.[0] ?? c.total ?? 0;
+  const secondOf = (c: ShiftCustomer): { kind: 'change' | 'split'; amount: number } | undefined => {
+    const sp = splitOf(c);
+    if (sp) return { kind: 'split', amount: sp[1] };
+    const back_ = changeOf(c);
+    return back_ !== undefined ? { kind: 'change', amount: back_ } : undefined;
+  };
+  const totalMarkup = (c: ShiftCustomer): { markup: string; gloss?: string } =>
+    isDesk(c) ? { markup: deskPhrase(c) ?? '' } : { markup: totalPhrase(firstTotal(c)), gloss: `¥${fmt(firstTotal(c))}` };
 
   const confirmOrder = () =>
     patch((p) => {
       const c = p.plan.customers[p.i]!;
-      const ok = orderCorrect(c, menu, p.cart, p.flags);
+      const ok = orderCorrect(c, menu, p.cart, p.flags, p.table);
       const q = patchTrack(p, (tr) => ({ ...tr, order: ok }));
       return ok
         ? { ...q, stage: 'total' }
@@ -291,11 +333,20 @@ function ShiftJob({ job }: { job: JobDef }) {
           };
     });
 
+  const confirmDesk = () =>
+    patch((p) => {
+      const c = p.plan.customers[p.i]!;
+      const ok = !!p.pick && deskPickOk(c, p.pick.value);
+      const q = patchTrack({ ...p, pick: null }, (tr) => ({ ...tr, order: ok }));
+      return ok ? { ...q, stage: 'total' } : { ...q, stage: 'verdict', verdict: { detail: wantText(), next: 'total' } };
+    });
+
   const answerTotal = (ok: boolean, input: ShiftInput) =>
     patch((p) => {
       const c = p.plan.customers[p.i]!;
-      const hasChange = changeOf(c) !== undefined;
-      if (hasChange) {
+      const second = secondOf(c);
+      const right = totalMarkup(c);
+      if (second) {
         const part = { ok, input };
         return ok
           ? { ...p, stage: 'change', totalPart: part }
@@ -303,25 +354,11 @@ function ShiftJob({ job }: { job: JobDef }) {
               ...p,
               stage: 'verdict',
               totalPart: part,
-              verdict: {
-                markup: totalPhrase(c.total!),
-                gloss: `¥${fmt(c.total!)}`,
-                next: 'change',
-              },
+              verdict: { ...right, next: 'change' },
             };
       }
       const q = patchTrack(p, (tr) => ({ ...tr, total: { ok, input } }));
-      return ok
-        ? { ...q, stage: 'thanks' }
-        : {
-            ...q,
-            stage: 'verdict',
-            verdict: {
-              markup: totalPhrase(c.total!),
-              gloss: `¥${fmt(c.total!)}`,
-              next: 'thanks',
-            },
-          };
+      return ok ? { ...q, stage: 'thanks' } : { ...q, stage: 'verdict', verdict: { ...right, next: 'thanks' } };
     });
 
   const answerChange = (ok: boolean, input: ShiftInput) =>
@@ -332,7 +369,7 @@ function ShiftJob({ job }: { job: JobDef }) {
         ...tr,
         total: { ok: part.ok && ok, input: lowerInput(part.input, input) },
       }));
-      const back_ = changeOf(c)!;
+      const second = secondOf(c)!;
       return ok
         ? { ...q, stage: 'thanks', totalPart: null }
         : {
@@ -340,8 +377,8 @@ function ShiftJob({ job }: { job: JobDef }) {
             stage: 'verdict',
             totalPart: null,
             verdict: {
-              markup: changePhrase(back_),
-              gloss: `¥${fmt(back_)}`,
+              markup: second.kind === 'split' ? totalPhrase(second.amount) : changePhrase(second.amount),
+              gloss: `¥${fmt(second.amount)}`,
               next: 'thanks',
             },
           };
@@ -374,16 +411,32 @@ function ShiftJob({ job }: { job: JobDef }) {
       flags: NO_FLAGS,
       verdict: null,
       totalPart: null,
+      table: null,
+      pick: null,
     }));
   };
 
   // ---------------- answer specs ----------------
-  const total = customer?.total ?? 0;
   const spec: AnswerSpec | null = useMemo(() => {
     if (!play || !customer) return null;
     const seed = play.plan.seed + play.i * 31;
     const id = `${customer.templateId}:${play.i}:${play.stage}`;
+    if (play.stage === 'total' && isDesk(customer)) {
+      const dw = deskWrong(customer);
+      const kind = customer.task.kind;
+      return {
+        id,
+        right: deskPhrase(customer) ?? '',
+        wrong: dw.wrong,
+        distractors: dw.distractors,
+        check: (text) => deskSaid(customer, text),
+        placeholder: t(`jobs.deskPh.${kind}` as 'jobs.deskPh.platform'),
+        prompt: t(`jobs.deskSay.${kind}` as 'jobs.deskSay.platform'),
+        seed,
+      };
+    }
     if (play.stage === 'total') {
+      const total = firstTotal(customer);
       const [a, b] = nearAmounts(total);
       return {
         id,
@@ -392,23 +445,27 @@ function ShiftJob({ job }: { job: JobDef }) {
         distractors: amountDistractors(total),
         check: (text) => amountSaid(text, total),
         placeholder: t('jobs.placeholderTotal'),
-        prompt: t('jobs.totalPrompt'),
+        prompt: isSplit(customer) ? t('jobs.splitFirst') : t('jobs.totalPrompt'),
         seed,
       };
     }
     if (play.stage === 'change') {
-      const back_ = changeOf(customer) ?? 10;
+      const second = secondOf(customer);
+      const back_ = second?.amount ?? 10;
       const [a, b] = nearAmounts(back_);
       return {
         id,
-        right: changePhrase(back_),
-        wrong: [changePhrase(a), changePhrase(b)],
+        right: second?.kind === 'split' ? totalPhrase(back_) : changePhrase(back_),
+        wrong: second?.kind === 'split' ? [totalPhrase(a), totalPhrase(b)] : [changePhrase(a), changePhrase(b)],
         distractors: amountDistractors(back_),
         check: (text) => amountSaid(text, back_),
         placeholder: t('jobs.placeholderTotal'),
-        prompt: t('jobs.changePrompt', {
-          paid: yenLtr(customer.change?.paid ?? 1000),
-        }),
+        prompt:
+          second?.kind === 'split'
+            ? t('jobs.splitSecond')
+            : t('jobs.changePrompt', {
+                paid: yenLtr(customer.change?.paid ?? 1000),
+              }),
         seed,
       };
     }
@@ -420,7 +477,7 @@ function ShiftJob({ job }: { job: JobDef }) {
         distractors: customer.tiles ?? [],
         check: (text) => thanksSaid(text, customer.thanks),
         placeholder: t('jobs.placeholderThanks'),
-        prompt: t('jobs.thanksPrompt'),
+        prompt: isCafe ? t('jobs.thanksPromptCafe') : isDesk(customer) ? t('jobs.thanksPromptDesk') : t('jobs.thanksPrompt'),
         seed,
       };
     }
@@ -437,11 +494,12 @@ function ShiftJob({ job }: { job: JobDef }) {
     const order = play.stage === 'order' ? 'now' : track.order ? 'ok' : 'bad';
     const stateOf = (done: { ok: boolean } | undefined, now: boolean): StepState =>
       done ? (done.ok ? 'ok' : 'bad') : now ? 'now' : 'todo';
+    const desk = customer ? isDesk(customer) : false;
     return [
-      { id: 'order', label: t('jobs.stepOrder'), state: order as StepState },
+      { id: 'order', label: desk ? t('jobs.stepLook') : t('jobs.stepOrder'), state: order as StepState },
       {
         id: 'total',
-        label: t('jobs.stepTotal'),
+        label: desk ? t('jobs.stepSay') : t('jobs.stepTotal'),
         state: play.stage === 'change' ? 'now' : stateOf(track.total, play.stage === 'total'),
       },
       {
@@ -468,6 +526,8 @@ function ShiftJob({ job }: { job: JobDef }) {
 
   // ---------------- render ----------------
   const title = job.name[lang];
+  const boss = characterById(job.boss);
+  const bossName = boss ? displayName(boss, lang) : '';
   const headerBack = play ? () => setQuitting(true) : back;
 
   if (phase.t === 'card') {
@@ -477,6 +537,7 @@ function ShiftJob({ job }: { job: JobDef }) {
           <RefuseCard onBack={back} />
         ) : introNeeded ? (
           <IntroGate
+            name={bossName}
             onBack={back}
             onTalk={() => {
               // the conversation is drawn over the world (Prepare does the same)
@@ -495,6 +556,7 @@ function ShiftJob({ job }: { job: JobDef }) {
             good={js?.good ?? 0}
             mult={mult}
             waivedShifts={shiftAssistWaived(game, jobId) && (js?.shifts ?? 0) < BALANCE.shift.assistWaivedShifts}
+            how={job.place === 'cafe' ? 'jobs.howItWorksCafe' : job.place === 'station' ? 'jobs.howItWorksStation' : 'jobs.howItWorks'}
             wage={job.wage}
             onStart={start}
             onBack={back}
@@ -546,6 +608,7 @@ function ShiftJob({ job }: { job: JobDef }) {
           textByDefault={noVoice}
           cant={p.cant}
           ordering={p.stage === 'order'}
+          desk={isDesk(customer!)}
           onListen={(slow) => sayMarkup(customer!.line.ja, slow)}
           onAssist={(kind) =>
             patch((q) => patchTrack(q, (tr) => (kind === 'text' ? { ...tr, assistText: true } : { ...tr, assistTrans: true })))
@@ -556,11 +619,16 @@ function ShiftJob({ job }: { job: JobDef }) {
             patch((q) => patchTrack(q, (tr) => ({ ...tr, greeted: true })));
           }}
         />
-        {p.stage === 'order' && (
+        {p.stage === 'order' && isDesk(customer!) && (
+          <DeskPad customer={customer!} pack={PACK} picked={p.pick} onPick={(pick) => patch((q) => ({ ...q, pick }))} onConfirm={confirmDesk} />
+        )}
+        {p.stage === 'order' && !isDesk(customer!) && (
           <OrderPad
             menu={menu}
             cart={p.cart}
             flags={p.flags}
+            flagIds={flagIds}
+            {...(isCafe ? { table: p.table, onTable: (n: number | null) => patch((q) => ({ ...q, table: n })) } : {})}
             onAdd={(id) =>
               patch((q) => ({
                 ...q,
@@ -575,13 +643,26 @@ function ShiftJob({ job }: { job: JobDef }) {
                 return { ...q, cart };
               })
             }
-            onFlag={(f) => patch((q) => ({ ...q, flags: { ...q.flags, [f]: !q.flags[f] } }))}
+            onFlag={(f: FlagId) =>
+              patch((q) => ({
+                ...q,
+                // hot and iced are one choice
+                flags: { ...q.flags, [f]: !q.flags[f], ...(f === 'hot' && !q.flags.hot ? { iced: false } : f === 'iced' && !q.flags.iced ? { hot: false } : {}) },
+              }))
+            }
             onConfirm={confirmOrder}
           />
         )}
         {(p.stage === 'total' || p.stage === 'change') && spec && (
           <>
-            <RegisterStrip total={total} paid={p.stage === 'change' ? customer!.change?.paid : undefined} wantText={wantText()} />
+            {!isDesk(customer!) && (
+              <RegisterStrip
+                total={firstTotal(customer!)}
+                paid={p.stage === 'change' ? customer!.change?.paid : undefined}
+                wantText={wantText()}
+                split={isSplit(customer!) ? splitOf(customer!) : undefined}
+              />
+            )}
             <AnswerBox key={spec.id} spec={spec} onDone={p.stage === 'total' ? answerTotal : answerChange} />
           </>
         )}
@@ -590,7 +671,7 @@ function ShiftJob({ job }: { job: JobDef }) {
           <Verdict
             label={t('jobs.wrong')}
             markup={p.verdict.markup}
-            detail={p.verdict.detail ? `${t('jobs.orderWas')}: ${p.verdict.detail}` : p.verdict.gloss}
+            detail={p.verdict.detail ? `${isDesk(customer!) ? t('jobs.answerWas') : t('jobs.orderWas')}: ${p.verdict.detail}` : p.verdict.gloss}
             onContinue={() => patch((q) => ({ ...q, stage: q.verdict!.next, verdict: null }))}
             cta={t('common.continue')}
           />
@@ -612,11 +693,16 @@ function ShiftJob({ job }: { job: JobDef }) {
 }
 
 /** What the register shows while the player says the total: the order that was rung up (and the note, for change). */
-function RegisterStrip({ total, paid, wantText }: { total: number; paid?: number; wantText: string }) {
+function RegisterStrip({ total, paid, wantText, split }: { total: number; paid?: number; wantText: string; split?: [number, number] }) {
   const { t } = useT();
   return (
     <div className="sh-register" data-register>
       <span className="sh-reg-items">{wantText}</span>
+      {split && (
+        <span className="sh-reg-paid" data-split={split.join(',')}>
+          {t('jobs.splitNote')}
+        </span>
+      )}
       {paid !== undefined && (
         <span className="sh-reg-paid" data-paid={paid}>
           {t('jobs.registerPaid', { total: yenLtr(total), paid: yenLtr(paid) })}

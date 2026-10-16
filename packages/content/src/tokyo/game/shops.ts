@@ -78,4 +78,16 @@ export const SHOPS: ShopDef[] = [
     pay: ['cash'],
     sells: itemsOf('aiko'),
   },
+  // Kato's souvenir shop by Hikarigaoka station (Release 2 wave C1): only the trip panel shows it (no world building), so it is a panel shop. It opens with
+  // the trip in Chapter 5; cash or IC (a small shop by a station), no card and no points. The station desk's perfect-shift bonus is the same omiyage.
+  {
+    id: 'kato',
+    placeId: 'hikarigaoka',
+    name: { en: "Kato's souvenir shop", ar: 'متجر كاتو للهدايا التذكارية' },
+    openChapter: releasedGate(5),
+    surface: 'panel',
+    register: 'polite',
+    pay: ['cash', 'ic'],
+    sells: itemsOf('kato'),
+  },
 ];

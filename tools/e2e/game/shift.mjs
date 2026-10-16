@@ -4,6 +4,7 @@
 // Usage: node tools/e2e/game/shift.mjs [--ar]   (dev server up; BASE overrides the URL; screenshots in tools/e2e/shots/game)
 import assert from 'node:assert/strict';
 import { assertNoConsoleErrors, assertNoHScroll, liveGame, onboard, skipBeats, start } from './_common.mjs';
+import { jobHelpers } from './_jobs.mjs';
 
 const t = await start('shift');
 const { page } = t;
@@ -65,11 +66,11 @@ async function setGame(patch) {
     window.__lw.useGame.getState().setGame({ ...g, ...x });
   }, p);
 }
-const openShift = async () => {
-  await page.evaluate(() => {
-    window.__lw.useUi.getState().setArgs('shift', { jobId: 'job_konbini' });
+const openShift = async (jobId = 'job_konbini') => {
+  await page.evaluate((id) => {
+    window.__lw.useUi.getState().setArgs('shift', { jobId: id });
     window.__lw.useStore.getState().go('shift');
-  });
+  }, jobId);
   await page.waitForSelector('[data-screen=shift]');
   await t.sleep(300);
 };
@@ -415,6 +416,77 @@ await page.locator('[data-act=continue]').click();
 await page.waitForSelector('[data-done]');
 assert.equal(await page.locator('.sh-step.bad').count(), 3, 'all three tasks are marked wrong, the customer is served anyway');
 
+
+// =============================================================================================================================
+// Release 2 wave C1: the café (Yuki) and the station help desk (Sato). The intro conversations are played in chapters56.mjs; here the intros are
+// marked done so the shifts themselves are checked: the café's switches / table / split bill, the station's board, plan, timetable and fare table,
+// each tapped and typed, the pay formula, the assist factor once the first two shifts are past, the お手伝い label for a child, RTL and 360 px.
+// =============================================================================================================================
+const { serveCafe, serveStation, playJob } = jobHelpers(page, t);
+
+const markIntros = () =>
+  setGame((g2) => ({
+    chapter: { ...g2.chapter, n: Math.max(g2.chapter.n, 5) },
+    runs: {
+      ...g2.runs,
+      jobintro_cafe: { ...(g2.runs.jobintro_cafe ?? { count: 1, stars: 0, steps: [], bestIndependent: 0, bestShare: 0 }), complete: true },
+      jobintro_station: { ...(g2.runs.jobintro_station ?? { count: 1, stars: 0, steps: [], bestIndependent: 0, bestShare: 0 }), complete: true },
+    },
+  }));
+
+t.step('wave C1: the café shift (Yuki): tables, hot / iced, split bills; typed and perfect pays wage x hours');
+await page.evaluate(() => window.__lw.useStore.getState().go('world'));
+await nextDay();
+await markIntros();
+await openShift('job_cafe');
+await page.waitForSelector('[data-shift-card=job]');
+await t.shot('20-cafe-card');
+const cafeBefore = shiftPaid(await liveGame(page));
+// a high rank so that the split-bill and note customers (rank 2 and up) come too
+await setGame((g2) => ({ jobs: { ...g2.jobs, job_cafe: { ...(g2.jobs.job_cafe ?? { shifts: 0, good: 0, perfect: 0, rank: 0, lastDay: 0, recent: [] }), rank: 3, good: 10, shifts: 10 } } }));
+await page.locator('[data-act=back]').click().catch(() => {});
+await openShift('job_cafe');
+const cafeIds = await playJob(serveCafe, { shot: '21-cafe' });
+g = await liveGame(page);
+console.log(`  café customers ${cafeIds.join(' ')}; paid +¥${shiftPaid(g) - cafeBefore}`);
+assert.equal(shiftPaid(g) - cafeBefore, round10(1200 * 0.75 * 1.24), 'a typed perfect café shift at rank 3 pays wage x hours x 1.24');
+assert.equal(g.jobs.job_cafe.good, 11, 'the shift counted');
+await t.shot('22-cafe-result');
+await assertNoHScroll(page, 'café result');
+await page.locator('[data-act=back]').click();
+
+t.step('wave C1: the station desk (Sato): board, plan, timetable and fare table by tapping, answers by typing; pay and the assist factor');
+await nextDay();
+await setGame((g2) => ({ jobs: { ...g2.jobs, job_station: { ...(g2.jobs.job_station ?? { shifts: 0, good: 0, perfect: 0, rank: 0, lastDay: 0, recent: [] }), rank: 3, good: 10, shifts: 10 } } }));
+await openShift('job_station');
+await page.waitForSelector('[data-shift-card=job]');
+await t.shot('23-station-card');
+const stBefore = shiftPaid(await liveGame(page));
+// the third customer opens "Show Japanese text": past the first two shifts the order task is worth x0.7
+const stIds = await playJob(serveStation, { shots: '24-station', assistAt: 3 });
+g = await liveGame(page);
+const ticks = (15 - 0.3) / 15;
+console.log(`  station customers ${stIds.join(' ')}; paid +¥${shiftPaid(g) - stBefore}`);
+assert.equal(shiftPaid(g) - stBefore, round10(1400 * 0.75 * 1.24 * ticks), 'one customer helped by text: that order task is worth 0.7');
+assert.equal(g.jobs.job_station.good, 11, 'the station shift counted');
+await t.shot('25-station-result');
+await assertNoHScroll(page, 'station result');
+await page.locator('[data-act=back]').click();
+
+t.step('a child sees the café and the station jobs labelled お手伝い (helping out); the pay is the same');
+await page.evaluate(() => {
+  const st = window.__lw.useStore;
+  st.setState({ profile: { ...st.getState().profile, age: 'kids' } });
+});
+for (const job of ['job_cafe', 'job_station']) {
+  await nextDay();
+  await openShift(job);
+  await page.waitForSelector('[data-shift-card=job] [data-helping]');
+  await assertNoHScroll(page, `${job} card for a child`);
+}
+await t.shot('26-kids-card');
+await page.locator('.panel-head .icon-btn').first().click();
 assertNoConsoleErrors(t.logs);
+
 await t.browser.close();
 console.log('shift e2e ok');

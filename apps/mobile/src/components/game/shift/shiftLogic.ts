@@ -18,11 +18,19 @@ import {
 /** How an answer is given: typed (or spoken), built from tiles, or picked from three. */
 export type AnswerMode = 'type' | 'tiles' | 'pick';
 export type Cart = Record<string, number>;
-export interface Flags {
-  heat: boolean;
-  nobag: boolean;
-}
-export const NO_FLAGS: Flags = { heat: false, nobag: false };
+/**
+ * The on/off switches of an order: the konbini's `heat` (温めて) and `nobag` (袋はいりません), the café's `hot` and `iced` (ホット / アイス). A switch the
+ * customer does not name is expected off. (Task `toggles` carry these ids; `table:3` and `split` are the café's, read by `tableOf` / `isSplit`.)
+ */
+export type Flags = Partial<Record<FlagId, boolean>>;
+export type FlagId = 'heat' | 'nobag' | 'hot' | 'iced';
+export const FLAG_IDS: readonly FlagId[] = ['heat', 'nobag', 'hot', 'iced'];
+export const NO_FLAGS: Flags = {};
+/** The switches each kind of counter shows (the café's hot and iced are one choice: tapping one clears the other). */
+export const FLAGS_OF: Record<string, readonly FlagId[]> = { konbini: ['heat', 'nobag'], cafe: ['hot', 'iced'] };
+export const flagsFor = (place: string): readonly FlagId[] => FLAGS_OF[place] ?? [];
+/** Tables of the café the table picker offers. */
+export const TABLES = [1, 2, 3, 4, 5, 6] as const;
 /** The most of one item a cart holds: a customer never asks for more than three. */
 export const MAX_QTY = 9;
 
@@ -44,8 +52,21 @@ function resolveMenu(menu: MenuItem[], ref: string): string {
   return (menu.find((m) => m.id === ref) ?? menu.find((m) => m.option === ref))?.id ?? ref;
 }
 
+/** The table number a café order names (`table:3` or `table3` in the task toggles), if any. */
+export function tableOf(c: ShiftCustomer): number | undefined {
+  if (c.task.kind !== 'order') return undefined;
+  for (const t of c.task.toggles ?? []) {
+    const m = /^table:?(\d+)$/.exec(t);
+    if (m) return Number(m[1]);
+  }
+  return undefined;
+}
+
+/** A café customer who asks for separate bills (`split` in the toggles): two totals are said. */
+export const isSplit = (c: ShiftCustomer): boolean => c.task.kind === 'order' && (c.task.toggles ?? []).includes('split');
+
 /** What the customer asked for, with menu ids resolved. */
-export function wantedOf(c: ShiftCustomer, menu: MenuItem[]): { cart: Cart; flags: Flags } {
+export function wantedOf(c: ShiftCustomer, menu: MenuItem[]): { cart: Cart; flags: Flags; table?: number } {
   if (c.task.kind !== 'order') return { cart: {}, flags: NO_FLAGS };
   const cart: Cart = {};
   for (const i of c.task.items) {
@@ -53,17 +74,32 @@ export function wantedOf(c: ShiftCustomer, menu: MenuItem[]): { cart: Cart; flag
     cart[id] = (cart[id] ?? 0) + i.qty;
   }
   const on = new Set(c.task.toggles ?? []);
-  return { cart, flags: { heat: on.has('heat'), nobag: on.has('nobag') } };
+  const flags: Flags = {};
+  for (const f of FLAG_IDS) if (on.has(f)) flags[f] = true;
+  const table = tableOf(c);
+  return { cart, flags, ...(table !== undefined ? { table } : {}) };
+}
+
+/**
+ * The two bills of a split order: the first item line, then the rest (each at the shop's prices). Undefined when the order is not split or
+ * has only one line. A split is said as two totals, one after the other.
+ */
+export function splitTotals(c: ShiftCustomer, menu: MenuItem[]): [number, number] | undefined {
+  if (!isSplit(c) || c.task.kind !== 'order' || c.task.items.length < 2) return undefined;
+  const price = (i: { menu: string; qty: number }): number => (menu.find((m) => m.id === resolveMenu(menu, i.menu))?.price ?? 0) * i.qty;
+  const [first, ...rest] = c.task.items;
+  return [price(first!), rest.reduce((a, i) => a + price(i), 0)];
 }
 
 export const cartSize = (cart: Cart): number => Object.values(cart).reduce((a, b) => a + b, 0);
 
-/** The order is exactly what the customer asked for: the same items, the same counts, the same flags. */
-export function orderCorrect(c: ShiftCustomer, menu: MenuItem[], cart: Cart, flags: Flags): boolean {
+/** The order is exactly what the customer asked for: the same items, the same counts, the same flags and (café) the same table. */
+export function orderCorrect(c: ShiftCustomer, menu: MenuItem[], cart: Cart, flags: Flags, table?: number | null): boolean {
   const want = wantedOf(c, menu);
   const ids = new Set([...Object.keys(want.cart), ...Object.keys(cart)]);
   for (const id of ids) if ((want.cart[id] ?? 0) !== (cart[id] ?? 0)) return false;
-  return want.flags.heat === flags.heat && want.flags.nobag === flags.nobag;
+  if (FLAG_IDS.some((f) => !!want.flags[f] !== !!flags[f])) return false;
+  return (want.table ?? null) === (table ?? null);
 }
 
 /** The sum of a cart at the shop's prices (what the register would say). */

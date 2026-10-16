@@ -25,6 +25,7 @@ import { PACK } from '../game/pack';
 import { gameView } from '../game/selectors';
 import { linesToRecall, plainOf, pocketView, recallMark, recallScoreSpoken, type PocketView } from '../game/prepareLogic';
 import { enforceGoalCaps, pocketWordOps } from '../game/srsHooks';
+import { realTryFor } from '../game/realTry';
 
 type Stage = 'ready' | 'study' | 'recall' | 'done';
 type Mode = 'guided' | 'real';
@@ -53,7 +54,7 @@ export function Prepare() {
             {t('prep.empty')}
           </p>
           {args && (
-            <button className="btn primary wide prep-btn" onClick={() => talk(args.scenarioId, args.characterId, args.mode ?? 'guided', go)}>
+            <button className="btn primary wide prep-btn" onClick={() => talk(args.scenarioId, args.characterId, args.mode, go)}>
               {t('prep.start')}
             </button>
           )}
@@ -61,29 +62,32 @@ export function Prepare() {
       </div>
     );
   }
-  return <PrepareBody key={args.scenarioId} scenarioId={args.scenarioId} characterId={args.characterId} initialMode={args.mode ?? 'guided'} pocket={pocket} />;
+  // Hanako's "try it without chips" (Chapter 6): the next shop conversation starts in Real mode; the toggle still lets the player step back
+  const tryReal = realTryFor(PACK, game, args.scenarioId);
+  return <PrepareBody key={args.scenarioId} scenarioId={args.scenarioId} characterId={args.characterId} initialMode={args.mode ?? (tryReal ? 'real' : 'guided')} tryReal={tryReal} pocket={pocket} />;
 }
 
 /** Leaves for the world and starts the conversation (the ramen shop's ticket waiting means it starts at the firmness question, as the sheet does). */
-export function talk(scenarioId: string, characterId: string, mode: Mode, go: (s: 'world') => void): void {
+export function talk(scenarioId: string, characterId: string, mode: Mode | undefined, go: (s: 'world') => void): void {
   const startNode = PACK.scenarioMeta.find((m) => m.id === scenarioId)?.startNode;
   const ticket = (getGame().tickets as Record<string, unknown>)[scenarioId];
   go('world');
   // a friend's home starts at the genkan: the visit plays the conversation itself once the slippers are on. A visit that is already on
   // (a next-goal button in a debrief inside another home) is never answered by a bare conversation: that would skip the genkan.
   if (isHomeScenario(scenarioId)) {
-    beginVisit(scenarioId, mode);
+    beginVisit(scenarioId, mode ?? 'guided');
     return;
   }
   // the housewarming: the friend comes to the player's own room (HomeOwn plays the conversation once they are in)
   if (isOwnGuestScenario(scenarioId)) {
-    beginOwn({ guest: characterId, talk: mode });
+    beginOwn({ guest: characterId, talk: mode ?? 'guided' });
     return;
   }
-  startConversation({ scenarioId, characterId, mode, ...(startNode && ticket ? { startNode } : {}) });
+  // no mode = the player did not choose one: the bridge may turn it into Hanako's try without chips (Chapter 6)
+  startConversation({ scenarioId, characterId, ...(mode ? { mode } : {}), ...(startNode && ticket ? { startNode } : {}) });
 }
 
-function PrepareBody({ scenarioId, characterId, initialMode, pocket }: { scenarioId: string; characterId: string; initialMode: Mode; pocket: PocketView }) {
+function PrepareBody({ scenarioId, characterId, initialMode, tryReal, pocket }: { scenarioId: string; characterId: string; initialMode: Mode; tryReal: boolean; pocket: PocketView }) {
   const { t, lang, dir } = useT();
   const go = useStore((s) => s.go);
   const profile = useStore((s) => s.profile)!;
@@ -94,7 +98,12 @@ function PrepareBody({ scenarioId, characterId, initialMode, pocket }: { scenari
   const mark = recallMark(profile);
 
   const [stage, setStage] = useState<Stage>(pocket.ready ? 'ready' : 'study');
-  const [mode, setMode] = useState<Mode>(initialMode);
+  const [mode, setModeRaw] = useState<Mode>(initialMode);
+  const touched = useRef(false);
+  const setMode = (m: Mode) => {
+    touched.current = true;
+    setModeRaw(m);
+  };
   const [i, setI] = useState(0);
   const [queue, setQueue] = useState<string[]>([]);
   const [outcome, setOutcome] = useState<Record<string, 'pass' | 'peek'>>({});
@@ -137,7 +146,8 @@ function PrepareBody({ scenarioId, characterId, initialMode, pocket }: { scenari
   };
   const start = () => {
     commit();
-    talk(scenarioId, characterId, realOffered ? mode : 'guided', go);
+    // only a mode the player chose (or Real, which the try may have preselected) is passed on: an untouched toggle leaves the choice to the bridge
+    talk(scenarioId, characterId, realOffered && (touched.current || mode === 'real') ? mode : undefined, go);
   };
   const back = () => {
     commit();
@@ -166,6 +176,11 @@ function PrepareBody({ scenarioId, characterId, initialMode, pocket }: { scenari
           {withWho}
         </p>
         {realOffered && <ModeToggle mode={mode} onChange={setMode} />}
+        {tryReal && realOffered && mode === 'real' && (
+          <p className="prep-realtry" data-real-try role="status" dir="auto">
+            <Icon name="sparkle" size={16} /> {t('trip.realTry')}
+          </p>
+        )}
 
         {stage === 'ready' && (
           <section className="card prep-card prep-ready" aria-live="polite">

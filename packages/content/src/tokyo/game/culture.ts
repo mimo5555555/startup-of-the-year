@@ -161,7 +161,7 @@ export const CULTURE: CultureCard[] = [
   }),
   c({
     id: 'cc_refuse',
-    trigger: { on: 'intent', ids: ['motors_visit:later', 'motors_bike:later', 'motors_car:later'] },
+    trigger: { on: 'intent', ids: ['motors_visit:later', 'motors_bike:later', 'motors_car:later', 'trip_hikarigaoka:later'] },
     phrase: { ja: 'ちょっと… / 考えます', en: "That's a bit… / I'll think about it", ar: 'هذا صعب قليلًا... / سأفكّر' },
     text: {
       en: 'A direct "no" can sound harsh. Polite ways to decline are 「ちょっと…」 and 「考えます」. Shops accept this happily, and prices are fixed: there is no haggling (定価).',
@@ -187,7 +187,6 @@ export const CULTURE: CultureCard[] = [
       ar: 'اخلع حذاءك في الجنكان (المدخل)، ثم اصعد وارتدِ الخفّ. لا ترتدِ الخفّ على حصير التاتامي أبدًا، وكثيرًا ما يكون للمرحاض خفّ خاص به.',
     },
     say: true,
-    deferred: true,
   }),
   c({
     id: 'cc_rent',

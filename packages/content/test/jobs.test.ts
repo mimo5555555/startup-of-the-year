@@ -23,8 +23,8 @@ const noGap = (line: Line, where: string) => {
 };
 
 describe('job_konbini: pack data', () => {
-  it('is the only job of Release 1, run by Tanaka at the konbini with the §9.2 wage', () => {
-    expect(JOBS.map((j) => j.id)).toEqual(['job_konbini']);
+  it('is the first job (Release 1), run by Tanaka at the konbini with the §9.2 wage; the café and the station desk join it in wave C1 (c1-jobs.test.ts)', () => {
+    expect(JOBS.map((j) => j.id)).toEqual(['job_konbini', 'job_cafe', 'job_station']);
     expect(job.boss).toBe('tanaka');
     expect(job.place).toBe('konbini');
     expect(job.wage).toBe(1150);
@@ -87,7 +87,6 @@ describe('job_konbini: pack data', () => {
   });
 
   it('the pack passes validatePack at level 3 for everything this module owns', () => {
-    // (the café and station rows name jobs that are out of Release 1: the app hides them, so only issues about this job count)
     const mine = validatePack(JP_PACK, { level: 3 }).filter((i) => i.severity === 'error' && (i.path.startsWith('jobs[') || /job_konbini/.test(i.message)));
     expect(mine).toEqual([]);
   });

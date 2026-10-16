@@ -29,22 +29,22 @@ export interface Taste {
 
 export const TASTES: Record<string, Taste> = {
   // design: loves g_manga, cake, g_souvenir | likes sweet, cute, media, music | dislikes coffee
-  // (Aiko's wagashi stands in for the souvenir: she loves sweets)
-  mio: { loves: ['g_manga', 'cake', 'g_wagashi'], likes: ['sweet', 'cute', 'media', 'music'], dislikes: ['coffee'] },
+  // (the souvenir is sold on the Hikarigaoka trip from Release 2 wave C1; Aiko's wagashi stays as the present she can get without the trip)
+  mio: { loves: ['g_manga', 'cake', 'g_souvenir', 'g_wagashi'], likes: ['sweet', 'cute', 'media', 'music'], dislikes: ['coffee'] },
   // design: loves g_guitar_pick, g_tea_set, cake | likes sweet, music, flower | dislikes coffee, g_game_card
   yuki: { loves: ['g_guitar_pick', 'cake', 'g_tea_set'], likes: ['sweet', 'music', 'flower'], dislikes: ['coffee', 'g_game_card'] },
   // design: loves g_game_card, coffee, g_manga | likes game, tech, sweet | dislikes onigiri, bento
   // (the wagashi is an Aiko present the sweet-toothed Tanaka loves; the design has no Aiko love for him)
   tanaka: { loves: ['g_game_card', 'coffee', 'g_manga', 'g_wagashi'], likes: ['game', 'tech', 'sweet'], dislikes: ['onigiri', 'bento'] },
-  // design: loves g_tea_set, g_wagashi, g_souvenir (the souvenir is not released: green tea stands in) | likes travel, tea, tradition | dislikes g_choco, g_game_card
-  sato: { loves: ['g_tea_set', 'g_wagashi', 'greenTea'], likes: ['travel', 'tea', 'tradition'], dislikes: ['g_choco', 'g_game_card'] },
+  // design: loves g_tea_set, g_wagashi, g_souvenir (the souvenir is sold on the trip from wave C1; green tea stays for before it) | likes travel, tea, tradition | dislikes g_choco, g_game_card
+  sato: { loves: ['g_tea_set', 'g_wagashi', 'g_souvenir', 'greenTea'], likes: ['travel', 'tea', 'tradition'], dislikes: ['g_choco', 'g_game_card'] },
   // design: loves g_tenugui, greenTea, coffee | likes sports, food, drink | dislikes g_flower, g_plush
   kenji: { loves: ['g_tenugui', 'greenTea', 'coffee'], likes: ['sports', 'food', 'drink'], dislikes: ['g_flower', 'g_plush'] },
   // design: loves g_tea_set, g_wagashi, g_flower | likes tradition, flower, craft | dislikes g_choco, g_game_card
   hanako: { loves: ['g_tea_set', 'g_wagashi', 'g_flower', 'greenTea'], likes: ['tradition', 'flower', 'craft', 'tea'], dislikes: ['g_choco', 'g_game_card'] },
   // Release 2 wave B1: Aiko is a friend. design: loves g_souvenir, cake, g_music_cd | likes craft, travel, sweet | dislikes coffee, g_game_card
-  // (the souvenir is not released: her own tenugui, a craft, stands in)
-  aiko: { loves: ['g_music_cd', 'cake', 'g_tenugui'], likes: ['craft', 'travel', 'sweet'], dislikes: ['coffee', 'g_game_card'] },
+  // (the souvenir is sold on the trip from wave C1; her own tenugui, a craft, stays)
+  aiko: { loves: ['g_music_cd', 'cake', 'g_souvenir', 'g_tenugui'], likes: ['craft', 'travel', 'sweet'], dislikes: ['coffee', 'g_game_card'] },
 };
 
 /** The keepsakes the friends' beats hand out (never sold): id -> name (the ids owned are in `GameState.keepsakes`). */

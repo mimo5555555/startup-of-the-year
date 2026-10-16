@@ -41,19 +41,19 @@ beforeEach(() => {
 });
 
 describe('the cards a stamp book lists', () => {
-  it('hides the two cards that cannot be earned in this release until they are collected', () => {
-    expect([...DEFERRED_CARDS].sort()).toEqual(['cc_matsuri', 'cc_shoesoff']);
+  it('hides the card that cannot be earned in this release (the festival) until it is collected', () => {
+    expect([...DEFERRED_CARDS].sort()).toEqual(['cc_matsuri']);
     const shown = shownCards(JP_PACK, state, 'adults').map((c) => c.id);
-    expect(shown).toHaveLength(21);
+    expect(shown).toHaveLength(22);
     for (const id of DEFERRED_CARDS) expect(shown).not.toContain(id);
     const got = { ...state, culture: { cc_matsuri: '2030-01-15' } } as GameState;
     expect(shownCards(JP_PACK, got, 'adults').map((c) => c.id)).toContain('cc_matsuri');
   });
 
-  it('hides exactly the cards the pack flags as deferred, and once the other 21 are found "learn one new thing" is no longer a daily goal', () => {
+  it('hides exactly the cards the pack flags as deferred, and once the other 22 are found "learn one new thing" is no longer a daily goal', () => {
     expect(JP_PACK.culture.filter((c) => c.deferred).map((c) => c.id).sort()).toEqual([...DEFERRED_CARDS].sort());
     const collected = Object.fromEntries(shownCards(JP_PACK, state, 'adults').map((c) => [c.id, 'd0']));
-    expect(Object.keys(collected)).toHaveLength(21);
+    expect(Object.keys(collected)).toHaveLength(22);
     const free = { ...state, chapter: { ...state.chapter, n: BALANCE.freeWalkChapter }, culture: collected };
     for (let d = 0; d < 40; d++) {
       const goals = generateDaily(JP_PACK, { ...free, clock: { ...free.clock, dayIndex: d } }, view1f());
@@ -69,7 +69,7 @@ describe('the cards a stamp book lists', () => {
   });
 
   it('counts what is collected and said', () => {
-    expect(bookCounts(JP_PACK, state, 'adults')).toEqual({ have: 0, total: 21, said: 0, sayable: 7 });
+    expect(bookCounts(JP_PACK, state, 'adults')).toEqual({ have: 0, total: 22, said: 0, sayable: 8 });
     const s = { ...state, culture: { cc_bow: 'd', cc_konbini: 'd' }, stats: { ...state.stats, cultureSaid: ['cc_bow'] } } as GameState;
     expect(bookCounts(JP_PACK, s, 'adults')).toMatchObject({ have: 2, said: 1 });
     expect(cardState(card('cc_bow'), s)).toBe('said');
@@ -209,9 +209,9 @@ describe('the stamp book screen', () => {
       sync();
       const out = renderToStaticMarkup(createElement(Culture));
       expect(out).toContain('data-culture-empty');
-      expect((out.match(/data-state="locked"/g) ?? []).length).toBe(21);
+      expect((out.match(/data-state="locked"/g) ?? []).length).toBe(22);
       expect(text(out)).toContain((STRINGS[lang] as Record<string, string>)['culture.hint.irasshaimase']);
-      expect(out).not.toMatch(/data-card="cc_(shoesoff|matsuri)"/);
+      expect(out).not.toMatch(/data-card="cc_matsuri"/);
       expect(text(out)).not.toMatch(/\bculture\.[a-z]+/);
     }
   });
@@ -224,6 +224,6 @@ describe('the stamp book screen', () => {
     expect(out).toMatch(/data-card="cc_bow" data-state="said"/);
     expect(out).toMatch(/data-card="cc_konbini" data-state="seen"/);
     expect(out).toContain('よろしくお願いします');
-    expect(text(out)).toContain('2 of 21');
+    expect(text(out)).toContain('2 of 22');
   });
 });

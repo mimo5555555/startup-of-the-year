@@ -11,6 +11,8 @@ export * from './tokyo/scenarios';
 export * from './tokyo/scenario-registry';
 export * from './tokyo/lesson';
 export { JP_PACK } from './tokyo/game';
+export { TRIP_HIKARIGAOKA } from './tokyo/game/fares';
+export { REAL_TRY } from './tokyo/game/beats/beats-story';
 export * from './tokyo/game/homes';
 export { VIEWING_MINOR_TEXT } from './tokyo/scenarios-home';
 export { CLOTHES_COLOURS, DENIM_COLOURS } from './tokyo/game/items';

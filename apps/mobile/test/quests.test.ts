@@ -150,9 +150,9 @@ describe('daily goals', () => {
 });
 
 describe('dream picker', () => {
-  it('shows the five released dreams to an adult with the goal-matched one suggested, and the car shut until Free Walk', () => {
+  it('shows the six released dreams to an adult with the goal-matched one suggested, and the car shut until Free Walk', () => {
     const out = html(createElement(DreamPicker, { onChoose: () => {}, onLater: () => {} }));
-    expect([...out.matchAll(/data-dream="(\w+)"/g)].map((m) => m[1])).toEqual(['phone_pal', 'bike', 'flat', 'fresh_start', 'car']);
+    expect([...out.matchAll(/data-dream="(\w+)"/g)].map((m) => m[1])).toEqual(['phone_pal', 'bike', 'flat', 'travel', 'fresh_start', 'car']);
     // goal 'casual' -> the phone dream (the festival dream is not released)
     expect(out).toMatch(/data-dream="phone_pal"[^>]*>.*?Suggested for you/s);
     expect(out).toMatch(/data-dream="car"[^>]*disabled/);
@@ -165,7 +165,7 @@ describe('dream picker', () => {
     useStore.setState({ profile: { ...profile, age: 'kids', goal: 'relocation' } });
     sync();
     const out = html(createElement(DreamPicker, { onChoose: () => {} }));
-    expect([...out.matchAll(/data-dream="(\w+)"/g)].map((m) => m[1])).toEqual(['phone_pal', 'bike']);
+    expect([...out.matchAll(/data-dream="(\w+)"/g)].map((m) => m[1])).toEqual(['phone_pal', 'bike', 'travel']);
     expect(out).toMatch(/data-dream="phone_pal"[^>]*>.*?Suggested for you/s);
     expect(out).not.toContain('Decide later');
   });
@@ -247,8 +247,8 @@ describe('Quests screen', () => {
     expect([...out.matchAll(/role="tab"[^>]*data-tab="(\w+)"/g)].map((m) => m[1])).toEqual(['story', 'culture']);
     expect(out).toContain('data-chapter="1"');
     expect(out).toContain('data-obj="c1_5"');
-    // Release 1 plays chapters 1-4: the teasers are chapters 2-4
-    expect((out.match(/class="qst-teaser"/g) ?? []).length).toBe(3);
+    // the release plays chapters 1-6 (wave C1): the teasers are chapters 2-6
+    expect((out.match(/class="qst-teaser"/g) ?? []).length).toBe(5);
     expect(out).toContain('Coming up');
     expect(out).not.toContain('data-slot="dream"');
   });
@@ -274,10 +274,10 @@ describe('Quests screen', () => {
     expect(out).toContain('The next chapter opens after');
   });
 
-  it('in the last chapter the waiting message ends the story instead of promising a next chapter (Chapter 5 does not exist in Release 1)', () => {
-    const ch4 = PACK.chapters.find((c) => c.n === 4)!;
+  it('in the last chapter the waiting message ends the story instead of promising a next chapter (Chapter 7 does not exist in this release)', () => {
+    const ch6 = PACK.chapters.find((c) => c.n === 6)!;
     patch((g) => ({
-      chapter: { ...g.chapter, n: 4, done: Object.fromEntries(ch4.objectives.filter((o) => !o.dream).map((o) => [o.id, 'd0'])), began: { dayIndex: 0, activeDays: 0 } },
+      chapter: { ...g.chapter, n: 6, done: Object.fromEntries(ch6.objectives.filter((o) => !o.dream).map((o) => [o.id, 'd0'])), began: { dayIndex: 0, activeDays: 0 } },
       clock: { ...g.clock, dayIndex: 1, activeDays: 2 },
     }));
     const out = html(createElement(Quests)).replace(/&#x27;/g, "'");

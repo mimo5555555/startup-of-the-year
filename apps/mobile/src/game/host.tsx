@@ -3,6 +3,9 @@ import { useEffect } from 'react';
 import type { TokyoWorld } from '@lw/world';
 import { WorldCtx } from '../hooks';
 import { Conversation } from '../screens/Conversation';
+import { TripBackdrop } from '../components/game/TripBackdrop';
+import { characterById } from '../content';
+import { PACK } from './pack';
 import { useStore } from '../store';
 import { useUi } from '../ui';
 import { useHome } from './homeStore';
@@ -15,6 +18,10 @@ const currentWorld = (): TokyoWorld | null => (window as unknown as { __world?: 
  * Mounts the conversation a `useUi.convo` request asks for, from anywhere. Agent 2C's Conversation reads the request itself
  * (scenario, channel, mode, startNode); the world is optional for chat threads and characters without a spawn.
  */
+/** A trip is a panel destination (Release 2 wave C1): the scenario's meta says `trip`, and the Hikarigaoka conversation always is one. */
+export const isTripScenario = (scenarioId: string): boolean =>
+  scenarioId === 'trip_hikarigaoka' || PACK.scenarioMeta.some((m) => m.id === scenarioId && m.kind === 'trip');
+
 export function ConversationHost() {
   const convo = useUi((s) => s.convo);
   const end = useUi((s) => s.endConvo);
@@ -24,8 +31,10 @@ export function ConversationHost() {
   const ownPanel = useOwn((s) => s.room?.mode === 'panel');
   const panelRoom = homePanel || ownPanel;
   if (!convo) return null;
+  const tripHost = convo.channel !== 'chat' && isTripScenario(convo.scenarioId) ? characterById(convo.characterId) : undefined;
   return (
     <WorldCtx.Provider value={panelRoom ? null : currentWorld()}>
+      {tripHost && <TripBackdrop host={tripHost} />}
       <Conversation key={`${convo.scenarioId}:${convo.startNode ?? ''}`} characterId={convo.characterId} onClose={end} />
     </WorldCtx.Provider>
   );

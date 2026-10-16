@@ -28,6 +28,7 @@ import { SOCIAL_POCKETS } from '../src/tokyo/game/pockets/pockets-social';
 import { FRIENDS_POCKETS } from '../src/tokyo/game/pockets/pockets-friends';
 import { JOBS_POCKETS } from '../src/tokyo/game/pockets/pockets-jobs';
 import { HOME_POCKETS } from '../src/tokyo/game/pockets/pockets-home';
+import { STORY_POCKETS } from '../src/tokyo/game/pockets/pockets-story';
 import { CORE_META } from '../src/tokyo/game/meta/meta-core';
 import { STATION_META } from '../src/tokyo/game/meta/meta-station';
 import { DENKI_FUKU_META } from '../src/tokyo/game/meta/meta-denki-fuku';
@@ -360,7 +361,7 @@ describe('content modules', () => {
   });
   it('registers every lexicon module of docs/GAME_DESIGN.md §15.2', () => {
     expect(Object.keys(LEXICON_PARTS).sort()).toEqual(
-      ['core', 'numbers', 'shop', 'station', 'quests', 'shop-denki', 'shop-fuku', 'shop-aiko', 'shop-motors', 'social', 'social-chat', 'social-friends', 'social-hearts', 'jobs', 'culture', 'home'].sort(),
+      ['core', 'numbers', 'shop', 'station', 'quests', 'shop-denki', 'shop-fuku', 'shop-aiko', 'shop-motors', 'social', 'social-chat', 'social-friends', 'social-hearts', 'jobs', 'culture', 'home', 'trip'].sort(),
     );
   });
   it('scenario and character ids are unique', () => {
@@ -380,7 +381,7 @@ describe('game pack registries (JP_PACK)', () => {
   });
 
   it('part files never define the same pocket line, beat or scenario meta twice', () => {
-    const pockets = [CORE_POCKETS, DENKI_FUKU_POCKETS, AIKO_MOTORS_POCKETS, SOCIAL_POCKETS, FRIENDS_POCKETS, JOBS_POCKETS, HOME_POCKETS].flatMap((p) => Object.keys(p));
+    const pockets = [CORE_POCKETS, DENKI_FUKU_POCKETS, AIKO_MOTORS_POCKETS, SOCIAL_POCKETS, FRIENDS_POCKETS, JOBS_POCKETS, HOME_POCKETS, STORY_POCKETS].flatMap((p) => Object.keys(p));
     const beats = [CORE_BEATS, FRIENDS_BEATS, HEARTS_BEATS, STORY_BEATS].flatMap((p) => Object.keys(p));
     const metas = [CORE_META, STATION_META, DENKI_FUKU_META, AIKO_MOTORS_META, SOCIAL_META, CHAT_META, JOBS_META, FRIENDS_META, HEARTS_META, STORY_META, HOME_META].flatMap((p) => p.map((m) => m.id));
     expect(dupes(pockets)).toEqual([]);

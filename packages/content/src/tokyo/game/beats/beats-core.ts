@@ -51,9 +51,10 @@ const B: Beat[] = [
     L('hanako', 'また|会えて|、|うれしい|です|。', "I'm glad to see you again.", 'يسعدني أن أراك مرة أخرى.'),
     L('hanako', 'ゆっくり|、|やりましょう|。', "Let's take it slowly.", 'لنأخذ الأمر ببطء.'),
   ]),
-  // the release cap (docs/RELEASE_1.md): the last released chapter closes with a short "to be continued" from Hanako, and Free Walk begins
+  // the release cap (docs/RELEASE_1.md, RELEASE_2.md): the last released chapter (6) closes with a short "to be continued" from Hanako, and Free Walk begins.
+  // It promises more to come and names nothing this release does not have (no festival, letter, flat or car).
   beat(RELEASE_EPILOGUE, 'school', [
-    L('hanako', 'よくできました|。|友だち|も|スマホ|も|あります|ね|。', "Well done. You have friends, and a phone, too.", 'أحسنت. لديك أصدقاء وهاتف أيضًا.'),
+    L('hanako', 'よくできました|。|電車|に|も|乗りました|ね|。|友だち|の|家|に|も|行きました|ね|。', 'Well done. You rode the train, and you visited friends at home, too.', 'أحسنت. ركبت القطار وزرت أصدقاءك في بيوتهم أيضًا.'),
     L('hanako', 'まだ|これから|です|よ|。', "It's only the beginning!", 'إنها مجرد البداية!'),
     L('hanako', 'これから|も|桜町|で|たくさん|話しましょう|。', "Let's keep talking a lot in Sakura-chō.", 'لنواصل الحديث كثيرًا في ساكورا-تشو.'),
     L('hanako', 'ゆっくり|、|やりましょう|。|またね|！', "Let's take it slowly. See you!", 'لنأخذ الأمر ببطء. إلى اللقاء!'),

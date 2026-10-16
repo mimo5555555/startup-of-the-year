@@ -14,7 +14,7 @@ import {
   type SrsOp,
   type UiEffect,
 } from '@lw/game';
-import { LEXICON, entryToToken, plainText, romajiText, tokenize } from '@lw/content';
+import { LEXICON, entryToToken, plainText, romajiText, scenarioById, tokenize } from '@lw/content';
 import { translate, type StringKey } from '../i18n';
 import { blip, haptic } from '../services';
 import { setLoopFactsHook, flushNow, useStore, type VocabItem } from '../store';
@@ -24,6 +24,8 @@ import { heartEventOfBeat, pendingHeartBeats } from './friendsLogic';
 import { flushGameNow, getGame, useGame } from './gameStore';
 import { applyImplicitReview } from './srsHooks';
 import { noteRewards } from './homeLogic';
+import { REAL_TRY_BEAT, REAL_TRY_DONE, holdForTry, realTryDue, realTryFor, takeHeld } from './realTry';
+import { tripOf, tripPaid, tripQuote } from './tripLogic';
 import { autoWearOutfit } from './avatarFx';
 import { gameView } from './selectors';
 
@@ -40,7 +42,12 @@ export function dispatch(event: InputEvent): ReduceResult {
   const result = reduce(before, event, { pack: PACK, now: Date.now(), view: gameView(useStore.getState()), rng: Math.random });
   useGame.getState().setGame(result.state);
   // the keepsakes a hang-out or a visit just handed over: the debrief names them (the reducer files them silently)
-  if (event.t === 'conversation_done') noteRewards(event.facts.sessionId, before, result.state);
+  if (event.t === 'conversation_done') {
+    noteRewards(event.facts.sessionId, before, result.state);
+    // the trip is filed when the talk at the other end runs to its close (`visit trip:hikarigaoka`; the paper ticket of the trip is used up)
+    const trip = tripOf(PACK, event.facts.scenarioId);
+    if (trip && !event.facts.abandoned) dispatch({ t: 'trip_done', id: trip });
+  }
   // a wearable that just came home (the bicycle helmet) goes on the avatar at once; Wear / Take off stays in the Wallet
   if (event.t !== 'outfit_changed') {
     const worn = autoWearOutfit(PACK, before, result.state);
@@ -267,8 +274,44 @@ export function resetBridgeForTests(): void {
 // Entry points for the screens (mount points 2B, 2C, 2E, 2G, 4C, 4D call)
 // ---------------------------------------------------------------------------------------------------------------
 
-/** Starts a conversation from anywhere: the conversation host in App mounts it (§11.2). */
-export const startConversation = (req: ConvoRequest): void => useUi.getState().startConvo(req);
+/** Charges the round trip (`legs: 2`) unless it is already in the ledger; false when the player cannot pay it (nothing is charged). */
+function payTrip(scenarioId: string, place: string): boolean {
+  const q = tripQuote(PACK, getGame(), scenarioId, place);
+  if (tripPaid(getGame(), q)) return true;
+  // the amount stays left-to-right inside an Arabic sentence
+  const fmt = (n: number) => `\u2066¥${n.toLocaleString('en-US')}\u2069`;
+  if (!q.method) {
+    const g = getGame();
+    useStore.getState().say(translate(useStore.getState().uiLang, 'trip.short', { fare: fmt(q.total), have: fmt(g.wallet.cash + g.wallet.ic) }), 'info');
+    return false;
+  }
+  dispatch({ t: 'fare', id: q.id, place, method: q.method, legs: 2 });
+  if (!tripPaid(getGame(), q)) return false;
+  useStore.getState().say(translate(useStore.getState().uiLang, 'trip.paid', { fare: fmt(q.total) }), 'good');
+  return true;
+}
+
+/**
+ * Starts a conversation from anywhere: the conversation host in App mounts it (§11.2). While Hanako's "try it without chips" is pending
+ * (`realTry.ts`) a shop conversation that offers Real mode starts in Real mode unless the request says Guided, and that use files `real_try_done`.
+ */
+export function startConversation(req: ConvoRequest): void {
+  const g = getGame();
+  // a trip: the round-trip fare is charged up front, once; short of money nothing is charged and the conversation does not start (a toast says what it costs)
+  const place = req.channel === 'chat' ? null : tripOf(PACK, req.scenarioId);
+  if (place && !payTrip(req.scenarioId, place)) return;
+  // the talk of a trip is with the person at the other end (Kato), whoever's row (Sato's) started it
+  if (place) req = { ...req, characterId: scenarioById(req.scenarioId)?.characterId ?? req.characterId };
+  // Chapter 6: Hanako's "try it without chips" is offered before the first shop conversation that has a Real mode; this one starts when her beat is over
+  if (!place && req.channel !== 'chat' && !req.mode && realTryDue(PACK, g, req.scenarioId)) {
+    holdForTry(req);
+    useUi.getState().queueBeat(REAL_TRY_BEAT);
+    return;
+  }
+  const mode = req.mode ?? (realTryFor(PACK, g, req.scenarioId) ? 'real' : undefined);
+  if (mode === 'real' && realTryFor(PACK, g, req.scenarioId)) dispatch({ t: 'flag', id: REAL_TRY_DONE });
+  useUi.getState().startConvo(mode ? { ...req, mode } : req);
+}
 
 /** Opens a route that needs an argument (Prepare, Shift, Phone, Quests tab). */
 export function openScreen<K extends keyof ScreenArgs>(screen: K, args: ScreenArgs[K]): void {
@@ -283,5 +326,10 @@ export function completeBeat(id: string): ReduceResult {
   const heart = heartEventOfBeat(PACK, id);
   if (heart) dispatch({ t: 'heart_event_done', friendId: heart.friendId, level: heart.level });
   useUi.getState().finishBeat(id);
+  // the conversation held back for Hanako's "try it without chips" starts now, in Real mode
+  if (id === REAL_TRY_BEAT) {
+    const req = takeHeld();
+    if (req) startConversation(req);
+  }
   return result;
 }

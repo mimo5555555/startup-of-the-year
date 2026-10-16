@@ -166,21 +166,33 @@ const RELEASED_CAR_STEPS: DreamStep[] = [
   step('car_5', FREE_WALK, { k: 'visit', place: 'spot:east_end' }, 'Drive to the east end of the street', 'قُد سيارتك إلى نهاية الشارع الشرقية'),
 ];
 
-/** The dreams whose ladders can be finished with the content of the release; the others stay authored above and are not offered. */
-const RELEASED_DREAM_IDS = ['phone_pal', 'bike', 'flat', 'fresh_start', 'car'] as const;
 /**
- * Onboarding goals that map onto a released dream (the unreleased festival and travel dreams are not offered). The flat is the default of the
+ * The travel dream as this release can finish it (wave C1). `souvenir_given` ("bring back a souvenir for a friend") has no event in the game
+ * that raises it, so the step becomes the half the game can see: buy an omiyage at Kato's shop in Hikarigaoka (the goal step `souvenir` of
+ * `trip_hikarigaoka`, which only a paid sale completes). The paper-ticket step is raised by the ticket machine (`ticket_bought`).
+ */
+const RELEASED_TRAVEL_STEPS = (d: DreamDef): DreamStep[] =>
+  d.steps.map((s) =>
+    s.id === 'travel_5'
+      ? step('travel_5', releasedGate(s.gate), { k: 'scenario', id: 'trip_hikarigaoka', steps: ['souvenir'] }, 'Buy a souvenir (omiyage) in Hikarigaoka', 'اشترِ هدية تذكارية (أوميياغي) في هيكاريغاؤكا')
+      : { ...s, gate: releasedGate(s.gate) },
+  );
+
+/** The dreams whose ladders can be finished with the content of the release; the others stay authored above and are not offered (the festival waits for wave C2). */
+const RELEASED_DREAM_IDS = ['phone_pal', 'bike', 'flat', 'travel', 'fresh_start', 'car'] as const;
+/**
+ * Onboarding goals that map onto a released dream (the unreleased festival dream is not offered; the travel goal suggests the travel dream from wave C1). The flat is the default of the
  * relocation goal as designed (§7.3); an under-18 profile never gets it (`ageMin`), the picker then falls back to the first dream they may see.
  */
-const RELEASED_DEFAULTS: Record<(typeof RELEASED_DREAM_IDS)[number], string[]> = { phone_pal: ['work', 'casual'], bike: ['travel'], flat: ['relocation'], fresh_start: [], car: [] };
+const RELEASED_DEFAULTS: Record<(typeof RELEASED_DREAM_IDS)[number], string[]> = { phone_pal: ['work', 'casual'], bike: [], flat: ['relocation'], travel: ['travel'], fresh_start: [], car: [] };
 
 /**
- * The Dream picker's table in this release (`JP_PACK.dreams`): phone_pal, bike, the flat, the fresh start (phone + bike + flat) and the car (wave B2 adds the flat ones). Step gates and chapters that are never played
+ * The Dream picker's table in this release (`JP_PACK.dreams`): phone_pal, bike, the flat, travel (wave C1), the fresh start (phone + bike + flat) and the car. Step gates and chapters that are never played
  * become Free Walk (`releasedGate`); `validatePack` proves every step of every dream here is finishable (`dream_blocked`).
  */
 export const RELEASED_DREAMS: DreamDef[] = RELEASED_DREAM_IDS.map((id) => {
   const d = DREAMS.find((x) => x.id === id) as DreamDef;
-  const steps = id === 'car' ? RELEASED_CAR_STEPS : d.steps.map((s) => ({ ...s, gate: releasedGate(s.gate) }));
+  const steps = id === 'car' ? RELEASED_CAR_STEPS : id === 'travel' ? RELEASED_TRAVEL_STEPS(d) : d.steps.map((s) => ({ ...s, gate: releasedGate(s.gate) }));
   const { defaultFor: _ignored, ...rest } = d;
   const goals = RELEASED_DEFAULTS[id];
   return { ...rest, ...(goals.length > 0 ? { defaultFor: goals } : {}), steps };

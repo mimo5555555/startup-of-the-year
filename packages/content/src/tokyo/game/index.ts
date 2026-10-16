@@ -21,8 +21,8 @@ import { SCENARIO_META } from './meta';
 import { BEATS } from './beats';
 
 /**
- * Release 1 builds the konbini shift only (docs/RELEASE_1.md): a shift row whose job is deferred (café, station) is left out of the
- * released table, so the pack validates at level 4 and no dead row can ever show. It returns with its job.
+ * A shift row whose job is not in the pack is left out of the released table (Release 1 built the konbini shift only; the café and the station
+ * desk joined in Release 2 wave C1, so `yuki_shift` and `sato_shift` show now), so the pack validates at level 4 and no dead row can ever show.
  */
 const REGISTERED_SCENARIOS = new Set(SCENARIO_META.map((m) => m.id));
 /** Hang-out rows (`<friend>_hang`) and home-visit rows (`home_<friend>`) appear only while their scenario is registered (Release 2 wave B1). */
@@ -51,7 +51,7 @@ export const JP_PACK: GamePack = {
   shops: SHOPS,
   fares: FARES,
   jobs: JOBS,
-  // Release 1 plays chapters 1-4, then Free Walk (docs/RELEASE_1.md); the Dream picker offers the dreams that can be finished with it
+  // Release 2 wave C1 plays chapters 1-6, then Free Walk (docs/RELEASE_1.md, RELEASE_2.md); the Dream picker offers the dreams that can be finished with it
   chapters: RELEASED_CHAPTERS,
   dreams: RELEASED_DREAMS,
   daily: DAILY,

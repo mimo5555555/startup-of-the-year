@@ -218,6 +218,7 @@ export const CHAPTERS: ChapterDef[] = [
         id: 'c5_1',
         pred: { k: 'visit', place: 'trip:hikarigaoka' },
         text: { en: 'Ride the train to Hikarigaoka and back', ar: 'اركب القطار إلى هيكاريغاؤكا وعد' },
+        hint: { en: 'Ask Sato at the station to take the train. The fare there and back is paid first.', ar: 'اطلب من ساتو في المحطة أن تركب القطار. تُدفع أجرة الذهاب والعودة أولًا.' },
         pin: { friend: 'sato' },
       },
       {
@@ -231,12 +232,14 @@ export const CHAPTERS: ChapterDef[] = [
         id: 'c5_3',
         pred: { k: 'shift', job: 'job_station', n: 1, minAcc: 0.6 },
         text: { en: 'Work a shift at the station help desk', ar: 'اعمل وردية في مكتب مساعدة المحطة' },
+        hint: { en: 'Sato offers the job. Say yes to his questions first, then work all five customers.', ar: 'يعرض ساتو العمل. أجب عن أسئلته أولًا، ثم اخدم الزبائن الخمسة جميعهم.' },
         pin: { friend: 'sato' },
       },
       {
         id: 'c5_4',
         pred: { k: 'scenario', id: 'motors_visit', complete: true },
         text: { en: "Browse Nakamura Motors and politely say you'll think about it", ar: 'تصفّح ورشة ناكامورا وقل بأدب إنك ستفكّر' },
+        hint: { en: 'Look around the garage, then say 「考えます」 (I will think about it).', ar: 'تجوّل في الورشة ثم قل «考えます» (سأفكّر في الأمر).' },
         pin: { friend: 'nakamura' },
       },
       dreamSlot(5),
@@ -267,11 +270,13 @@ export const CHAPTERS: ChapterDef[] = [
         id: 'c6_1',
         pred: { k: 'hearts_count', atLeast: 4, n: 1 },
         text: { en: "Get to 4 hearts with one friend (they'll invite you home)", ar: 'اوصل إلى 4 قلوب مع صديق (سيدعوك إلى بيته)' },
+        hint: { en: 'Talk, hang out and give gifts to the same friend on different days.', ar: 'تحدّث واقضِ وقتًا وقدّم هدايا لنفس الصديق في أيام مختلفة.' },
       },
       {
         id: 'c6_2',
         pred: { k: 'visit', place: 'home:*' },
         text: { en: "Visit a friend's home with good manners (shoes, 「おじゃまします」, tea)", ar: 'زر بيت صديق بأدب (الحذاء، «おじゃまします»، الشاي)' },
+        hint: { en: 'A friend at four hearts has a door in the street. Take your shoes off first.', ar: 'لصديق بأربعة قلوب باب في الشارع. اخلع حذاءك أولًا.' },
       },
       {
         id: 'c6_3',
@@ -283,6 +288,7 @@ export const CHAPTERS: ChapterDef[] = [
         id: 'c6_4',
         pred: { k: 'shift', n: 5, minAcc: 0.6 },
         text: { en: 'Work 5 shifts in total (all customers served)', ar: 'اعمل 5 ورديات في المجموع (خدمة جميع الزبائن)' },
+        hint: { en: 'The konbini, the café and the station desk all count. Two shifts a day at most.', ar: 'الكونبيني والمقهى ومكتب المحطة كلها تُحتسب. وردية أو ورديتان في اليوم كحد أقصى.' },
       },
       dreamSlot(6),
     ],
@@ -358,13 +364,17 @@ export const CHAPTERS: ChapterDef[] = [
 ];
 
 // ---------------------------------------------------------------------------------------------------------------
-// The release cap (docs/RELEASE_1.md): chapters 1-4, then Free Walk
+// The release cap (docs/RELEASE_1.md, RELEASE_2.md wave C1): chapters 1-6, then Free Walk
 // ---------------------------------------------------------------------------------------------------------------
 
 /** Free Walk: `chapter.n = 9`, current once the last released chapter is completed (D36). */
 export const FREE_WALK = 9;
-/** The last chapter this release plays; the later chapters stay authored above for the release that adds them (lift the cap by raising this). */
-export const RELEASE_LAST_CHAPTER = 4;
+/**
+ * The last chapter this release plays; the later chapters stay authored above for the release that adds them (lift the cap by raising this).
+ * Release 1 played 1-4; Release 2 wave C1 makes Chapters 5 (the Hikarigaoka trip, the station job, Nakamura Motors) and 6 (friends' homes, the
+ * viewing, five shifts) playable. Chapter 7 (festival) and 8 (Letter Home) are wave C2.
+ */
+export const RELEASE_LAST_CHAPTER = 6;
 /** Beat id of the short "to be continued" (Hanako) that closes the last released chapter and hands over to Free Walk (`beats-core.ts`). */
 export const RELEASE_EPILOGUE = 'b_release_epilogue';
 

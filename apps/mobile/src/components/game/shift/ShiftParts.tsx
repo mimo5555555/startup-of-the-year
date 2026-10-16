@@ -14,6 +14,7 @@ import { useUi } from '../../../ui';
 import {
   HELP_CAP,
   MAX_QTY,
+  TABLES,
   inputFor,
   piecesOf,
   seeded,
@@ -22,6 +23,7 @@ import {
   tilesCorrect,
   type AnswerMode,
   type Cart,
+  type FlagId,
   type Flags,
   type Track,
 } from './shiftLogic';
@@ -101,6 +103,8 @@ export interface BubbleProps {
   onGreet(): void;
   /** the order is being taken: the greeting and the assists matter only now (they touch the order credit) */
   ordering: boolean;
+  /** a traveller at the station desk, not a customer with an order */
+  desk?: boolean;
 }
 
 /** The customer: the line is heard (text hidden by default), with replays, the two assists and the one-tap "can't listen right now". */
@@ -117,6 +121,7 @@ export function CustomerBubble({
   onCant,
   onGreet,
   ordering,
+  desk = false,
 }: BubbleProps) {
   const { t, lang } = useT();
   const showJa = textByDefault || cant || track.assistText;
@@ -140,7 +145,7 @@ export function CustomerBubble({
           </div>
         ) : (
           <p className="sh-hidden" data-hidden>
-            <Icon name="volume" size={22} /> {t('jobs.hiddenLine')}
+            <Icon name="volume" size={22} /> {desk ? t('jobs.hiddenLineDesk') : t('jobs.hiddenLine')}
           </p>
         )}
         {showTrans && (
@@ -201,19 +206,32 @@ export interface OrderPadProps {
   menu: MenuItem[];
   cart: Cart;
   flags: Flags;
+  /** the switches this counter shows: heat / no bag at the konbini, hot / iced at the café */
+  flagIds: readonly FlagId[];
+  /** the café also takes a table number: the picker shows when this is not undefined (null = none chosen) */
+  table?: number | null;
   onAdd(id: string): void;
   onRemove(id: string): void;
-  onFlag(f: keyof Flags): void;
+  onFlag(f: FlagId): void;
+  onTable?(n: number | null): void;
   onConfirm(): void;
 }
 
-/** Every good of the shop with its Japanese name and price: tap to add one, the minus takes one back; two flags (heat, no bag). */
-export function OrderPad({ menu, cart, flags, onAdd, onRemove, onFlag, onConfirm }: OrderPadProps) {
+/** The Japanese word and the label key of each switch. */
+const FLAG_META: Record<FlagId, { ja: string; key: 'jobs.heat' | 'jobs.noBag' | 'jobs.hot' | 'jobs.iced' }> = {
+  heat: { ja: '温めて', key: 'jobs.heat' },
+  nobag: { ja: '袋', key: 'jobs.noBag' },
+  hot: { ja: 'ホット', key: 'jobs.hot' },
+  iced: { ja: 'アイス', key: 'jobs.iced' },
+};
+
+/** Every good of the shop with its Japanese name and price: tap to add one, the minus takes one back; the switches of the counter and (café) the table. */
+export function OrderPad({ menu, cart, flags, flagIds, table, onAdd, onRemove, onFlag, onTable, onConfirm }: OrderPadProps) {
   const { t, lang } = useT();
   const count = Object.values(cart).reduce((a, b) => a + b, 0);
   return (
     <section className="sh-order" aria-label={t('jobs.stepOrder')} data-order>
-      <p className="sh-prompt">{t('jobs.orderPrompt')}</p>
+      <p className="sh-prompt">{table !== undefined ? t('jobs.orderPromptCafe') : t('jobs.orderPrompt')}</p>
       <ul className="sh-grid">
         {menu.map((m) => {
           const qty = cart[m.id] ?? 0;
@@ -254,25 +272,37 @@ export function OrderPad({ menu, cart, flags, onAdd, onRemove, onFlag, onConfirm
         })}
       </ul>
       <div className="sh-flags">
-        <button
-          type="button"
-          className={`sh-flag${flags.heat ? ' on' : ''}`}
-          aria-pressed={flags.heat}
-          data-flag="heat"
-          onClick={() => onFlag('heat')}
-        >
-          <Ja markup="温めて" size="sm" /> <span>{t('jobs.heat')}</span>
-        </button>
-        <button
-          type="button"
-          className={`sh-flag${flags.nobag ? ' on' : ''}`}
-          aria-pressed={flags.nobag}
-          data-flag="nobag"
-          onClick={() => onFlag('nobag')}
-        >
-          <Ja markup="袋" size="sm" /> <span>{t('jobs.noBag')}</span>
-        </button>
+        {flagIds.map((f) => (
+          <button
+            key={f}
+            type="button"
+            className={`sh-flag${flags[f] ? ' on' : ''}`}
+            aria-pressed={!!flags[f]}
+            data-flag={f}
+            onClick={() => onFlag(f)}
+          >
+            <Ja markup={FLAG_META[f].ja} size="sm" /> <span>{t(FLAG_META[f].key)}</span>
+          </button>
+        ))}
       </div>
+      {table !== undefined && onTable && (
+        <div className="sh-tables" data-tables role="radiogroup" aria-label={t('jobs.table')}>
+          <span className="sh-tables-label">{t('jobs.table')}</span>
+          {TABLES.map((n) => (
+            <button
+              key={n}
+              type="button"
+              role="radio"
+              aria-checked={table === n}
+              className={`sh-table${table === n ? ' on' : ''}`}
+              data-table={n}
+              onClick={() => onTable(table === n ? null : n)}
+            >
+              {n}
+            </button>
+          ))}
+        </div>
+      )}
       <button type="button" className="btn primary wide sh-confirm" data-act="confirm-order" disabled={count === 0} onClick={onConfirm}>
         {count === 0 ? t('jobs.cartEmpty') : t('jobs.confirmOrder')}
       </button>

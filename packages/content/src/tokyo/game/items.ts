@@ -286,4 +286,8 @@ export const ITEMS: ItemDef[] = [
   gift('g_tenugui', '手ぬぐい', 'てぬぐい', 'Tenugui hand towel', 'منشفة تينوغوي', 1100, 'aiko', 2, ['craft', 'tradition']),
   gift('g_plush', 'ぬいぐるみ', undefined, 'Plush toy', 'دمية محشوة', 800, 'fukufuku', 2, ['cute']),
   gift('g_guitar_pick', 'ギターピック', undefined, 'Guitar pick', 'ريشة غيتار', 300, 'fukufuku', 2, ['music']),
+
+  // ---- Kato's souvenir shop in Hikarigaoka (Release 2 wave C1): the trip opens in Chapter 5 ----
+  // (also the station desk's bonus for a perfect shift, `job_station`: a gift the hand-over can name, since it has a sale route)
+  gift('g_souvenir', 'お土産', 'おみやげ', 'Souvenir (omiyage)', 'هدية تذكارية (أوميياغي)', 1000, 'kato', 5, ['travel', 'sweet']),
 ];

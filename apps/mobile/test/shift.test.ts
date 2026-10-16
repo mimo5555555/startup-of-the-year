@@ -255,7 +255,7 @@ describe('the cards render in English and Arabic', () => {
       expect(card).toContain('data-act="start-shift"');
       expect(card).toContain('data-helping');
       expect(card).toContain('data-mult="0.5"');
-      expect(html(createElement(IntroGate, { onTalk: noop, onBack: noop }))).toContain('data-act="talk-boss"');
+      expect(html(createElement(IntroGate, { name: 'Tanaka', onTalk: noop, onBack: noop }))).toContain('data-act="talk-boss"');
       expect(html(createElement(RefuseCard, { onBack: noop }))).not.toContain('start-shift');
       const quit = html(createElement(QuitSheet, { served: 3, pay: 210, onKeep: noop, onLeave: noop }));
       expect(quit).toContain('data-act="leave-shift"');
