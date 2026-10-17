@@ -420,7 +420,8 @@ describe('shifts, lessons, srs, prepare and the small events', () => {
     expect(step(s, { t: 'diary_added', entry: { chapter: 99, ja: 'x', assisted: false } }).state.diary).toHaveLength(1);
     s = step(s, { t: 'letter_saved', sentences: [{ ja: '日本はたのしいです。', assisted: true }, { ja: ' ', assisted: false }] }).state;
     expect(s.letter).toEqual([{ ja: '日本はたのしいです。', assisted: true }]);
-    expect(s.chapter.flags).toContain('letter_written');
+    // one assisted sentence is stored but is not the Letter c8_1 asks for (5 sentences, 3 of them the learner's own: c2-game.test.ts)
+    expect(s.chapter.flags).not.toContain('letter_written');
   });
   it('flags are filed once, on the story or on a known friend', () => {
     let s = step(fresh1f(), { t: 'flag', id: 'ticket_bought' }).state;

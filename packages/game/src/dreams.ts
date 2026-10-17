@@ -2,7 +2,7 @@
 // `dream.steps` only remembers the first day a step held (step ids are unique across the pack's dreams).
 import { BALANCE } from './balance';
 import { dayKey } from './ledger';
-import { evalPred, objectivesLeft, openChapter } from './objectives';
+import { chapterDef, closingPlayed, evalPred, objectivesLeft, openChapter } from './objectives';
 import type { EvalOut } from './objectives';
 import type { DreamDef, DreamProgress, GamePack, GameState, GameView, ItemDef, ReduceCtx } from './types';
 
@@ -37,7 +37,7 @@ export function defaultDream(pack: GamePack, view: GameView): string | null {
 /** The dream picker is shown once Chapter 1's closing beat is done (`DerivedFlags.dreamUnlocked`). */
 export function dreamPickerShown(pack: GamePack, state: GameState): boolean {
   const first = [...pack.chapters].sort((a, b) => a.n - b.n)[0];
-  return !!first && state.beats.includes(first.beats.close);
+  return !!first && closingPlayed(first, state);
 }
 
 /** The dream being tracked: the chosen one, or, until the picker has been shown, the silent default from the onboarding goal. */
@@ -143,6 +143,17 @@ export function dreamProgress(state: GameState, ctx: Pick<ReduceCtx, 'pack' | 'v
  * silent default tracks steps but waits to be picked.
  */
 export function evaluateDream(state: GameState, ctx: ReduceCtx, out: EvalOut): GameState {
+  return dreamFlagged(evaluateSteps(state, ctx, out), ctx.pack);
+}
+
+/** `ChapterDef.dreamFlag` (Chapter 8's "finish your dream, or choose a new one"): a chosen dream that is finished raises it while the chapter is current. */
+function dreamFlagged(state: GameState, pack: GamePack): GameState {
+  const flag = chapterDef(pack, state.chapter.n)?.dreamFlag;
+  if (!flag || !state.dream.id || !state.dream.done || state.chapter.flags.includes(flag)) return state;
+  return { ...state, chapter: { ...state.chapter, flags: [...state.chapter.flags, flag] } };
+}
+
+function evaluateSteps(state: GameState, ctx: ReduceCtx, out: EvalOut): GameState {
   const id = effectiveDream(ctx.pack, state, ctx.view);
   const def = id ? ctx.pack.dreams.find((d) => d.id === id) : undefined;
   if (!def || state.chapter.n < (def.openChapter ?? 1)) return state;

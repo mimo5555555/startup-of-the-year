@@ -11,7 +11,7 @@ import { dedupe, localDateString, markActive, observeClock, payForDay } from './
 import { applyOutfit, arriveDeliveries, grantItem, hasFeature, placeItem } from './inventory';
 import { applyLedger, dayKey, LEDGER_IDS, ledgerHas, refundIc, topUp } from './ledger';
 import { walletLimits } from './money';
-import { acceptEasier, chapterDef, evaluateAll } from './objectives';
+import { acceptEasier, chapterDef, closingBeat, closingPlayed, evaluateAll, nextChapterN } from './objectives';
 import { applyEcho, applySettlement, echoPassMark, settleLoop } from './payout';
 import { commitPurchase, fareFor } from './pricing';
 import { applyShift } from './shifts';
@@ -278,6 +278,47 @@ function useReviews(facts: ConversationFacts): SrsOp[] {
   return [...words].map((key): SrsOp => ({ op: 'review', key, kind: 'word', grade: 'good' }));
 }
 
+// ---------------------------------------------------------------------------------------------------------------
+// Real mode and the capstone's one-time Guided fallback (§7.2 "No cliff")
+// ---------------------------------------------------------------------------------------------------------------
+
+/** Story flag filed by every settled Real-mode conversation. */
+export const REAL_USED_FLAG = 'real_used';
+/** The story flag that marks the capstone's one Guided run as used. */
+export const guidedOnceFlag = (scenarioId: string): string => `guided_once:${scenarioId}`;
+
+/** Whether the player has ever played a conversation in Real mode (`real_try_done` is Chapter 6's try, filed by the app before `real_used` existed). */
+export const realUsed = (state: GameState): boolean => state.chapter.flags.includes(REAL_USED_FLAG) || state.chapter.flags.includes('real_try_done');
+
+/** Whether the capstone `scenarioId` may be played (once) in Guided mode now: the player never used Real mode and has not used the fallback. */
+export function guidedFallbackOpen(pack: GamePack, state: GameState, scenarioId: string): boolean {
+  return !!metaOf(pack, scenarioId)?.capstone && !realUsed(state) && !state.chapter.flags.includes(guidedOnceFlag(scenarioId));
+}
+
+/**
+ * After the settlement: a Real-mode conversation files `real_used`; a Guided run of a capstone counts toward `minIndependent` only as the one-time
+ * fallback (class-I lines plus half the class-S lines, rounded down), any other Guided run of it adds nothing to `bestIndependent`.
+ */
+function realModeCredit(a: Acc, before: GameState, facts: ConversationFacts, meta: ScenarioMeta | undefined): void {
+  if (facts.abandoned) return;
+  if (facts.mode === 'real') {
+    setFlag(a, REAL_USED_FLAG);
+    return;
+  }
+  if (!meta?.capstone) return;
+  const run = a.s.runs[facts.scenarioId];
+  if (!run) return;
+  const prev = before.runs[facts.scenarioId]?.bestIndependent ?? 0;
+  let best = prev;
+  if (!realUsed(before) && !before.chapter.flags.includes(guidedOnceFlag(facts.scenarioId))) {
+    const own = facts.turns.filter((t) => t.substantive && t.cls === 'I').length;
+    const shown = facts.turns.filter((t) => t.substantive && t.cls === 'S').length;
+    best = Math.max(prev, own + Math.floor(shown / 2));
+    setFlag(a, guidedOnceFlag(facts.scenarioId));
+  }
+  a.s = { ...a.s, runs: { ...a.s.runs, [facts.scenarioId]: { ...run, bestIndependent: best } } };
+}
+
 function onConversation(a: Acc, facts: ConversationFacts, ctx: ReduceCtx): void {
   const { pack } = ctx;
   if (ledgerHas(a.s, LEDGER_IDS.loop(facts.sessionId))) {
@@ -290,7 +331,9 @@ function onConversation(a: Acc, facts: ConversationFacts, ctx: ReduceCtx): void 
 
   // economy: the settlement is pure on (facts, state, pack) and written once
   const settlement = settleLoop(facts, a.s, pack);
+  const before = a.s;
   absorb(a, applySettlement(a.s, facts, settlement, ctx));
+  realModeCredit(a, before, facts, meta);
 
   // friends
   const friendId = meta?.friendId ?? facts.characterId;
@@ -458,6 +501,9 @@ function onDream(a: Acc, id: string | null, ctx: ReduceCtx): void {
   // progress is derived from state, so switching loses nothing: a dream whose steps were all seen before is already finished
   const done = def.steps.length > 0 && def.steps.every((st) => a.s.dream.steps[st.id] !== undefined);
   a.s = { ...a.s, dream: { ...a.s.dream, id, done } };
+  // a chapter that asks to choose a dream (Chapter 8: "finish your dream, or choose a new one") counts the choice, the same dream included
+  const flag = chapterDef(ctx.pack, a.s.chapter.n)?.dreamFlag;
+  if (flag) setFlag(a, flag);
 }
 
 function onCoach(a: Acc, ev: Extract<InputEvent, { t: 'coach_choice' }>, ctx: ReduceCtx): void {
@@ -738,7 +784,8 @@ function apply(a: Acc, ev: InputEvent, ctx: ReduceCtx): void {
         .slice(0, 12)
         .map((x) => ({ ja: x.ja.trim().slice(0, 300), assisted: x.assisted === true }));
       a.s = { ...a.s, letter };
-      setFlag(a, 'letter_written');
+      // c8_1: five sentences, at least three of them the learner's own (typed or spoken; a picked or translated one is assisted)
+      if (letter.length >= BALANCE.letter.sentences && letter.filter((x) => !x.assisted).length >= BALANCE.letter.minOwn) setFlag(a, 'letter_written');
       break;
     }
     case 'easier_accept': {
@@ -855,11 +902,17 @@ function uniqueEffects(effects: UiEffect[]): UiEffect[] {
   });
 }
 
-/** On the shell's `day_observed` (mount, focus): the open beat of the current chapter and the close beat of the last finished one, until they have played. */
-function pendingBeats(s: GameState, pack: GamePack): UiEffect[] {
+/**
+ * On the shell's `day_observed` (mount, focus): the open beat of the current chapter and the close beat of the last finished one, until they
+ * have played. The close waits only while the player is in that chapter (a start gate) or the one after it: a save that went on to Free Walk
+ * under an earlier release cap had its ending (the epilogue), so lifting the cap does not replay a closing from the middle of the story.
+ */
+function pendingBeats(s: GameState, ctx: ReduceCtx): UiEffect[] {
+  const { pack } = ctx;
   const out: UiEffect[] = [];
   const lastDone = chapterDef(pack, Math.max(0, ...s.chapter.completed));
-  if (lastDone && !s.beats.includes(lastDone.beats.close)) out.push({ t: 'beat', id: lastDone.beats.close });
+  const here = !!lastDone && (s.chapter.n === lastDone.n || s.chapter.n === nextChapterN(pack, lastDone.n));
+  if (lastDone && here && !closingPlayed(lastDone, s)) out.push({ t: 'beat', id: closingBeat(pack, lastDone, s, ctx.view) });
   const cur = chapterDef(pack, s.chapter.n);
   if (cur && !s.beats.includes(cur.beats.open)) out.push({ t: 'beat', id: cur.beats.open });
   return out;
@@ -896,7 +949,7 @@ export function reduce(state: GameState, ev: InputEvent, ctx: ReduceCtx): Reduce
   if (paidToday) absorb(a, evaluateAll(a.s, c));
 
   // effects
-  if (ev.t === 'day_observed') a.effects.push(...pendingBeats(a.s, c.pack));
+  if (ev.t === 'day_observed') a.effects.push(...pendingBeats(a.s, c));
   const net = a.s.totals.earned - a.s.totals.spent - netBefore + a.catalogSpent;
   if (net !== 0) a.s = bookIncome(a.s, net);
   return { state: a.s, derived: a.derived, effects: uniqueEffects(a.effects) };

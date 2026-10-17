@@ -668,6 +668,10 @@ function unreachable(pack: GamePack, p: Pred, ch: number): string[] {
     case 'culture':
       if (pack.culture.length < (p.id ? 1 : p.n)) why.push('not enough culture cards');
       break;
+    case 'flag':
+      // a story flag nothing raises can never be met (the Letter's `letter_written` is the game's own, Chapter 8's `dream_epilogue` its `dreamFlag`)
+      if (!raisedFlags(pack).has(p.id)) why.push(`nothing raises the flag "${p.id}"`);
+      break;
     case 'item_placed': {
       const slots = HOME_SLOTS.ono.length;
       if (p.n > slots) why.push(`${p.n} placed items, but a flat has ${slots} slots`);
@@ -691,8 +695,18 @@ function unreachable(pack: GamePack, p: Pred, ch: number): string[] {
 // The release cap (docs/RELEASE_1.md): chapters 1..lastChapter, then Free Walk; every offered dream is finishable
 // ---------------------------------------------------------------------------------------------------------------
 
-/** Flags the released app raises itself (the paper ticket of the ticket machine, `ticket_bought`); every other flag needs a beat or scenario effect. */
-const APP_FLAGS: readonly string[] = ['ticket_bought'];
+/** Flags the released app or the game raise themselves (the paper ticket of the ticket machine, `ticket_bought`; a letter that meets c8_1, `letter_written`); every other flag needs a beat or scenario effect or a chapter's `dreamFlag`. */
+const APP_FLAGS: readonly string[] = ['ticket_bought', 'letter_written'];
+
+/** Every story flag something in the pack (or the app) can raise. */
+function raisedFlags(pack: GamePack): Set<string> {
+  const raised = new Set<string>(APP_FLAGS);
+  const fromEffects = (fx: BeatEffect[] | undefined): void => fx?.forEach((e) => e.t === 'flag' && raised.add(e.id));
+  Object.values(pack.beats).forEach((b) => fromEffects(b.effects));
+  pack.scenarioMeta.forEach((m) => fromEffects(m.effects));
+  pack.chapters.forEach((c) => c.dreamFlag && raised.add(c.dreamFlag));
+  return raised;
+}
 
 /**
  * Why a dream cannot be finished with the content of the pack (empty = completable): every step's predicate must be reachable once
@@ -705,10 +719,6 @@ export function dreamBlockers(pack: GamePack, dream: DreamDef): string[] {
   const free = granted(pack);
   const panels = new Set(pack.shops.filter((s) => s.surface === 'panel').map((s) => s.id));
   const obtainable = (id: string): boolean => routes.has(id) || free.has(id) || panels.has(pack.items.find((i) => i.id === id)?.shop ?? '');
-  const raised = new Set<string>(APP_FLAGS);
-  const fromEffects = (fx: BeatEffect[] | undefined): void => fx?.forEach((e) => e.t === 'flag' && raised.add(e.id));
-  Object.values(pack.beats).forEach((b) => fromEffects(b.effects));
-  pack.scenarioMeta.forEach((m) => fromEffects(m.effects));
   const talkers = new Set(pack.scenarioMeta.filter((m) => m.kind === 'talk' && m.friendId).map((m) => m.friendId as string));
   const registered = new Set(pack.scenarioMeta.map((m) => m.id));
   const interactions = Object.values(pack.interactions).flat();
@@ -732,9 +742,6 @@ export function dreamBlockers(pack: GamePack, dream: DreamDef): string[] {
         if (n < p.n) why.push(`${p.n} friends at ${p.atLeast} hearts, but only ${n} friends have a registered conversation`);
         break;
       }
-      case 'flag':
-        if (!raised.has(p.id)) why.push(`nothing raises the flag "${p.id}"`);
-        break;
       case 'item_placed':
         if (!pack.items.some((i) => i.fx.some((f) => f.t === 'homeTier') && obtainable(i.id))) why.push('there is no flat to furnish');
         break;
@@ -779,7 +786,8 @@ function releaseChecks(pack: GamePack, out: Out): void {
   const fw = BALANCE.freeWalkChapter;
   const last = rel.lastChapter;
   const maxN = pack.chapters.reduce((m, c) => Math.max(m, c.n), 0);
-  if (!isInt(last) || last < 1 || last >= fw - 1) add(out, 2, 'release_cap', 'release.lastChapter', `lastChapter is a chapter from 1 to ${fw - 2}`);
+  // lastChapter = 8 plays the whole story: its closing beat is the real ending, and Free Walk follows as designed
+  if (!isInt(last) || last < 1 || last > fw - 1) add(out, 2, 'release_cap', 'release.lastChapter', `lastChapter is a chapter from 1 to ${fw - 1}`);
   else if (maxN !== last) add(out, 2, 'release_cap', 'release.lastChapter', `the pack plays chapters up to ${last}, but holds chapters up to ${maxN} (a capped pack holds exactly 1..lastChapter)`);
   const closing = pack.chapters.find((c) => c.n === last)?.beats.close;
   if (!rel.epilogue || closing !== rel.epilogue) add(out, 2, 'release_epilogue', 'release.epilogue', `the closing beat of chapter ${last} must be the epilogue "${rel.epilogue}" (it is "${String(closing)}")`);
@@ -810,6 +818,7 @@ function level5(pack: GamePack, out: Out, index?: ContentIndex): void {
   pack.chapters.forEach((c, i) => {
     beat(c.beats.open, `chapters[${i}].beats.open`, `chapter ${c.n}`);
     beat(c.beats.close, `chapters[${i}].beats.close`, `chapter ${c.n}`);
+    if (c.beats.closeIf) beat(c.beats.closeIf.id, `chapters[${i}].beats.closeIf.id`, `chapter ${c.n}`);
   });
   pack.dreams.forEach((d, i) => beat(d.beat, `dreams[${i}].beat`, `dream ${d.id}`));
   pack.items.forEach((it, i) => it.beat && beat(it.beat, `items[${i}].beat`, `item ${it.id}`));

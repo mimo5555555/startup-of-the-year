@@ -211,10 +211,20 @@ export function chapterDef(pack: GamePack, n: number): ChapterDef | null {
 }
 
 /** The chapter that follows `n`: the next one of the pack, or Free Walk after the last. */
-function nextChapterN(pack: GamePack, n: number): number {
+export function nextChapterN(pack: GamePack, n: number): number {
   const last = pack.chapters.reduce((m, c) => Math.max(m, c.n), 0);
   return n >= last ? BALANCE.freeWalkChapter : n + 1;
 }
+
+/** The closing beat of a chapter for this state: `beats.closeIf.id` when its predicate holds, else `beats.close` (a beat has no condition). */
+export function closingBeat(pack: GamePack, def: ChapterDef, state: GameState, view: GameView): string {
+  const alt = def.beats.closeIf;
+  return alt && evalPred(alt.pred, state, { pack, view }) ? alt.id : def.beats.close;
+}
+
+/** Whether one of the chapter's closing beats has played (the one picked at completion may differ from what the state picks now). */
+export const closingPlayed = (def: ChapterDef, state: GameState): boolean =>
+  state.beats.includes(def.beats.close) || (!!def.beats.closeIf && state.beats.includes(def.beats.closeIf.id));
 
 /** The predicate an objective is judged by: its `easier` alternative once accepted (D40). */
 export function objectivePred(obj: Objective, state: GameState): Pred {
@@ -626,7 +636,7 @@ function completeChapter(state: GameState, def: ChapterDef, ctx: Ctx & { now: nu
   for (const c of def.rewardCulture ?? []) s = unlockCulture(s, c, out, ctx);
   out.derived.push({ t: 'chapter_done', n: def.n });
   out.effects.push({ t: 'toast', key: 'quests.chapterDone', vars: { n: def.n } }, { t: 'fanfare', kind: 'chapter' });
-  if (!s.beats.includes(def.beats.close)) out.effects.push({ t: 'beat', id: def.beats.close });
+  if (!closingPlayed(def, s)) out.effects.push({ t: 'beat', id: closingBeat(ctx.pack, def, s, ctx.view) });
   return { ...s, chapter: { ...s.chapter, completed: [...new Set([...s.chapter.completed, def.n])].sort((a, b) => a - b) } };
 }
 

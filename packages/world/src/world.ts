@@ -6,8 +6,20 @@ import { buildRide, type RideKind } from './buildings';
 import { buildCity, type City } from './city';
 import { clamp, clampToBounds, clipDistance, resolveCircle } from './collision';
 import { TOKYO_DISTRICT, type District } from './district';
-import { buildFestival, DAY_LIGHTING, DUSK_LIGHTING, FESTIVAL_FADE_S, mixLighting, newLighting, type FestivalHandle } from './festival';
-import { DOOR_RETURN, PLAYER_START, shopRect, spotsAt, type NpcSpawn, type Rect, type ShopDef, type SpotId } from './layout';
+import {
+  buildFestival,
+  DAY_LIGHTING,
+  DUSK_LIGHTING,
+  FESTIVAL_FADE_S,
+  FESTIVAL_SPOTS,
+  FESTIVAL_TALK_RADIUS,
+  FIREWORKS_AREA,
+  festivalExtras,
+  mixLighting,
+  newLighting,
+  type FestivalPark,
+} from './festival';
+import { DOOR_RETURN, PLAYER_START, shopRect, spotsAt, type NpcSpawn, type Occluder, type Rect, type ShopDef, type SpotId } from './layout';
 import { COLORS } from './palette';
 import type { Stage, StageHandle, StageId, StagePick, StageState } from './stage';
 import { STAGES } from './stages';
@@ -171,7 +183,13 @@ export class TokyoWorld {
   private rideMesh: THREE.Object3D | null = null;
   private festivalTarget = 0;
   private festivalBlend = 0;
-  private festivalScenery: FestivalHandle | null = null;
+  private festivalScenery: FestivalPark | null = null;
+  /** the stall/stage colliders, picks and minimap rects, spliced into the city's lists while the festival is on */
+  private festivalAdded: ReturnType<typeof festivalExtras> & { occluders: Occluder[] } | null = null;
+  /** friends asked to the festival (`setFestivalGuests`), placed while it is on */
+  private festivalGuests: string[] = [];
+  /** NPCs standing at festival spots, with what to put back */
+  private festivalMoved = new Map<string, { home: THREE.Vector3; face: number; radius: number; shop: string | null }>();
   private readonly lighting = newLighting();
   private inSpots = new Set<SpotId>();
   private doorOpen = new Set<string>();
@@ -480,8 +498,11 @@ export class TokyoWorld {
   }
 
   /**
-   * Festival night: fades the sky, fog and lights to the dusk preset (and back) and shows the festival scenery.
-   * `instant` skips the fade (tests, restoring a saved state).
+   * Festival night: fades the sky, fog and lights to the dusk preset (and back) and shows the festival in the park
+   * (six stalls, the stage, lanterns; built on the first call). While it is on the stalls and stage block walking, their
+   * picks (`stall:<id>`, `festival:stage`) and minimap rects are live, Kenji stands at his ramen stall and the
+   * `setFestivalGuests` friends at their spots. Off takes all of that away again, stops the fireworks and sends everyone
+   * home: the day look is exactly what it was. `instant` skips the fade (tests, restoring a saved state).
    */
   setFestival(on: boolean, instant = false) {
     this.festivalTarget = on ? 1 : 0;
@@ -490,11 +511,68 @@ export class TokyoWorld {
       this.festivalScenery.group.visible = false;
       this.scene.add(this.festivalScenery.group);
     }
+    if (!on) this.festivalScenery?.resetFireworks();
     if (instant) this.festivalBlend = this.festivalTarget;
+    this.syncFestival();
     this.applyLighting();
   }
   isFestival() {
     return this.festivalTarget === 1;
+  }
+
+  /**
+   * Fireworks over the south hedge of the park (the chapter 7 closing beat). Only while the festival is on (a call
+   * before `setFestival(true)` is a no-op). On also turns the follow camera to look up at them; the learner can still
+   * orbit. Off lets the shells in the air finish.
+   */
+  fireworks(on: boolean) {
+    const fest = this.festivalScenery;
+    if (!fest || (on && this.festivalTarget !== 1)) return;
+    fest.setFireworks(on);
+    if (on && !this.stage) {
+      const fx = (FIREWORKS_AREA.x0 + FIREWORKS_AREA.x1) / 2 - this.playerPos.x;
+      const fz = (FIREWORKS_AREA.z0 + FIREWORKS_AREA.z1) / 2 - this.playerPos.z;
+      this.yaw = Math.atan2(-fx, -fz);
+      this.pitch = this.pitchRange()[0] + 0.04;
+    }
+  }
+  isFireworks() {
+    return !!this.festivalScenery?.fireworksOn();
+  }
+
+  /**
+   * The friends who come to the festival (the app passes those at 2+ hearts, plus 'hanako'). While the festival is on,
+   * 'hanako' stands beside the stage, 'kenji' is at his stall either way, and the rest take `FESTIVAL_SPOTS.guests` in
+   * order (8 spots; later ids are ignored). Everyone moved goes back home on `[]` or `setFestival(false)`.
+   */
+  setFestivalGuests(ids: readonly string[]) {
+    this.festivalGuests = [...ids];
+    this.syncFestival();
+  }
+
+  /** What the festival dressing costs to draw (visible meshes and points, triangles), its live picks and who is where. */
+  festivalInfo() {
+    const fest = this.festivalScenery;
+    if (!fest) return null;
+    let meshes = 0;
+    let triangles = 0;
+    fest.group.traverse((o) => {
+      const m = o as THREE.Mesh;
+      if (!(m.isMesh || (o as THREE.Points).isPoints) || !o.visible) return;
+      meshes++;
+      if (!m.isMesh) return;
+      const g = m.geometry;
+      triangles += (g.index ? g.index.count : g.getAttribute('position').count) / 3;
+    });
+    return {
+      on: this.festivalTarget === 1,
+      visible: fest.group.visible,
+      meshes,
+      triangles,
+      fireworks: fest.fireworksOn(),
+      picks: this.festivalAdded?.picks.map((p) => p.id) ?? [],
+      guests: [...this.festivalMoved.keys()],
+    };
   }
 
   /**
@@ -1268,6 +1346,75 @@ export class TokyoWorld {
       this.inSpots.add(s.id);
       this.emit({ type: 'spot', id: s.id });
     }
+  }
+
+  /**
+   * Puts the festival's colliders, picks, occluders and minimap rects into the city's lists while it is on (the minimap
+   * keeps a reference to `mapRects()`, so it sees them appear), and the festival people at their spots.
+   */
+  private syncFestival() {
+    const on = this.festivalTarget === 1 && !!this.festivalScenery;
+    const c = this.city;
+    if (on && !this.festivalAdded) {
+      const x = festivalExtras();
+      this.festivalAdded = { ...x, occluders: x.colliders.map((r) => ({ ...r, y1: 3.2 })) };
+      c.colliders.push(...this.festivalAdded.colliders);
+      c.occluders.push(...this.festivalAdded.occluders);
+      c.pickables.push(...this.festivalAdded.picks);
+      c.mapRects.push(...this.festivalAdded.mapRects);
+    } else if (!on && this.festivalAdded) {
+      const a = this.festivalAdded;
+      const drop = <T,>(list: T[], gone: readonly T[]) => {
+        for (const g of gone) {
+          const i = list.indexOf(g);
+          if (i >= 0) list.splice(i, 1);
+        }
+      };
+      drop(c.colliders, a.colliders);
+      drop(c.occluders, a.occluders);
+      drop(c.pickables, a.picks);
+      drop(c.mapRects, a.mapRects);
+      this.festivalAdded = null;
+    }
+
+    // who stands where: Kenji at his stall, Hanako by the stage, the other guests in order
+    const want = new Map<string, { x: number; z: number; face: number }>();
+    if (on) {
+      want.set('kenji', FESTIVAL_SPOTS.kenji);
+      let i = 0;
+      for (const id of this.festivalGuests) {
+        if (want.has(id)) continue;
+        if (id === 'hanako') want.set(id, FESTIVAL_SPOTS.mc);
+        else if (i < FESTIVAL_SPOTS.guests.length) want.set(id, FESTIVAL_SPOTS.guests[i++]);
+      }
+    }
+    for (const n of this.npcs) {
+      const spot = want.get(n.id);
+      const saved = this.festivalMoved.get(n.id);
+      if (spot) {
+        if (!saved) this.festivalMoved.set(n.id, { home: n.home.clone(), face: n.face, radius: n.radius, shop: n.shop });
+        n.home.set(spot.x, 0, spot.z);
+        n.face = n.facing = spot.face;
+        n.radius = FESTIVAL_TALK_RADIUS;
+        // at the festival nobody is behind a shutter
+        n.shop = null;
+        if (n.hidden) {
+          n.hidden = false;
+          this.refreshBadge(n);
+        }
+      } else if (saved) {
+        this.festivalMoved.delete(n.id);
+        n.home.copy(saved.home);
+        n.face = n.facing = saved.face;
+        n.radius = saved.radius;
+        n.shop = saved.shop;
+      } else continue;
+      n.avatar.root.position.copy(n.home);
+      n.avatar.root.rotation.y = n.face;
+      n.avatar.root.visible = !this.stage;
+      if (!spot && n.shop) this.syncShop(n.shop);
+    }
+    this.updateNearby();
   }
 
   private updateFestival(dt: number, t: number) {

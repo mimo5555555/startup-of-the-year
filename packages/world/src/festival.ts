@@ -1,7 +1,23 @@
-// Festival night: the dusk lighting preset the world fades to on `setFestival(true)`, and the seam where slice 5B
-// puts the park stalls, lanterns and fireworks. The world has no day/night cycle, so "night" is this one preset.
+// Festival night: the dusk lighting preset the world fades to on `setFestival(true)`, and the park stalls, stage,
+// lanterns and fireworks (slice 5B, `buildings/festival-park.ts`). The world has no day/night cycle, so "night" is this one preset.
 import * as THREE from 'three';
+import { buildFestivalPark, type FestivalPark } from './buildings/festival-park';
 import { COLORS } from './palette';
+
+export {
+  FESTIVAL_SPOTS,
+  FESTIVAL_STAGE,
+  FESTIVAL_STAGE_PICK,
+  FESTIVAL_STALLS,
+  FESTIVAL_STALL_IDS,
+  FESTIVAL_TALK_RADIUS,
+  FIREWORKS_AREA,
+  festivalExtras,
+  stallPickId,
+  stallRect,
+  stageRect,
+} from './buildings/festival-park';
+export type { FestivalPark, FestivalSpot, FestivalStall, FestivalStallId } from './buildings/festival-park';
 
 /** How long the lighting takes to fade between day and dusk, in seconds. */
 export const FESTIVAL_FADE_S = 1.6;
@@ -110,10 +126,10 @@ export interface FestivalHandle {
 }
 
 /**
- * The festival scenery (6 stalls with awnings and noren, 20 lanterns on strings, fireworks over the pond), slice 5B.
- * Built lazily on the first `setFestival(true)`, so a world that never holds a festival pays nothing for it.
- * Stub: an empty group, so the dusk preset works on its own.
+ * The festival scenery (6 stalls with awnings and noren, a yagura stage, lanterns on strings, fireworks over the south
+ * hedge), slice 5B: `buildings/festival-park.ts`. Built lazily on the first `setFestival(true)`, so a world that never
+ * holds a festival pays nothing for it.
  */
-export function buildFestival(_materials: FestivalMaterials): FestivalHandle {
-  return { group: new THREE.Group(), dispose() {} };
+export function buildFestival(materials: FestivalMaterials): FestivalPark {
+  return buildFestivalPark(materials);
 }

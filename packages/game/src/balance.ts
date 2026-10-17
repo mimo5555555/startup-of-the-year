@@ -211,6 +211,9 @@ export const BALANCE = deepFreeze({
    *  unmatched without a fallback; speech under `correctionConfidence` earns no corrections (a "maybe" note); `great` is a "great" similarity */
   speech: { maxAlternatives: 3, directConfidence: 0.75, confirmConfidence: 0.45, correctionConfidence: 0.8, great: 0.85 },
 
+  // --- §7.2 Letter Home (c8_1): five sentences, at least three of the learner's own (typed or spoken, not picked or translated) ---------
+  letter: { sentences: 5, minOwn: 3 },
+
   // --- §4.5 Free Walk is chapter.n = 9 (D36) ------------------------------------------------------------------------------
   freeWalkChapter: 9,
   chapters: 8,

@@ -368,6 +368,11 @@ export interface ScenarioMeta {
   heart?: number;
   /** applied once, on the first completion: flags (`genkan_ok`, `heart5_seen`), keepsakes, items, culture, titles */
   effects?: BeatEffect[];
+  /**
+   * The capstone (`matsuri_speech`, §7.2): played in Real mode (chips hidden). A player who has never used Real mode may play it ONCE in
+   * Guided mode, where class-S lines count at half toward `minIndependent` (`guidedFallbackOpen`); any other Guided run of it counts nothing
+   * toward `minIndependent`.
+   */
   capstone?: boolean;
   /** intent ids objectives need, e.g. 'ramen:itadakimasu' */
   requiredIntents?: string[];
@@ -410,9 +415,17 @@ export interface ChapterDef {
   opens: ChapterOpen[];
   startGate?: Pred;
   objectives: Objective[];
-  /** BeatDef ids */
-  beats: { open: string; close: string };
+  /**
+   * BeatDef ids. A beat has no condition, so a chapter with two designed closings names the second one in `closeIf`: it plays instead of
+   * `close` when its predicate holds as the chapter completes (Chapter 6: Aiko's "This is your home" once the room is rented).
+   */
+  beats: { open: string; close: string; closeIf?: { pred: Pred; id: string } };
   catchUp?: { afterActiveDays: number; item: string; maxYen: number };
+  /**
+   * A story flag the game raises while this chapter is current, as soon as a dream is chosen (re-confirming the tracked one counts) or the
+   * tracked dream is finished, now or before (Chapter 8's `dream_epilogue`: "finish your dream, or choose a new one").
+   */
+  dreamFlag?: string;
 }
 
 export interface DreamStep {
@@ -1276,7 +1289,7 @@ export type InputEvent =
   | { t: 'culture_say'; id: string; similarity: number }
   /** a beat finished playing: files it in `beats`, applies its `effects`, and may follow with `dream_chosen` / `profile_set` / `diary_added` for its `ask` */
   | { t: 'beat_done'; id: string }
-  /** the Letter Home was written (sets the `letter_written` flag; `diary` is separate) */
+  /** the Letter Home was written: stored as given; sets the `letter_written` flag once it has BALANCE.letter.sentences sentences, BALANCE.letter.minOwn of them not assisted (`diary` is separate) */
   | { t: 'letter_saved'; sentences: LetterSentence[] }
   /** the player accepted the `easier` alternative of an objective (free and permanent; `chapter.easier`) */
   | { t: 'easier_accept'; objective: string }
