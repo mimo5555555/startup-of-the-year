@@ -10,7 +10,8 @@ import { BALANCE, createGameState, reduce, type GameState, type InputEvent } fro
 import { ctxOf } from '../../../packages/game/test/fixtures-1e';
 import { gameView } from '../src/game/selectors';
 import { festivalPlan, interactionRows, planFor, routePick, LETTER_ROW_ID } from '../src/game/worldSync';
-import { fireworksBeat, guestsFor, resetFestivalSync, syncFestival } from '../src/game/festivalSync';
+import { festivalLineOf, fireworksBeat, guestsFor, resetFestivalSync, syncFestival } from '../src/game/festivalSync';
+import { STRINGS } from '../src/i18n';
 import { capstoneMode } from '../src/game/realTry';
 import { cardOf, freeTokens, closingChapterOf, diaryGloss, letterSentences, readBackText, sentenceOf, tallyOf, typedJapanese, wrapText, type LetterDraft } from '../src/game/letterLogic';
 
@@ -121,6 +122,18 @@ describe('wave C2: festival rows, picks and the Letter row', () => {
     expect(stall && 'scenarioId' in stall && stall.scenarioId).toBe(FESTIVAL.stallsScenario);
     expect(stall && 'characterId' in stall && stall.characterId).toBe('kenji');
   });
+  it("the goldfish scoop sells no food: a line of its own, not Kenji's food conversation (regression, review)", () => {
+    const kingyo = { t: 'stall', stall: 'kingyo' } as const;
+    expect(routePick('stall:kingyo')).toEqual({ t: 'festival', pick: kingyo });
+    expect(festivalPlan(env(at(7, 1)), kingyo)).toBeNull();
+    expect(festivalLineOf(kingyo)).toBe('fest.kingyo');
+    expect(STRINGS.en['fest.kingyo']).toMatch(/goldfish/i);
+    expect(STRINGS.ar['fest.kingyo']).toMatch(/[\u0600-\u06ff]/);
+    // the food stalls and the stage keep their rows
+    for (const stall of ['takoyaki', 'yakisoba', 'kakigori', 'ramen', 'ringoame']) expect(festivalLineOf({ t: 'stall', stall })).toBeNull();
+    expect(festivalLineOf({ t: 'stage' })).toBeNull();
+    expect(festivalPlan(env(at(7, 1)), { t: 'stall', stall: 'ringoame' })).not.toBeNull();
+  });
   it('Hanako opens the Letter from Chapter 8 (and at Free Walk, to read it again), never before', () => {
     expect(ids(at(7, 1), 'hanako')).not.toContain(LETTER_ROW_ID);
     expect(ids(at(8, 1), 'hanako')).toContain(LETTER_ROW_ID);
@@ -197,6 +210,26 @@ describe('wave C2: the Letter drafts', () => {
     const text = readBackText(card);
     expect(text).toContain('わたしは元気です。');
     expect(text).toContain(card.header.ja);
+  });
+  it("the learner's own line reads as a short labelled word list in EN and AR, or shows no meaning when a word is unknown (regression, review: 'friend · a lot · is (doing), am, exists')", () => {
+    const card = (ja: string, lang: 'en' | 'ar') => cardOf([{ ja, assisted: false }], [undefined], 'サム', lang).lines[0]!;
+    const en = card('友だちがたくさんいます。', 'en');
+    expect(en).toMatchObject({ gloss: 'friend · a lot · is', literal: true });
+    const ar = card('友だちがたくさんいます。', 'ar');
+    expect(ar.literal).toBe(true);
+    expect(ar.gloss).not.toMatch(/[()،]/);
+    expect(ar.gloss.split(' · ')).toHaveLength(3);
+    expect(card('公園によく行きます。', 'en').gloss).toBe('park · well/often · go');
+    // a word the dictionary does not know (kana it cannot place): no half translation
+    expect(card('にほんごをべんきょうしています。', 'en')).toMatchObject({ gloss: '' });
+    expect(card('にほんごをべんきょうしています。', 'en').literal).toBeUndefined();
+    // a sentence with a meaning of its own (a picked idea, a translation) is not labelled
+    const known = cardOf([{ ja: '公園が好きです。', assisted: true }], [{ en: 'I like the park.', ar: 'أحب الحديقة.' }], 'サム', 'ar').lines[0]!;
+    expect(known).toMatchObject({ gloss: 'أحب الحديقة.' });
+    expect(known.literal).toBeUndefined();
+    // the card labels it in both languages
+    expect(STRINGS.en['letter.wordByWord'].replace('{words}', en.gloss)).toBe('Word by word: friend · a lot · is');
+    expect(STRINGS.ar['letter.wordByWord']).toContain('{words}');
   });
   it('a kana word the dictionary does not know gets real romaji on the card (regression, gate: the romaji row read 「ICkādo de たび」)', () => {
     const card = cardOf([{ ja: 'わたしの夢は「ICカードでたび」です。', assisted: true }], [undefined], 'サム', 'en');

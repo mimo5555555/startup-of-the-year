@@ -97,19 +97,31 @@ export interface CardLine {
   ja: string;
   tokens: Token[];
   romaji: string;
-  /** the meaning in the UI language: the sentence's own gloss, else word by word from the dictionary */
+  /** the meaning in the UI language: the sentence's own gloss, else word by word from the dictionary (`literal`), else empty */
   gloss: string;
+  /** the gloss is the dictionary's word by word (the learner's own sentence has no translation): the card labels it so */
+  literal?: boolean;
   assisted: boolean;
   diary?: boolean;
 }
 
-/** Word-by-word meaning of free Japanese (the learner's own sentence has no stored translation). */
+/** A dictionary gloss, short: its first sense without the notes in brackets ("is (doing), am, exists (living things)" -> "is", "well / often" -> "well/often"). */
+const shortSense = (gloss: string): string =>
+  gloss
+    .replace(/\s*\([^)]*\)/g, '')
+    .split(/\s*[,،;]\s*/)[0]!
+    .replace(/\s*\/\s*/g, '/')
+    .trim();
+
+/**
+ * Word-by-word meaning of free Japanese (the learner's own sentence has no stored translation): each word's short sense, joined by '·' (the
+ * particles left out). Empty when the dictionary does not know every word: a partial list of words reads as a wrong translation, so the line
+ * then shows its Japanese and its "your own" tag only (regression, review: the card read "friend · a lot · is (doing), am, exists").
+ */
 export function wordGloss(tokens: readonly Token[], lang: Lang): string {
-  return tokens
-    .filter((t) => !t.punct && t.gloss && !t.grammar)
-    .map((t) => t.gloss![lang])
-    .filter(Boolean)
-    .join(' · ');
+  const words = tokens.filter((t) => !t.punct && !t.grammar);
+  if (!words.length || words.some((t) => !t.gloss?.[lang])) return '';
+  return words.map((t) => shortSense(t.gloss![lang])).filter(Boolean).join(' · ');
 }
 
 /**
@@ -128,7 +140,9 @@ const fill = (line: Line, name: string): Line => ({ ja: line.ja.replaceAll('{x}'
 export function cardOf(sentences: readonly LetterSentence[], glosses: ReadonlyArray<{ en: string; ar: string } | undefined>, name: string, lang: Lang, diaryCount = 0, shownName = '') {
   const lineOf = (ja: string, assisted: boolean, gloss: { en: string; ar: string } | undefined, diary: boolean): CardLine => {
     const tokens = freeTokens(ja);
-    return { ja, tokens, romaji: romajiText(tokens), gloss: gloss?.[lang] || wordGloss(tokens, lang), assisted, ...(diary ? { diary } : {}) };
+    const own = gloss?.[lang];
+    const literal = own ? '' : wordGloss(tokens, lang);
+    return { ja, tokens, romaji: romajiText(tokens), gloss: own || literal, ...(literal ? { literal: true } : {}), assisted, ...(diary ? { diary } : {}) };
   };
   const body = sentences.map((s, i) => lineOf(s.ja, s.assisted, glosses[i], i >= sentences.length - diaryCount));
   const head = LETTER_HEADER;
@@ -170,8 +184,16 @@ export function wrapText(measure: (s: string) => number, text: string, max: numb
   return out;
 }
 
+/** How the image is drawn: the UI language, romaji on or off, the title, and the label of a word-by-word meaning ("Word by word: …"). */
+export interface CardImageOpts {
+  lang: Lang;
+  romaji: boolean;
+  title: string;
+  wordByWord?: (words: string) => string;
+}
+
 /** Draws the card (furigana are left to the screen; the image carries the Japanese, the romaji when asked for, and the gloss). Returns the height used. */
-export function drawCard(ctx: CanvasRenderingContext2D, card: LetterCardData, opts: { lang: Lang; romaji: boolean; title: string; height?: number }): number {
+export function drawCard(ctx: CanvasRenderingContext2D, card: LetterCardData, opts: CardImageOpts & { height?: number }): number {
   const rtl = opts.lang === 'ar';
   const max = W - PAD * 2;
   let y = PAD;
@@ -204,7 +226,7 @@ export function drawCard(ctx: CanvasRenderingContext2D, card: LetterCardData, op
   for (const l of card.lines) {
     text(l.ja, '', '#2a2440', 48);
     if (opts.romaji && l.romaji) text(l.romaji, '', '#6b6580', 28, 'gloss');
-    if (l.gloss) text(l.gloss, '', '#6b6580', 30, 'gloss');
+    if (l.gloss) text(l.literal && opts.wordByWord ? opts.wordByWord(l.gloss) : l.gloss, '', '#6b6580', 30, 'gloss');
     y += 20;
   }
   y += 10;
@@ -214,7 +236,7 @@ export function drawCard(ctx: CanvasRenderingContext2D, card: LetterCardData, op
 }
 
 /** Renders the card on a fresh canvas and downloads it as a PNG (an object URL clicked through a download link). */
-export async function saveCardImage(card: LetterCardData, opts: { lang: Lang; romaji: boolean; title: string; filename?: string }): Promise<boolean> {
+export async function saveCardImage(card: LetterCardData, opts: CardImageOpts & { filename?: string }): Promise<boolean> {
   const canvas = document.createElement('canvas');
   const ctx = canvas.getContext('2d');
   if (!ctx) return false;

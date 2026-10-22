@@ -80,7 +80,7 @@ export function Letter() {
       .catch(() => undefined);
   };
   const saveImage = async () => {
-    const ok = await saveCardImage(card, { lang, romaji: useStore.getState().settings.romaji, title: t('letter.cardTitle') });
+    const ok = await saveCardImage(card, { lang, romaji: useStore.getState().settings.romaji, title: t('letter.cardTitle'), wordByWord: (words) => t('letter.wordByWord', { words }) });
     if (ok) setToast(t('letter.imageSaved'));
   };
 

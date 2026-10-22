@@ -527,7 +527,9 @@ export function doorStatus(env: InteractionEnv, friend: string | null): DoorStat
  * its rehearsal), or nothing while the row is not open (the picks exist only while the festival is on).
  */
 export function festivalPlan(env: InteractionEnv, pick: FestivalPick): Plan | null {
-  const { characterId, scenarioId } = festivalRowOf(pick);
+  const to = festivalRowOf(pick);
+  if (!to) return null;
+  const { characterId, scenarioId } = to;
   const row = openRows(interactionRows(env, characterId)).find((r) => r.it.scenarioId === scenarioId);
   return row ? planFor(env, row.it, characterId) : null;
 }

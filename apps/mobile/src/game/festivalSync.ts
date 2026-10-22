@@ -106,6 +106,16 @@ export function festivalPickOf(id: string): FestivalPick | null {
   return m ? { t: 'stall', stall: m[1]! } : null;
 }
 
-/** The Talk row a festival pick stands for: the stalls are Kenji's row (matsuri_stalls), the stage is Hanako's (the speech). */
-export const festivalRowOf = (pick: FestivalPick): { characterId: string; scenarioId: string } =>
-  pick.t === 'stage' ? { characterId: 'hanako', scenarioId: FESTIVAL.speechScenario } : { characterId: 'kenji', scenarioId: FESTIVAL.stallsScenario };
+/**
+ * What a tap on a stall that sells no food says: the goldfish scoop (金魚すくい) is a game, so it has a line of its own instead of Kenji's food
+ * conversation (regression, review: it opened matsuri_stalls). Null for the food stalls and the stage.
+ */
+export const festivalLineOf = (pick: FestivalPick): 'fest.kingyo' | null => (pick.t === 'stall' && pick.stall === 'kingyo' ? 'fest.kingyo' : null);
+
+/** The Talk row a festival pick stands for: the food stalls are Kenji's row (matsuri_stalls), the stage is Hanako's (the speech); none for the goldfish scoop. */
+export const festivalRowOf = (pick: FestivalPick): { characterId: string; scenarioId: string } | null =>
+  festivalLineOf(pick)
+    ? null
+    : pick.t === 'stage'
+      ? { characterId: 'hanako', scenarioId: FESTIVAL.speechScenario }
+      : { characterId: 'kenji', scenarioId: FESTIVAL.stallsScenario };

@@ -11,6 +11,7 @@ export const en = {
   'fest.guidedNote': 'You have not used Real mode yet, so this one time the speech may use chips. Chip lines count half.',
   'fest.own': 'Your own lines: {n} of {need}',
   'fest.ownDone': 'All {need} lines in your own words!',
+  'fest.kingyo': 'Goldfish scooping (kingyo-sukui): a festival game to watch. The food is at the other stalls.',
 } as const;
 
 export const ar: Record<keyof typeof en, string> = {
@@ -23,4 +24,5 @@ export const ar: Record<keyof typeof en, string> = {
   'fest.guidedNote': 'لم تستخدم الوضع الحقيقي بعد، لذا يمكن لكلمتك هذه المرة فقط أن تستخدم الاقتراحات. جمل الاقتراحات تُحتسب بالنصف.',
   'fest.own': 'جملك أنت: {n} من {need}',
   'fest.ownDone': 'الجمل الـ{need} كلها بكلماتك!',
+  'fest.kingyo': 'صيد السمك الذهبي (كينغيو-سوكوي): لعبة من ألعاب المهرجان للمشاهدة. الطعام في البسطات الأخرى.',
 };

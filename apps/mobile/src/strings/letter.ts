@@ -21,6 +21,7 @@ export const en = {
   'letter.hanakoRow': 'Write your Letter Home',
   'letter.diaryOr': 'or type your own line',
   'letter.diaryTyped': 'Your own line',
+  'letter.wordByWord': 'Word by word: {words}',
   'quests.storyDone': 'The story is complete: all 8 chapters. Sakura-chō is yours to walk.',
   'quests.readLetter': 'Read your Letter',
 } as const;
@@ -44,6 +45,7 @@ export const ar: Record<keyof typeof en, string> = {
   'letter.hanakoRow': 'اكتب رسالتك إلى الأهل',
   'letter.diaryOr': 'أو اكتب سطرك',
   'letter.diaryTyped': 'سطرك أنت',
+  'letter.wordByWord': 'كلمة بكلمة: {words}',
   'quests.storyDone': 'اكتملت القصة: الفصول الثمانية كلها. ساكورا-تشو لك لتتجول فيها.',
   'quests.readLetter': 'اقرأ رسالتك',
 };

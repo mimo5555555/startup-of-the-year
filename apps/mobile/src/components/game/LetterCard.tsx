@@ -21,7 +21,7 @@ export function LetterCard({ card, compact = false }: { card: LetterCardData; co
         {card.lines.map((l, i) => (
           <li key={i} data-sentence={i} data-assisted={l.assisted ? 1 : 0} data-diary={l.diary ? 1 : undefined}>
             <JaText tokens={l.tokens} furigana={furigana} romaji={romaji} size={compact ? 'sm' : 'md'} />
-            {!compact && l.gloss && <small dir="auto">{l.gloss}</small>}
+            {!compact && l.gloss && <small dir="auto" data-literal={l.literal ? 1 : undefined}>{l.literal ? t('letter.wordByWord', { words: l.gloss }) : l.gloss}</small>}
             {!compact && (
               <span className={`pill ltr-tag${l.assisted ? ' help' : ''}`}>{l.diary ? t('letter.diary') : t(l.assisted ? 'letter.assistedTag' : 'letter.ownTag')}</span>
             )}

@@ -27,6 +27,7 @@ import { useHome } from '../game/homeStore';
 import { beginOwn, useOwn } from '../game/ownStore';
 import { useDisclosure, useGameState, useGameView, useTracker } from '../game/hooks';
 import { PACK, shopById } from '../game/pack';
+import { festivalLineOf } from '../game/festivalSync';
 import {
   approachPoint,
   doorStatus,
@@ -159,7 +160,13 @@ export function WorldScreen() {
       else if (st.t === 'hearts' || st.t === 'wait') setDoorTip({ status: st, friend: route.friend! });
       else say(t('hud.doorLocked'));
     } else if (route.t === 'festival') {
-      // a festival stall (Kenji's row) or the stage (the speech, through its rehearsal); nothing while the row is not open
+      // a festival stall (Kenji's row) or the stage (the speech, through its rehearsal); nothing while the row is not open. The goldfish
+      // scoop sells no food: a line of its own
+      const line = festivalLineOf(route.pick);
+      if (line) {
+        say(t(line));
+        return true;
+      }
       const plan = festivalPlan(e, route.pick);
       if (!plan) return false;
       run(plan);
