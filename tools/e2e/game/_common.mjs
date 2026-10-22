@@ -72,12 +72,12 @@ export const gameState = async (page) => (await savedGame(page))?.state;
 /** The state the app holds in memory (no wait for a write). */
 export const liveGame = (page) => page.evaluate(() => window.__lw.getGame());
 
-/** Plays through any story beats that are waiting (the stub and the real StoryBeat both end with the primary button). */
+/** Plays through any story beats that are waiting (the stub and the real StoryBeat both end with the primary button; a closing beat's diary step is skipped). */
 export async function skipBeats(page, { max = 12 } = {}) {
   for (let i = 0; i < max; i++) {
     const on = await page.evaluate(() => window.__lw.useStore.getState().screen === 'beat');
     if (!on) return i;
-    await page.locator('.panel .btn.primary').last().click();
+    await page.locator('.panel .btn.primary:not(:disabled), .panel [data-step=diary] [data-skip]').last().click();
     await page.waitForTimeout(250);
   }
   throw new Error('story beats did not end');

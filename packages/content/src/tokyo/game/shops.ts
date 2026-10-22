@@ -26,6 +26,8 @@ export const SHOPS: ShopDef[] = [
     sells: [...menuOf('konbini'), ...itemsOf('konbini')],
   },
   { id: 'ramen', placeId: 'ramen', name: { en: 'Ramen shop', ar: 'مطعم الرامن' }, openChapter: 1, surface: 'world', register: 'polite', pay: ['cash', 'card'], sells: menuOf('ramen') },
+  // Release 2 wave C2: Kenji's festival stall row in the park (`matsuri_stalls`), the festival food of Chapter 7; stalls take cash only (`cc_matsuri`)
+  { id: 'matsuri', placeId: 'park', name: { en: 'Festival stalls', ar: 'بسطات المهرجان' }, openChapter: 7, surface: 'world', register: 'polite', pay: ['cash'], sells: menuOf('matsuri') },
   // the station counter (the IC card) and the vending machines: without them the pack cannot price or charge a card or a drink
   ...STATION_SHOPS,
   // Hikari Denki opens when Chapter 4 begins (the phone is the story's one saving goal, §4.5): cash and card, no IC; Sakura Points

@@ -1,0 +1,283 @@
+/* The Letter Home (Release 2 wave C2): the five frames, the diary lines, the finished card. Prefix ltr-; tokens from styles.css; logical
+   properties only (the app runs RTL); every target at least 44 px. The Japanese itself is always left to right (dir=ltr on the field). */
+
+.ltr-body {
+  gap: 12px;
+}
+.ltr-intro {
+  margin: 0;
+  font-weight: 700;
+}
+.ltr-noaudio {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.ltr-count {
+  margin: 0;
+  align-self: flex-start;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  box-shadow: var(--shadow-sm);
+}
+.ltr-count.ok {
+  background: var(--good-soft);
+  color: var(--good);
+}
+.ltr-frame {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+.ltr-frame.done {
+  border-color: var(--good);
+}
+.ltr-frame-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.ltr-prompt {
+  font-size: 15px;
+}
+.ltr-tag {
+  background: var(--good-soft);
+  color: var(--good);
+  white-space: nowrap;
+}
+.ltr-tag.help {
+  background: var(--sky-soft);
+  color: var(--sky-dark);
+}
+.ltr-field {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  min-width: 0;
+}
+.ltr-field .field {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  font-family: var(--font-ja);
+}
+.ltr-field .btn,
+.ltr-mic {
+  min-height: 44px;
+  min-width: 44px;
+  flex: none;
+}
+.ltr-mic.rec {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+.ltr-frame > .btn,
+.ltr-row .btn {
+  min-height: 44px;
+}
+.ltr-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.ltr-row .btn {
+  flex: 1 1 140px;
+}
+.ltr-ideas {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.ltr-idea {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 8px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg-2);
+  color: var(--fg);
+  text-align: start;
+  cursor: pointer;
+}
+.ltr-idea small {
+  color: var(--fg-2);
+}
+.ltr-diary ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ltr-diary li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.ltr-diary li span {
+  font-family: var(--font-ja);
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.ltr-diary .btn {
+  min-height: 44px;
+}
+.ltr-foot {
+  flex-wrap: wrap;
+}
+.ltr-foot .btn {
+  flex: 1 1 120px;
+  min-height: 44px;
+}
+.ltr-foot .btn.primary {
+  flex-basis: 100%;
+}
+.ltr-toast {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--good);
+  font-weight: 800;
+}
+
+/* ---------- the card ---------- */
+.ltr-card {
+  background: #fffaf2;
+  color: #2a2440;
+  border: 2px solid #e8b4a0;
+  border-radius: 18px;
+  padding: 18px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  box-shadow: var(--shadow-sm);
+  min-width: 0;
+}
+.ltr-card small {
+  color: #6b6580;
+}
+/* the meaning lines span the card so an Arabic gloss sits on the right under left-to-right Japanese */
+.ltr-card small[dir='auto'] {
+  align-self: stretch;
+  text-align: start;
+}
+.ltr-head,
+.ltr-sign {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.ltr-sign {
+  align-items: flex-end;
+}
+.ltr-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ltr-lines li {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.ltr-lines .ltr-tag {
+  font-size: 11px;
+}
+.ltr-card.compact {
+  padding: 12px;
+  gap: 6px;
+  max-height: 46vh;
+  overflow: auto;
+}
+.ltr-card.compact .ltr-lines {
+  gap: 4px;
+}
+.qst-beat-stage.letter {
+  align-items: center;
+  padding-top: calc(16px + var(--safe-top));
+}
+.qst-beat-stage.letter .ltr-card {
+  width: 100%;
+  max-width: 520px;
+}
+
+/* ---------- the diary step of a closing beat ---------- */
+.dia-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dia-chips {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dia-chip {
+  min-height: 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 1px;
+  padding: 6px 12px;
+  border: 1.5px solid var(--line);
+  border-radius: 14px;
+  background: var(--bg-2);
+  color: var(--fg);
+  text-align: start;
+  cursor: pointer;
+}
+.dia-chip small {
+  color: var(--fg-2);
+}
+.dia-chip.on {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+.dia-or {
+  margin-top: 2px;
+}
+.dia-preview {
+  color: var(--fg-2);
+}
+.qst-beat-card.dia {
+  max-height: 80vh;
+  overflow: auto;
+}
+/* the diary's Skip / Save stay in reach while the taps scroll */
+.qst-beat-card.dia .qst-ask-actions {
+  position: sticky;
+  bottom: calc(-18px - var(--safe-bottom));
+  margin-bottom: calc(-18px - var(--safe-bottom));
+  padding-block: 10px calc(18px + var(--safe-bottom));
+  background: var(--card);
+  z-index: 1;
+}
+.dia-chip {
+  padding-block: 4px;
+}
+.qst-story-done {
+  display: block;
+  margin-block: 6px 2px;
+}

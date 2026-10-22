@@ -75,7 +75,7 @@ export function newDay(skip = 1): void {
   beats();
 }
 
-export function convo(scenarioId: string, characterId: string, o: { lines?: string[]; itemId?: string; chat?: boolean; startNode?: string } = {}): { facts: ConversationFacts; ended: boolean } {
+export function convo(scenarioId: string, characterId: string, o: { lines?: string[]; itemId?: string; chat?: boolean; startNode?: string; mode?: 'guided' | 'real' } = {}): { facts: ConversationFacts; ended: boolean } {
   const sc = scenarioById(scenarioId)!;
   const character = CHARACTERS.find((c) => c.id === characterId)!;
   const sessionId = `s${++sid}`;
@@ -88,7 +88,7 @@ export function convo(scenarioId: string, characterId: string, o: { lines?: stri
   for (const l of o.lines ?? []) if (!session.ended) session.submit({ text: l, mode: 'typed_ja' });
   let guard = 0;
   while (!session.ended && guard++ < 40) session.pickSuggestion(0);
-  const facts0 = session.facts({ mode: 'guided', prepared: false });
+  const facts0 = session.facts({ mode: o.mode ?? 'guided', prepared: false });
   const facts1 = g.friend ? completeFriendFacts(g.friend, facts0, session.stepsDone) : facts0;
   const facts = { ...facts1, cultureSaid: cultureSaidIn(JP_PACK, facts1) };
   const gift = g.friend ? giftEventOf(g.friend, facts) : null;

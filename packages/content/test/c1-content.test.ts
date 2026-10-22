@@ -343,7 +343,8 @@ describe('Chapters 5 and 6 as the design table has them (§7.2)', () => {
 
   it('every objective has English and Arabic text; the chapters keep their minimum days in order; no objective needs a day after its own minimum', () => {
     for (const c of [ch(5), ch(6)]) for (const o of c.objectives) expect(o.text.en.trim() && hasAr(o.text.ar), o.id).toBeTruthy();
-    expect(JP_PACK.chapters.map((c) => c.minDays)).toEqual([1, 2, 4, 7, 10, 14]);
+    // wave C2 plays the whole story (c2-content.test.ts): Chapters 7 and 8 keep the design's 19 and 25
+    expect(JP_PACK.chapters.map((c) => c.minDays)).toEqual([1, 2, 4, 7, 10, 14, 19, 25]);
     // the jobs the shift objectives count are open by the chapter that asks: konbini 2, café 3, station 5; c6_4 (5 shifts in total) can be met
     // by two shifts a day (BALANCE.shift.dailyMax) on three days, long before day 14
     expect(BALANCE.shift.dailyMax * Math.ceil(5 / BALANCE.shift.dailyMax)).toBeGreaterThanOrEqual(5);
@@ -396,16 +397,16 @@ describe('the beats of Chapters 4-6 and the Real-mode try', () => {
     expect(JP_PACK.chapters[4]!.beats).toEqual({ open: 'b_ch5_open', close: 'b_ch5_close' });
   });
 
-  it('Chapter 6 opens with Mio\'s invitation; its designed closings (Aiko, with and without the rented room) are authored for the release that plays on', () => {
+  it('Chapter 6 opens with Mio\'s invitation; its two designed closings (Aiko, with and without the rented room) are played since wave C2', () => {
     expect(BEATS.b_ch6_open!.lines[0]!.who).toBe('mio');
     expect(BEATS.b_ch6_open!.lines[0]!.line.ja.replace(/\|/g, '')).toBe('うちに来ませんか？');
     expect(BEATS.b_ch6_close_flat!.lines[0]!.line.ja.replace(/\|/g, '')).toBe('ここがあなたの家ですよ。');
     expect(BEATS.b_ch6_close!.lines[0]!.line.ja.replace(/\|/g, '')).toBe('いつでもお茶を飲みに来てくださいね。');
-    expect(JP_PACK.chapters[5]!.beats).toEqual({ open: 'b_ch6_open', close: 'b_release_epilogue' });
-    // Chapter 4 keeps its own closing now (no festival promise: that is wave C2)
+    // wave C2: the game picks the closing by the rented room (c2-content.test.ts), and Chapter 4 promises the festival again (it is Chapter 7)
+    expect(JP_PACK.chapters[5]!.beats).toEqual({ open: 'b_ch6_open', close: 'b_ch6_close', closeIf: { pred: { k: 'own', item: 'home_room_ono' }, id: 'b_ch6_close_flat' } });
     expect(JP_PACK.chapters[3]!.beats.close).toBe('b_ch4_close');
     const ch4 = BEATS.b_ch4_close!.lines.map((l) => l.line.ja + l.line.en).join('');
-    expect(ch4).not.toMatch(/祭|festival/i);
+    expect(ch4).toMatch(/祭/);
   });
 
   it('the epilogue is Hanako\'s "to be continued" for Chapter 6: it names the train and the friends\' homes, promises more and mentions nothing unbuilt', () => {
@@ -442,8 +443,8 @@ describe('the beats of Chapters 4-6 and the Real-mode try', () => {
 
 // ---------------------------------------------------------------------------------------------------------------------------------
 describe('culture cards of Chapters 5 and 6', () => {
-  it('only the festival card is still deferred; the genkan card is collectable with the home visits of Chapter 6', () => {
-    expect(CULTURE.filter((c) => c.deferred).map((c) => c.id)).toEqual(['cc_matsuri']);
+  it('no card is deferred any more (the festival card is collectable since wave C2); the genkan card is collectable with the home visits of Chapter 6', () => {
+    expect(CULTURE.filter((c) => c.deferred).map((c) => c.id)).toEqual([]);
     expect(CULTURE.find((c) => c.id === 'cc_shoesoff')).toMatchObject({ say: true });
     expect(JP_PACK.culture.find((c) => c.id === 'cc_shoesoff')!.deferred).toBeUndefined();
   });

@@ -39,9 +39,10 @@ const B: Beat[] = [
     L('tanaka', 'あの|、|アルバイト|、|しませんか|？', 'Um, would you like a part-time job?', 'أمم، هل تودّ العمل بدوام جزئي؟'),
     L('tanaka', 'レジ|、|お願いします|。', 'Please work the register.', 'رجاءً، تولَّ الصندوق.'),
   ]),
+  // every chapter's closing beat from Chapter 2 on asks for the one-line diary entry (§7.2)
   beat('b_ch2_close', 'konbini', [
     L('tanaka', 'おつかれさまでした|。|はい|、|今日|の|お給料|です|。', "Good work today. Here's today's pay.", 'أحسنت اليوم. تفضّل، أجرك لهذا اليوم.'),
-  ]),
+  ], { ask: 'diary' }),
   // the phone is bought (ItemDef.beat of the phone) and the school's catch-up stipend (`b_phone_fund`, §4.5)
   beat('b_phone_bought', 'denki', [L('aoi', 'ありがとうございました|。|いい|電話|です|よ|。', "Thank you very much. It's a good phone.", 'شكرًا جزيلًا. هاتف جيد.')]),
   beat('b_phone_fund', 'school', [L('hanako', '学校|から|少し|だけ|。|がんばって|います|ね|。', "A little from the school. You've been working hard.", 'قليل من المدرسة. تبذل جهدًا.')]),
@@ -51,8 +52,8 @@ const B: Beat[] = [
     L('hanako', 'また|会えて|、|うれしい|です|。', "I'm glad to see you again.", 'يسعدني أن أراك مرة أخرى.'),
     L('hanako', 'ゆっくり|、|やりましょう|。', "Let's take it slowly.", 'لنأخذ الأمر ببطء.'),
   ]),
-  // the release cap (docs/RELEASE_1.md, RELEASE_2.md): the last released chapter (6) closes with a short "to be continued" from Hanako, and Free Walk begins.
-  // It promises more to come and names nothing this release does not have (no festival, letter, flat or car).
+  // the release cap (docs/RELEASE_1.md, RELEASE_2.md): a capped release (Release 1, Release 2 wave C1: chapters 1-6) closed its last chapter with this short
+  // "to be continued" from Hanako. The full story (wave C2) ends with Chapter 8's own closing (`b_ch8_close`); the beat stays for a cap below 8 and old saves.
   beat(RELEASE_EPILOGUE, 'school', [
     L('hanako', 'よくできました|。|電車|に|も|乗りました|ね|。|友だち|の|家|に|も|行きました|ね|。', 'Well done. You rode the train, and you visited friends at home, too.', 'أحسنت. ركبت القطار وزرت أصدقاءك في بيوتهم أيضًا.'),
     L('hanako', 'まだ|これから|です|よ|。', "It's only the beginning!", 'إنها مجرد البداية!'),

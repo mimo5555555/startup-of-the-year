@@ -43,9 +43,11 @@ const RELEASED_ITEMS = [
   'futon_set', 'desk_study', 'bookshelf', 'plant_pothos', 'kotatsu', 'rice_cooker', 'paper_lamp', 'home_room_ono',
   // Release 2 wave C1: Kato's omiyage (sold on the Hikarigaoka trip; also the station desk's perfect-shift bonus)
   'g_souvenir',
+  // Release 2 wave C2: the yukata (Fuku-Fuku, for the festival)
+  'yukata',
 ];
-/** The yukata (the festival) is deferred: no scenario sells it, so the catalog must not price it. */
-const DEFERRED_ITEMS = ['yukata'];
+/** Nothing of the design's catalog is deferred any more (the yukata is sold since wave C2). */
+const DEFERRED_ITEMS: string[] = [];
 
 describe('the released catalog (§5.2, §5.3)', () => {
   it('holds exactly the items this release sells, each once', () => {
@@ -81,6 +83,7 @@ describe('the released catalog (§5.2, §5.3)', () => {
       glasses_round: 9_900,
       backpack: 6_900,
       suit_set: 19_800,
+      yukata: 8_900,
       g_plush: 800,
       g_guitar_pick: 300,
       g_flower: 1_500,
@@ -101,7 +104,7 @@ describe('the released catalog (§5.2, §5.3)', () => {
     });
     for (const i of JP_PACK.items) expect(Number.isInteger(i.price) && i.price >= 1, i.id).toBe(true);
     // the total of the released rows is a constant the design can be checked against
-    expect(JP_PACK.items.reduce((sum, i) => sum + i.price, 0)).toBe(1_216_190);
+    expect(JP_PACK.items.reduce((sum, i) => sum + i.price, 0)).toBe(1_216_190 + 8_900);
   });
 
   it('every item has an English, Japanese and Arabic name, with a reading for kanji', () => {
@@ -198,7 +201,8 @@ describe('shops (D36 openChapter)', () => {
       const s = shop(i.shop);
       expect(s, i.id).toBeTruthy();
       expect(s.openChapter, i.id).toBeLessThanOrEqual(i.gate.ch);
-      expect(i.gate.ch <= 6 || i.gate.ch === 9, `${i.id} gate ${i.gate.ch}`).toBe(true);
+      // the whole story is played since wave C2: any chapter 1-8, or Free Walk
+      expect(i.gate.ch >= 1 && i.gate.ch <= 9, `${i.id} gate ${i.gate.ch}`).toBe(true);
       expect(i.gate.ch).toBeLessThanOrEqual(9);
     }
   });

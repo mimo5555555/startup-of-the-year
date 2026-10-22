@@ -127,7 +127,7 @@ describe('fuku_clothes: scenario', () => {
   });
 
   it('the fixed fallback prices cover every item and equal the catalog rows of the design', () => {
-    expect(FUKU_PRICES).toEqual({ tee: 1990, cap: 2490, hoodie: 4990, jeans: 5990, sneakers: 7990, jacket: 12900, glasses: 9900, backpack: 6900, suit: 19800, plush: 800, guitarPick: 300 });
+    expect(FUKU_PRICES).toEqual({ tee: 1990, cap: 2490, hoodie: 4990, jeans: 5990, sneakers: 7990, jacket: 12900, glasses: 9900, backpack: 6900, suit: 19800, yukata: 8900, plush: 800, guitarPick: 300 });
     for (const o of SLOTS.clothes) expect(FUKU_PRICES[o.id], o.id).toBeGreaterThan(0);
     for (const id of ['plush', 'guitarPick']) expect(FUKU_PRICES[id]).toBeGreaterThan(0);
     // one fixed variant per item at the quote
@@ -157,7 +157,7 @@ describe('fuku_clothes: scenario', () => {
 
 describe('fuku_clothes: slots', () => {
   it('clothes, size, clothesColour and fit exist once, in this module, with keys in all three languages', () => {
-    expect(SLOTS.clothes.map((o) => o.id)).toEqual(['tee', 'hoodie', 'jeans', 'sneakers', 'cap', 'jacket', 'glasses', 'backpack', 'suit']);
+    expect(SLOTS.clothes.map((o) => o.id)).toEqual(['tee', 'hoodie', 'jeans', 'sneakers', 'cap', 'jacket', 'glasses', 'backpack', 'suit', 'yukata']);
     expect(SLOTS.size.map((o) => o.id)).toEqual(['s', 'm', 'l']);
     expect(SLOTS.clothesColour.map((o) => o.id)).toEqual(['black', 'white', 'red', 'blue', 'green', 'yellow']);
     expect(SLOTS.fit.map((o) => o.id)).toEqual(['just', 'big', 'small']);
@@ -234,6 +234,7 @@ describe('fuku_clothes: ScenarioMeta and pockets', () => {
       glasses: 'glasses_round',
       backpack: 'backpack',
       suit: 'suit_set',
+      yukata: 'yukata',
       plush: 'g_plush',
       guitarPick: 'g_guitar_pick',
     });
@@ -241,8 +242,8 @@ describe('fuku_clothes: ScenarioMeta and pockets', () => {
     for (const id of ['plush', 'guitarPick']) expect(SLOTS.giftItem.map((o) => o.id)).toContain(id);
     expect(sc.steps.some((s) => s.id === meta.shop!.payStep)).toBe(true);
     expect(meta.twist).toBe(true);
-    // no furniture and no yukata in the clothes conversation (the furniture is fuku_home, wave B2)
-    expect(Object.keys(meta.shop!.itemMap)).not.toContain('yukata');
+    // no furniture in the clothes conversation (the furniture is fuku_home, wave B2); the yukata is sold here since wave C2
+    expect(Object.keys(meta.shop!.itemMap)).toContain('yukata');
     expect(Object.keys(meta.shop!.itemMap)).not.toContain('kotatsu');
     expect(SCENARIO_META.some((m) => m.id === 'fuku_home')).toBe(true);
   });

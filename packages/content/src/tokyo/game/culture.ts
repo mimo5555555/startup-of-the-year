@@ -209,13 +209,14 @@ export const CULTURE: CultureCard[] = [
   }),
   c({
     id: 'cc_matsuri',
+    // entering the festival (the app files `visit festival`); buying at a stall or giving the speech is entering it too (Release 2 wave C2)
     trigger: { on: 'festival' },
+    also: [{ on: 'scenario_done', ids: ['matsuri_stalls', 'matsuri_speech'] }],
     phrase: { ja: 'お祭り', en: 'festival', ar: 'مهرجان' },
     text: {
       en: 'Matsuri are local festivals, often at shrines, with food stalls (屋台), yukata, portable shrines and, in summer, fireworks. Stalls usually take cash only.',
       ar: 'الماتسوري مهرجانات محلية، غالبًا عند المعابد، فيها بسطات طعام (屋台) ويوكاتا ومعابد محمولة وألعاب نارية في الصيف. وتقبل البسطات النقد غالبًا فقط.',
     },
-    deferred: true,
   }),
   c({
     id: 'cc_trash',

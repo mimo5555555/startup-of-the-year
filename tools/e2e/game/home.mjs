@@ -44,7 +44,7 @@ async function settle() {
   for (let i = 0; i < 24; i++) {
     const screen = await page.evaluate(() => window.__lw.useStore.getState().screen);
     if (await page.locator('.cul-scrim .btn.primary').count()) await page.locator('.cul-scrim .btn.primary').click();
-    else if (screen === 'beat') await page.locator('.panel .btn.primary').last().click().catch(() => {});
+    else if (screen === 'beat') await page.locator('.panel .btn.primary:not(:disabled), .panel [data-step=diary] [data-skip]').last().click().catch(() => {});
     else if (await page.locator('.word-scrim .word-close').count()) await page.locator('.word-scrim .word-close').last().click();
     else if (await page.locator('.hud-sheet').count()) await page.keyboard.press('Escape');
     else return;

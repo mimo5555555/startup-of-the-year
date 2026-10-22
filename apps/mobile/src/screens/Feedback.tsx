@@ -16,6 +16,7 @@ import { openScreen, startConversation } from '../game/bridge';
 import { feedbackThen } from '../game/phoneLogic';
 import { shownScenario } from '../game/ownLogic';
 import { PACK } from '../game/pack';
+import { CapstoneNote } from '../components/game/SpeechRehearsal';
 
 function Ring({ value, label, tone, note }: { value: number | null; label: string; tone: string; note?: string }) {
   const r = 30;
@@ -121,6 +122,8 @@ export function Feedback() {
           </div>
           <small className="muted">{t('f.stats', { ind: report.stats.independent, ass: report.stats.assisted })}</small>
         </section>
+
+        <CapstoneNote scenarioId={scenarioId} />
 
         <section className="rings">
           <Ring value={report.scores.goal} label={t('f.goal')} tone="goal" />

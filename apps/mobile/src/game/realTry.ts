@@ -5,7 +5,7 @@
 // conversation keeps the offer: the next shop conversation that offers Real mode opens in Real mode. The player may still switch the mode in Prepare;
 // the try is only used up by a Real-mode conversation that actually starts, so a Guided one does not waste it.
 import { REAL_TRY } from '@lw/content';
-import type { GamePack, GameState } from '@lw/game';
+import { guidedFallbackOpen, type GamePack, type GameState } from '@lw/game';
 import type { ConvoRequest } from '../ui';
 
 export const REAL_TRY_BEAT = REAL_TRY.beat;
@@ -42,3 +42,19 @@ export const takeHeld = (): ConvoRequest | null => {
   held = null;
   return r;
 };
+
+// ---------------------------------------------------------------------------------------------------------------
+// The capstone (matsuri_speech, Chapter 7, Release 2 wave C2): Real mode by construction, one Guided run for a player who never used Real mode
+// ---------------------------------------------------------------------------------------------------------------
+
+/** Whether a scenario is the capstone (`ScenarioMeta.capstone`). */
+export const isCapstone = (pack: GamePack, scenarioId: string): boolean => !!pack.scenarioMeta.find((m) => m.id === scenarioId)?.capstone;
+
+/**
+ * The mode a capstone starts in: Guided only when asked for AND the one-time fallback is open (the player has never used Real mode and has not
+ * had the fallback yet); otherwise Real. Not a capstone: the asked mode, unchanged.
+ */
+export function capstoneMode(pack: GamePack, state: GameState, scenarioId: string, asked: 'guided' | 'real' | undefined): 'guided' | 'real' | undefined {
+  if (!isCapstone(pack, scenarioId)) return asked;
+  return asked === 'guided' && guidedFallbackOpen(pack, state, scenarioId) ? 'guided' : 'real';
+}

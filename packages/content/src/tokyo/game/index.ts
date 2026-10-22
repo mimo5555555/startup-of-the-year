@@ -5,7 +5,7 @@ import { JP_LANGUAGE } from './jp-language';
 import { MENU } from './menu';
 import { FARES } from './fares';
 import { INTERACTIONS } from './interactions';
-import { RELEASED_CHAPTERS, RELEASE_EPILOGUE, RELEASE_LAST_CHAPTER } from './chapters';
+import { RELEASED_CHAPTERS, RELEASE_CLOSING, RELEASE_LAST_CHAPTER } from './chapters';
 import { RELEASED_DREAMS } from './dreams';
 import { DAILY } from './daily';
 import { WORD_TAGS } from './wordTags';
@@ -51,7 +51,7 @@ export const JP_PACK: GamePack = {
   shops: SHOPS,
   fares: FARES,
   jobs: JOBS,
-  // Release 2 wave C1 plays chapters 1-6, then Free Walk (docs/RELEASE_1.md, RELEASE_2.md); the Dream picker offers the dreams that can be finished with it
+  // Release 2 wave C2 plays the whole story, chapters 1-8, then Free Walk (docs/RELEASE_1.md, RELEASE_2.md); the Dream picker offers the dreams that can be finished with it
   chapters: RELEASED_CHAPTERS,
   dreams: RELEASED_DREAMS,
   daily: DAILY,
@@ -65,5 +65,6 @@ export const JP_PACK: GamePack = {
   titles: TITLES,
   ageProfiles: JP_AGE_PROFILES,
   keepsakes: KEEPSAKES,
-  release: { lastChapter: RELEASE_LAST_CHAPTER, epilogue: RELEASE_EPILOGUE },
+  // the closing of the last played chapter: Chapter 8's own ending (Hanako reads the Letter back) now that the whole story is released
+  release: { lastChapter: RELEASE_LAST_CHAPTER, epilogue: RELEASE_CLOSING },
 };

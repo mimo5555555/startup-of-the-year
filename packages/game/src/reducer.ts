@@ -904,15 +904,18 @@ function uniqueEffects(effects: UiEffect[]): UiEffect[] {
 
 /**
  * On the shell's `day_observed` (mount, focus): the open beat of the current chapter and the close beat of the last finished one, until they
- * have played. The close waits only while the player is in that chapter (a start gate) or the one after it: a save that went on to Free Walk
- * under an earlier release cap had its ending (the epilogue), so lifting the cap does not replay a closing from the middle of the story.
+ * have played. The close waits only while the player is in that chapter (a start gate) or the one after it, and only for a chapter that was
+ * really played to its end (its objectives are in `chapter.done`): a save that went on to Free Walk under an earlier release cap had its ending
+ * (the epilogue), and its `completed` cache re-derives the chapters the cap cut, so lifting the cap replays no closing (Chapter 8's ending
+ * included) for a chapter it never played.
  */
 function pendingBeats(s: GameState, ctx: ReduceCtx): UiEffect[] {
   const { pack } = ctx;
   const out: UiEffect[] = [];
   const lastDone = chapterDef(pack, Math.max(0, ...s.chapter.completed));
   const here = !!lastDone && (s.chapter.n === lastDone.n || s.chapter.n === nextChapterN(pack, lastDone.n));
-  if (lastDone && here && !closingPlayed(lastDone, s)) out.push({ t: 'beat', id: closingBeat(pack, lastDone, s, ctx.view) });
+  const played = !!lastDone && lastDone.objectives.every((o) => o.dream || s.chapter.done[o.id] !== undefined);
+  if (lastDone && here && played && !closingPlayed(lastDone, s)) out.push({ t: 'beat', id: closingBeat(pack, lastDone, s, ctx.view) });
   const cur = chapterDef(pack, s.chapter.n);
   if (cur && !s.beats.includes(cur.beats.open)) out.push({ t: 'beat', id: cur.beats.open });
   return out;

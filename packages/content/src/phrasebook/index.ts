@@ -15,6 +15,7 @@ import { JOBS_PHRASES } from './jobs';
 import { CULTURE_PHRASES } from './culture';
 import { HOME_PHRASES } from './home';
 import { TRIP_PHRASES } from './trip';
+import { MATSURI_PHRASES } from './matsuri';
 
 export { P } from './helpers';
 
@@ -35,4 +36,5 @@ export const PHRASEBOOK: PhraseEntry[] = [
   ...CULTURE_PHRASES,
   ...HOME_PHRASES,
   ...TRIP_PHRASES,
+  ...MATSURI_PHRASES,
 ];

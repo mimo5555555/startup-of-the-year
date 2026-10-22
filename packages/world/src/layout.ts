@@ -13,6 +13,8 @@ export const ROAD = { z0: -5, z1: 5 };
 export interface Occluder extends Rect {
   y0?: number;
   y1?: number;
+  /** the camera may come closer than the usual minimum to dodge this one (the festival aisle is too narrow for 2.8 m) */
+  minD?: number;
 }
 
 /** East edge is 90 so Nakamura Motors (x 68.5..82.5) and the east end spot fit; the ground, sidewalks and curbs already reach x 170. */

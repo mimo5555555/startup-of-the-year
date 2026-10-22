@@ -1,0 +1,102 @@
+/* The festival (Release 2 wave C2): the capstone's five-line rehearsal in Prepare and its debrief line. Prefix fest-; tokens from styles.css;
+   logical properties only; every target at least 44 px. */
+
+.fest-lines {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.fest-line {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+.fest-line.ok {
+  border-color: var(--good);
+}
+.fest-line-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fest-n {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  display: inline-grid;
+  place-items: center;
+  background: var(--bg-2);
+  font-weight: 800;
+  flex: none;
+}
+.fest-line.ok .fest-n {
+  background: var(--good);
+  color: #fff;
+}
+.fest-example {
+  background: var(--warn-soft);
+}
+.fest-listen {
+  margin-inline-start: auto;
+  width: 44px;
+  height: 44px;
+}
+.fest-meaning {
+  color: var(--fg-2);
+}
+.fest-try {
+  display: flex;
+  gap: 8px;
+  align-items: stretch;
+  min-width: 0;
+}
+.fest-try .field {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  font-family: var(--font-ja);
+}
+.fest-try .btn,
+.fest-try .icon-btn {
+  min-height: 44px;
+  min-width: 44px;
+  flex: none;
+}
+.fest-try .icon-btn.rec {
+  background: var(--bad-soft);
+  color: var(--bad);
+}
+.fest-verdict.ok {
+  color: var(--good);
+  font-weight: 800;
+}
+.fest-verdict.again {
+  color: var(--bad);
+  font-weight: 700;
+}
+.fest-real {
+  margin: 0;
+  display: flex;
+  gap: 8px;
+  align-items: flex-start;
+  font-weight: 700;
+}
+.prep-count.ok {
+  background: var(--good-soft);
+  color: var(--good);
+}
+.fest-own {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.fest-own.ok strong {
+  color: var(--good);
+}
+.fest-own .btn {
+  min-height: 44px;
+}

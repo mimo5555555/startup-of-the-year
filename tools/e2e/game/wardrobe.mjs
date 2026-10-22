@@ -39,7 +39,7 @@ async function settle() {
       else if (await page.locator('[data-step=nameKana] [data-save]').count()) await page.locator('[data-step=nameKana] [data-save]').click();
       else if (await page.locator('.qst-beat [data-continue]').count()) await page.locator('.qst-beat [data-continue]').first().click();
       else if (await page.locator('[data-ask=dream] .btn').count()) await page.locator('[data-ask=dream] .btn').last().click();
-      else await page.locator('.panel .btn.primary').last().click().catch(() => {});
+      else await page.locator('.panel .btn.primary:not(:disabled), .panel [data-step=diary] [data-skip]').last().click().catch(() => {});
     } else if (await page.locator('.word-scrim .word-close').count()) await page.locator('.word-scrim .word-close').last().click();
     else if (await page.locator('.hud-sheet').count()) await page.keyboard.press('Escape');
     else return;

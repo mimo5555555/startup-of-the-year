@@ -14,6 +14,7 @@ import { SOCIAL_HEARTS_SLOTS } from './social-hearts';
 import { JOBS_SLOTS } from './jobs';
 import { CULTURE_SLOTS } from './culture';
 import { HOME_SLOTS } from './home';
+import { MATSURI_SLOTS } from './matsuri';
 
 export { opt } from './helpers';
 
@@ -33,6 +34,7 @@ const MODULES: Array<[string, Record<string, SlotOption[]>]> = [
   ['jobs', JOBS_SLOTS],
   ['culture', CULTURE_SLOTS],
   ['home', HOME_SLOTS],
+  ['matsuri', MATSURI_SLOTS],
 ];
 
 export const SLOTS: Record<string, SlotOption[]> = {};

@@ -361,7 +361,7 @@ describe('content modules', () => {
   });
   it('registers every lexicon module of docs/GAME_DESIGN.md §15.2', () => {
     expect(Object.keys(LEXICON_PARTS).sort()).toEqual(
-      ['core', 'numbers', 'shop', 'station', 'quests', 'shop-denki', 'shop-fuku', 'shop-aiko', 'shop-motors', 'social', 'social-chat', 'social-friends', 'social-hearts', 'jobs', 'culture', 'home', 'trip'].sort(),
+      ['core', 'numbers', 'shop', 'station', 'quests', 'shop-denki', 'shop-fuku', 'shop-aiko', 'shop-motors', 'social', 'social-chat', 'social-friends', 'social-hearts', 'jobs', 'culture', 'home', 'trip', 'matsuri'].sort(),
     );
   });
   it('scenario and character ids are unique', () => {

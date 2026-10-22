@@ -264,7 +264,8 @@ export const CHAPTERS: ChapterDef[] = [
       o('interaction', 'aiko_viewing'),
       o('interaction', 'aiko_contract'),
     ],
-    beats: { open: 'b_ch6_open', close: 'b_ch6_close' },
+    // two designed closings (§7.2): Aiko's "This is your home" once the room at Ono-sō is rented, else "Come for tea any time" (the game picks)
+    beats: { open: 'b_ch6_open', close: 'b_ch6_close', closeIf: { pred: { k: 'own', item: 'home_room_ono' }, id: 'b_ch6_close_flat' } },
     objectives: [
       {
         id: 'c6_1',
@@ -300,31 +301,38 @@ export const CHAPTERS: ChapterDef[] = [
     reward: 8000,
     rewardTitle: 't_resident',
     rewardCulture: ['cc_matsuri'],
-    opens: [o('feature', 'festival'), o('interaction', 'nakamura_car')],
+    // the festival itself is a day of the chapter (`festival.ts`: FESTIVAL_RULE); browsing the cars (`nakamura_car`) waits for Free Walk in this
+    // release, because the body-price-only browse of §4.5 is not built and the cars are sold from Free Walk
+    opens: [o('feature', 'festival')],
     beats: { open: 'b_ch7_open', close: 'b_ch7_close' },
     objectives: [
       {
         id: 'c7_1',
         pred: { k: 'hearts_count', atLeast: 2, n: 4 },
         text: { en: 'Have 4 friends (2 hearts or more) come to the festival', ar: 'اجعل 4 أصدقاء (قلبان فأكثر) يأتون إلى المهرجان' },
+        hint: { en: 'Every friend at two hearts or more comes. Talk to and give gifts to the ones who are not there yet.', ar: 'يأتي كل صديق بقلبين أو أكثر. تحدّث مع من لم يأتِ بعد وقدّم له هدايا.' },
       },
       {
         id: 'c7_2',
         pred: { k: 'scenario', id: 'matsuri_stalls', minIndependent: 3 },
         text: { en: 'Buy festival food at the stalls (3+ lines of your own)', ar: 'اشترِ طعام المهرجان من البسطات (3 جمل على الأقل من عندك)' },
+        hint: { en: 'The festival is in the park from the day after the chapter begins (or at once on a Saturday). The stalls take cash only.', ar: 'المهرجان في الحديقة من اليوم التالي لبداية الفصل (أو فورًا يوم السبت). البسطات تقبل النقد فقط.' },
+        pin: { place: 'park' },
         easier: { pred: { k: 'scenario', id: 'matsuri_stalls', minIndependent: 2 }, afterTries: 3 },
       },
       {
         id: 'c7_3',
         pred: { k: 'scenario', id: 'matsuri_speech', minIndependent: 5 },
         text: { en: 'Give your self-introduction speech (5+ lines of your own)', ar: 'ألقِ كلمة التعريف بنفسك (5 جمل على الأقل من عندك)' },
-        hint: { en: 'The speech rehearsal in Prepare has all five lines.', ar: 'بروفة الكلمة في شاشة الاستعداد فيها الجمل الخمس.' },
+        hint: { en: 'The speech rehearsal in Prepare has all five lines. Hanako waits on the festival stage.', ar: 'بروفة الكلمة في شاشة الاستعداد فيها الجمل الخمس. هاناكو تنتظر على منصة المهرجان.' },
+        pin: { friend: 'hanako' },
         easier: { pred: { k: 'scenario', id: 'matsuri_speech', minIndependent: 3 }, afterTries: 3 },
       },
       {
         id: 'c7_4',
         pred: { k: 'culture_said', n: 6 },
         text: { en: 'Use 6 culture-card phrases yourself so far', ar: 'استخدم 6 عبارات من البطاقات الثقافية بنفسك حتى الآن' },
+        hint: { en: 'Open the stamp book, tap a card marked “Say it” and say its phrase.', ar: 'افتح دفتر الأختام، واضغط على بطاقة عليها «قلها» وانطق عبارتها.' },
       },
       dreamSlot(7),
     ],
@@ -336,59 +344,71 @@ export const CHAPTERS: ChapterDef[] = [
     reward: 10000,
     rewardTitle: 't_lives_in_ja',
     opens: [o('feature', 'letter')],
+    // the real ending: Hanako reads the Letter back, then Free Walk (chapter.n = 9) begins
     beats: { open: 'b_ch8_open', close: 'b_ch8_close' },
+    // "finish your dream, or choose a new one": the game raises it (ChapterDef.dreamFlag)
+    dreamFlag: 'dream_epilogue',
     objectives: [
       {
         id: 'c8_1',
         pred: { k: 'flag', id: 'letter_written' },
         text: { en: 'Write your Letter Home (5 sentences; at least 3 of your own, not translated)', ar: 'اكتب رسالتك إلى الأهل (5 جمل، 3 منها على الأقل من عندك دون ترجمة)' },
+        hint: { en: 'Hanako-sensei opens the Letter. Each sentence starts from something you did; type it in your own words.', ar: 'تفتح المعلّمة هاناكو الرسالة. كل جملة تبدأ بشيء فعلته؛ اكتبها بكلماتك.' },
+        pin: { friend: 'hanako' },
       },
       {
         id: 'c8_2',
         pred: { k: 'words_known', n: 150 },
         text: { en: 'Know 150 words', ar: 'تعرّف على 150 كلمة' },
+        hint: { en: 'Review the words in your notebook.', ar: 'راجع الكلمات في دفترك.' },
       },
       {
         id: 'c8_3',
         pred: { k: 'stars', atLeast: 2, n: 12 },
         text: { en: 'Reach ★★ in 12 different conversations', ar: 'احصل على ★★ في 12 محادثة مختلفة' },
+        hint: { en: 'Play conversations again with more lines of your own: Prepare first, and try Real mode.', ar: 'أعد المحادثات بجمل أكثر من عندك: استعدّ أولًا وجرّب الوضع الحقيقي.' },
         easier: { pred: { k: 'stars', atLeast: 2, n: 8 }, afterTries: 3 },
       },
       {
         id: 'c8_4',
         pred: { k: 'flag', id: 'dream_epilogue' },
         text: { en: 'Finish your dream, or choose a new one (the car dream opens at Free Walk, so it is never required)', ar: 'أنهِ حلمك أو اختر حلمًا جديدًا (حلم السيارة يُفتح في المشي الحر فلا يُشترط)' },
+        hint: { en: 'Tap the Dream chip: finish its last steps, or pick a dream again (the same one counts).', ar: 'اضغط على شارة الحلم: أنهِ خطواته الأخيرة أو اختر حلمًا من جديد (الحلم نفسه يُحتسب).' },
       },
     ],
   },
 ];
 
 // ---------------------------------------------------------------------------------------------------------------
-// The release cap (docs/RELEASE_1.md, RELEASE_2.md wave C1): chapters 1-6, then Free Walk
+// The release cap (docs/RELEASE_1.md, RELEASE_2.md waves C1-C2): the whole story, chapters 1-8, then Free Walk
 // ---------------------------------------------------------------------------------------------------------------
 
 /** Free Walk: `chapter.n = 9`, current once the last released chapter is completed (D36). */
 export const FREE_WALK = 9;
 /**
- * The last chapter this release plays; the later chapters stay authored above for the release that adds them (lift the cap by raising this).
- * Release 1 played 1-4; Release 2 wave C1 makes Chapters 5 (the Hikarigaoka trip, the station job, Nakamura Motors) and 6 (friends' homes, the
- * viewing, five shifts) playable. Chapter 7 (festival) and 8 (Letter Home) are wave C2.
+ * The last chapter this release plays (the mechanism of docs/RELEASE_1.md stays: lower it and the later chapters are cut). Release 1 played 1-4,
+ * Release 2 wave C1 1-6; wave C2 plays the whole story: Chapter 7 (the festival and the speech) and Chapter 8 (the Letter Home).
  */
-export const RELEASE_LAST_CHAPTER = 6;
-/** Beat id of the short "to be continued" (Hanako) that closes the last released chapter and hands over to Free Walk (`beats-core.ts`). */
+export const RELEASE_LAST_CHAPTER = 8;
+/** Beat id of the short "to be continued" (Hanako) that closed a capped release (`beats-core.ts`); kept for a cap below 8 and for old saves that played it. */
 export const RELEASE_EPILOGUE = 'b_release_epilogue';
+/** The real ending: Chapter 8's own closing beat (Hanako reads the Letter back), then Free Walk. */
+export const RELEASE_ENDING = 'b_ch8_close';
 
 /**
  * The chapter in which something designed for chapter `ch` opens in this release: a chapter that is never played opens its things at
- * Free Walk (Nakamura Motors, the bike and the helmet, the car), so a closed sheet never says "Opens in Chapter 6" for a chapter
- * that does not exist. Item, shop and dream tables write the design number through this; `validatePack` rejects a gate in between.
+ * Free Walk, so a closed sheet never says "Opens in Chapter 7" for a chapter that does not exist. Item, shop and dream tables write the
+ * design number through this; `validatePack` rejects a gate in between. With the whole story released it is the identity.
  */
 export const releasedGate = (ch: number): number => (ch > RELEASE_LAST_CHAPTER && ch < FREE_WALK ? FREE_WALK : ch);
 
+/** The closing beat of the last released chapter: the real ending when the whole story plays, else the "to be continued" epilogue. */
+export const RELEASE_CLOSING = RELEASE_LAST_CHAPTER >= 8 ? RELEASE_ENDING : RELEASE_EPILOGUE;
+
 /**
- * The chapters this release plays: 1..RELEASE_LAST_CHAPTER of the table above. The last one closes with the epilogue instead of its
- * designed closing beat (Mio's festival invitation would promise a festival that is not in this release).
+ * The chapters this release plays: 1..RELEASE_LAST_CHAPTER of the table above. A capped release closes its last chapter with the epilogue
+ * instead of its designed closing beat (which would promise a chapter that is not played); the full story keeps Chapter 8's own ending.
  */
 export const RELEASED_CHAPTERS: ChapterDef[] = CHAPTERS.filter((c) => c.n <= RELEASE_LAST_CHAPTER).map((c) =>
-  c.n === RELEASE_LAST_CHAPTER ? { ...c, beats: { ...c.beats, close: RELEASE_EPILOGUE } } : c,
+  c.n === RELEASE_LAST_CHAPTER && RELEASE_CLOSING !== c.beats.close ? { ...c, beats: { open: c.beats.open, close: RELEASE_CLOSING } } : c,
 );

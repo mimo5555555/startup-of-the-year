@@ -146,12 +146,25 @@ function StoryTab() {
   const { def, status } = useChapter();
   const dream = useDream();
   const rows = useMemo(() => objectiveRows(PACK, game, view), [game, view]);
+  const lastChapter = PACK.chapters.reduce((m, c) => Math.max(m, c.n), 0);
+  const storyDone = lastChapter >= 8 && game.chapter.completed.includes(lastChapter);
 
   if (!def) {
     return (
-      <section className="card center" data-freewalk="1">
+      <section className="card center" data-freewalk="1" data-story-done={storyDone ? 1 : 0}>
         <Icon name="trophy" size={28} />
+        {/* the whole story released (wave C2): Chapter 8 done is the ending, never a "to be continued" */}
+        {storyDone && (
+          <strong className="qst-story-done" dir="auto">
+            {t('quests.storyDone')}
+          </strong>
+        )}
         <p>{t('quests.freeWalk')}</p>
+        {game.letter.length > 0 && (
+          <button className="btn soft" data-open="letter" onClick={() => useStore.getState().go('letter')}>
+            {t('quests.readLetter')}
+          </button>
+        )}
       </section>
     );
   }
@@ -191,6 +204,12 @@ function StoryTab() {
               </ul>
             )}
           </div>
+        )}
+        {/* Chapter 6's reward line: the Letter preview (the Letter Home itself opens with Chapter 8) */}
+        {def.n === 6 && (
+          <p className="muted small" data-letter-preview="1" dir="auto">
+            <Icon name="mail" size={14} /> {t('story.letterPreview')}
+          </p>
         )}
       </ChapterCard>
 

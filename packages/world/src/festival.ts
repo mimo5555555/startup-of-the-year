@@ -126,8 +126,8 @@ export interface FestivalHandle {
 }
 
 /**
- * The festival scenery (6 stalls with awnings and noren, a yagura stage, lanterns on strings, fireworks over the south
- * hedge), slice 5B: `buildings/festival-park.ts`. Built lazily on the first `setFestival(true)`, so a world that never
+ * The festival scenery (6 stalls with awnings and noren, a yagura stage, lanterns on strings, fireworks over the road
+ * north of the park), slice 5B: `buildings/festival-park.ts`. Built lazily on the first `setFestival(true)`, so a world that never
  * holds a festival pays nothing for it.
  */
 export function buildFestival(materials: FestivalMaterials): FestivalPark {

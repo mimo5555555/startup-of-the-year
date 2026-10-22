@@ -49,7 +49,15 @@ export const INTERACTIONS: Record<string, Interaction[]> = {
     talk('sato'),
     gift('sato'),
   ],
-  kenji: [scenario('kenji_shop', 'ramen', 'Eat ramen', 'تناول الرامن'), talk('kenji'), gift('kenji'), hang('kenji', 'hang_kenji_cook'), home('kenji')],
+  kenji: [
+    scenario('kenji_shop', 'ramen', 'Eat ramen', 'تناول الرامن'),
+    talk('kenji'),
+    gift('kenji'),
+    hang('kenji', 'hang_kenji_cook'),
+    home('kenji'),
+    // the festival row is listed only while the park is the festival (`festival.ts`: FESTIVAL_ROWS, festivalOpen); the stall picks of the world start it too
+    scenario('kenji_stall', 'matsuri_stalls', 'Festival food', 'طعام المهرجان', { ch: 7 }),
+  ],
   hanako: [
     lesson('greetings', 'Greetings', 'التحيات', 1),
     lesson('numbers', 'Numbers and money', 'الأرقام والمال', 1),
@@ -60,6 +68,8 @@ export const INTERACTIONS: Record<string, Interaction[]> = {
     // "small talk after a lesson": the first lesson has to be done
     talk('hanako', { gate: { k: 'lesson', id: 'greetings' } }),
     gift('hanako'),
+    // the capstone, on the festival stage (listed only while the park is the festival, like `kenji_stall`; the stage pick starts it too)
+    scenario('hanako_speech', 'matsuri_speech', 'Give your speech', 'ألقِ كلمتك', { ch: 7 }),
   ],
   mio: [scenario('mio_meet', 'park', 'Talk in the park', 'تحدّث في الحديقة'), talk('mio'), gift('mio'), hang('mio', 'hang_mio_photo'), home('mio')],
   aoi: [scenario('aoi_shop', 'denki_phone', 'Look for a phone', 'ابحث عن هاتف'), peek('aoi', 'denki')],
@@ -83,8 +93,8 @@ export const INTERACTIONS: Record<string, Interaction[]> = {
     // after the first visit Talk offers the bike first (§6.1): the bike is listed before the visit and opens once the visit is done
     scenario('nakamura_bike', 'motors_bike', 'Buy a bike', 'اشترِ دراجة', { ch: 5, gate: { k: 'scenario', id: 'motors_visit', complete: true } }),
     scenario('nakamura_visit', 'motors_visit', 'Look around the garage', 'تجوّل في الورشة', { ch: 5 }),
-    // browsing opens in Chapter 7; buying is Free Walk (the scenario's own gate)
-    scenario('nakamura_car', 'motors_car', 'Look at the cars', 'شاهد السيارات', { ch: 7 }),
+    // the design browses the cars from Chapter 7 (body price only); that browse is not built, so the car row opens with the cars, at Free Walk
+    scenario('nakamura_car', 'motors_car', 'Look at the cars', 'شاهد السيارات', { ch: 9 }),
     talk('nakamura'),
     gift('nakamura'),
     peek('nakamura', 'motors'),

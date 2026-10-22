@@ -178,16 +178,20 @@ const RELEASED_TRAVEL_STEPS = (d: DreamDef): DreamStep[] =>
       : { ...s, gate: releasedGate(s.gate) },
   );
 
-/** The dreams whose ladders can be finished with the content of the release; the others stay authored above and are not offered (the festival waits for wave C2). */
-const RELEASED_DREAM_IDS = ['phone_pal', 'bike', 'flat', 'travel', 'fresh_start', 'car'] as const;
 /**
- * Onboarding goals that map onto a released dream (the unreleased festival dream is not offered; the travel goal suggests the travel dream from wave C1). The flat is the default of the
- * relocation goal as designed (§7.3); an under-18 profile never gets it (`ageMin`), the picker then falls back to the first dream they may see.
+ * The dreams the Dream picker offers: every dream whose ladder can be finished with the content of the release. With wave C2 that is all seven:
+ * the festival (its yukata is sold at Fuku-Fuku from Chapter 4, its last step is the festival stalls of Chapter 7) joins the table, and the car
+ * opens at Free Walk as designed (`openChapter`), so Chapter 8's "finish your dream, or choose a new one" never needs it.
  */
-const RELEASED_DEFAULTS: Record<(typeof RELEASED_DREAM_IDS)[number], string[]> = { phone_pal: ['work', 'casual'], bike: [], flat: ['relocation'], travel: ['travel'], fresh_start: [], car: [] };
+const RELEASED_DREAM_IDS = ['phone_pal', 'bike', 'flat', 'festival', 'travel', 'fresh_start', 'car'] as const;
+/**
+ * Onboarding goals and the dream each suggests, as designed (§7.3): travel -> travel, work -> phone_pal, relocation -> flat, casual -> festival. An
+ * under-18 profile never gets the flat (`ageMin`): the picker then falls back to the first dream they may see.
+ */
+const RELEASED_DEFAULTS: Record<(typeof RELEASED_DREAM_IDS)[number], string[]> = { phone_pal: ['work'], bike: [], flat: ['relocation'], festival: ['casual'], travel: ['travel'], fresh_start: [], car: [] };
 
 /**
- * The Dream picker's table in this release (`JP_PACK.dreams`): phone_pal, bike, the flat, travel (wave C1), the fresh start (phone + bike + flat) and the car. Step gates and chapters that are never played
+ * The Dream picker's table in this release (`JP_PACK.dreams`): phone_pal, bike, the flat, the festival (wave C2), travel (wave C1), the fresh start (phone + bike + flat) and the car. Step gates and chapters that are never played
  * become Free Walk (`releasedGate`); `validatePack` proves every step of every dream here is finishable (`dream_blocked`).
  */
 export const RELEASED_DREAMS: DreamDef[] = RELEASED_DREAM_IDS.map((id) => {

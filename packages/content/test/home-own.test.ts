@@ -230,13 +230,13 @@ describe('own room: ScenarioMeta, pockets and the pack', () => {
     expect(errs5.map((i) => `${i.code} ${i.path} ${i.message}`)).toEqual([]);
   });
 
-  it('every released dream is finishable (the flat and the fresh start are offered; wave C1 adds travel and moves the cap to Chapter 6)', () => {
-    expect(JP_PACK.dreams.map((d) => d.id)).toEqual(['phone_pal', 'bike', 'flat', 'travel', 'fresh_start', 'car']);
+  it('every released dream is finishable (the flat and the fresh start are offered; wave C1 adds travel, wave C2 the festival and the whole story)', () => {
+    expect(JP_PACK.dreams.map((d) => d.id)).toEqual(['phone_pal', 'bike', 'flat', 'festival', 'travel', 'fresh_start', 'car']);
     for (const d of JP_PACK.dreams) expect(dreamBlockers(JP_PACK, d), d.id).toEqual([]);
-    expect(JP_PACK.release?.lastChapter).toBe(6);
-    expect(JP_PACK.chapters.map((c) => c.n)).toEqual([1, 2, 3, 4, 5, 6]);
-    // a flat step is shown from a played chapter (2-6) or Free Walk, never from a chapter the release does not play (7 and 8)
-    for (const d of JP_PACK.dreams.filter((x) => ['flat', 'fresh_start'].includes(x.id))) for (const st of d.steps) expect([2, 3, 4, 5, 6, 9], `${d.id}/${st.id}`).toContain(st.gate);
+    expect(JP_PACK.release?.lastChapter).toBe(8);
+    expect(JP_PACK.chapters.map((c) => c.n)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    // a flat step is shown from a played chapter (2-8) or Free Walk; the housewarming (fresh_start_6) keeps the design's Chapter 7
+    for (const d of JP_PACK.dreams.filter((x) => ['flat', 'fresh_start'].includes(x.id))) for (const st of d.steps) expect([2, 3, 4, 5, 6, 7, 9], `${d.id}/${st.id}`).toContain(st.gate);
     expect(JP_PACK.dreams.find((d) => d.id === 'flat')).toMatchObject({ ageMin: 18, furnish: 3, items: ['home_room_ono'] });
     expect(JP_PACK.dreams.find((d) => d.id === 'fresh_start')).toMatchObject({ ageMin: 18, furnish: 3 });
   });

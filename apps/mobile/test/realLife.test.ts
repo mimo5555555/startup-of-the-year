@@ -1,4 +1,4 @@
-// The whole story (Chapters 1-6, then Free Walk) as a life, through the REAL reducer and the real conversation sessions (not hand-made states): day by day from the first
+// The whole story (Chapters 1-8, then Free Walk) as a life, through the REAL reducer and the real conversation sessions (not hand-made states): day by day from the first
 // lesson to Free Walk, then random lives that must keep every invariant. The helper `realLife.ts` drives the pack the way the screens do
 // (host plans for friends, gifts and phone threads, the ticket machine, purchases, shifts, the beats a screen would play).
 //
@@ -14,7 +14,7 @@ const rowOf = (id: string) => objectiveRows(JP_PACK, H.state, view).find((r) => 
 const errors = (s: GameState) => validateState(s, JP_PACK).filter((i) => i.severity === 'error').map((i) => `${i.code} ${i.path} ${i.message}`);
 
 describe('a whole life', () => {
-  it('walks Chapters 1-6 (wave C1) and ends in Free Walk: every objective is reachable by what the screens send, and no day gate waits for the impossible', () => {
+  it('walks Chapters 1-8 (the whole story, wave C2) and ends in Free Walk: every objective is reachable by what the screens send, and no day gate waits for the impossible', () => {
     reset();
     dispatch({ t: 'day_observed', nowMs: H.now });
     beats();
@@ -172,11 +172,80 @@ describe('a whole life', () => {
       convo('smalltalk_mio', 'mio');
     }
     expect(done('c6_4'), 'five shifts').toBe(true);
-    expect(H.state.chapter.n, 'Chapter 6 ends in Free Walk').toBe(BALANCE.freeWalkChapter);
+    expect(H.state.chapter.n, 'Chapter 6 goes on into Chapter 7 (wave C2)').toBe(7);
     expect(H.state.chapter.completed).toEqual([1, 2, 3, 4, 5, 6]);
     expect(H.state.titles).toEqual(expect.arrayContaining(['t_newcomer', 't_friend', 't_connected', 't_traveller', 't_guest']));
-    expect(H.state.beats).toEqual(expect.arrayContaining(['b_ch6_open', 'b_release_epilogue']));
+    // a beat has no condition: the closing is picked by whether the room at Ono-so is rented (closeIf)
+    expect(H.state.beats.some((b) => b === 'b_ch6_close' || b === 'b_ch6_close_flat'), 'one of Chapter 6\'s closings').toBe(true);
+    expect(H.state.beats).toEqual(expect.arrayContaining(['b_ch6_open', 'b_ch7_open']));
+    expect(H.state.beats).not.toContain('b_release_epilogue');
     for (const id of ['cc_shoesoff', 'cc_rent', 'cc_trash']) expect(H.state.culture[id], id).toBeDefined();
+
+    // ---- Chapter 7 (wave C2): four friends at two hearts, the festival stalls, the speech (the capstone), six culture phrases said
+    let day9 = 0;
+    while (!done('c7_1') && day9++ < 40) {
+      newDay();
+      for (const f of ['yuki', 'tanaka', 'kenji']) convo(`smalltalk_${f}`, f);
+      if ((H.state.owned.g_choco?.qty ?? 0) === 0) buy('konbini', 'g_choco');
+      convo('give_gift', ['yuki', 'tanaka', 'kenji'][day9 % 3]!, { itemId: 'g_choco' });
+    }
+    expect(done('c7_1'), 'four friends at two hearts').toBe(true);
+    const ids7 = new Set(H.state.ledger.map((e) => e.id));
+    convo('matsuri_stalls', 'kenji', { lines: ['はい、とても楽しいです。', 'たこ焼きをください。', '現金でお願いします。', 'ありがとうございます！'] });
+    expect(done('c7_2'), 'festival food with my own lines').toBe(true);
+    const charges = H.state.ledger.filter((e) => !ids7.has(e.id) && e.delta < 0);
+    expect(charges.map((e) => [e.delta, e.pocket]), 'one cash charge, exactly the takoyaki').toEqual([[-600, 'cash']]);
+    expect(H.state.culture.cc_matsuri, 'the festival card').toBeDefined();
+    // the capstone is played in Real mode (the app starts it so): five lines of my own
+    convo('matsuri_speech', 'hanako', { mode: 'real', lines: ['はじめまして。サムです。', 'アメリカから来ました。', '音楽が好きです。', '桜町はとてもいい町です。', 'ありがとうございました。'] });
+    expect(H.state.runs.matsuri_speech?.bestIndependent, 'five own lines in the speech').toBeGreaterThanOrEqual(5);
+    expect(done('c7_3'), 'the speech').toBe(true);
+    // the stamp book's Say it for every phrase card collected so far (culture_said counts the distinct cards said)
+    for (const c of JP_PACK.culture.filter((x) => x.say && H.state.culture[x.id] !== undefined)) dispatch({ t: 'culture_say', id: c.id, similarity: 1 });
+    beats();
+    expect(done('c7_4'), 'six culture phrases said').toBe(true);
+    let day10 = 0;
+    while (H.state.chapter.n === 7 && day10++ < 20) {
+      newDay();
+      convo('smalltalk_mio', 'mio');
+    }
+    expect(H.state.chapter.n, 'Chapter 7 goes on into Chapter 8').toBe(8);
+    expect(H.state.titles).toContain('t_resident');
+    expect(H.state.beats).toEqual(expect.arrayContaining(['b_ch7_close', 'b_ch8_open']));
+
+    // ---- Chapter 8: the Letter Home, 150 words, two stars in 12 conversations, the dream (finished or chosen again)
+    dispatch({
+      t: 'letter_saved',
+      sentences: [
+        { ja: 'サムです。', assisted: false },
+        { ja: 'アメリカの皆さん、お元気ですか。', assisted: true },
+        { ja: 'ミオさんはやさしいです。', assisted: false },
+        { ja: '公園によく行きます。', assisted: true },
+        { ja: '自転車を買いました。', assisted: false },
+      ],
+    });
+    beats();
+    expect(done('c8_1'), 'the Letter (5 sentences, 3 my own)').toBe(true);
+    for (let i = 0; i < 150; i++) view.vocab.reviewedKeys.add(`known${i}`);
+    dispatch({ t: 'word_saved', key: 'x' });
+    expect(done('c8_2'), '150 words').toBe(true);
+    // two stars in twelve different conversations: eight come from the story so far; Hanako offers the easier eight after three tries (D40)
+    const twoStars = () => Object.values(H.state.runs).filter((r) => r.stars >= 2).length;
+    dispatch({ t: 'dream_chosen', id: H.state.dream.id ?? 'phone_pal' });
+    beats();
+    expect(done('c8_4'), 'the dream chosen again in Chapter 8').toBe(true);
+    let day11 = 0;
+    while (H.state.chapter.n === 8 && day11++ < 30) {
+      newDay();
+      convo('smalltalk_mio', 'mio');
+      if (!done('c8_3') && rowOf('c8_3').easier === 'offered') dispatch({ t: 'easier_accept', objective: 'c8_3' });
+      beats();
+    }
+    expect(done('c8_3'), `two stars in twelve conversations (have ${twoStars()})`).toBe(true);
+    expect(H.state.chapter.n, 'Chapter 8 ends in Free Walk: the real ending').toBe(BALANCE.freeWalkChapter);
+    expect(H.state.chapter.completed).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
+    expect(H.state.beats).toContain('b_ch8_close');
+    expect(H.state.beats).not.toContain('b_release_epilogue');
 
     // ---- Free Walk: the car dream is open, nothing is left to finish or re-announce
     expect(availableDreams(JP_PACK, H.state, view).map((d) => d.id)).toContain('car');
@@ -205,7 +274,7 @@ function rngOf(seed: number): () => number {
 }
 const FRIENDS = ['mio', 'yuki', 'tanaka', 'kenji', 'sato', 'hanako'];
 
-describe('random lives (Chapters 1-6 and Free Walk)', () => {
+describe('random lives (Chapters 1-8 and Free Walk)', () => {
   it('keep every invariant: AP never falls and never beats the daily cap, no heart 5 before day 5, unread = waiting threads, gifts and chats add up, the state validates, evaluation is idempotent, a reload changes nothing', () => {
     for (let seed = 1; seed <= 12; seed++) {
       reset();
@@ -286,7 +355,7 @@ describe('random lives (Chapters 1-6 and Free Walk)', () => {
         }
         expect(Object.values(H.state.friends).reduce((a, f) => a + f.gifts, 0), `${where}: gifts`).toBe(H.state.stats.gifts.n);
         expect(Object.values(H.state.stats.chats.friends).reduce((a, b) => a + b, 0), `${where}: chats`).toBe(H.state.stats.chats.n);
-        expect(H.state.chapter.n === 9 || H.state.chapter.n <= 6, `${where}: chapter ${H.state.chapter.n}`).toBe(true);
+        expect(H.state.chapter.n === 9 || H.state.chapter.n <= 8, `${where}: chapter ${H.state.chapter.n}`).toBe(true);
       }
     }
   }, 300_000);

@@ -43,6 +43,7 @@ import {
   pinOf,
   planFor,
   routePick,
+  festivalPlan,
   syncWorld,
   type InteractionEnv,
   type Plan,
@@ -157,6 +158,11 @@ export function WorldScreen() {
       if (st.t === 'open' && route.friend && row) run(planFor(e, row.it, route.friend));
       else if (st.t === 'hearts' || st.t === 'wait') setDoorTip({ status: st, friend: route.friend! });
       else say(t('hud.doorLocked'));
+    } else if (route.t === 'festival') {
+      // a festival stall (Kenji's row) or the stage (the speech, through its rehearsal); nothing while the row is not open
+      const plan = festivalPlan(e, route.pick);
+      if (!plan) return false;
+      run(plan);
     } else {
       const shop = shopById(route.shopId);
       if (!shop) return false;

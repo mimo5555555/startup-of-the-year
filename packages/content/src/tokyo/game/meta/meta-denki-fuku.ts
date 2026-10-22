@@ -40,7 +40,7 @@ export const DENKI_FUKU_META: ScenarioMeta[] = [
       // the `goods` node (§5.6): the plush toy and the guitar pick, from the shared slot `giftItem`
       extraSlots: ['giftItem'],
       payStep: 'pay',
-      // the item ids of §5.2 / §5.3 (defined in the item catalog by A3); the yukata is not sold in this wave
+      // the item ids of §5.2 / §5.3 (defined in the item catalog by A3); the yukata is sold from wave C2 (the festival)
       itemMap: {
         tee: 'tee_basic',
         cap: 'cap',
@@ -51,6 +51,7 @@ export const DENKI_FUKU_META: ScenarioMeta[] = [
         glasses: 'glasses_round',
         backpack: 'backpack',
         suit: 'suit_set',
+        yukata: 'yukata',
         plush: 'g_plush',
         guitarPick: 'g_guitar_pick',
       },

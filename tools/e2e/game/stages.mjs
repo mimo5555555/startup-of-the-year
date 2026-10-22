@@ -30,7 +30,7 @@ await onboard(page, {});
 for (let i = 0; i < 40; i++) {
   const sc = await page.evaluate(() => window.__lw.useStore.getState().screen);
   if (sc === 'world') break;
-  if (sc === 'beat') await page.locator('.panel .btn.primary').last().click().catch(() => {});
+  if (sc === 'beat') await page.locator('.panel .btn.primary:not(:disabled), .panel [data-step=diary] [data-skip]').last().click().catch(() => {});
   else await page.evaluate(() => window.__lw.useStore.getState().go('world'));
   await t.sleep(500);
 }

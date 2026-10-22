@@ -94,7 +94,9 @@ describe('shop hooks over the real pack', () => {
       for (const [option, itemId] of Object.entries(shop.itemMap)) {
         const menu = JP_PACK.menu.find((m) => m.id === itemId);
         if (!menu) continue; // gifts come with the catalog (3E)
-        const r = rig(meta.id);
+        // priced where the shop is open (the festival stalls open with Chapter 7)
+        const open = JP_PACK.shops.find((x) => x.id === shop.shopId)?.openChapter ?? 1;
+        const r = rig(meta.id, (st) => ({ ...st, chapter: { ...st.chapter, n: Math.max(st.chapter.n, open) } }));
         const vars = r.game.hooks.vars({ [shop.itemSlot!]: option }, {});
         expect(r.game.amounts().price, `${meta.id}/${option}`).toBe(menu.price);
         expect(vars.total).toBeDefined();

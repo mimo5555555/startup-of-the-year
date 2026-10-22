@@ -3,7 +3,7 @@ import { releasedGate } from './chapters';
 
 /**
  * Pack data: the catalog of docs/GAME_DESIGN.md §5.2 and the gift items of §5.3 that THIS RELEASE sells (docs/RELEASE_1.md, RELEASE_2.md
- * wave A). Fuku-Fuku's clothes (nine of the ten: the yukata waits for the festival) and its two presents are sold from Release 2 wave A; the
+ * wave A). Fuku-Fuku's ten clothes (the yukata from wave C2, with the festival) and its two presents are sold from Release 2 wave A; the
  * seven pieces of second-hand furniture (`fuku_home`) and the room at Ono-sō (`aiko_contract`) from wave B2; Aiko's four presents (bouquet, wagashi, tea set, tenugui) are sold from Chapter 2 by `aiko_tea`, so they have no row here; the ids and prices of the full
  * catalog stay in the design document.
  *
@@ -61,6 +61,8 @@ const JEANS_WASHES = Object.values(DENIM_COLOURS);
 const JACKET_COLOUR = '#2f5ea8';
 /** The business suit's charcoal (§5.5). */
 const SUIT_COLOUR = '#2b2f3a';
+/** The yukata's indigo with a white pattern and wooden geta (§5.5). */
+const YUKATA = { top: '#3b4a8a', bottom: '#3b4a8a', accent: '#f4f4f4', shoes: '#8a5a3a' } as const;
 
 type Avatar = Extract<ItemDef['fx'][number], { t: 'avatar' }>['patch'];
 
@@ -254,6 +256,8 @@ export const ITEMS: ItemDef[] = [
   clothes('suit_set', 'スーツ', undefined, 'Business suit + tie', 'بدلة رسمية مع ربطة عنق', 19800, 6, { top: SUIT_COLOUR, bottom: SUIT_COLOUR, accessories: ['tie'] }, ['top', 'bottom', 'formal'], {
     fx: [{ t: 'trait', id: 'formal_register' }],
   }),
+  // Release 2 wave C2: the yukata, for the festival (the `festival` dream's third step; open from Chapter 4 as designed)
+  clothes('yukata', '浴衣', 'ゆかた', 'Summer festival yukata', 'يوكاتا (كيمونو صيفي خفيف)', 8900, 4, { ...YUKATA }, ['top', 'bottom', 'festival']),
   // ---- Fuku-Fuku's second-hand corner (fuku_home, Release 2 wave B2): the dorm's pieces open in Chapter 5, the flat's in Chapter 6 ----
   furniture('futon_set', '布団セット', 'ふとんセット', 'Futon set', 'طقم فوتون (فراش ياباني)', 8000, 5, 'bed', 2, { bulky: true }),
   furniture('desk_study', '勉強机', 'べんきょうづくえ', 'Study desk', 'مكتب للدراسة', 6000, 5, 'desk', 2, { bulky: true }),

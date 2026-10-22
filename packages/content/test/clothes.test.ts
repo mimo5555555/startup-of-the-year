@@ -21,10 +21,12 @@ const CLOTHES: Record<string, number> = {
   glasses_round: 9_900,
   backpack: 6_900,
   suit_set: 19_800,
+  // Release 2 wave C2: the yukata, for the festival
+  yukata: 8_900,
 };
 const PRESENTS: Record<string, number> = { g_plush: 800, g_guitar_pick: 300 };
 /** the chapter of the design's Gate column */
-const GATES: Record<string, number> = { tee_basic: 2, cap: 2, hoodie: 2, jeans: 3, sneakers: 3, jacket_winter: 4, glasses_round: 5, backpack: 5, suit_set: 6, g_plush: 2, g_guitar_pick: 2 };
+const GATES: Record<string, number> = { tee_basic: 2, cap: 2, hoodie: 2, jeans: 3, sneakers: 3, jacket_winter: 4, glasses_round: 5, backpack: 5, suit_set: 6, yukata: 4, g_plush: 2, g_guitar_pick: 2 };
 const FUKU = [...Object.keys(CLOTHES), ...Object.keys(PRESENTS)];
 
 const meta = JP_PACK.scenarioMeta.find((m) => m.id === 'fuku_clothes')!;
@@ -36,13 +38,13 @@ const wearing = (ids: string[], colours: Record<string, string> = {}): GameState
 describe('the clothes catalog (§5.2)', () => {
   it('prices are the design rows, whole yen, and the nine pieces add up to ¥72,950 (the presents to ¥1,100)', () => {
     for (const [id, yen] of Object.entries({ ...CLOTHES, ...PRESENTS })) expect(item(id).price, id).toBe(yen);
-    expect(Object.values(CLOTHES).reduce((a, b) => a + b, 0)).toBe(72_950);
+    expect(Object.values(CLOTHES).reduce((a, b) => a + b, 0)).toBe(72_950 + 8_900);
     expect(Object.values(PRESENTS).reduce((a, b) => a + b, 0)).toBe(1_100);
     for (const id of FUKU) expect(Number.isInteger(item(id).price), id).toBe(true);
   });
 
-  it('the yukata is not sold yet (the festival is wave C); the furniture is wave B2 and sold by fuku_home, not by fuku_clothes', () => {
-    expect(item('yukata')).toBeUndefined();
+  it('the yukata is sold since wave C2 (the festival), through fuku_clothes; the furniture is wave B2 and sold by fuku_home, not by fuku_clothes', () => {
+    expect(item('yukata')).toMatchObject({ price: 8900, shop: 'fukufuku', gate: { ch: 4 }, cat: 'clothing' });
     const sold = new Set(Object.values(JP_PACK.scenarioMeta.find((m) => m.id === 'fuku_clothes')!.shop!.itemMap));
     for (const id of ['futon_set', 'desk_study', 'bookshelf', 'plant_pothos', 'kotatsu', 'rice_cooker', 'paper_lamp']) expect(sold.has(id), id).toBe(false);
   });
@@ -83,7 +85,7 @@ describe('the Fuku-Fuku shop (§4.5)', () => {
     expect(JP_PACK.chapters.find((c) => c.n === 2)!.opens).toContainEqual({ kind: 'shop', id: 'fukufuku' });
   });
 
-  it('sells exactly the eleven things the catalog names it for, and (wave B2) the seven pieces of second-hand furniture', () => {
+  it('sells exactly the twelve things the catalog names it for (the yukata since wave C2), and (wave B2) the seven pieces of second-hand furniture', () => {
     const FURNITURE = ['futon_set', 'desk_study', 'bookshelf', 'plant_pothos', 'kotatsu', 'rice_cooker', 'paper_lamp'];
     expect([...shop.sells].sort()).toEqual([...FUKU, ...FURNITURE].sort());
     expect(JP_PACK.items.filter((i) => i.shop === 'fukufuku' && i.cat !== 'home').map((i) => i.id).sort()).toEqual([...FUKU].sort());

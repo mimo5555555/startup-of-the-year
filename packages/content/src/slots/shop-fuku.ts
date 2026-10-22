@@ -14,6 +14,7 @@ export const SHOP_FUKU_SLOTS: Record<string, SlotOption[]> = {
     opt('glasses', 'メガネ', ['めがね', '眼鏡'], ['glasses', 'a pair of glasses', 'the glasses', 'spectacles'], ['نظارات', 'نظارة', 'النظارات', 'نظارة طبية']),
     opt('backpack', 'リュック', ['りゅっく', 'リュックサック', 'バックパック', 'かばん'], ['backpack', 'a backpack', 'the backpack', 'rucksack', 'bag'], ['حقيبة ظهر', 'الحقيبة', 'شنطة ظهر', 'حقيبة']),
     opt('suit', 'スーツ', ['すーつ', '背広', 'せびろ'], ['suit', 'a suit', 'the suit', 'business suit', 'a business suit'], ['بدلة', 'بدلة رسمية', 'البدلة', 'سوت']),
+    opt('yukata', '浴衣', ['ゆかた', 'ユカタ', '着物', 'きもの'], ['yukata', 'a yukata', 'the yukata', 'summer kimono', 'kimono', 'a kimono'], ['يوكاتا', 'اليوكاتا', 'كيمونو', 'كيمونو صيفي']),
   ],
   // the sizes (a letter on its own is too short for the matcher, so the keys carry サイズ, a particle or the katakana spelling)
   size: [

@@ -19,7 +19,7 @@ import {
   newLighting,
   type FestivalPark,
 } from './festival';
-import { DOOR_RETURN, PLAYER_START, shopRect, spotsAt, type NpcSpawn, type Occluder, type Rect, type ShopDef, type SpotId } from './layout';
+import { DOOR_RETURN, PLAYER_START, shopRect, spotsAt, type NpcSpawn, type Rect, type ShopDef, type SpotId } from './layout';
 import { COLORS } from './palette';
 import type { Stage, StageHandle, StageId, StagePick, StageState } from './stage';
 import { STAGES } from './stages';
@@ -66,6 +66,10 @@ export interface WorldSnapshot {
 }
 
 const PLAYER_RADIUS = 0.42;
+/** how far above the player's head the follow camera looks while the fireworks are on, in metres */
+const FIREWORKS_LOOK_UP = 3.8;
+/** how close the follow camera comes for the fireworks shot */
+const FIREWORKS_CAM_DIST = 5.2;
 const WALK_SPEED = 4.1;
 const RUN_SPEED = 6.6;
 /**
@@ -185,11 +189,15 @@ export class TokyoWorld {
   private festivalBlend = 0;
   private festivalScenery: FestivalPark | null = null;
   /** the stall/stage colliders, picks and minimap rects, spliced into the city's lists while the festival is on */
-  private festivalAdded: ReturnType<typeof festivalExtras> & { occluders: Occluder[] } | null = null;
+  private festivalAdded: ReturnType<typeof festivalExtras> | null = null;
   /** friends asked to the festival (`setFestivalGuests`), placed while it is on */
   private festivalGuests: string[] = [];
   /** NPCs standing at festival spots, with what to put back */
   private festivalMoved = new Map<string, { home: THREE.Vector3; face: number; radius: number; shop: string | null }>();
+  /** 0..1: how far the follow camera looks up over the player's head while the fireworks are on */
+  private fireworksLift = 0;
+  /** the follow distance the fireworks shot replaced, put back when they stop */
+  private fireworksDist: number | null = null;
   private readonly lighting = newLighting();
   private inSpots = new Set<SpotId>();
   private doorOpen = new Set<string>();
@@ -511,7 +519,12 @@ export class TokyoWorld {
       this.festivalScenery.group.visible = false;
       this.scene.add(this.festivalScenery.group);
     }
-    if (!on) this.festivalScenery?.resetFireworks();
+    if (!on) {
+      this.festivalScenery?.resetFireworks();
+      this.fireworksCamera(false);
+      // the day look comes back exactly: no camera tilt left fading out
+      this.fireworksLift = 0;
+    }
     if (instant) this.festivalBlend = this.festivalTarget;
     this.syncFestival();
     this.applyLighting();
@@ -521,19 +534,30 @@ export class TokyoWorld {
   }
 
   /**
-   * Fireworks over the south hedge of the park (the chapter 7 closing beat). Only while the festival is on (a call
-   * before `setFestival(true)` is a no-op). On also turns the follow camera to look up at them; the learner can still
-   * orbit. Off lets the shells in the air finish.
+   * Fireworks over the road north of the park, above the stage (the chapter 7 closing beat). Only while the festival is on (a call
+   * before `setFestival(true)` is a no-op). On also turns the follow camera to them, brings it in over the player's
+   * shoulder and tilts it up to the sky (the learner can still orbit); off puts the camera back and lets the shells in
+   * the air finish.
    */
   fireworks(on: boolean) {
     const fest = this.festivalScenery;
     if (!fest || (on && this.festivalTarget !== 1)) return;
     fest.setFireworks(on);
-    if (on && !this.stage) {
+    this.fireworksCamera(on && !this.stage);
+  }
+
+  /** the over-the-shoulder look up at the fireworks: low and close, so the park's trees stay behind the camera */
+  private fireworksCamera(on: boolean) {
+    if (on) {
       const fx = (FIREWORKS_AREA.x0 + FIREWORKS_AREA.x1) / 2 - this.playerPos.x;
       const fz = (FIREWORKS_AREA.z0 + FIREWORKS_AREA.z1) / 2 - this.playerPos.z;
       this.yaw = Math.atan2(-fx, -fz);
-      this.pitch = this.pitchRange()[0] + 0.04;
+      this.pitch = this.pitchRange()[0];
+      this.fireworksDist ??= this.dist;
+      this.dist = Math.min(this.dist, FIREWORKS_CAM_DIST);
+    } else if (this.fireworksDist !== null) {
+      this.dist = this.fireworksDist;
+      this.fireworksDist = null;
     }
   }
   isFireworks() {
@@ -1044,7 +1068,7 @@ export class TokyoWorld {
     this.hemi.intensity = HEMI_LEVEL[this.quality] * L.hemiK;
     this.sun.intensity = SUN_LEVEL[this.quality] * L.sunK;
     this.city.sunDir.copy(L.sunDir);
-    if (this.festivalScenery) this.festivalScenery.group.visible = !this.stage && (this.festivalBlend > 0 || this.festivalTarget > 0);
+    if (this.festivalScenery) this.festivalScenery.group.visible = !this.stage && this.festivalTarget > 0;
   }
 
   private labelFor(text: string) {
@@ -1356,8 +1380,7 @@ export class TokyoWorld {
     const on = this.festivalTarget === 1 && !!this.festivalScenery;
     const c = this.city;
     if (on && !this.festivalAdded) {
-      const x = festivalExtras();
-      this.festivalAdded = { ...x, occluders: x.colliders.map((r) => ({ ...r, y1: 3.2 })) };
+      this.festivalAdded = festivalExtras();
       c.colliders.push(...this.festivalAdded.colliders);
       c.occluders.push(...this.festivalAdded.occluders);
       c.pickables.push(...this.festivalAdded.picks);
@@ -1424,6 +1447,10 @@ export class TokyoWorld {
       this.applyLighting();
     }
     if (this.festivalScenery?.group.visible) this.festivalScenery.update?.(dt, t, this.playerPos);
+    // the camera tilts up to the fireworks (the shells sit above the HUD's band of sky otherwise), and back down after
+    const lift = this.festivalScenery?.fireworksOn() && !this.conv && !this.stage ? 1 : 0;
+    this.fireworksLift += (lift - this.fireworksLift) * (1 - Math.exp(-2.5 * dt));
+    if (Math.abs(lift - this.fireworksLift) < 1e-3) this.fireworksLift = lift;
   }
 
   private updateNearby() {
@@ -1571,6 +1598,7 @@ export class TokyoWorld {
     out.pos.copy(target).addScaledVector(dir, d);
     out.pos.y = Math.max(out.pos.y, 0.7);
     out.look.copy(target);
+    if (this.fireworksLift > 0) out.look.y += FIREWORKS_LOOK_UP * this.fireworksLift;
   }
 
   private clipDistance(origin: THREE.Vector3, dir: THREE.Vector3, maxD: number) {

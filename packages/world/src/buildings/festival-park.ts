@@ -1,5 +1,5 @@
 // The festival in the park (slice 5B, chapter 7): six yatai stalls along an aisle on the east lawn, a small yagura stage
-// north of the east path, strings of chōchin lanterns and fireworks over the south hedge. Built lazily by the world on
+// north of the east path, strings of chōchin lanterns and fireworks over the road to the north. Built lazily by the world on
 // the first `setFestival(true)`; everything is merged into a handful of draw calls (the budget is +8 calls, +12k triangles).
 //
 // The east lawn is the one open stretch of the park with no tree canopy low enough to clip a 3 m roof: the aisle runs
@@ -8,7 +8,7 @@ import * as THREE from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { Batch, rng } from '../batch';
 import type { FestivalHandle, FestivalMaterials } from '../festival';
-import { boxRect, type MapRect, type Rect } from '../layout';
+import { boxRect, type MapRect, type Occluder, type Rect } from '../layout';
 import { blobTexture, signTexture, type SignStyle } from '../textures';
 
 export type FestivalStallId = 'takoyaki' | 'yakisoba' | 'kakigori' | 'ramen' | 'kingyo' | 'ringoame';
@@ -96,16 +96,19 @@ export const FESTIVAL_SPOTS = {
 /** talk radius of a person at the festival (the street's 4.4-5.4 m would overlap in a crowd this close) */
 export const FESTIVAL_TALK_RADIUS = 2.4;
 
-/** The colliders, picks and minimap rects the world adds while the festival is on (and takes away again). */
-export function festivalExtras(): { colliders: Rect[]; picks: Array<{ id: string; pos: THREE.Vector3; radius: number }>; mapRects: MapRect[] } {
+/** The colliders, camera occluders, picks and minimap rects the world adds while the festival is on (and takes away again). */
+export function festivalExtras(): { colliders: Rect[]; occluders: Occluder[]; picks: Array<{ id: string; pos: THREE.Vector3; radius: number }>; mapRects: MapRect[] } {
   const colliders: Rect[] = [...FESTIVAL_STALLS.map(stallRect), stageRect()];
-  const picks = FESTIVAL_STALLS.map((s) => {
+  // the aisle is 5 m wide: a camera kept the street's 2.8 m out would sit inside the stall across it, so it may come closer
+  // there; the stage keeps the usual minimum (from 1.4 m the player fills a portrait screen)
+  const occluders: Occluder[] = [...FESTIVAL_STALLS.map((s) => ({ ...stallRect(s), y1: STALL.top + 0.25, minD: 1.4 })), { ...stageRect(), y1: FESTIVAL_STAGE.roof + 0.2 }];
+  const picks: Array<{ id: string; pos: THREE.Vector3; radius: number }> = FESTIVAL_STALLS.map((s) => {
     const p = toWorld(s, 0, STALL.d / 2 + 0.1);
     return { id: stallPickId(s.id), pos: new THREE.Vector3(p.x, 1.7, p.z), radius: 1.3 };
   });
   picks.push({ id: FESTIVAL_STAGE_PICK, pos: new THREE.Vector3(FESTIVAL_STAGE.x, 1.6, FESTIVAL_STAGE.z + 0.4), radius: 1.7 });
   const mapRects: MapRect[] = [...FESTIVAL_STALLS.map((s) => ({ ...stallRect(s), color: '#ff8a5c' })), { ...stageRect(), color: '#e2504a', label: 'festival' }];
-  return { colliders, picks, mapRects };
+  return { colliders, occluders, picks, mapRects };
 }
 
 // ---------------------------------------------------------------------------------------------
@@ -247,8 +250,7 @@ const STRINGS: Array<[THREE.Vector3, THREE.Vector3, number]> = (() => {
     [corner('takoyaki', -1), corner('ramen', 1), 0.28],
     [corner('yakisoba', -1), corner('kingyo', 1), 0.28],
     [corner('kingyo', -1), corner('ringoame', 1), 0.22],
-    // along the stage front
-    [roofL, roofR, 0.12],
+    // (no string along the stage front: its lanterns hung over the banner)
   ];
 })();
 
@@ -292,8 +294,12 @@ interface Burst {
   alive: boolean;
 }
 
-/** Fireworks over the south hedge of the park, where the follow camera sees them when it looks up at the stage area. */
-export const FIREWORKS_AREA = { x0: -14, x1: 16, y0: 15, y1: 22, z0: 50, z1: 62 };
+/**
+ * Fireworks over the road north of the park, above the stage: the closing beat follows the speech, so the learner stands
+ * at the speaker's spot with the stage behind them, and a camera turned to fireworks anywhere else would sit inside the
+ * stage. Turned north, it stands in the open aisle mouth and looks up over the stage roof and the trees.
+ */
+export const FIREWORKS_AREA = { x0: -6, x1: 14, y0: 14, y1: 19, z0: -2, z1: 6 };
 
 function makeFireworks(dot: THREE.Texture) {
   const n = BURSTS * PER_BURST;

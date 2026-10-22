@@ -48,11 +48,11 @@ describe('wave C1: the cap moves to Chapter 6 under existing saves', () => {
 
   it('a save already in Free Walk (chapters 1-4 under the old cap) stays in Free Walk: nothing replays, nothing is paid', () => {
     const s0 = { ...saveAt(BALANCE.freeWalkChapter, [1, 2, 3, 4]), beats: ['b_release_epilogue'] };
-    // the save goes through the loader as it is stored; `chapter.completed` is a cache of `chapter.n`, so Free Walk re-derives it as 1-6
+    // the save goes through the loader as it is stored; `chapter.completed` is a cache of `chapter.n`, so Free Walk re-derives it (1-8 since wave C2)
     const loaded = migrate(JSON.parse(JSON.stringify(s0)), 1, JP_PACK);
     expect(validateState(loaded, JP_PACK)).toEqual([]);
     expect(loaded.chapter.n).toBe(BALANCE.freeWalkChapter);
-    expect(loaded.chapter.completed).toEqual([1, 2, 3, 4, 5, 6]);
+    expect(loaded.chapter.completed).toEqual(JP_PACK.chapters.map((c) => c.n));
     let s = loaded;
     for (let d = 1; d <= 3; d++) {
       const r = observe(s, d);

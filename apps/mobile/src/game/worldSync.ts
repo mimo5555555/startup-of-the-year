@@ -28,6 +28,7 @@ import { applyAvatar, avatarSpecFor } from './avatarFx';
 import { cooldownDays, doorsOpen } from './homeLogic';
 import { furnitureOpen, inviteStatus, ownDoors } from './ownLogic';
 import { heartsOf } from './selectors';
+import { festivalOpen, festivalPickOf, festivalRowOf, isFestivalRow, syncFestival, FESTIVAL, type FestivalPick } from './festivalSync';
 
 // ---------------------------------------------------------------------------------------------------------------
 // HUD disclosure: which elements are on screen (§2.5)
@@ -155,6 +156,8 @@ export function interactionRows(env: InteractionEnv, characterId: string): Optio
     if (!listable(env, raw, characterId)) continue;
     // the flat is rented once: the viewing and the contract are done with when the room is the player's (no row to a conversation that only says so)
     if (env.state.home.tier === 'ono' && (raw.scenarioId === 'aiko_viewing' || raw.scenarioId === 'aiko_contract')) continue;
+    // the festival's rows (Kenji's stall, Hanako's speech) are listed only while the park is the festival (`festivalOpen`, Chapter 7)
+    if (isFestivalRow(raw.id) && !festivalOpen(env.state)) continue;
     const it = raw.scenarioId === 'aiko_viewing' && isMinorProfile(env) ? { ...raw, label: TEA_ROOM_LABEL } : raw;
     const lock = lockOf(env, it);
     // teasers: a lock further than the next chapter is noise
@@ -163,8 +166,14 @@ export function interactionRows(env: InteractionEnv, characterId: string): Optio
   }
   const invite = inviteRow(env, characterId);
   if (invite) rows.push(invite);
+  if (characterId === 'hanako' && letterOpen(env.state)) rows.push({ it: LETTER_ROW, lock: null });
   return rows;
 }
+
+/** Hanako opens the Letter Home (c8_1, `screen:'letter'`) from Chapter 8 on; at Free Walk the row reopens the written Letter. */
+export const LETTER_ROW_ID = 'hanako_letter';
+const LETTER_ROW: Interaction = { id: LETTER_ROW_ID, kind: 'scenario', label: { en: 'Write your Letter Home', ar: 'اكتب رسالتك إلى الأهل' } };
+export const letterOpen = (state: GameState): boolean => state.chapter.n >= 8;
 
 /** D28: under 18 the viewing plays as a visit to Aiko's tea room next door, and the row says so (nothing about rent). */
 const TEA_ROOM_LABEL = { en: "Visit Aiko's tea room", ar: 'زُر بيت شاي أيكو' } as const;
@@ -261,7 +270,9 @@ export type Plan =
   | { t: 'lesson'; lessonId: string }
   | { t: 'shift'; jobId: string }
   | { t: 'gift'; characterId: string }
-  | { t: 'window'; shopId: string };
+  | { t: 'window'; shopId: string }
+  /** the Letter Home screen (Chapter 8) */
+  | { t: 'letter' };
 
 /** A scenario has a pocket the player has not made ready yet (soft Prepare, §11.1; skipping it is Prepare's own button). */
 export function wantsPrepare(env: InteractionEnv, scenarioId: string): boolean {
@@ -272,6 +283,9 @@ export function wantsPrepare(env: InteractionEnv, scenarioId: string): boolean {
 
 export function planFor(env: InteractionEnv, it: Interaction, characterId: string): Plan {
   const { pack, state } = env;
+  if (it.id === LETTER_ROW_ID) return { t: 'letter' };
+  // the capstone always opens on its five-line rehearsal (Prepare), whatever the pocket says
+  if (it.scenarioId === FESTIVAL.speechScenario) return { t: 'prepare', scenarioId: it.scenarioId, characterId };
   switch (it.kind) {
     case 'lesson':
       return { t: 'lesson', lessonId: it.lessonId! };
@@ -364,6 +378,8 @@ export function syncWorld(
   world.setMoveMultiplier(fx.moveMultiplier);
   world.setRide(fx.ride);
   if (base) applyAvatar(world, fx.spec, base);
+  // Chapter 7: the park is the festival on the festival day, with the friends at two hearts or more
+  syncFestival(world, env.pack, env.state);
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -461,6 +477,8 @@ export type PickRoute =
   /** the player's own room: the dorm door or the flat's */
   | { t: 'own'; door: 'dorm' | 'flat' }
   | { t: 'shop'; shopId: string }
+  /** a festival stall or the stage (only pickable while the festival is on) */
+  | { t: 'festival'; pick: FestivalPick }
   | null;
 
 /** World pick ids are routed game first (§7.6): panels, doors and shop fronts here; every other id keeps the sign word card. */
@@ -472,6 +490,8 @@ export function routePick(id: string): PickRoute {
   if (id === 'door:flat') return { t: 'own', door: 'flat' };
   if (id.startsWith('door:')) return { t: 'door', friend: id.slice(5) };
   if (id.startsWith('shop:')) return { t: 'shop', shopId: id.slice(5) };
+  const fest = festivalPickOf(id);
+  if (fest) return { t: 'festival', pick: fest };
   return null;
 }
 
@@ -500,6 +520,16 @@ export function doorStatus(env: InteractionEnv, friend: string | null): DoorStat
   if (have < home.hearts || !row) return { t: 'hearts', home, need: home.hearts, have };
   if (row.lock && 'wait' in row.lock) return { t: 'wait', home, days: row.lock.wait };
   return row.lock ? { t: 'hearts', home, need: home.hearts, have } : { t: 'open', home };
+}
+
+/**
+ * What a festival pick does: the festival row it stands for (a stall is Kenji's matsuri_stalls row, the stage Hanako's speech, which opens on
+ * its rehearsal), or nothing while the row is not open (the picks exist only while the festival is on).
+ */
+export function festivalPlan(env: InteractionEnv, pick: FestivalPick): Plan | null {
+  const { characterId, scenarioId } = festivalRowOf(pick);
+  const row = openRows(interactionRows(env, characterId)).find((r) => r.it.scenarioId === scenarioId);
+  return row ? planFor(env, row.it, characterId) : null;
 }
 
 /** What a tap on one of the player's own doors does: go in, or say why not (the flat is Aiko's building until it is rented; the dorm is left behind after moving). */

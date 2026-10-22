@@ -24,6 +24,7 @@ export const FUKU_PRICES: Record<string, number> = {
   glasses: 9900,
   backpack: 6900,
   suit: 19800,
+  yukata: 8900,
   plush: 800,
   guitarPick: 300,
 };
@@ -152,7 +153,7 @@ export const FUKU_CLOTHES: Scenario = {
     node({
       id: 'shelves',
       step: 'look',
-      say: [say(L('Tシャツ、|パーカー、|ジーンズ、|スニーカー、|帽子、|メガネ、|リュック、|ダウンジャケット、|スーツ|が|あります。', 'We have T-shirts, hoodies, jeans, sneakers, caps, glasses, backpacks, down jackets and suits.', 'لدينا قمصان تي شيرت وهوديات وجينز وأحذية رياضية وقبعات ونظارات وحقائب ظهر وسترات منفوخة وبدلات.'))],
+      say: [say(L('Tシャツ、|パーカー、|ジーンズ、|スニーカー、|帽子、|メガネ、|リュック、|ダウンジャケット、|スーツ、|浴衣|が|あります。', 'We have T-shirts, hoodies, jeans, sneakers, caps, glasses, backpacks, down jackets, suits and yukata.', 'لدينا قمصان تي شيرت وهوديات وجينز وأحذية رياضية وقبعات ونظارات وحقائب ظهر وسترات منفوخة وبدلات ويوكاتا.'))],
       suggestions: [S('パーカー|を|ください。', 'A hoodie, please.', 'هودي من فضلك.'), S('帽子|は|あります|か？', 'Do you have caps?', 'هل لديكم قبعات؟'), S('Tシャツ|を|ください。', 'A T-shirt, please.', 'قميص تي شيرت من فضلك.'), REPEAT_S],
       intents: [
         pickClothes(),

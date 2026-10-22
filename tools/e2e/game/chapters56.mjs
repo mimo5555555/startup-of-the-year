@@ -4,7 +4,8 @@
 //   lines of my own -> a station shift (Sato's intro, then the board, the plan, the timetable and the fare table, all five customers by tapping)
 //   -> browse Nakamura Motors and say I will think about it -> Chapter 5 completes (reward, title, culture cards, beat) -> Chapter 6 "Visiting Homes"
 //   (a friend at 3 hearts starts it; Hanako's try-without-chips beat turns the next shop talk into Real mode once) -> 4 hearts and a friend's home ->
-//   Aiko's room -> five shifts in total (konbini, café, station) -> Chapter 6 completes -> the epilogue beat -> Free Walk (chapter.n 9).
+//   Aiko's room -> five shifts in total (konbini, café, station) -> Chapter 6 completes -> its closing beat (b_ch6_close, with Hanako's Letter preview
+//   line; b_ch6_close_flat when the Ono-so room is rented) -> Chapter 7 "Festival" opens (wave C2: chapters78.mjs plays Chapters 7-8).
 // Dev tools are used only for yen, hearts, advancing days and the chapter fast-forward. After every step: no horizontal scroll, no console error,
 // and the wallet equals the ledger (cash + ic = start + earned - spent, each pocket against its checksum).
 // Usage: BASE=http://127.0.0.1:5173/ node tools/e2e/game/chapters56.mjs [--ar]
@@ -616,27 +617,31 @@ assert.ok(g.chapter.done.c6_4 !== undefined, 'c6_4 (five shifts) is done');
 await check('five shifts');
 
 // ---------------------------------------------------------------------------------------------------------------
-// 7. Chapter 6 completes: the epilogue and Free Walk
+// 7. Chapter 6 completes: its closing beat, then Chapter 7
 // ---------------------------------------------------------------------------------------------------------------
-step('Chapter 6 completes: reward, title, culture cards, the epilogue beat, Free Walk (chapter.n 9)');
+step('Chapter 6 completes: reward, title, culture cards, the closing beat with the Letter preview, Chapter 7 opens');
 allBeats = [];
-// the objectives are done for real; the days the chapter needs (minDays) are fast-forwarded
-await dev('advance_chapter');
-allBeats.push(...(await settle({ shotIds: ['b_release_epilogue'] })));
+// the objectives are done for real; the days the chapter needs (minDays) are fast-forwarded, unless the last shift already completed it (the
+// chapter then went on to Chapter 7, and a fast-forward there would skip the festival)
+if ((await liveGame(page)).chapter.n === 6) await dev('advance_chapter');
+allBeats.push(...(await settle({ shotIds: ['b_ch6_close', 'b_ch7_open'] })));
 g = await liveGame(page);
 console.log('  beats', allBeats.join(', '), '| chapter', g.chapter.n);
-assert.equal(g.chapter.n, 9, 'Free Walk (chapter.n 9) is current');
+assert.equal(g.chapter.n, 7, 'Chapter 7 (the festival) is current');
 assert.ok(g.chapter.completed.includes(6), 'Chapter 6 is completed');
 assert.ok(g.ledger.some((e) => e.kind === 'chapter' && e.ref === 'ch6' && e.delta === 6000), 'the ¥6,000 reward is in the ledger');
 assert.ok(g.titles.includes('t_guest'), 'title: Guest');
 for (const c of ['cc_shoesoff', 'cc_trash']) assert.ok(g.culture[c] !== undefined, `culture card ${c}`);
-assert.ok(allBeats.includes('b_release_epilogue'), 'the epilogue beat plays');
+const flat = !!g.owned.home_room_ono;
+assert.ok(allBeats.includes(flat ? 'b_ch6_close_flat' : 'b_ch6_close'), `the chapter 6 closing beat plays (${flat ? 'flat' : 'no flat'})`);
+assert.ok(allBeats.includes('b_ch7_open'), 'Chapter 7 opens with its beat');
+assert.ok(!allBeats.includes('b_release_epilogue') && !g.beats.includes('b_release_epilogue'), 'no "to be continued" epilogue');
 await go('quests');
 await page.waitForSelector('[data-screen=quests]');
 await t.sleep(400);
-assert.equal(await page.locator('[data-freewalk]').count(), 1, 'the Story tab says Free Walk');
-await t.shot('quests-freewalk');
-await check('Free Walk');
+assert.equal(await page.locator('[data-freewalk]').count(), 0, 'not Free Walk yet');
+await t.shot('quests-chapter7');
+await check('Chapter 7');
 await go('world');
 
 step('a reload keeps everything');
@@ -645,7 +650,7 @@ await page.reload({ waitUntil: 'load' });
 await page.waitForFunction(() => !!window.__world && !!window.__lw, null, { timeout: 60000 });
 await t.sleep(1500);
 g = await liveGame(page);
-assert.equal(g.chapter.n, 9);
+assert.equal(g.chapter.n, 7);
 assert.ok(g.stats.visits.includes('trip:hikarigaoka') && g.stats.visits.includes('home:mio'));
 await check('after reload');
 

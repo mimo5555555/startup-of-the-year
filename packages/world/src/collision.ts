@@ -48,7 +48,8 @@ export function resolveCircle(p: Vec2, radius: number, rects: readonly Rect[], b
 
 /**
  * How far a camera can travel from `origin` along `dir` before it would end up inside something.
- * Occluders have a height range, so a low hedge only blocks a low camera. Never returns less than `minD`.
+ * Occluders have a height range, so a low hedge only blocks a low camera. Never returns less than `minD` (or the
+ * occluder's own `minD`).
  */
 export function clipDistance(origin: Vec3, dir: Vec3, maxD: number, occluders: readonly Occluder[], pad = 0.35, minD = 2.8): number {
   let best = maxD;
@@ -70,7 +71,7 @@ export function clipDistance(origin: Vec3, dir: Vec3, maxD: number, occluders: r
     };
     if (slab(origin.x, dir.x, x0, x1) && slab(origin.z, dir.z, z0, z1) && tmin > 0.01) {
       const yAt = origin.y + dir.y * tmin;
-      if (yAt > (r.y0 ?? 0) - 0.4 && yAt < (r.y1 ?? 9) + 0.4) best = Math.min(best, Math.max(minD, tmin - 0.3));
+      if (yAt > (r.y0 ?? 0) - 0.4 && yAt < (r.y1 ?? 9) + 0.4) best = Math.min(best, Math.max(r.minD ?? minD, tmin - 0.3));
     }
   }
   return best;

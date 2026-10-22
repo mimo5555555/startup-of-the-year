@@ -3,11 +3,11 @@
 //   my own words, the ramen shop and the said culture phrases, the konbini shift by typing) -> Chapter 3 (real small talks with Mio and Yuki
 //   across advanced days up to two hearts each, a present bought at the konbini and handed over) -> Chapter 4 (the phone bought at Hikari
 //   Denki through the conversation, the HUD icon, chats with two friends, Continue back to the Phone, today's plan pin on the minimap) ->
-//   Mio's closing beat and Chapter 5 (the release cap is Chapter 6 since Release 2 wave C1) -> Nakamura Motors opens: the bicycle, the helmet
-//   (worn at once) -> the dev fast-forward through Chapters 5-6 (played for real by chapters56.mjs) to Free Walk -> the used kei car with the
+//   Mio's closing beat and Chapter 5 (the release cap is Chapter 8, the whole story, since Release 2 wave C2) -> Nakamura Motors opens: the bicycle, the helmet
+//   (worn at once) -> the dev fast-forward through Chapters 5-8 (played for real by chapters56.mjs and chapters78.mjs) to Free Walk -> the used kei car with the
 //   drive-away fees and a haggle -> a reload keeps everything.
 // Dev tools are used only for yen, for advancing days, for the one objective ("know 25 words") whose real route is weeks of review, and for
-// the fast-forward through Chapters 5-6.
+// the fast-forward through Chapters 5-8.
 // After every step: no horizontal scroll, no console error, and the wallet equals the ledger totals (cash + ic = start + earned - spent).
 // Supersedes tools/e2e/game/shops.mjs. Usage: BASE=http://127.0.0.1:5173/ node tools/e2e/game/release1.mjs [--ar]
 import assert from 'node:assert/strict';
@@ -53,7 +53,7 @@ async function check(where) {
 // beats, pop-ups, sheets
 // ---------------------------------------------------------------------------------------------------------------
 
-/** Plays every queued story beat by tapping (the dream question is answered with the first dream, the katakana step is saved as offered). */
+/** Plays every queued story beat by tapping (the dream question is answered with the first dream, the katakana step is saved as offered, the diary skipped). */
 async function beats({ shotIds = ['b_ch4_close', 'b_ch5_open'] } = {}) {
   let played = 0;
   for (let i = 0; i < 80; i++) {
@@ -63,6 +63,9 @@ async function beats({ shotIds = ['b_ch4_close', 'b_ch5_open'] } = {}) {
       await page.locator('[data-choose]').first().click();
     } else if (await page.locator('[data-step=nameKana] [data-save]').count()) {
       await page.locator('[data-step=nameKana] [data-save]').click();
+    } else if (await page.locator('[data-step=diary] [data-skip]').count()) {
+      // a closing beat's one-line diary (wave C2): skipped here (chapters78.mjs writes one)
+      await page.locator('[data-step=diary] [data-skip]').click();
     } else if (await page.locator('.qst-beat [data-continue]').count()) {
       if (shotIds.includes(id)) {
         await assertNoHScroll(page, `beat ${id}`);
@@ -706,9 +709,9 @@ for (let k = 0; k < 5 && (await liveGame(page)).chapter.n !== 5; k++) {
 }
 await settle();
 g = await liveGame(page);
-assert.equal(g.chapter.n, 5, 'Chapter 5 follows Chapter 4 (the release cap is Chapter 6)');
+assert.equal(g.chapter.n, 5, 'Chapter 5 follows Chapter 4 (the release cap is Chapter 8)');
 assert.ok(g.beats.includes('b_ch4_close'), "Mio's closing beat of Chapter 4 was played");
-assert.ok(!g.beats.includes('b_release_epilogue'), 'the epilogue waits for the end of Chapter 6');
+assert.ok(!g.beats.includes('b_ch8_close'), 'the ending waits for the end of Chapter 8');
 assert.deepEqual(g.chapter.completed, [1, 2, 3, 4]);
 await check('chapter 5');
 
@@ -800,20 +803,21 @@ await go('world');
 await t.sleep(600);
 await check('wallet');
 
-step('dev fast-forward through Chapters 5-6 (chapters56.mjs plays them): the epilogue beat, Free Walk; the cars are for sale');
+step('dev fast-forward through Chapters 5-8 (chapters56.mjs and chapters78.mjs play them): the ending beat, Free Walk; the cars are for sale');
 await page.evaluate(() => {
   // Chapter 6 starts with a friend at 3 hearts (its start gate)
   const g = window.__lw.getGame();
   window.__lw.useGame.getState().setGame({ ...g, friends: { ...g.friends, mio: { ...g.friends.mio, ap: Math.max(g.friends.mio.ap, 150) } } });
 });
-for (let k = 0; k < 4 && (await liveGame(page)).chapter.n !== 9; k++) {
+for (let k = 0; k < 6 && (await liveGame(page)).chapter.n !== 9; k++) {
   await dev('advance_chapter');
-  await settle({ shotIds: ['b_release_epilogue'] });
+  await settle({ shotIds: ['b_ch8_close'] });
 }
 g = await liveGame(page);
-assert.equal(g.chapter.n, 9, 'Free Walk (chapter 9) after Chapter 6');
-assert.ok(g.beats.includes('b_release_epilogue'), 'the epilogue beat was played');
-assert.deepEqual(g.chapter.completed, [1, 2, 3, 4, 5, 6]);
+assert.equal(g.chapter.n, 9, 'Free Walk (chapter 9) after Chapter 8');
+assert.ok(g.beats.includes('b_ch8_close'), 'the ending beat was played');
+assert.ok(!g.beats.includes('b_release_epilogue'), 'no "to be continued" epilogue');
+assert.deepEqual(g.chapter.completed, [1, 2, 3, 4, 5, 6, 7, 8]);
 await check('free walk');
 
 step('Motors: the used kei car; the drive-away price, one haggle within the cap; the car mesh and x2.5');

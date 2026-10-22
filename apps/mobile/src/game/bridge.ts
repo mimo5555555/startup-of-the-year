@@ -24,7 +24,8 @@ import { heartEventOfBeat, pendingHeartBeats } from './friendsLogic';
 import { flushGameNow, getGame, useGame } from './gameStore';
 import { applyImplicitReview } from './srsHooks';
 import { noteRewards } from './homeLogic';
-import { REAL_TRY_BEAT, REAL_TRY_DONE, holdForTry, realTryDue, realTryFor, takeHeld } from './realTry';
+import { REAL_TRY_BEAT, REAL_TRY_DONE, capstoneMode, holdForTry, isCapstone, realTryDue, realTryFor, takeHeld } from './realTry';
+import { FESTIVAL, isFestivalScenario } from './festivalSync';
 import { tripOf, tripPaid, tripQuote } from './tripLogic';
 import { autoWearOutfit } from './avatarFx';
 import { gameView } from './selectors';
@@ -311,6 +312,9 @@ export function startConversation(req: ConvoRequest): void {
     useUi.getState().queueBeat(REAL_TRY_BEAT);
     return;
   }
+  // the festival: a stall or the stage files the visit (it unlocks cc_matsuri); the capstone is Real mode, Guided only as its one-time fallback
+  if (req.channel !== 'chat' && isFestivalScenario(req.scenarioId)) dispatch({ t: 'visit', place: FESTIVAL.visit });
+  if (isCapstone(PACK, req.scenarioId)) req = { ...req, mode: capstoneMode(PACK, g, req.scenarioId, req.mode) };
   const mode = req.mode ?? (realTryFor(PACK, g, req.scenarioId) ? 'real' : undefined);
   if (mode === 'real' && realTryFor(PACK, g, req.scenarioId)) dispatch({ t: 'flag', id: REAL_TRY_DONE });
   useUi.getState().startConvo(mode ? { ...req, mode } : req);

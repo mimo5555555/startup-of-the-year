@@ -40,6 +40,10 @@ export function runPlan(plan: Plan): void {
       // the gift hand-over lives on the Friends screen (slice 4A): it opens on this friend with the gift sheet up
       openScreen('friends', { friendId: plan.characterId, gift: true });
       break;
+    case 'letter':
+      // the Letter Home (Chapter 8): its own screen
+      useStore.getState().go('letter');
+      break;
     case 'window':
       break;
   }

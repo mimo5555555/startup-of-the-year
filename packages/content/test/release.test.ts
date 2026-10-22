@@ -1,10 +1,11 @@
-// The release cap (docs/RELEASE_1.md; Release 2 wave C1 moves it from Chapter 4 to Chapter 6): chapters 1-6, then Free Walk, with the Dream picker offering only dreams that can be finished.
+// The release cap (docs/RELEASE_1.md; Release 2 wave C1 moved it from Chapter 4 to Chapter 6, wave C2 to Chapter 8: the whole story): chapters 1-8, then Free
+// Walk, with the Dream picker offering only dreams that can be finished.
 // The generic machinery (GamePack.release, the release_* and dream_blocked checks) is proven over a fixture in packages/game/test/release.test.ts;
 // this file proves the Japanese pack's DATA against it.
 import { describe, expect, it } from 'vitest';
 import { BALANCE, createGameState, evaluateAll, validatePack, type ChapterDef, type ContentIndex, type FriendDef, type GamePack, type GameView, type Pred, type ValidationIssue } from '@lw/game';
 import { CHARACTERS, JP_PACK, LEXICON, SCENARIOS, SLOTS, tokenize } from '../src';
-import { CHAPTERS, FREE_WALK, RELEASED_CHAPTERS, RELEASE_EPILOGUE, RELEASE_LAST_CHAPTER, releasedGate } from '../src/tokyo/game/chapters';
+import { CHAPTERS, FREE_WALK, RELEASED_CHAPTERS, RELEASE_ENDING, RELEASE_EPILOGUE, RELEASE_LAST_CHAPTER, releasedGate } from '../src/tokyo/game/chapters';
 import { DREAMS, RELEASED_DREAMS } from '../src/tokyo/game/dreams';
 import { BEATS } from '../src/tokyo/game/beats';
 
@@ -39,30 +40,28 @@ const provable = (): GamePack => ({ ...JP_PACK, friends: JP_PACK.friends.length 
 const errorsOf = (p: GamePack, level: 1 | 2 | 3 | 4 | 5): ValidationIssue[] => validatePack(p, { level, index: index() }).filter((i) => i.severity === 'error');
 
 describe('the release cap in the pack', () => {
-  it('JP_PACK.release caps the story at Chapter 6 with the epilogue as its closing beat', () => {
-    expect(JP_PACK.release).toEqual({ lastChapter: 6, epilogue: RELEASE_EPILOGUE });
-    expect(RELEASE_LAST_CHAPTER).toBe(6);
+  it('JP_PACK.release plays the whole story: Chapter 8 is the last chapter and its own closing beat is the ending (wave C2)', () => {
+    expect(JP_PACK.release).toEqual({ lastChapter: 8, epilogue: RELEASE_ENDING });
+    expect(RELEASE_ENDING).toBe('b_ch8_close');
+    expect(RELEASE_LAST_CHAPTER).toBe(8);
     expect(FREE_WALK).toBe(BALANCE.freeWalkChapter);
   });
 
-  it('plays chapters 1 to 6 only, in order; the festival and the Letter Home stay authored for the release that lifts the cap', () => {
-    expect(JP_PACK.chapters.map((c) => c.n)).toEqual([1, 2, 3, 4, 5, 6]);
+  it('plays chapters 1 to 8, in order: the festival and the Letter Home are played', () => {
+    expect(JP_PACK.chapters.map((c) => c.n)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     expect(CHAPTERS.map((c) => c.n)).toEqual([1, 2, 3, 4, 5, 6, 7, 8]);
     expect(RELEASED_CHAPTERS).toBe(JP_PACK.chapters);
   });
 
-  it('Chapter 6 closes with the epilogue, and the first five chapters keep the closing beats of the design', () => {
+  it('every chapter keeps the design\'s own beats: nothing is replaced by the epilogue any more', () => {
     const close = (list: ChapterDef[]) => list.map((c) => c.beats.close);
-    expect(JP_PACK.chapters[5]!.beats.close).toBe(RELEASE_EPILOGUE);
-    expect(close(JP_PACK.chapters).slice(0, 5)).toEqual(close(CHAPTERS).slice(0, 5));
-    // only the closing beat of the last chapter is replaced: the objectives, reward and opening beat are the design's
-    expect({ ...JP_PACK.chapters[5]!, beats: CHAPTERS[5]!.beats }).toEqual(CHAPTERS[5]);
+    expect(close(JP_PACK.chapters)).toEqual(close(CHAPTERS));
+    expect(close(JP_PACK.chapters)).not.toContain(RELEASE_EPILOGUE);
+    expect(JP_PACK.chapters).toEqual(CHAPTERS);
   });
 
-  it('releasedGate sends the chapters that are never played to Free Walk and leaves the played ones alone', () => {
-    expect([1, 2, 3, 4, 5, 6].map(releasedGate)).toEqual([1, 2, 3, 4, 5, 6]);
-    expect([7, 8].map(releasedGate)).toEqual([9, 9]);
-    expect(releasedGate(9)).toBe(9);
+  it('releasedGate is the identity now that every chapter is played', () => {
+    expect([1, 2, 3, 4, 5, 6, 7, 8, 9].map(releasedGate)).toEqual([1, 2, 3, 4, 5, 6, 7, 8, 9]);
   });
 
   it('no gate of the pack names a chapter between the cap and Free Walk', () => {
@@ -73,10 +72,11 @@ describe('the release cap in the pack', () => {
       ...JP_PACK.dreams.flatMap((d) => d.steps.map((s) => [`step ${s.id}`, s.gate] as const)),
       ...JP_PACK.friends.map((f) => ['friend ' + f.id, f.unlockChapter] as const),
     ];
-    expect(gates.filter(([, ch]) => ch > 6 && ch < 9).map(([w, ch]) => `${w}: ${ch}`)).toEqual([]);
+    expect(gates.filter(([, ch]) => ch > RELEASE_LAST_CHAPTER && ch < 9).map(([w, ch]) => `${w}: ${ch}`)).toEqual([]);
   });
 });
 
+// the "to be continued" closed the capped releases (1-4, 1-6); it stays authored for a lower cap and for the saves that played it
 describe('the epilogue beat (Hanako: "to be continued")', () => {
   const beat = BEATS[RELEASE_EPILOGUE]!;
 
@@ -111,18 +111,17 @@ describe('the epilogue beat (Hanako: "to be continued")', () => {
     for (const word of ['festival', 'letter', 'flat']) expect(en, word).not.toContain(word);
   });
 
-  it('is the only closing beat that is replaced, and has no effect that could dead-end (it adds nothing to wait for)', () => {
+  it('has no effect that could dead-end (it adds nothing to wait for)', () => {
     expect(beat.ask).toBeUndefined();
     expect(beat.effects ?? []).toEqual([]);
   });
 });
 
 describe('the Dream picker offers only dreams that can be finished', () => {
-  it('phone_pal, bike, flat, travel, fresh_start and car: the dreams of the released content (wave B2 adds the flat ones, wave C1 travel), in the design\'s order', () => {
-    expect(JP_PACK.dreams.map((d) => d.id)).toEqual(['phone_pal', 'bike', 'flat', 'travel', 'fresh_start', 'car']);
+  it('all seven dreams of the design, in its order (wave B2 adds the flat ones, wave C1 travel, wave C2 the festival)', () => {
+    expect(JP_PACK.dreams.map((d) => d.id)).toEqual(['phone_pal', 'bike', 'flat', 'festival', 'travel', 'fresh_start', 'car']);
     expect(RELEASED_DREAMS).toBe(JP_PACK.dreams);
-    // the festival dream stays authored (it needs the festival, wave C2)
-    expect(DREAMS.map((d) => d.id)).toEqual(['phone_pal', 'bike', 'flat', 'festival', 'travel', 'fresh_start', 'car']);
+    expect(DREAMS.map((d) => d.id)).toEqual(JP_PACK.dreams.map((d) => d.id));
   });
 
   it('the car dream opens at Free Walk and is for adults; the others are for everyone and open from the start', () => {
@@ -142,7 +141,7 @@ describe('the Dream picker offers only dreams that can be finished', () => {
     for (const d of JP_PACK.dreams) {
       expect(d.steps.length, d.id).toBeGreaterThanOrEqual(3);
       for (const s of d.steps) {
-        expect([1, 2, 3, 4, 5, 6, 9], `${d.id}/${s.id}`).toContain(s.gate);
+        expect([1, 2, 3, 4, 5, 6, 7, 8, 9], `${d.id}/${s.id}`).toContain(s.gate);
         expect(s.text.en.trim(), s.id).not.toBe('');
         expect(hasAr(s.text.ar), s.id).toBe(true);
       }
@@ -214,19 +213,20 @@ describe('the level-4 proof: every released objective and every offered dream ca
     expect(bad.map((i) => `${i.code} ${i.path} ${i.message}`)).toEqual([]);
   });
 
-  it('the garage opens with Chapter 5 as designed (bikes and helmet), the e-bike, the cars and the flagship phone wait for Free Walk, by the same rule the shops use', () => {
+  it('the garage opens with Chapter 5 as designed (bikes and helmet), the e-bike and the flagship phone with Chapter 7, the cars at Free Walk', () => {
     const motors = JP_PACK.shops.find((s) => s.id === 'motors')!;
     expect(motors.openChapter).toBe(5);
     expect(JP_PACK.shops.find((s) => s.id === 'denki')!.openChapter).toBe(4);
     for (const id of ['bike_mamachari', 'bike_helmet', 'g_carfresh']) expect(JP_PACK.items.find((i) => i.id === id)!.gate.ch, id).toBe(5);
-    for (const id of ['ebike', 'car_kei_used', 'car_kei_good', 'phone_pro']) expect(JP_PACK.items.find((i) => i.id === id)!.gate.ch, id).toBe(FREE_WALK);
+    for (const id of ['ebike', 'phone_pro']) expect(JP_PACK.items.find((i) => i.id === id)!.gate.ch, id).toBe(7);
+    for (const id of ['car_kei_used', 'car_kei_good']) expect(JP_PACK.items.find((i) => i.id === id)!.gate.ch, id).toBe(FREE_WALK);
     expect(JP_PACK.items.find((i) => i.id === 'tv_small')!.gate.ch).toBe(6);
     // Chapter 5 opens the garage and nothing else announces it a second time; Free Walk announces the e-bike and the cars, not the garage again
     expect(RELEASED_CHAPTERS[4]!.opens).toEqual(expect.arrayContaining([{ kind: 'shop', id: 'motors' }, { kind: 'place', id: 'motors' }]));
   });
 });
 
-describe('finishing Chapter 6 over the real pack', () => {
+describe('finishing Chapters 5, 6 and 8 over the real pack', () => {
   const finish = (n: number, completed: number[], extra: Partial<ReturnType<typeof createGameState>> = {}) => {
     const p = provable();
     const s0 = createGameState(p, NOW);
@@ -236,14 +236,26 @@ describe('finishing Chapter 6 over the real pack', () => {
     return { p, s, r: evaluateAll(s, { pack: p, view: VIEW, now: NOW, rng: () => 0.5 }) };
   };
 
-  it('pays Chapter 6\'s ¥6,000, plays the epilogue and starts Free Walk with the cars open', () => {
-    const { p, s, r } = finish(6, [1, 2, 3, 4, 5]);
-    expect(r.state.chapter.n).toBe(FREE_WALK);
+  it('Chapter 6 pays ¥6,000, plays Aiko\'s closing and continues into Chapter 7 (the festival) with the e-bike and the flagship phone open', () => {
+    const { s, r } = finish(6, [1, 2, 3, 4, 5]);
+    expect(r.state.chapter.n).toBe(7);
     expect(r.state.chapter.completed).toContain(6);
     expect(r.state.wallet.cash - s.wallet.cash).toBe(6_000);
     expect(r.state.titles).toContain('t_guest');
     for (const id of ['cc_shoesoff', 'cc_rent', 'cc_trash']) expect(r.state.culture[id], id).toBeDefined();
-    expect(r.effects).toContainEqual({ t: 'beat', id: RELEASE_EPILOGUE });
+    expect(r.effects).toContainEqual({ t: 'beat', id: 'b_ch6_close' });
+    expect(r.effects).not.toContainEqual({ t: 'beat', id: RELEASE_EPILOGUE });
+    expect(r.derived).toContainEqual({ t: 'unlocked', what: 'item', id: 'ebike' });
+    expect(r.derived).not.toContainEqual({ t: 'unlocked', what: 'item', id: 'car_kei_used' });
+  });
+
+  it('Chapter 8 pays ¥10,000 and the last title, plays the real ending (Hanako reads the Letter) and starts Free Walk with the cars and the car dream open', () => {
+    const { p, s, r } = finish(8, [1, 2, 3, 4, 5, 6, 7]);
+    expect(r.state.chapter.n).toBe(FREE_WALK);
+    expect(r.state.chapter.completed).toContain(8);
+    expect(r.state.wallet.cash - s.wallet.cash).toBe(10_000);
+    expect(r.state.titles).toContain('t_lives_in_ja');
+    expect(r.effects).toContainEqual({ t: 'beat', id: RELEASE_ENDING });
     // the garage opened with Chapter 5, so Free Walk only announces what is still closed: the cars and the car dream
     expect(r.derived).not.toContainEqual({ t: 'unlocked', what: 'shop', id: 'motors' });
     expect(r.derived).toContainEqual({ t: 'unlocked', what: 'item', id: 'car_kei_used' });

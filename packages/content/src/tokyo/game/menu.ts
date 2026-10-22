@@ -54,6 +54,14 @@ const RAMEN_EXTRAS: Row[] = [
   { option: 'gyoza', ja: '餃子', reading: 'ぎょうざ', en: 'Gyoza (6)', ar: 'جيوزا (6 قطع)', price: 380, tags: ['food', 'snack'] },
 ];
 
+// Kenji's festival stall row (Release 2 wave C2, `matsuri_stalls`): take-out festival food at modest street prices (§5.1 lists none), cash only
+const MATSURI: Row[] = [
+  { option: 'yakisoba', ja: '焼きそば', reading: 'やきそば', en: 'Yakisoba (fried noodles)', ar: 'ياكيسوبا (نودلز مقلية)', price: 500, tags: ['food', 'meal'] },
+  { option: 'takoyaki', ja: 'たこ焼き', reading: 'たこやき', en: 'Takoyaki (8)', ar: 'تاكوياكي (8 قطع)', price: 600, tags: ['food', 'snack'] },
+  { option: 'kakigori', ja: 'かき氷', reading: 'かきごおり', en: 'Shaved ice', ar: 'كاكيغوري (ثلج مبشور)', price: 300, tags: ['sweet'] },
+  { option: 'ringoame', ja: 'りんご飴', reading: 'りんごあめ', en: 'Candy apple', ar: 'تفاحة بالسكر', price: 400, tags: ['sweet'] },
+];
+
 // panel-only (VendingPanel, 2G): no conversation slot, drinks from a machine are never gifts (§5.3)
 const VENDING: Row[] = [
   { option: 'v_tea', ja: 'お茶', reading: 'おちゃ', en: 'Tea', ar: 'شاي', price: 150, tags: ['drink', 'tea'] },
@@ -69,4 +77,5 @@ export const MENU: MenuItem[] = [
   ...rows('ramen', 'flavor', 'standard', {}, RAMEN),
   ...rows('ramen', 'ramenExtra', 'standard', {}, RAMEN_EXTRAS),
   ...rows('vending', 'vending', 'food', {}, VENDING),
+  ...rows('matsuri', 'yatai', 'food', {}, MATSURI),
 ];

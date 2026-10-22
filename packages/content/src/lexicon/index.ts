@@ -17,6 +17,7 @@ import { JOBS_LEXICON } from './jobs';
 import { CULTURE_LEXICON } from './culture';
 import { HOME_LEXICON } from './home';
 import { TRIP_LEXICON } from './trip';
+import { MATSURI_LEXICON } from './matsuri';
 
 export { w, g } from './helpers';
 
@@ -39,6 +40,7 @@ const PARTS: LexEntry[][] = [
   CULTURE_LEXICON,
   HOME_LEXICON,
   TRIP_LEXICON,
+  MATSURI_LEXICON,
 ];
 
 /** Every module's entries. A surface that appears in several modules keeps its first entry; clashing
@@ -75,6 +77,7 @@ export const LEXICON_PARTS: Record<string, LexEntry[]> = {
   culture: CULTURE_LEXICON,
   home: HOME_LEXICON,
   trip: TRIP_LEXICON,
+  matsuri: MATSURI_LEXICON,
 };
 
 export const LEXICON = new Lexicon(LEXICON_ENTRIES);

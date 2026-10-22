@@ -25,7 +25,8 @@ import { PACK } from '../game/pack';
 import { gameView } from '../game/selectors';
 import { linesToRecall, plainOf, pocketView, recallMark, recallScoreSpoken, type PocketView } from '../game/prepareLogic';
 import { enforceGoalCaps, pocketWordOps } from '../game/srsHooks';
-import { realTryFor } from '../game/realTry';
+import { isCapstone, realTryFor } from '../game/realTry';
+import { SpeechRehearsal } from '../components/game/SpeechRehearsal';
 
 type Stage = 'ready' | 'study' | 'recall' | 'done';
 type Mode = 'guided' | 'real';
@@ -37,6 +38,11 @@ export function Prepare() {
   const game = useGameState();
   const view = useGameView();
   const pocket = args ? pocketView(PACK, game, view, args.scenarioId) : null;
+
+  // the capstone (Chapter 7's speech) has its own five-line rehearsal; the speech is Real mode (Guided only as the one-time fallback)
+  if (args && isCapstone(PACK, args.scenarioId)) {
+    return <SpeechRehearsal scenarioId={args.scenarioId} characterId={args.characterId} onStart={(mode) => talk(args.scenarioId, args.characterId, mode, go)} onBack={() => go('world')} />;
+  }
 
   // a route opened without a pocket (or a scenario without one) is never a dead end: the way back is right there
   if (!args || !pocket) {
