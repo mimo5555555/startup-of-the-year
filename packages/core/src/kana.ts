@@ -222,10 +222,12 @@ export function normJa(text: string): string {
   return toHiragana(text.normalize('NFKC').toLowerCase()).replace(STRIP, '').replace(/を/g, 'お');
 }
 
-/** If the text looks like romaji (parses fully), return the hiragana reading, else null. */
+/** If the text looks like romaji (parses fully), return the hiragana reading, else null. Sentence punctuation is ignored, so a learner who
+ *  types 'Itadakimasu.' or 'Arigatou gozaimashita!' is reading Japanese, not writing English. */
 export function romajiAsKana(text: string): string | null {
   if (hasJapanese(text) || hasArabic(text)) return null;
-  const t = text.trim();
+  const t = text.replace(/[.,!?…]+/g, ' ').trim();
+  if (!t) return null;
   if (!/^[a-zāīūēō'’\-\s]+$/i.test(t)) return null;
   const r = romajiToHiragana(t);
   return r.ok ? r.kana : null;

@@ -257,7 +257,7 @@ describe('matsuri_speech: the capstone', () => {
       expect(buildConversationFacts(s, { mode: 'real', prepared: false }).turns.filter((t) => t.cls === 'I' && t.substantive)).toHaveLength(5);
     }
     // romaji is the learner's own Japanese, never a translation (review: 'arigatou gozaimashita' was an English key of the jobs phrasebook)
-    for (const r of ['arigatou gozaimashita', 'irasshaimase', 'omatase shimashita']) expect(classifyInput(r).kind, r).toBe('romaji');
+    for (const r of ['arigatou gozaimashita', 'irasshaimase', 'omatase shimashita', 'itadakimasu', 'Itadakimasu.', 'Arigatou gozaimashita.']) expect(classifyInput(r).kind, r).toBe('romaji');
     // a listed hobby is still the slot's; the town is not a hobby
     const s = open(SPEECH, 'en');
     say(s, 'レイラです。');

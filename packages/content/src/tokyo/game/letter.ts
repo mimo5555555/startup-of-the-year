@@ -38,8 +38,8 @@ export interface LetterFrame {
   starter: Line;
   /** three complete sentences to pick from (assisted); `{x}` is the fact */
   suggestions: [Line, Line, Line];
-  /** when the fact is not known: a starter and three suggestions that need no fact */
-  fallback: { starter: Line; suggestions: [Line, Line, Line] };
+  /** when the fact is not known: a starter and three suggestions that need no fact, and the label when it differs from `prompt` */
+  fallback: { prompt?: Gloss; starter: Line; suggestions: [Line, Line, Line] };
 }
 
 const L = (ja: string, en: string, ar: string): Line => ({ ja, en, ar });
@@ -84,6 +84,7 @@ export const LETTER_FRAMES: LetterFrame[] = [
       L('{x}|の|みんな|に|会いたい|です|。', 'I want to see everyone in {x}.', 'أريد أن أرى الجميع في {x}.'),
     ],
     fallback: {
+      prompt: { en: 'Your family back home', ar: 'أسرتك في بلدك' },
       starter: L('家族|の|みんな|、', 'Everyone in my family,', 'يا أفراد أسرتي،'),
       suggestions: [
         L('家族|の|みんな|、|お元気|です|か|。', 'Everyone in my family, how are you?', 'يا أفراد أسرتي، كيف حالكم؟'),
@@ -141,6 +142,7 @@ export const LETTER_FRAMES: LetterFrame[] = [
       L('{x}|が|大好き|です|。', 'I love my {x}.', 'أحب {x} كثيرًا.'),
     ],
     fallback: {
+      prompt: { en: 'What you did here', ar: 'ما فعلته هنا' },
       starter: L('日本語|を|たくさん|勉強|しました|。', 'I studied a lot of Japanese.', 'درست اليابانية كثيرًا.'),
       suggestions: [
         L('日本語|を|たくさん|勉強|しました|。', 'I studied a lot of Japanese.', 'درست اليابانية كثيرًا.'),
@@ -303,7 +305,7 @@ export function letterFrame(frame: LetterFrame, facts: ReturnType<typeof letterF
   // nothing bought: the dream, when one is tracked (its own sentence, `LETTER_DREAMS`)
   const dream = frame.source === 'thing' && facts.dream.known && facts.dream.id ? letterDream(facts.dream.id, !!facts.dream.done) : null;
   if (dream) return { id: frame.id, prompt: frame.prompt, starter: dream.starter, suggestions: [...dream.suggestions], fromFact: true };
-  return { id: frame.id, prompt: frame.prompt, starter: frame.fallback.starter, suggestions: [...frame.fallback.suggestions], fromFact: false };
+  return { id: frame.id, prompt: frame.fallback.prompt ?? frame.prompt, starter: frame.fallback.starter, suggestions: [...frame.fallback.suggestions], fromFact: false };
 }
 
 /** All five frames for a save. */

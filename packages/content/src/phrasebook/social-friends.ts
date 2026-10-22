@@ -1,3 +1,4 @@
+import { kanaToRomaji } from '@lw/core';
 import type { PhraseEntry } from '../types';
 import { P } from './helpers';
 import { FRIENDS_SCENARIOS } from '../tokyo/scenarios-friends';
@@ -106,6 +107,17 @@ const FIXED: PhraseEntry[] = FIXED_RAW.map((p) => {
   return { ...p, en, ar };
 }).filter((p) => p.en.length + p.ar.length > 0);
 
+/** Letters only, lower case: 'Itadakimasu.' and 'いただきます。' both fold to 'itadakimasu'. */
+const foldRom = (x: string): string => x.toLowerCase().replace(/[^a-z]/g, '');
+
+/** A chip gloss that is only the chip read in romaji (「いただきます。」 glossed 'Itadakimasu.') is not English: as a key it would grade the
+ *  learner's own typed romaji as a translation (an assisted line), so it is left out. Kana-only chips are checked; kanji chips keep their glosses. */
+const romajiGloss = (ja: string, en: string): boolean => {
+  const plain = ja.replace(/\|/g, '');
+  if (/[\u4e00-\u9faf]/.test(plain)) return false;
+  return foldRom(en) !== '' && foldRom(en) === foldRom(kanaToRomaji(plain));
+};
+
 /** One phrase per distinct chip (the Japanese of the chip is the key), with the English and Arabic of every chip that says it. */
 function fromChips(): PhraseEntry[] {
   const byJa = new Map<string, { en: Set<string>; ar: Set<string> }>();
@@ -114,7 +126,7 @@ function fromChips(): PhraseEntry[] {
       for (const s of [...(n.suggestions ?? []), ...Object.values(n.suggestionsByL1 ?? {}).flat()]) {
         if (/\{\w+\}/.test(s.ja)) continue;
         const e = byJa.get(s.ja) ?? { en: new Set<string>(), ar: new Set<string>() };
-        e.en.add(s.en);
+        if (!romajiGloss(s.ja, s.en)) e.en.add(s.en);
         e.ar.add(s.ar);
         byJa.set(s.ja, e);
       }

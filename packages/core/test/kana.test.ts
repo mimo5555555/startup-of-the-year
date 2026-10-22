@@ -38,6 +38,13 @@ describe('romajiToHiragana', () => {
     expect(romajiAsKana('arigatou gozaimasu')).toBe('ありがとうございます');
     expect(romajiAsKana('ありがとう')).toBeNull();
   });
+  it('romaji with sentence punctuation is still romaji (review: "Itadakimasu." and "Arigatou gozaimashita." were read as English)', () => {
+    expect(romajiAsKana('Itadakimasu.')).toBe('いただきます');
+    expect(romajiAsKana('Arigatou gozaimashita!')).toBe('ありがとうございました');
+    expect(romajiAsKana('sumimasen, kore kudasai?')).toBe('すみませんこれください');
+    expect(romajiAsKana('...')).toBeNull();
+    expect(romajiAsKana('Coffee, please.')).toBeNull();
+  });
 });
 
 describe('normJa', () => {

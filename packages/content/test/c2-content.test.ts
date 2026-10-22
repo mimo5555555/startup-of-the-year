@@ -321,6 +321,16 @@ describe('the Letter Home', () => {
     expect(bare(last.starter.ja)).toBe('ミオさんとお祭りに行きたいです。');
   });
 
+  it('a fallback frame is labelled for what it pre-fills: no "Your home country" over a line about the family', () => {
+    const empty = letterFrames(JP_PACK, fresh());
+    expect(empty[1]!.prompt.en).toBe('Your family back home');
+    expect(bare(empty[1]!.starter.ja)).toBe('家族のみんな、');
+    expect(empty[4]!.prompt.en).toBe('What you did here');
+    // with the fact known, the frame keeps its own label
+    expect(letterFrames(JP_PACK, withFacts(), 'Layla')[1]!.prompt.en).toBe('Your home country');
+    for (const f of empty) expect(f.prompt.ar.length, f.id).toBeGreaterThan(0);
+  });
+
   it('the dream sentence reads naturally for every dream: its own sentence, not the quoted title (review: 「わたしの夢は「ICカードでたび」です。」); "came true" only once it did', () => {
     for (const d of JP_PACK.dreams) {
       for (const done of [false, true]) {
