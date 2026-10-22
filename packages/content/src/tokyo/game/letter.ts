@@ -48,7 +48,7 @@ const L = (ja: string, en: string, ar: string): Line => ({ ja, en, ar });
 export const LETTER_HEADER: Line = L('お父さん|、|お母さん|へ', 'Dear Dad and Mum,', 'أبي وأمي العزيزين،');
 export const LETTER_SIGN: Line = L('{x}|より', 'From {x}', 'من {x}');
 /** Hanako reads the finished Letter back (TTS) and says this (§7.2). */
-export const LETTER_HANAKO: Line = L('これ|が|あなた|の|日本語|です|。|すばらしい|！', 'This is your Japanese. Wonderful!', 'هذه هي يابانيتك. رائع!');
+export const LETTER_HANAKO: Line = L('これ|が|あなた|の|日本語|です|。|すばらしい|！', 'This is your Japanese. Wonderful!', 'هذه هي لغتك اليابانية. رائع!');
 /** c8_1, the same numbers as BALANCE.letter in @lw/game (asserted in the tests): five sentences, three of them the learner's own. */
 export const LETTER_RULE = { sentences: 5, minOwn: 3 } as const;
 
@@ -151,16 +151,54 @@ export const LETTER_FRAMES: LetterFrame[] = [
   },
 ];
 
-/** The dream, when nothing was bought: the frame `lf_thing` says it this way (`{x}` = the dream's name). */
-export const LETTER_DREAM: { starter: Line; suggestions: [Line, Line, Line] } = {
-  // the dream's name is a title (「ICカードでたび」), so it is quoted: 「わたしの夢は『{x}』です。」 reads naturally for every dream
-  starter: L('わたし|の|夢|は|「|{x}|」|です|。', 'My dream is “{x}”.', 'حلمي هو «{x}».'),
-  suggestions: [
-    L('わたし|の|夢|は|「|{x}|」|です|。', 'My dream is “{x}”.', 'حلمي هو «{x}».'),
-    L('夢|が|かないました|。', 'My dream came true.', 'تحقّق حلمي.'),
-    L('わたし|の|夢|は|「|{x}|」|です|。|がんばります|。', "My dream is “{x}”. I'll do my best.", 'حلمي هو «{x}». سأبذل جهدي.'),
-  ],
+/**
+ * The dream, when nothing was bought: the frame `lf_thing` says it as a sentence of its own for each dream (review: 「わたしの夢は「ICカードでたび」です。」
+ * quoted the dream's title and read like a form). `wish` while the dream is still ahead, `done` once it came true; a dream without lines here
+ * (none in this release) leaves the frame on its fallback.
+ */
+export const LETTER_DREAMS: Record<string, { wish: Line; done: Line }> = {
+  phone_pal: {
+    wish: L('自分|の|スマホ|で|、|友だち|と|たくさん|話したい|です|。', 'I want to talk a lot with my friends on my own phone.', 'أريد أن أتحدث كثيرًا مع أصدقائي بهاتفي الخاص.'),
+    done: L('自分|の|スマホ|で|、|友だち|と|よく|話します|。', 'I often talk with my friends on my own phone.', 'أتحدث كثيرًا مع أصدقائي بهاتفي الخاص.'),
+  },
+  bike: {
+    wish: L('自転車|で|町|を|たんけん|したい|です|。', 'I want to explore the town by bike.', 'أريد أن أستكشف المدينة بالدراجة.'),
+    done: L('自転車|で|町|を|たんけん|しました|。', 'I explored the town by bike.', 'استكشفت المدينة بالدراجة.'),
+  },
+  flat: {
+    wish: L('自分|の|部屋|に|住みたい|です|。', 'I want to live in a room of my own.', 'أريد أن أعيش في غرفة خاصة بي.'),
+    done: L('今|、|自分|の|部屋|に|住んで|います|。', 'I live in my own room now.', 'أعيش الآن في غرفتي الخاصة.'),
+  },
+  festival: {
+    wish: L('ミオ|さん|と|お祭り|に|行きたい|です|。', 'I want to go to the festival with Mio.', 'أريد أن أذهب إلى المهرجان مع ميو.'),
+    done: L('ミオ|さん|と|お祭り|に|行きました|。', 'I went to the festival with Mio.', 'ذهبت إلى المهرجان مع ميو.'),
+  },
+  travel: {
+    wish: L('電車|で|旅行|したい|です|。', 'I want to travel by train.', 'أريد أن أسافر بالقطار.'),
+    done: L('ICカード|で|光が丘|に|行きました|。', 'I went to Hikarigaoka with my IC card.', 'ذهبت إلى هيكاريغاؤكا ببطاقة IC.'),
+  },
+  fresh_start: {
+    wish: L('日本|で|新しい|生活|を|始めたい|です|。', 'I want to start a new life in Japan.', 'أريد أن أبدأ حياة جديدة في اليابان.'),
+    done: L('日本|で|新しい|生活|を|始めました|。', 'I started a new life in Japan.', 'بدأت حياة جديدة في اليابان.'),
+  },
+  car: {
+    wish: L('いつか|自分|の|車|で|ドライブ|したい|です|。', 'Someday I want to go for a drive in my own car.', 'أريد يومًا ما أن أقود سيارتي الخاصة في جولة.'),
+    done: L('自分|の|車|で|ドライブ|しました|。', 'I went for a drive in my own car.', 'قمت بجولة بسيارتي الخاصة.'),
+  },
 };
+
+const join = (a: Line, b: Line): Line => L(`${a.ja}|${b.ja}`, `${a.en} ${b.en}`, `${a.ar} ${b.ar}`);
+
+/** The frame `lf_thing` for a dream: its sentence as the starter, then it alone, with 「それがわたしの夢です。」 or 「がんばります。」 (done: 「夢がかないました。」, 「うれしいです。」). */
+export function letterDream(dreamId: string, done: boolean): { starter: Line; suggestions: [Line, Line, Line] } | null {
+  const d = LETTER_DREAMS[dreamId];
+  if (!d) return null;
+  const s = done ? d.done : d.wish;
+  const more: [Line, Line] = done
+    ? [L('夢|が|かないました|。', 'My dream came true.', 'تحقّق حلمي.'), L('うれしい|です|。', 'I am happy.', 'أنا سعيد.')]
+    : [L('それ|が|わたし|の|夢|です|。', 'That is my dream.', 'هذا حلمي.'), L('がんばります|。', "I'll do my best.", 'سأبذل جهدي.')];
+  return { starter: s, suggestions: [s, join(s, more[0]), join(s, more[1])] };
+}
 
 // ---------------------------------------------------------------------------------------------------------------
 // Remembered facts
@@ -204,7 +242,11 @@ const NONE: LetterFact = { ja: '', en: '', ar: '', known: false };
  * with the most friendship points, the place of the conversation played most, and the dearest thing bought (else the tracked dream). A missing
  * fact is `known: false` (with empty text): the frame then uses its fallback.
  */
-export function letterFacts(pack: Pick<GamePack, 'items' | 'dreams' | 'scenarioMeta' | 'friends'>, state: GameState, profileName = ''): LetterFacts & { hobby: LetterFact; dream: LetterFact } {
+export function letterFacts(
+  pack: Pick<GamePack, 'items' | 'dreams' | 'scenarioMeta' | 'friends'>,
+  state: GameState,
+  profileName = '',
+): LetterFacts & { hobby: LetterFact; dream: LetterFact & { id?: string; done?: boolean } } {
   // name
   const nameRaw = state.me?.nameKana?.trim() || profileName.trim() || friendFact(state, 'name') || '';
   // the Japanese is the katakana name; the English and Arabic glosses say the name as the learner wrote it in the profile
@@ -244,7 +286,7 @@ export function letterFacts(pack: Pick<GamePack, 'items' | 'dreams' | 'scenarioM
     .sort((a, b) => b.price - a.price)[0];
   const thing: LetterFact = owned ? { ja: owned.name.ja, en: owned.name.en, ar: owned.name.ar, known: true } : NONE;
   const d = state.dream?.id ? pack.dreams.find((x) => x.id === state.dream.id) : undefined;
-  const dream: LetterFact = d ? { ja: d.name.ja, en: d.name.en, ar: d.name.ar, known: true } : NONE;
+  const dream: LetterFact & { id?: string; done?: boolean } = d ? { ja: d.name.ja, en: d.name.en, ar: d.name.ar, known: true, id: d.id, done: !!state.dream.done } : NONE;
   return { name, country, friend, place, thing, hobby, dream };
 }
 
@@ -258,9 +300,9 @@ const fill = (line: Line, fact: LetterFact): Line => ({
 export function letterFrame(frame: LetterFrame, facts: ReturnType<typeof letterFacts>): { id: string; prompt: Gloss; starter: Line; suggestions: Line[]; fromFact: boolean } {
   const fact = facts[frame.source];
   if (fact.known) return { id: frame.id, prompt: frame.prompt, starter: fill(frame.starter, fact), suggestions: frame.suggestions.map((s) => fill(s, fact)), fromFact: true };
-  // nothing bought: the dream, when one is tracked
-  if (frame.source === 'thing' && facts.dream.known)
-    return { id: frame.id, prompt: frame.prompt, starter: fill(LETTER_DREAM.starter, facts.dream), suggestions: LETTER_DREAM.suggestions.map((s) => fill(s, facts.dream)), fromFact: true };
+  // nothing bought: the dream, when one is tracked (its own sentence, `LETTER_DREAMS`)
+  const dream = frame.source === 'thing' && facts.dream.known && facts.dream.id ? letterDream(facts.dream.id, !!facts.dream.done) : null;
+  if (dream) return { id: frame.id, prompt: frame.prompt, starter: dream.starter, suggestions: [...dream.suggestions], fromFact: true };
   return { id: frame.id, prompt: frame.prompt, starter: frame.fallback.starter, suggestions: [...frame.fallback.suggestions], fromFact: false };
 }
 

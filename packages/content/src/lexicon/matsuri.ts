@@ -53,4 +53,10 @@ export const MATSURI_LEXICON: LexEntry[] = [
   w('働きました', 'はたらきました', 'worked', 'عمل'),
   w('飲みました', 'のみました', 'drank', 'شرب'),
   w('見ました', 'みました', 'saw, looked at', 'رأى، شاهد'),
+  // ---- the Letter's dream sentences (`LETTER_DREAMS`) ----
+  w('話したい', 'はなしたい', 'want to talk', 'أريد أن أتحدث'),
+  w('たんけん', '', 'exploring', 'استكشاف'),
+  w('住みたい', 'すみたい', 'want to live (somewhere)', 'أريد أن أعيش'),
+  w('始めたい', 'はじめたい', 'want to start', 'أريد أن أبدأ'),
+  w('始めました', 'はじめました', 'started', 'بدأ'),
 ];

@@ -10,6 +10,7 @@ import {
   FESTIVAL,
   FESTIVAL_ROWS,
   JP_PACK,
+  LETTER_DREAMS,
   LETTER_FRAMES,
   LETTER_HANAKO,
   LETTER_HEADER,
@@ -23,6 +24,7 @@ import {
   diaryPrompt,
   festivalGuests,
   festivalOpen,
+  festivalReturned,
   isSaturday,
   letterAssisted,
   letterComplete,
@@ -192,6 +194,15 @@ describe('the festival day rule and its guests', () => {
     expect(festivalOpen(at(8, 50, 10, '2026-10-16'))).toBe(false);
     expect(festivalOpen(at(FREE_WALK, 50, 10, '2026-10-17'))).toBe(true);
   });
+  it('a Saturday that brings the festival back after Chapter 7 is noticed once (the app toasts it); Chapter 7, a reload on the Saturday and Sunday are not', () => {
+    expect(festivalReturned(at(8, 50, 10, '2026-10-16'), at(8, 51, 10, '2026-10-17'))).toBe(true);
+    expect(festivalReturned(at(FREE_WALK, 50, 10, '2026-10-15'), at(FREE_WALK, 51, 10, '2026-10-17'))).toBe(true);
+    expect(festivalReturned(at(FREE_WALK, 51, 10, '2026-10-17'), at(FREE_WALK, 51, 10, '2026-10-17'))).toBe(false);
+    expect(festivalReturned(at(FREE_WALK, 51, 10, '2026-10-17'), at(FREE_WALK, 52, 10, '2026-10-18'))).toBe(false);
+    expect(festivalReturned(at(7, 10, 10, '2026-10-16'), at(7, 11, 10, '2026-10-17'))).toBe(false);
+    // the festival dream's last step says when the stalls are open after Chapter 7
+    expect(JP_PACK.dreams.find((d) => d.id === 'festival')!.steps.at(-1)!.text.en).toContain('every Saturday');
+  });
   it('cannot deadlock: the wait is one play day at most, and Chapter 7\'s minDays already asks for more active days than Chapter 6\'s', () => {
     expect(ch(7).minDays - ch(6).minDays).toBeGreaterThanOrEqual(1);
     for (const date of ['2026-10-12', '2026-10-13', '2026-10-14', '2026-10-15', '2026-10-16', '2026-10-17', '2026-10-18']) expect(festivalOpen(at(7, 11, 10, date)), date).toBe(true);
@@ -223,6 +234,8 @@ describe('the beats of Chapters 4-8 and the diary', () => {
   });
   it('the design\'s lines: Chapter 7 opens with Mio, Kenji (his ramen stall) and Hanako; it closes with 「皆さん、ありがとうございました。」; Chapter 8 ends with 「これがあなたの日本語です。」', () => {
     expect(BEATS.b_ch7_open!.lines.map((l) => l.who)).toEqual(['mio', 'kenji', 'hanako']);
+    // Mio is casual with a friend: no polite あります before her 行こう (review)
+    expect(bare(BEATS.b_ch7_open!.lines[0]!.line.ja)).toBe('土曜日にお祭りがあるよ。いっしょに行こう！');
     expect(bare(BEATS.b_ch7_open!.lines[1]!.line.ja)).toBe('ラーメンの屋台を出します！');
     expect(bare(BEATS.b_ch7_close!.lines[0]!.line.ja)).toBe('皆さん、ありがとうございました。');
     expect(bare(BEATS.b_ch8_close!.lines[0]!.line.ja)).toBe(bare(LETTER_HANAKO.ja));
@@ -305,7 +318,25 @@ describe('the Letter Home', () => {
     const dreamer = { ...fresh(), dream: { id: 'festival', steps: {}, done: false } };
     const last = letterFrames(JP_PACK, dreamer)[4]!;
     expect(last.fromFact).toBe(true);
-    expect(last.starter.ja).toContain(JP_PACK.dreams.find((d) => d.id === 'festival')!.name.ja);
+    expect(bare(last.starter.ja)).toBe('ミオさんとお祭りに行きたいです。');
+  });
+
+  it('the dream sentence reads naturally for every dream: its own sentence, not the quoted title (review: 「わたしの夢は「ICカードでたび」です。」); "came true" only once it did', () => {
+    for (const d of JP_PACK.dreams) {
+      for (const done of [false, true]) {
+        const f = letterFrames(JP_PACK, { ...fresh(), dream: { id: d.id, steps: {}, done } })[4]!;
+        expect(f.fromFact, d.id).toBe(true);
+        for (const l of [f.starter, ...f.suggestions]) {
+          noGap(l, `${d.id} ${done}`);
+          expect(bare(l.ja), d.id).not.toMatch(/「|」/);
+        }
+        expect(f.suggestions.some((l) => l.ja.includes('かないました')), `${d.id} came true`).toBe(done);
+      }
+    }
+    expect(Object.keys(LETTER_DREAMS).sort()).toEqual(JP_PACK.dreams.map((d) => d.id).sort());
+    const travel = letterFrames(JP_PACK, { ...fresh(), dream: { id: 'travel', steps: {}, done: false } })[4]!;
+    expect(bare(travel.starter.ja)).toBe('電車で旅行したいです。');
+    expect(bare(travel.suggestions[1]!.ja)).toBe('電車で旅行したいです。それがわたしの夢です。');
   });
 
   it('independent vs assisted: typed or spoken is the learner\'s own; picked, translated, or a copy of a suggestion on screen is assisted', () => {

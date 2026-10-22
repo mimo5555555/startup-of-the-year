@@ -386,6 +386,9 @@ export const MATSURI_SPEECH: Scenario = {
       suggestions: [S('音楽|が|好き|です。', 'I like music.', 'أحب الموسيقى.'), S('アニメ|が|好き|です。', 'I like anime.', 'أحب الأنمي.'), S('写真|が|好き|です。', 'I like photography.', 'أحب التصوير.')],
       intents: [
         { id: 'hobby', slot: 'hobby', slotRequired: true, next: 'town', step: 'hobby', ideal: L('{hobby}|が|好き|です。', 'I like {hobby}.', 'أحب {hobby}.') },
+        // the learner's own hobby when it is not one of the listed ones (サッカー, ダンス, 読書...): the speech is theirs (review: it stayed on
+        // 「もう一度お願いします」 for ever in Real mode)
+        { id: 'hobby_own', any: ['がすき', 'がだいすき', 'しゅみは'], none: ['さくらちょう', 'もういちど'], next: 'town', step: 'hobby' },
         { id: 'again', any: ['もういちど'], next: 'hobby' },
       ],
     }),
@@ -412,7 +415,7 @@ export const MATSURI_SPEECH: Scenario = {
       end: true,
       step: 'thanks',
       emotion: 'excited',
-      say: [say(L('すばらしい！|皆さん、|拍手|を|お願いします！', 'Wonderful! Everyone, a round of applause, please!', 'رائع! صفّقوا له جميعًا من فضلكم!'))],
+      say: [say(L('すばらしい！|皆さん、|拍手|を|お願いします！', 'Wonderful! Everyone, a round of applause, please!', 'رائع! صفّقوا جميعًا من فضلكم!'))],
       intents: [],
     }),
   ]),

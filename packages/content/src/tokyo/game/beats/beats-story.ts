@@ -57,7 +57,7 @@ const B: Beat[] = [
   closing('b_ch6_close', 'ono', [L('aiko', 'いつでも|お茶|を|飲みに|来て|ください|ね|。', 'Come for tea any time.', 'تعال لشرب الشاي في أي وقت.'), LETTER_PREVIEW_LINE]),
   // Chapter 7: the festival (§7.2). Mio, Kenji and Hanako open it; Hanako closes it in the park at night, under the fireworks of the dusk preset
   beat('b_ch7_open', 'park', [
-    L('mio', '土曜日|に|お祭り|が|あります|。|いっしょ|に|行こう|！', "There's a festival on Saturday. Let's go together!", 'يوم السبت هناك مهرجان. لنذهب معًا!'),
+    L('mio', '土曜日|に|お祭り|が|ある|よ|。|いっしょ|に|行こう|！', "There's a festival on Saturday. Let's go together!", 'يوم السبت هناك مهرجان. لنذهب معًا!'),
     L('kenji', 'ラーメン|の|屋台|を|出します|！', "I'm opening a ramen stall!", 'سأفتح بسطة رامن!'),
     L('hanako', '皆さん|の|前|で|、|自己紹介|を|しましょう|。', "Let's do a self-introduction in front of everyone.", 'لنقدّم أنفسنا أمام الجميع.'),
   ]),
@@ -71,7 +71,7 @@ const B: Beat[] = [
     L('hanako', '家族|に|手紙|を|書きましょう|。', "Let's write a letter to your family.", 'لنكتب رسالة إلى أسرتك.'),
   ]),
   beat('b_ch8_close', 'school', [
-    L('hanako', 'これ|が|あなた|の|日本語|です|。|すばらしい|！', 'This is your Japanese. Wonderful!', 'هذه هي يابانيتك. رائع!'),
+    L('hanako', 'これ|が|あなた|の|日本語|です|。|すばらしい|！', 'This is your Japanese. Wonderful!', 'هذه هي لغتك اليابانية. رائع!'),
     L('hanako', '一年|、|よく|がんばりました|ね|。', 'You worked hard for a whole year.', 'اجتهدت طوال عام كامل.'),
     L('hanako', 'これから|も|、|日本語|で|話しましょう|。', "Let's keep talking in Japanese from now on, too.", 'لنواصل الحديث باليابانية من الآن فصاعدًا أيضًا.'),
     L('hanako', 'おめでとうございます|！', 'Congratulations!', 'مبروك!'),

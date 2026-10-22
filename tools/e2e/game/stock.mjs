@@ -6,7 +6,8 @@
 import assert from 'node:assert/strict';
 import { assertNoConsoleErrors, assertNoHScroll, liveGame, onboard, skipBeats, start } from './_common.mjs';
 
-const t = await start('stock');
+// Free Walk / Chapter 8: a weekday, so the Saturday festival never turns the park mid-run (`clockShift`)
+const t = await start('stock', { weekday: true });
 const { page } = t;
 process.on('uncaughtException', async (e) => {
   console.log(t.logs.slice(-15).join('\n'));

@@ -14,7 +14,7 @@ import {
   type SrsOp,
   type UiEffect,
 } from '@lw/game';
-import { LEXICON, entryToToken, plainText, romajiText, scenarioById, tokenize } from '@lw/content';
+import { LEXICON, entryToToken, festivalReturned, plainText, romajiText, scenarioById, tokenize } from '@lw/content';
 import { translate, type StringKey } from '../i18n';
 import { blip, haptic } from '../services';
 import { setLoopFactsHook, flushNow, useStore, type VocabItem } from '../store';
@@ -56,6 +56,9 @@ export function dispatch(event: InputEvent): ReduceResult {
   }
   // money, purchase and story events reach the disk before anything else can happen (E10); the rest waits for the debounce
   if (needsFlush(event)) flushGameNow();
+  // Chapter 8 and Free Walk: a Saturday brings the festival back to the park; the toast says why the park turned to dusk (first: the one
+  // toast slot then goes to an effect or a delivery of the same day, which say more)
+  if (festivalReturned(before, result.state)) useStore.getState().say(translate(useStore.getState().uiLang, 'story.festivalSaturday'));
   routeEffects(result.effects);
   queueHeartBeats(result.derived);
   announceDeliveries(result.derived);

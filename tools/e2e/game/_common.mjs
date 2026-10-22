@@ -10,10 +10,39 @@ export const LEGACY_KEY = 'lw.v1.state';
 export const DAY_MS = 86_400_000;
 const shots = new URL('../shots/game/', import.meta.url).pathname;
 
-/** A 360 px wide phone (the narrowest the game must work on), English or Arabic. */
-export async function start(name, { arabic = process.argv.includes('--ar'), width = 360, height = 780 } = {}) {
+/**
+ * How far the page's `Date` is moved from the real clock (ms). The festival day rule reads the local date: in Chapter 8 and Free Walk the park is
+ * the festival every Saturday (docs/GAME_DESIGN.md §7.2), so a script that plays there passes `weekday: true` and a Thursday to Sunday moves on
+ * to the next Monday (three days before any Saturday; `advance_day` moves play days, not the date). `E2E_NOW` (an ISO date-time) runs a script
+ * as if it were then, e.g. `E2E_NOW=2026-10-24T10:00` for a Saturday.
+ */
+export function clockShift({ weekday = false } = {}) {
+  const base = process.env.E2E_NOW ? new Date(process.env.E2E_NOW).getTime() : Date.now();
+  if (!Number.isFinite(base)) throw new Error(`E2E_NOW is not a date: ${process.env.E2E_NOW}`);
+  const day = new Date(base).getDay();
+  const ahead = weekday && (day === 0 || day >= 4) ? (8 - day) % 7 : 0;
+  return base - Date.now() + ahead * DAY_MS;
+}
+
+/** A 360 px wide phone (the narrowest the game must work on), English or Arabic. `weekday`: see `clockShift`. */
+export async function start(name, { arabic = process.argv.includes('--ar'), width = 360, height = 780, weekday = false } = {}) {
   mkdirSync(shots, { recursive: true });
   const { browser, context, page, logs } = await launch({ width, height, dpr: 1, locale: arabic ? 'ar-EG' : 'en-US' });
+  const shift = clockShift({ weekday });
+  // only `Date` moves (timers and animation frames keep real time); `new Date(x)` with an argument is untouched
+  if (shift)
+    await context.addInitScript((off) => {
+      const Real = Date;
+      function Shifted(...a) {
+        if (!new.target) return new Real(Real.now() + off).toString();
+        return a.length ? new Real(...a) : new Real(Real.now() + off);
+      }
+      Shifted.prototype = Real.prototype;
+      Shifted.now = () => Real.now() + off;
+      Shifted.parse = Real.parse;
+      Shifted.UTC = Real.UTC;
+      globalThis.Date = Shifted;
+    }, shift);
   const tag = arabic ? 'ar-' : '';
   const t = {
     browser,
@@ -21,6 +50,8 @@ export async function start(name, { arabic = process.argv.includes('--ar'), widt
     page,
     logs,
     arabic,
+    /** the page's clock (ms): `Date.now()` as the page sees it */
+    now: () => Date.now() + shift,
     shot: (n) => page.screenshot({ path: `${shots}${name}-${tag}${n}.png` }),
     sleep: (ms) => page.waitForTimeout(ms),
     step: (m) => console.log(`• ${m}`),

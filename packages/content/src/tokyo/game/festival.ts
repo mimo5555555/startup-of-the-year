@@ -52,6 +52,13 @@ export function festivalOpen(state: Pick<GameState, 'chapter' | 'clock'>): boole
 }
 
 /**
+ * Whether a state change brought the festival back (Chapter 8 and Free Walk: a new day that is a Saturday). The app says so in a toast, since
+ * nothing else tells the player why the park turned to dusk (review of wave C2). Chapter 7's own festival needs no notice: its beats announce it.
+ */
+export const festivalReturned = (before: Pick<GameState, 'chapter' | 'clock'>, after: Pick<GameState, 'chapter' | 'clock'>): boolean =>
+  after.chapter.n > FESTIVAL.chapter && festivalOpen(after) && !festivalOpen(before);
+
+/**
  * Who stands at the festival: Hanako (the stage), then every friend at `FESTIVAL.guestHearts` or more, most hearts first (pack order on a tie).
  * `hearts` is the app's hearts selector per friend id (hearts are derived from AP in @lw/game). Kenji is at his stall whatever his hearts.
  */

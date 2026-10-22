@@ -5,7 +5,7 @@
 import './_fakeStorage';
 import { readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
-import { JP_PACK, FESTIVAL, diaryLine, letterFrames, scenarioById } from '@lw/content';
+import { JP_PACK, FESTIVAL, SPEECH_LINES, diaryLine, letterFrames, scenarioById } from '@lw/content';
 import { BALANCE, createGameState, reduce, type GameState, type InputEvent } from '@lw/game';
 import { ctxOf } from '../../../packages/game/test/fixtures-1e';
 import { gameView } from '../src/game/selectors';
@@ -13,7 +13,8 @@ import { festivalPlan, interactionRows, planFor, routePick, LETTER_ROW_ID } from
 import { festivalLineOf, fireworksBeat, guestsFor, resetFestivalSync, syncFestival } from '../src/game/festivalSync';
 import { STRINGS } from '../src/i18n';
 import { capstoneMode } from '../src/game/realTry';
-import { cardOf, freeTokens, closingChapterOf, diaryGloss, letterSentences, readBackText, sentenceOf, tallyOf, typedJapanese, wrapText, type LetterDraft } from '../src/game/letterLogic';
+import { ownFactScore, plainOf, recallScore } from '../src/game/prepareLogic';
+import { cardOf, drawCard, freeTokens, closingChapterOf, diaryGloss, letterSentences, readBackText, sentenceOf, tallyOf, typedJapanese, wrapText, type LetterDraft } from '../src/game/letterLogic';
 
 const NOW = 1_800_000_000_000;
 const view = gameView({ vocab: [], discovered: [], lessonsDone: ['greetings'], streak: { days: 0 }, profile: { name: 'Sam', level: 'A1', goal: 'travel', age: 'adults', createdAt: '2030-01-15T00:00:00.000Z' } as never });
@@ -158,6 +159,22 @@ describe('wave C2: the capstone mode', () => {
   });
 });
 
+describe('wave C2: the speech rehearsal', () => {
+  it('an example line ("Example: say your own") passes with the learner\'s own country or hobby (regression, review: "Not quite" for doing what it asked)', () => {
+    const tailOf = (slot: string) => plainOf(SPEECH_LINES.find((l) => l.slot === slot)!.line.ja.split('{x}')[1]!.replace(/^\|/, ''));
+    expect(tailOf('country')).toBe('から来ました。');
+    expect(tailOf('hobby')).toBe('が好きです。');
+    // against the example alone the own fact fails the 0.70 mark
+    expect(recallScore('エジプトから来ました。', 'アメリカから来ました。')).toBeLessThan(0.7);
+    expect(ownFactScore('エジプトから来ました。', tailOf('country'))).toBeGreaterThanOrEqual(0.9);
+    expect(ownFactScore('サッカーがすきです', tailOf('hobby'))).toBeGreaterThanOrEqual(0.9);
+    expect(ownFactScore('ejiputo kara kimashita', tailOf('country'))).toBeGreaterThanOrEqual(0.9);
+    // the fact itself is needed, and another sentence does not pass
+    expect(ownFactScore('から来ました。', tailOf('country'))).toBe(0);
+    expect(ownFactScore('エジプトが好きです。', tailOf('country'))).toBeLessThan(0.55);
+  });
+});
+
 describe('wave C2: the Letter drafts', () => {
   const d = (ja: string, how: LetterDraft['how'], shown: string[] = []): LetterDraft => ({ frameId: 'lf', ja, how, shown });
   it('typed text is kept as Japanese: kana and kanji as typed, romaji read as kana, anything else refused', () => {
@@ -197,9 +214,10 @@ describe('wave C2: the Letter drafts', () => {
     // regression (gate): the English gloss said 「サム」 ("I'm サム", "From サム"); it now says the name as typed in the profile
     expect(fs[0]!.starter.en).toContain('Sam');
     expect(fs[0]!.starter.en).not.toContain('サム');
-    // regression (gate): the dream, a title, is quoted (「わたしの夢はICカードでたびです」 was broken Japanese)
+    // regression (gate, then review): the dream is a sentence of its own, not its title in quotes (「わたしの夢は「ICカードでたび」です。」)
     const thing = letterFrames(JP_PACK, { ...s, dream: { ...s.dream, id: 'travel' } }, 'Sam').find((f) => f.id === 'lf_thing')!;
-    expect(thing.starter.ja.replace(/\|/g, '')).toContain('わたしの夢は「ICカードでたび」です。');
+    expect(thing.starter.ja.replace(/\|/g, '')).toBe('電車で旅行したいです。');
+    expect(thing.starter.ja).not.toContain('「');
     expect(cardOf([], [], 'サム', 'en', 0, 'Sam').sign.gloss).toBe('From Sam');
     expect(cardOf([], [], 'サム', 'en').sign.gloss).toBe('From サム');
   });
@@ -236,6 +254,17 @@ describe('wave C2: the Letter drafts', () => {
     expect(card.lines[0]!.romaji).not.toMatch(/[\u3040-\u30ff]/);
     expect(card.lines[0]!.romaji).toContain('tabi');
     expect(freeTokens('たび').map((t) => t.rom)).toEqual(['tabi']);
+  });
+  it('the saved image draws the romaji left to right under its Japanese in Arabic too, and the Arabic meaning right to left (regression, review)', () => {
+    const drawn: Array<{ s: string; dir: string; align: string }> = [];
+    const ctx = { font: '', direction: 'ltr', textAlign: 'left', fillStyle: '', strokeStyle: '', lineWidth: 0, fillRect() {}, strokeRect() {}, measureText: (x: string) => ({ width: x.length * 20 }) };
+    (ctx as unknown as { fillText: (s: string) => void }).fillText = (x: string) => drawn.push({ s: x, dir: ctx.direction, align: ctx.textAlign });
+    const card = cardOf([{ ja: '友だちがたくさんいます。', assisted: false }], [undefined], 'サム', 'ar');
+    drawCard(ctx as never, card, { lang: 'ar', romaji: true, title: 'T', height: 2000, wordByWord: (w) => `كلمة بكلمة: ${w}` });
+    const rom = drawn.find((d) => d.s.startsWith('tomodachi'))!;
+    expect(rom).toMatchObject({ dir: 'ltr', align: 'left' });
+    expect(rom.s).not.toMatch(/[。、]/);
+    expect(drawn.find((d) => d.s.startsWith('كلمة بكلمة'))).toMatchObject({ dir: 'rtl', align: 'right' });
   });
   it('wraps Japanese by character and other text by word', () => {
     const m = (s: string) => s.length * 10;

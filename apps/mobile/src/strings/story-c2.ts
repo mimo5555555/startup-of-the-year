@@ -7,7 +7,7 @@ export const en = {
   // the festival day (`festivalOpen`)
   'story.festivalOn': 'The park is a festival tonight!',
   'story.festivalSoon': 'The festival is in the park from your next day of play (on a Saturday, today).',
-  'story.festivalSaturday': 'The festival comes back to the park every Saturday.',
+  'story.festivalSaturday': 'It is Saturday: the festival is back in the park (it comes every Saturday).',
   'story.festivalGuests': '{n} friends came to the festival',
   // the capstone
   'story.speechReal': 'Your speech is in Real mode: no chips. Hint and “say it your way” still help, but those lines are not your own.',
@@ -40,7 +40,7 @@ export const ar = {
   'culture.hint.matsuri': 'اذهب إلى المهرجان في الحديقة (الفصل 7).',
   'story.festivalOn': 'الحديقة مهرجان الليلة!',
   'story.festivalSoon': 'المهرجان في الحديقة من يوم لعبك التالي (ويوم السبت من اليوم).',
-  'story.festivalSaturday': 'يعود المهرجان إلى الحديقة كل يوم سبت.',
+  'story.festivalSaturday': 'اليوم السبت: عاد المهرجان إلى الحديقة (يأتي كل يوم سبت).',
   'story.festivalGuests': 'جاء {n} أصدقاء إلى المهرجان',
   'story.speechReal': 'كلمتك في الوضع الحقيقي: بلا اقتراحات. التلميح و«قلها بطريقتك» يساعدان، لكن تلك الجمل ليست من عندك.',
   'story.speechGuidedOnce': 'مع الاقتراحات، مرة واحدة فقط (جمل الاقتراحات تُحتسب بالنصف)',
@@ -49,7 +49,7 @@ export const ar = {
   'story.diaryTwoTaps': 'اضغط على ما حدث ثم على شعورك، أو اكتب سطرك.',
   'story.diaryWhat': 'ماذا حدث؟',
   'story.diaryFeel': 'كيف كان؟',
-  'story.letterPreview': 'لمحة عن الرسالة: في الفصل 8 تكتب خمس جمل إلى أهلك بيابانيتك أنت.',
+  'story.letterPreview': 'لمحة عن الرسالة: في الفصل 8 تكتب خمس جمل إلى أهلك بلغتك اليابانية أنت.',
   'letter.intro': 'خمس جمل إلى أسرتك. تبدأ كل جملة بشيء فعلته هنا.',
   'letter.own': '{n} من {need} جمل بكلماتك',
   'letter.ownTag': 'من عندك',

@@ -146,6 +146,12 @@
 .ltr-foot .btn.primary {
   flex-basis: 100%;
 }
+/* a short (landscape) phone: the card's three buttons share one row so the card above keeps room (review: two rows left it 170 px) */
+@media (max-height: 520px) {
+  .ltr-foot .btn.primary {
+    flex-basis: 120px;
+  }
+}
 .ltr-toast {
   margin: 0;
   display: flex;

@@ -84,7 +84,8 @@ export const DREAMS: DreamDef[] = [
       step('festival_2', 3, { k: 'hearts', friend: 'mio', atLeast: 2 }, 'Become friends with Mio', 'كن صديقًا لميو'),
       step('festival_3', 4, { k: 'own', item: 'yukata' }, "Buy a yukata with Rin's help", 'اشترِ يوكاتا بمساعدة رين'),
       step('festival_4', 6, { k: 'hearts', friend: 'mio', atLeast: 4 }, 'Get to 4 hearts with Mio', 'اوصل إلى 4 قلوب مع ميو'),
-      step('festival_5', 7, { k: 'scenario', id: 'matsuri_stalls', minIndependent: 3 }, 'Go to the festival stalls', 'اذهب إلى بسطات المهرجان'),
+      // after Chapter 7 the stalls are open on Saturdays only (`festivalOpen`): the step says when (review of wave C2)
+      step('festival_5', 7, { k: 'scenario', id: 'matsuri_stalls', minIndependent: 3 }, 'Go to the festival stalls (Chapter 7, then every Saturday)', 'اذهب إلى بسطات المهرجان (الفصل 7، ثم كل يوم سبت)'),
     ],
   },
   {

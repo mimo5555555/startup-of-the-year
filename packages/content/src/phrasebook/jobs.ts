@@ -18,13 +18,14 @@ export const JOBS_PHRASES: PhraseEntry[] = [
   P(
     'job_welcome',
     'いらっしゃいませ。',
-    ['welcome', 'welcome to the shop', 'welcome to our store', 'welcome in', 'irasshaimase'],
+    // English only: a romaji key here made the learner's own typed romaji a translation (class T; review of wave C2)
+    ['welcome', 'welcome to the shop', 'welcome to our store', 'welcome in'],
     ['اهلا بك', 'أهلا بك', 'اهلا بك في المتجر', 'أهلا بك في المتجر'],
   ),
   P(
     'job_thank_you_very_much',
     'ありがとうございました。',
-    ['thank you for coming', 'thank you for your purchase', 'thanks for coming', 'arigatou gozaimashita'],
+    ['thank you for coming', 'thank you for your purchase', 'thanks for coming'],
     ['شكرا لزيارتك', 'شكرا على الشراء', 'شكرا لقدومك'],
   ),
 ];

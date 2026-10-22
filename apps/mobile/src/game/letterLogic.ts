@@ -205,8 +205,10 @@ export function drawCard(ctx: CanvasRenderingContext2D, card: LetterCardData, op
     ctx.lineWidth = 6;
     ctx.strokeRect(24, 24, W - 48, opts.height! - 48);
   }
-  const text = (s: string, font: string, color: string, size: number, align: 'start' | 'gloss' = 'start') => {
-    ctx.font = `${align === 'gloss' ? 500 : 700} ${size}px ${align === 'gloss' ? GLOSS_FONT : JA_FONT}`;
+  // 'romaji' is light like a gloss but always left to right under its Japanese (regression, review: in Arabic it was drawn right to left, the
+  // final 「。」 jumping to the front)
+  const text = (s: string, font: string, color: string, size: number, align: 'start' | 'gloss' | 'romaji' = 'start') => {
+    ctx.font = `${align === 'start' ? 700 : 500} ${size}px ${align === 'start' ? JA_FONT : GLOSS_FONT}`;
     const isRtl = align === 'gloss' && rtl;
     ctx.direction = isRtl ? 'rtl' : 'ltr';
     ctx.textAlign = isRtl ? 'right' : 'left';
@@ -225,7 +227,7 @@ export function drawCard(ctx: CanvasRenderingContext2D, card: LetterCardData, op
   y += 22;
   for (const l of card.lines) {
     text(l.ja, '', '#2a2440', 48);
-    if (opts.romaji && l.romaji) text(l.romaji, '', '#6b6580', 28, 'gloss');
+    if (opts.romaji && l.romaji) text(l.romaji.replace(/。/g, '.').replace(/、/g, ','), '', '#6b6580', 28, 'romaji');
     if (l.gloss) text(l.literal && opts.wordByWord ? opts.wordByWord(l.gloss) : l.gloss, '', '#6b6580', 30, 'gloss');
     y += 20;
   }

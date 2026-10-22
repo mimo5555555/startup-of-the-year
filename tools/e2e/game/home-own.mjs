@@ -13,7 +13,8 @@
 import assert from 'node:assert/strict';
 import { BASE, DAY_MS, assertNoConsoleErrors, assertNoHScroll, liveGame, onboard, skipBeats, start } from './_common.mjs';
 
-const t = await start('home-own');
+// Free Walk / Chapter 8: a weekday, so the Saturday festival never turns the park mid-run (`clockShift`)
+const t = await start('home-own', { weekday: true });
 const { page, arabic: AR } = t;
 for (const ev of ['uncaughtException', 'unhandledRejection']) {
   process.on(ev, async (e) => {
@@ -222,6 +223,7 @@ await settle();
 await go('world');
 let g = await liveGame(page);
 assert.equal(g.chapter.n, 9, 'Free Walk');
+assert.notEqual(await world((w) => w.festivalInfo()?.on), true, 'an ordinary day in the park (the calendar is pinned to a weekday)');
 assert.equal(g.home.tier, 'dorm', 'the dorm is the first room');
 assert.equal(await page.evaluate(() => window.__lw.useStore.getState().profile.age), 'adults', 'an adult profile');
 assert.equal(await world((w) => w.isDoorOpen('dorm')), true, 'the dorm door is open from the start');
@@ -373,7 +375,7 @@ await page.keyboard.press('Escape');
 
 // ---- 6. the next day: the futon arrives ---------------------------------------------------------------------------------------
 step('the next calendar day: the futon is delivered (toast), owned, placeable; the 3D marker of the bed places it; comfort 4');
-await page.evaluate((ms) => window.__lw.dispatch({ t: 'day_observed', nowMs: ms }), Date.now() + DAY_MS);
+await page.evaluate((ms) => window.__lw.dispatch({ t: 'day_observed', nowMs: ms }), t.now() + DAY_MS);
 await page.waitForFunction(() => /futon|فوتون/i.test(window.__lw.useStore.getState().toast?.text ?? ''), null, { timeout: 4000 }).catch(() => {});
 g = await liveGame(page);
 assert.equal(g.owned.futon_set?.qty, 1, 'the futon arrived');

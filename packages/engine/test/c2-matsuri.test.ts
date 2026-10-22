@@ -245,6 +245,27 @@ describe('matsuri_speech: the capstone', () => {
     expect(s.ended).toBe(true);
   });
 
+  it('the learner\'s own country and hobby when they are not listed (review: サッカー, ダンス, 読書 stayed on 「もう一度」 for ever)', () => {
+    for (const lines of [
+      ['山田です。', 'インドネシアから来ました。', 'サッカーが好きです。', '桜町が大好きです。', 'ありがとうございました。'],
+      ['samu desu', 'pakisutan kara kimashita', 'dansu ga suki desu', 'sakurachou wa totemo ii machi desu', 'arigatou gozaimashita'],
+      ['わたしはアフメドです。', 'ブラジルから来ました。', '趣味は読書です。', 'いい町です。', '皆さん、ありがとうございました。'],
+    ]) {
+      const s = open(SPEECH, 'en');
+      for (const l of lines) expect(say(s, l).learner.matched, l).toBe(true);
+      expect(s.ended, lines[2]).toBe(true);
+      expect(buildConversationFacts(s, { mode: 'real', prepared: false }).turns.filter((t) => t.cls === 'I' && t.substantive)).toHaveLength(5);
+    }
+    // romaji is the learner's own Japanese, never a translation (review: 'arigatou gozaimashita' was an English key of the jobs phrasebook)
+    for (const r of ['arigatou gozaimashita', 'irasshaimase', 'omatase shimashita']) expect(classifyInput(r).kind, r).toBe('romaji');
+    // a listed hobby is still the slot's; the town is not a hobby
+    const s = open(SPEECH, 'en');
+    say(s, 'レイラです。');
+    say(s, 'エジプトから来ました。');
+    expect(say(s, '桜町が好きです。').learner.matched).toBe(false);
+    expect(say(s, '音楽が好きです。').learner.intentId).toBe('hobby');
+  });
+
   it('English and Arabic are assisted lines (translation): understood, never independent', () => {
     const s = open(SPEECH, 'ar');
     for (const l of ['انا ليلى', 'جئت من مصر', 'أحب الموسيقى', 'ساكورا تشو مدينة جميلة جدا', 'شكرا جزيلا']) expect(say(s, l).learner.matched, l).toBe(true);

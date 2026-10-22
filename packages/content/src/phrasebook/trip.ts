@@ -31,7 +31,7 @@ export const TRIP_PHRASES: PhraseEntry[] = [
   P(
     'job_omatase',
     'お待たせしました。',
-    ['sorry to keep you waiting', 'sorry for the wait', 'thank you for waiting', 'sorry for keeping you waiting', 'sorry i kept you waiting', 'omatase shimashita'],
+    ['sorry to keep you waiting', 'sorry for the wait', 'thank you for waiting', 'sorry for keeping you waiting', 'sorry i kept you waiting'],
     ['اسف على الانتظار', 'آسف على الانتظار', 'اسف لانتظارك', 'آسف لانتظارك', 'شكرا على انتظارك', 'عذرا على الانتظار'],
   ),
   P(

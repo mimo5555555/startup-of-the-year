@@ -34,6 +34,23 @@ export function recallScore(attempt: string, targetPlain: string): number {
   return Math.max(speechSimilarity(normMatch(text), target), speechSimilarity(normMatch(romajiAsKana(text) ?? text), target));
 }
 
+/**
+ * A line whose fact is an example (the speech rehearsal's 「アメリカから来ました」 when the save does not know the country) also passes with the
+ * learner's own fact: the attempt's end is scored against the line's fixed part (`tailPlain`, 「から来ました。」) and something must come before
+ * it (regression, review: 「エジプトから来ました」 scored 0.60 and 「サッカーが好きです」 0.56 against the example, "Not quite" for doing what
+ * the "Example: say your own" tag asked).
+ */
+export function ownFactScore(attempt: string, tailPlain: string): number {
+  const tail = normMatch(tailPlain);
+  if (!tail) return 0;
+  let best = 0;
+  for (const text of [attempt.trim(), romajiAsKana(attempt.trim()) ?? '']) {
+    const t = normMatch(text);
+    if (t.length > tail.length) best = Math.max(best, speechSimilarity(t.slice(-tail.length), tail));
+  }
+  return best;
+}
+
 /** Best score over the recogniser's n-best list (the first alternative is the one shown). */
 export function recallScoreSpoken(result: { text: string; confidence: number; alternatives?: SpeechAlternative[] }, targetPlain: string): number {
   const target = normMatch(targetPlain);

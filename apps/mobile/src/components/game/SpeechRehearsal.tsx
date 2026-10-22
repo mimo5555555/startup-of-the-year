@@ -4,7 +4,7 @@
 // recorded) or types it; a line that matches gets its tick. The speech itself is Real mode; a player who has never used Real mode gets the
 // one-time Guided run (`guidedFallbackOpen`), told plainly. The pocket lines of the scenario that a passed line contains are filed as ready.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { LEXICON, scenarioById, speechRehearsal, tokenize, type SpeechSlot } from '@lw/content';
+import { LEXICON, SPEECH_LINES, scenarioById, speechRehearsal, tokenize, type SpeechSlot } from '@lw/content';
 import { guidedFallbackOpen, objectiveRows, type GameState, type GameView } from '@lw/game';
 import { explainSttError } from '@lw/engine';
 import { Icon } from '../Icon';
@@ -19,7 +19,7 @@ import { dispatch } from '../../game/bridge';
 import { getGame } from '../../game/gameStore';
 import { useGameState, useGameView } from '../../game/hooks';
 import { PACK } from '../../game/pack';
-import { plainOf, recallMark, recallScore, recallScoreSpoken } from '../../game/prepareLogic';
+import { ownFactScore, plainOf, recallMark, recallScore, recallScoreSpoken } from '../../game/prepareLogic';
 
 /** The speech objective (c7_3) and how many own lines it asks for now (5, or 3 once the easier version is accepted). */
 export const SPEECH_OBJECTIVE = 'c7_3';
@@ -118,6 +118,8 @@ function RehearsalLine({ n, slot, ja, meaning, example, ok, onPass }: { n: numbe
   const mark = recallMark(profile);
   const tokens = useMemo(() => tokenize(ja, LEXICON).tokens, [ja]);
   const plain = useMemo(() => plainOf(ja), [ja]);
+  // an example line passes with the learner's own fact too: its fixed part after the fact (「から来ました。」)
+  const tail = useMemo(() => (example ? plainOf(SPEECH_LINES.find((l) => l.slot === slot)?.line.ja.split('{x}')[1]?.replace(/^\|/, '') ?? '') : ''), [example, slot]);
   const [typed, setTyped] = useState('');
   const [verdict, setVerdict] = useState<'ok' | 'again' | null>(ok ? 'ok' : null);
   const [listening, setListening] = useState(false);
@@ -138,7 +140,7 @@ function RehearsalLine({ n, slot, ja, meaning, example, ok, onPass }: { n: numbe
       .listen('ja-JP')
       .result.then((r) => {
         setTyped(r.text);
-        judge(recallScoreSpoken(r, plain));
+        judge(Math.max(recallScoreSpoken(r, plain), tail ? ownFactScore(r.text, tail) : 0));
       })
       .catch((e: unknown) => {
         const id = explainSttError(e);
@@ -166,7 +168,7 @@ function RehearsalLine({ n, slot, ja, meaning, example, ok, onPass }: { n: numbe
         className="fest-try"
         onSubmit={(e) => {
           e.preventDefault();
-          if (typed.trim()) judge(recallScore(typed, plain));
+          if (typed.trim()) judge(Math.max(recallScore(typed, plain), tail ? ownFactScore(typed, tail) : 0));
         }}
       >
         <input
