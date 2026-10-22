@@ -5,7 +5,7 @@
 // romaji per the settings, the meaning below) that can be saved as an image (a local download) and that Hanako reads back by TTS. The diary lines
 // of the earlier closing beats can be added under the five sentences.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { LETTER_FRAMES, LETTER_HANAKO, LETTER_RULE, LEXICON, letterDiary, letterFrames, resolveLine, segmentFree, type Gloss, type Line } from '@lw/content';
+import { LETTER_FRAMES, LETTER_HANAKO, LETTER_RULE, LEXICON, letterDiary, letterFrames, resolveLine, type Gloss, type Line } from '@lw/content';
 import type { DiaryEntry } from '@lw/game';
 import { explainSttError, translatePhrase } from '@lw/engine';
 import { Icon } from '../components/Icon';
@@ -16,7 +16,7 @@ import { characterById } from '../content';
 import { dispatch } from '../game/bridge';
 import { useGameState } from '../game/hooks';
 import { PACK } from '../game/pack';
-import { bareJa, cardOf, diaryGloss, draftsFromSaved, letterSentences, readBackText, saveCardImage, sentenceOf, tallyOf, typedJapanese, type LetterDraft } from '../game/letterLogic';
+import { bareJa, cardOf, diaryGloss, draftsFromSaved, freeTokens, letterSentences, readBackText, saveCardImage, sentenceOf, tallyOf, typedJapanese, type LetterDraft } from '../game/letterLogic';
 import { useT } from '../hooks';
 import type { StringKey } from '../i18n';
 import { stt, tts } from '../services';
@@ -254,7 +254,7 @@ function FrameCard({ n, frame, draft, onDraft }: { n: number; frame: FrameView; 
       </strong>
       {draft ? (
         <>
-          <JaText tokens={segmentFree(draft.ja, LEXICON)} furigana={furigana} romaji={romaji} size="md" />
+          <JaText tokens={freeTokens(draft.ja)} furigana={furigana} romaji={romaji} size="md" />
           <span className="ltr-row">
             <button type="button" className="btn soft sm" data-change="1" onClick={() => (setValue(draft.ja), setSpoken(null), onDraft(null))}>
               {t('letter.change')}

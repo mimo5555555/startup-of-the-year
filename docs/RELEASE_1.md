@@ -36,6 +36,9 @@ Letter Home, the extra five lessons. Their interaction rows stay hidden until th
   *Release 2 wave C1 raised the cap to 6* (`RELEASE_LAST_CHAPTER` in `packages/content/src/tokyo/game/chapters.ts`): Chapter 4
   now continues into Chapter 5 and the epilogue closes Chapter 6; Nakamura Motors and the bicycle open in Chapter 5, the cars
   still at Free Walk. A save already in Free Walk stays there; see `docs/RELEASE_2.md` (Wave C1).
+  *Release 2 wave C2 raised the cap to 8, the full story*: nothing is cut any more. Chapter 8's own closing beat (`b_ch8_close`,
+  Hanako reads the Letter Home) is the ending and starts Free Walk; the "to be continued" epilogue (`b_release_epilogue`) stays
+  in the pack for a lower cap (`RELEASE_CLOSING`) and plays in no released path. See `docs/RELEASE_2.md` (Wave C2).
 * Completing Chapter 4 plays a short "to be continued" epilogue beat from Hanako and starts **Free Walk**
   (`chapter.n = 9`): everything released stays open, daily goals continue, dreams continue.
 * Nakamura Motors and the car items open at Free Walk in this release (in the full design they open in

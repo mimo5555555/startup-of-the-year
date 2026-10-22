@@ -12,7 +12,7 @@ import { gameView } from '../src/game/selectors';
 import { festivalPlan, interactionRows, planFor, routePick, LETTER_ROW_ID } from '../src/game/worldSync';
 import { fireworksBeat, guestsFor, resetFestivalSync, syncFestival } from '../src/game/festivalSync';
 import { capstoneMode } from '../src/game/realTry';
-import { cardOf, closingChapterOf, diaryGloss, letterSentences, readBackText, sentenceOf, tallyOf, typedJapanese, wrapText, type LetterDraft } from '../src/game/letterLogic';
+import { cardOf, freeTokens, closingChapterOf, diaryGloss, letterSentences, readBackText, sentenceOf, tallyOf, typedJapanese, wrapText, type LetterDraft } from '../src/game/letterLogic';
 
 const NOW = 1_800_000_000_000;
 const view = gameView({ vocab: [], discovered: [], lessonsDone: ['greetings'], streak: { days: 0 }, profile: { name: 'Sam', level: 'A1', goal: 'travel', age: 'adults', createdAt: '2030-01-15T00:00:00.000Z' } as never });
@@ -197,6 +197,12 @@ describe('wave C2: the Letter drafts', () => {
     const text = readBackText(card);
     expect(text).toContain('わたしは元気です。');
     expect(text).toContain(card.header.ja);
+  });
+  it('a kana word the dictionary does not know gets real romaji on the card (regression, gate: the romaji row read 「ICkādo de たび」)', () => {
+    const card = cardOf([{ ja: 'わたしの夢は「ICカードでたび」です。', assisted: true }], [undefined], 'サム', 'en');
+    expect(card.lines[0]!.romaji).not.toMatch(/[\u3040-\u30ff]/);
+    expect(card.lines[0]!.romaji).toContain('tabi');
+    expect(freeTokens('たび').map((t) => t.rom)).toEqual(['tabi']);
   });
   it('wraps Japanese by character and other text by word', () => {
     const m = (s: string) => s.length * 10;

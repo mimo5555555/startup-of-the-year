@@ -2,7 +2,7 @@
 // `letter_saved` stores (only the written Japanese: no audio is ever recorded, the microphone is used for recognition only), the card's lines and
 // glosses, the TTS read-back text and the card as a PNG drawn on a canvas and handed to the browser as a local download (no network).
 // The frames, facts and the own/assisted rule are the content's (`@lw/content` letter.ts); this module only keeps the drafts.
-import { hasJapanese, romajiToHiragana } from '@lw/core';
+import { hasJapanese, kanaToRomaji, romajiToHiragana } from '@lw/core';
 import { DIARY_FEELINGS, DIARY_PROMPTS, LEXICON, LETTER_HEADER, LETTER_RULE, LETTER_SIGN, diaryLine, letterAssisted, letterComplete, letterLineOk, romajiText, segmentFree, tokenize, type Line, type Token } from '@lw/content';
 import type { DiaryEntry, GamePack, LetterSentence } from '@lw/game';
 
@@ -112,6 +112,13 @@ export function wordGloss(tokens: readonly Token[], lang: Lang): string {
     .join(' · ');
 }
 
+/**
+ * The learner's free Japanese as tokens. A run the dictionary does not know (a kana word the learner typed, the dream's name) stays one raw
+ * token; when it is kana its romaji is read from the kana (else the romaji row showed the kana again, 「ICkādo de たび」).
+ */
+export const freeTokens = (ja: string): Token[] =>
+  segmentFree(ja, LEXICON).map((t) => (t.raw && /^[\u3040-\u30ffー]+$/.test(t.s) ? { ...t, rom: kanaToRomaji(t.s) } : t));
+
 const fill = (line: Line, name: string): Line => ({ ja: line.ja.replaceAll('{x}', name), en: line.en.replaceAll('{x}', name), ar: line.ar.replaceAll('{x}', name) });
 
 /**
@@ -120,7 +127,7 @@ const fill = (line: Line, name: string): Line => ({ ja: line.ja.replaceAll('{x}'
  */
 export function cardOf(sentences: readonly LetterSentence[], glosses: ReadonlyArray<{ en: string; ar: string } | undefined>, name: string, lang: Lang, diaryCount = 0, shownName = '') {
   const lineOf = (ja: string, assisted: boolean, gloss: { en: string; ar: string } | undefined, diary: boolean): CardLine => {
-    const tokens = segmentFree(ja, LEXICON);
+    const tokens = freeTokens(ja);
     return { ja, tokens, romaji: romajiText(tokens), gloss: gloss?.[lang] || wordGloss(tokens, lang), assisted, ...(diary ? { diary } : {}) };
   };
   const body = sentences.map((s, i) => lineOf(s.ja, s.assisted, glosses[i], i >= sentences.length - diaryCount));

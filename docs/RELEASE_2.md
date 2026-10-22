@@ -59,6 +59,46 @@ release cap (`JP_PACK.release.lastChapter`) moves up only when the content behin
   car). Not built (wave C2): Chapters 7-8, festival, Letter Home and its Chapter 6 preview line, heart-5 scenes, the
   Chapter 6 closing beats `b_ch6_close(_flat)` (the epilogue closes it in this release), `TITLES`/`b_rankup`, the
   rank-3 station phrase 恐れ入りますが, the diary prompt.
+* **C2 (built): Chapters 7 and 8 are playable; the release cap is 8 and the story ends.** `JP_PACK.release.lastChapter = 8`:
+  Chapter 8's own closing `b_ch8_close` (Hanako holds the Letter and reads it: これがあなたの日本語です。すばらしい！) is the ending and
+  starts Free Walk (`chapter.n` 9); `b_release_epilogue` stays in the pack for a lower cap only. Chapter 6 now closes with `b_ch6_close`,
+  or `b_ch6_close_flat` once the Ono-sō room is rented (`ChapterDef.beats.closeIf`, the smallest generic support in `@lw/game`), both
+  ending with Hanako's Letter preview line (also on the Chapter 6 card); Chapter 4's closing promises the festival again. Chapter 7
+  "Festival": the festival-day rule (`festivalOpen`: from the next play day after Chapter 7 began, or a Saturday by the local date;
+  in Chapter 8 and Free Walk every Saturday, for the stalls) turns the park into the festival at dusk (`world.setFestival`: six
+  stalls with noren, the yagura stage and its 桜町まつり banner, merged lantern strings, fireworks; built once, off restores the day
+  look exactly), with Hanako on the stage, Kenji at his ramen stall and every friend at ♥2 or more. `matsuri_stalls` (Kenji, cash
+  only: yakisoba ¥500, takoyaki ¥600, kakigori ¥300, ringo-ame ¥400; a card gets "cash only" and no charge) from any stall;
+  `matsuri_speech`, the capstone, from the stage: Prepare is a five-line rehearsal with the player's facts (listen, type or say, a
+  tick per line), the speech runs in Real mode, and a player who never used Real mode may play it once in Guided mode (class-S
+  lines count half, said on screen); `culture_said n:6`; `cc_matsuri` (no deferred culture card is left); ¥8,000 and `t_resident`;
+  the closing beat plays at the stage under the fireworks. Chapter 8 "Letter Home": Hanako's "Write your Letter Home" row opens
+  `screen:'letter'`: five frames pre-filled from remembered facts (name, country, a friend, a place, the dream or a purchase), each
+  typed or spoken (own) or picked from three ideas or translated (assisted); it is finished with five sentences, three of them own
+  (`letter_written`); only the written Japanese is stored (`letter_saved`), the microphone is used for recognition only and no audio
+  is recorded; the card can be saved as a PNG (a local download, no network) and Hanako reads it back by TTS; `words_known 150`,
+  ★★ in 12 conversations and `dream_epilogue` (choosing a dream, the same one included, or a finished dream); ¥10,000 and
+  `t_lives_in_ja`. The closing beats of Chapters 2-7 ask for a one-line diary entry (two taps, assisted, or a typed line, own) that
+  the Letter can add under its five sentences. The festival dream is offered (the yukata at Fuku-Fuku from Chapter 4; the casual
+  goal's default); the e-bike and the flagship phone open in Chapter 7, the cars and the car dream at Free Walk. Saves: a save mid
+  Chapter 6 continues into Chapter 7; a save already in Free Walk stays there (its `completed` re-derives as 1-8 and no closing beat
+  replays: the pending-beat rule now needs the chapter's objectives done). E2E: `tools/e2e/game/chapters78.mjs` (EN and `--ar`;
+  spies prove no MediaRecorder, getUserMedia or audio blob and no network request on the image save); `chapters56.mjs` ends with
+  Chapter 6's closing and Chapter 7, `release1.mjs` fast-forwards through Chapter 8 to Free Walk. Render: the dressing is 4 meshes
+  + the fireworks points, 6.1k triangles. Not built: heart-5 scenes, `TITLES`/`b_rankup`, the rank-3 station phrase 恐れ入りますが,
+  the body-price car browse (`nakamura_car`, Free Walk).
+
+## Release 2 complete
+
+The whole designed story plays in Release 2: Chapters 1-8 (arrival, the konbini job, friends, the phone, the Hikarigaoka trip,
+café and station jobs and home visits, the festival and the speech capstone, the Letter Home), then Free Walk. On top of
+Release 1 it adds Fuku-Fuku clothes and Aiko's gifts (A), hang-outs and three friend homes on the stage engine (B1), the
+player's own room, the flat contract and furniture (B2), Chapters 5-6 with the trip and two new jobs (C1) and Chapters 7-8 with the
+festival, the Letter and the diary (C2). All 23 culture cards can be earned and all seven dreams can be finished (the level-4
+bot of `validatePack` proves it). Each wave ends with a gate in the real UI (English and Arabic, 360 px) and an adversarial
+review. Deferred to a later release: heart-5 scenes,
+titles on screen (`TITLES`, `b_rankup`), the rank-3 station phrase, the body-price car browse, phone-chat invitations home and
+selling furniture.
 
 ## Always
 No dead ends (unbuilt things stay hidden), EN + AR, 360 px, usage-limit aware (two agents at a time).
