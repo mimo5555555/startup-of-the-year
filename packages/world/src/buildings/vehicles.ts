@@ -78,6 +78,8 @@ export interface BikeLook {
   frame: string;
   /** electric-assist: battery, hub motor, display */
   ebike?: boolean;
+  /** a paint (the sakura skin, Goen stage 1): fenders, basket and saddle colours and blossom stickers */
+  paint?: { fender: string; basket: string; saddle: string; petal: string; heart: string };
 }
 
 /** Bike dimensions at scale 1: about 1.45 m long (the layout's bikeRect is 1.4 x 0.5). */
@@ -118,21 +120,34 @@ export function addBike(solid: Batch, glow: Batch, x: number, z: number, ry: num
   f.bar(bb.x, bb.y, 0.27, 0.58, t, frame); // down tube (step-through, as on a mamachari)
   f.bar(0.27, 0.58, 0.31, 0.78, t, frame); // head tube
   f.bar(0.31, 0.72, wb, hub, 0.03, frame); // fork
-  f.box(-wb, 0.58, 0, 0.5, 0.025, 0.09, frame); // fenders
-  f.box(wb, 0.58, 0, 0.46, 0.025, 0.09, frame);
+  const paint = look.paint;
+  f.box(-wb, 0.58, 0, 0.5, 0.025, 0.09, paint?.fender ?? frame); // fenders
+  f.box(wb, 0.58, 0, 0.46, 0.025, 0.09, paint?.fender ?? frame);
   f.bar(-0.2, 0.72, -0.22, 0.8, 0.03, STEEL); // seat post
-  f.box(BIKE.saddleX, 0.8, 0, 0.26, 0.06, 0.15, GRIP); // saddle
+  f.box(BIKE.saddleX, 0.8, 0, 0.26, 0.06, 0.15, paint?.saddle ?? GRIP); // saddle
   f.bar(0.31, 0.76, 0.29, 0.92, 0.035, STEEL); // stem
   f.box(0.29, 0.9, 0, 0.04, 0.04, 0.44, STEEL); // handlebar
   for (const sz of [-1, 1]) f.box(0.29, 0.885, sz * 0.23, 0.05, 0.05, 0.08, GRIP); // grips
-  f.box(0.5, 0.74, 0, 0.3, 0.17, 0.32, '#cdd2da'); // basket
+  f.box(0.5, 0.74, 0, 0.3, 0.17, 0.32, paint?.basket ?? '#cdd2da'); // basket
   f.box(0.5, 0.9, 0, 0.32, 0.02, 0.34, '#9aa0ad');
   f.box(-0.5, 0.5, 0, 0.3, 0.03, 0.18, '#9aa0ad'); // carrier
   for (const sz of [-1, 1]) f.box(bb.x, bb.y - 0.01, sz * 0.12, 0.12, 0.02, 0.06, GRIP); // pedals
   f.sphere(0.29, 0.97, 0.12, 0.03, STEEL, { ws: 6, hs: 4 }); // bell
   g.sphere(0.4, 0.88, 0, 0.035, '#fff2a8', { ws: 6, hs: 4 }); // lamp
+  if (paint) {
+    // blossom stickers: one on each side of the basket and of the down tube, five petals round a yellow heart
+    for (const sz of [-1, 1]) {
+      for (const [cx, cy, cz, r] of [[0.5, 0.825, sz * 0.165, 0.035], [0.12, 0.43, sz * (t / 2 + 0.006), 0.022]] as const) {
+        for (let i = 0; i < 5; i++) {
+          const a = (i / 5) * Math.PI * 2;
+          f.box(cx + Math.cos(a) * r, cy + Math.sin(a) * r - r * 0.45, cz, r * 1.05, r * 0.9, 0.006, paint.petal, { rz: a });
+        }
+        f.box(cx, cy - r * 0.25, cz + sz * 0.002, r * 0.6, r * 0.6, 0.006, paint.heart, { rz: Math.PI / 4 });
+      }
+    }
+  }
   if (look.ebike) {
-    f.box(-0.17, 0.42, 0, 0.1, 0.27, 0.1, '#2b2f3a'); // battery on the seat tube
+    f.box(-0.17, 0.42, 0, 0.1, 0.27, 0.1, paint?.basket ?? '#2b2f3a'); // battery on the seat tube
     f.cyl(-wb, hub - 0.06, 0, 0.075, 0.075, 0.12, '#2b2f3a', { rx: Math.PI / 2, seg: 10 }); // hub motor
     g.box(0.29, 0.95, 0, 0.05, 0.02, 0.09, '#8be0c5'); // handlebar display
   }

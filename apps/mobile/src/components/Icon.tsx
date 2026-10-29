@@ -252,6 +252,19 @@ const P: Record<string, ReactNode> = {
       <path d="M9 3v15M15 6v15" />
     </>
   ),
+  // Goen stage 1: the shrine gate (the Shrine panel, the Goen pill) and copy-the-link (voice guidance)
+  torii: (
+    <>
+      <path d="M2 5c4 1 16 1 20 0M4 9h16M7 5v16M17 5v16" />
+      <path d="M12 6v3" />
+    </>
+  ),
+  copy: (
+    <>
+      <rect x="9" y="9" width="12" height="12" rx="2" />
+      <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+    </>
+  ),
 };
 
 export type IconName = keyof typeof P;

@@ -1,5 +1,6 @@
 // Pack and state validation (agent 1F, docs/GAME_DESIGN.md §14.5, §15.9).
 import { BALANCE } from './balance';
+import { goenGrantedItems, reconcileGoen } from './goen';
 import { HOME_SLOTS } from './inventory';
 import { reconcile } from './ledger';
 import { walletLimits } from './money';
@@ -52,6 +53,9 @@ function predShape(out: Out, level: ValidationLevel, path: string, p: Pred): voi
     case 'lesson':
     case 'flag':
       if (!p.id) add(out, level, 'pred_field', path, `${p.k}: id is empty`);
+      break;
+    case 'goen':
+      if (!p.item) add(out, level, 'pred_field', path, 'goen: item is empty');
       break;
     case 'scenario':
       if (!p.id) add(out, level, 'pred_field', path, 'scenario: id is empty');
@@ -134,6 +138,7 @@ function allPreds(pack: GamePack): Array<{ path: string; pred: Pred; level: Vali
   pack.jobs.forEach((j, ji) => list.push({ path: `jobs[${ji}].unlock`, pred: j.unlock, level: 3 }));
   Object.entries(pack.interactions).forEach(([who, l]) => l.forEach((i, ii) => i.gate && list.push({ path: `interactions.${who}[${ii}].gate`, pred: i.gate, level: 2 })));
   pack.scenarioMeta.forEach((m, mi) => m.gate && list.push({ path: `scenarioMeta[${mi}].gate`, pred: m.gate, level: 3 }));
+  pack.goen?.journeys.forEach((j, ji) => j.objectives.forEach((o, oi) => list.push({ path: `goen.journeys[${ji}].objectives[${oi}].pred`, pred: o.pred, level: 2 })));
   return list;
 }
 
@@ -342,6 +347,8 @@ function granted(pack: GamePack): Set<string> {
   Object.values(pack.beats).forEach((b) => fromEffects(b.effects));
   pack.scenarioMeta.forEach((m) => fromEffects(m.effects));
   pack.jobs.forEach((j) => ids.add(j.bonus.itemId));
+  // Goen's looks and season rewards (docs/GOEN.md): granted by the shrine, never sold for yen
+  goenGrantedItems(pack).forEach((id) => ids.add(id));
   for (const f of pack.friends) {
     for (const p of f.perks) {
       if (p.fx.t === 'once_item') ids.add(p.fx.itemId);
@@ -358,6 +365,7 @@ function level3(pack: GamePack, out: Out): void {
   const shops = new Map(pack.shops.map((s) => [s.id, s]));
   const known = (id: string): boolean => itemIds.has(id) || menuIds.has(id);
   const knownOrOption = (id: string): boolean => known(id) || menuOptions.has(id);
+  const goenItems = goenGrantedItems(pack);
 
   if (pack.items.length === 0) add(out, 3, 'items_empty', 'items', 'the pack has no items');
   if (pack.shops.length === 0) add(out, 3, 'shops_empty', 'shops', 'the pack has no shops');
@@ -376,7 +384,9 @@ function level3(pack: GamePack, out: Out): void {
   pack.items.forEach((it, i) => {
     const shop = shops.get(it.shop);
     if (!shop) return void add(out, 3, 'item_shop', `items[${i}].shop`, `item ${it.id} is sold by unknown shop "${it.shop}"`);
-    if (!stocked(it.shop, it.id)) add(out, 3, 'not_sold', `items[${i}]`, `shop ${it.shop} does not list item ${it.id} in \`sells\``);
+    // a Goen item is granted by the shrine, never stocked for yen (its shop sells nothing, so no yen purchase can reach it)
+    if (!stocked(it.shop, it.id) && !goenItems.has(it.id)) add(out, 3, 'not_sold', `items[${i}]`, `shop ${it.shop} does not list item ${it.id} in \`sells\``);
+    if (goenItems.has(it.id) && stocked(it.shop, it.id)) add(out, 3, 'goen_for_yen', `items[${i}]`, `item ${it.id} is a Goen item and must not be sold for yen`);
     // "every item has a shop that opens by its gate chapter" (§15.9)
     if (shop.openChapter > it.gate.ch) add(out, 3, 'shop_after_item', `items[${i}].gate.ch`, `item ${it.id} opens in chapter ${it.gate.ch}, but shop ${it.shop} opens in chapter ${shop.openChapter}`);
     // D28: kids never see the flat or a car as purchasable
@@ -915,6 +925,112 @@ function level5(pack: GamePack, out: Out, index?: ContentIndex): void {
  * Level 4 includes the prerequisite check (every objective satisfiable with what is open at its chapter's start), acyclic scenario
  * gates and the bot, which plays the chapters in order and must reach the end, the flat path with at most one heart for its landlady.
  */
+// ---------------------------------------------------------------------------------------------------------------
+// Goen (docs/GOEN.md): the catalog, the seasons, the Journeys; the bot can finish a Journey and a season once owned
+// ---------------------------------------------------------------------------------------------------------------
+
+const GOEN_KINDS: readonly string[] = ['journey', 'season', 'cosmetic', 'charm'];
+const SEASON_COUNTERS: readonly string[] = ['conv_stars', 'season_words', 'buy', 'omikuji', 'gift', 'shift', 'real', 'own_lines', 'scenario'];
+const MMDD = /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
+
+function goenChecks(pack: GamePack, out: Out, index?: ContentIndex): void {
+  const g = pack.goen;
+  if (!g) return;
+  // level 1: ids and shapes
+  checkIds(out, 1, 'goen.catalog', g.catalog.map((c) => c.id));
+  checkIds(out, 1, 'goen.seasons', g.seasons.map((x) => x.id));
+  checkIds(out, 1, 'goen.journeys', g.journeys.map((x) => x.id));
+  g.catalog.forEach((c, i) => {
+    const path = `goen.catalog[${i}]`;
+    if (!GOEN_KINDS.includes(c.kind)) add(out, 1, 'goen_kind', `${path}.kind`, `unknown kind "${c.kind}"`);
+    if (!isInt(c.price) || c.price < 1) add(out, 1, 'goen_price', `${path}.price`, `${c.id}: a price is a whole number of Goen, at least 1`);
+    gloss(out, 1, `${path}.name`, c.name);
+    gloss(out, 1, `${path}.gives`, c.gives);
+    if (!c.wish?.ja?.includes('ますように')) add(out, 1, 'goen_wish', `${path}.wish`, `${c.id}: the wish is 「…ますように。」`);
+  });
+  if (g.catalog.filter((c) => c.kind === 'charm').length > 1) add(out, 1, 'goen_charm', 'goen.catalog', 'one streak charm row at most');
+  if (g.omikuji.length > 0 && !g.omikuji.some((f) => f.weight > 0)) add(out, 1, 'omikuji', 'goen.omikuji', 'at least one fortune needs a weight above 0');
+  g.omikuji.forEach((f, i) => !f.line.ja.includes('{word}') && add(out, 1, 'omikuji', `goen.omikuji[${i}].line`, `${f.id}: the line names the word ({word})`));
+
+  // level 3: what the rows point at
+  const items = new Set(pack.items.map((x) => x.id));
+  const sellable = new Set([...pack.items.map((x) => x.id), ...pack.menu.map((m) => m.id)]);
+  const scenarios = new Set(pack.scenarioMeta.map((m) => m.id));
+  g.catalog.forEach((c, i) => {
+    const path = `goen.catalog[${i}]`;
+    if (c.kind === 'cosmetic' && !items.has(c.itemId ?? c.id)) add(out, 3, 'goen_item', path, `${c.id} grants item "${c.itemId ?? c.id}", which the pack does not define`);
+    if (c.kind === 'journey' && !g.journeys.some((j) => j.id === c.ref && j.itemId === c.id)) add(out, 3, 'goen_ref', `${path}.ref`, `${c.id}: no Journey "${c.ref}" owned by this row`);
+    if (c.kind === 'season' && !g.seasons.some((x) => x.premiumItem === c.id)) add(out, 3, 'goen_ref', `${path}.ref`, `${c.id}: no season's premium track is this row`);
+  });
+  const keepsake = (id: string, path: string): void => {
+    if (pack.keepsakes && !pack.keepsakes[id]) add(out, 3, 'goen_keepsake', path, `keepsake "${id}" has no name in the pack's keepsakes`);
+  };
+  g.seasons.forEach((x, si) => {
+    const path = `goen.seasons[${si}]`;
+    gloss(out, 3, `${path}.name`, x.name);
+    const { from, to } = x.window;
+    if (!MMDD.test(from) || !MMDD.test(to)) add(out, 3, 'season_window', `${path}.window`, `${x.id}: the window is MM-DD .. MM-DD`);
+    if (!g.catalog.some((c) => c.id === x.premiumItem && c.kind === 'season')) add(out, 3, 'season_premium', `${path}.premiumItem`, `${x.id}: premium item "${x.premiumItem}" is not a season row of the catalog`);
+    checkIds(out, 3, `${path}.tasks`, x.tasks.map((t) => t.id));
+    x.tasks.forEach((t, ti) => {
+      const tp = `${path}.tasks[${ti}]`;
+      gloss(out, 3, `${tp}.text`, t.text);
+      if (!SEASON_COUNTERS.includes(t.counter)) add(out, 3, 'season_task', `${tp}.counter`, `unknown counter "${t.counter}"`);
+      if (!isInt(t.target) || t.target < 1 || !isInt(t.sp) || t.sp < 1) add(out, 3, 'season_task', tp, `${t.id}: target and sp are whole numbers, at least 1`);
+      if ((t.counter === 'buy' || t.counter === 'scenario') && !(t.ids?.length)) add(out, 3, 'season_task', `${tp}.ids`, `${t.id}: a ${t.counter} task names its ids`);
+      if (t.counter === 'buy') t.ids?.forEach((id) => !sellable.has(id) && add(out, 3, 'season_task', `${tp}.ids`, `${t.id}: "${id}" is neither an item nor a menu id`));
+      if (t.counter === 'scenario') t.ids?.forEach((id) => !scenarios.has(id) && add(out, 3, 'season_task', `${tp}.ids`, `${t.id}: scenario "${id}" is not in the pack`));
+    });
+    const tiers = [...x.tiers].sort((a, b) => a.n - b.n);
+    tiers.forEach((t, ti) => {
+      const tp = `${path}.tiers[${ti}]`;
+      if (t.n !== ti + 1) add(out, 3, 'season_tier', tp, `${x.id}: tiers are numbered 1..${tiers.length}`);
+      if (ti > 0 && !(t.sp > tiers[ti - 1]!.sp)) add(out, 3, 'season_tier', `${tp}.sp`, `${x.id}: tier ${t.n} needs more season points than tier ${t.n - 1}`);
+      [...t.free, ...t.premium].forEach((r) => {
+        if (r.t === 'item' && !items.has(r.id)) add(out, 3, 'season_reward', tp, `${x.id} tier ${t.n}: item "${r.id}" is not in the pack`);
+        if (r.t === 'keepsake') keepsake(r.id, tp);
+        if (r.t === 'goen' && (!isInt(r.n) || r.n < 1)) add(out, 3, 'season_reward', tp, `${x.id} tier ${t.n}: Goen is a whole number, at least 1`);
+      });
+    });
+  });
+  g.journeys.forEach((j, ji) => {
+    const path = `goen.journeys[${ji}]`;
+    gloss(out, 3, `${path}.name`, j.name);
+    if (!g.catalog.some((c) => c.id === j.itemId && c.kind === 'journey')) add(out, 3, 'journey_item', `${path}.itemId`, `${j.id}: "${j.itemId}" is not a journey row of the catalog`);
+    if (pack.fares[j.trip] === undefined) add(out, 3, 'journey_fare', `${path}.trip`, `${j.id}: the trip "${j.trip}" has no fare`);
+    j.scenarios.forEach((id) => !scenarios.has(id) && add(out, 3, 'journey_scenario', `${path}.scenarios`, `${j.id}: scenario "${id}" is not in the pack`));
+    checkIds(out, 3, `${path}.objectives`, j.objectives.map((o) => o.id));
+    if (j.reward.keepsake) keepsake(j.reward.keepsake, `${path}.reward.keepsake`);
+  });
+
+  // level 4, the bot: a player who owns a Journey or a season's premium track can finish it with what Free Walk has open (money aside)
+  const fw = BALANCE.freeWalkChapter;
+  g.journeys.forEach((j, ji) => {
+    j.objectives.forEach((o) => unreachable(pack, o.pred, fw).forEach((why) => add(out, 4, 'bot_journey', `goen.journeys[${ji}]`, `${j.id} ${o.id}: ${why}`)));
+    if (j.objectives.length === 0) add(out, 4, 'bot_journey', `goen.journeys[${ji}]`, `${j.id} has no objectives, so it never completes`);
+  });
+  const giftable = pack.items.some((i) => i.cat === 'gift') || pack.menu.some((m) => m.giftable);
+  g.seasons.forEach((x, si) => {
+    const path = `goen.seasons[${si}]`;
+    const total = x.tasks.reduce((n, t) => n + t.sp, 0);
+    const top = x.tiers.reduce((m, t) => Math.max(m, t.sp), 0);
+    if (total < top) add(out, 4, 'bot_season', path, `${x.id}: the tasks give ${total} season points, the last tier needs ${top}`);
+    x.tasks.forEach((t) => {
+      const why =
+        (t.counter === 'season_words' && x.words.length < t.target && `${t.target} season words, but the season lists ${x.words.length}`) ||
+        (t.counter === 'gift' && !giftable && 'no giftable item') ||
+        (t.counter === 'shift' && pack.jobs.length === 0 && 'the pack has no job') ||
+        (t.counter === 'omikuji' && g.omikuji.length === 0 && 'the pack has no omikuji') ||
+        (t.counter === 'buy' && !(t.ids ?? []).some((id) => sold(pack).has(id) || pack.shops.find((sh) => sh.sells.includes(id))?.surface === 'panel') && 'nothing it names is sold') ||
+        null;
+      if (why) add(out, 4, 'bot_season', path, `${x.id} ${t.id}: ${why}`);
+    });
+  });
+
+  // level 5: the season words are words the lexicon knows (a conversation's `words` are lexicon surfaces)
+  if (index) g.seasons.forEach((x, si) => x.words.forEach((w) => !index.lexiconSurfaces.has(w) && add(out, 5, 'season_word', `goen.seasons[${si}].words`, `${x.id}: "${w}" is not a lexicon surface`)));
+}
+
 export function validatePack(pack: GamePack, opts: { level: ValidationLevel; index?: ContentIndex }): ValidationIssue[] {
   const out: Out = [];
   level1(pack, out);
@@ -922,6 +1038,7 @@ export function validatePack(pack: GamePack, opts: { level: ValidationLevel; ind
   level3(pack, out);
   level4(pack, out);
   level5(pack, out, opts.index);
+  goenChecks(pack, out, opts.index);
   releaseChecks(pack, out);
   // unresolved ids and predicate requirements are only reported once their level is asked for
   return out.filter((i) => i.level <= opts.level);
@@ -995,6 +1112,14 @@ export function validateState(state: GameState, pack: GamePack): ValidationIssue
   known('culture card', Object.keys(state.culture), new Set(pack.culture.map((x) => x.id)), 'culture');
   known('title', state.titles, new Set(pack.titles.map((t) => t.id)), 'titles');
   known('pocket line', Object.keys(state.prep), new Set(Object.keys(pack.pockets)), 'prep');
+
+  // Goen: balance = earned - spent, charms in range, owned rows known to the catalog
+  if (state.goen) {
+    const gr = reconcileGoen(state);
+    if (!gr.ok) bad('goen_reconcile', 'goen', `the Goen balance is ${gr.actual}, its totals say ${gr.expected} (charms ${state.goen.charms})`);
+    if (state.goen.ledger.length > BALANCE.goen.ledger) bad('ring', 'goen.ledger', `the Goen ledger ring holds at most ${BALANCE.goen.ledger} entries`);
+    if (pack.goen) known('Goen item', Object.keys(state.goen.owned), new Set(pack.goen.catalog.map((c) => c.id)), 'goen.owned');
+  }
   if (state.activeTitle !== null && !state.titles.includes(state.activeTitle)) bad('title', 'activeTitle', 'the shown title must be one the player has');
   if (state.dream.id !== null && pack.dreams.length > 0 && !pack.dreams.some((d) => d.id === state.dream.id)) bad('unknown_id', 'dream.id', `dream "${state.dream.id}" is not in the pack`);
   known('dream step', Object.keys(state.dream.steps), new Set(pack.dreams.flatMap((d) => d.steps.map((s) => s.id))), 'dream.steps');

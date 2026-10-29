@@ -3,6 +3,8 @@ import { Batch } from '../batch';
 import { BIKE, KEI_SEAT_X, addBike, addKei, anchorFor, type BikeLook, type KeiLook } from './vehicles';
 
 export type RideKind = 'bike' | 'ebike' | 'car';
+/** A paint for the bike and the e-bike (`ride_sakura`, Goen stage 1); the car has none and ignores it. */
+export type RideSkin = 'sakura';
 
 /** The world's shared materials; a ride mesh is one merged Batch built with `toon` (and `glow` for lights). */
 export interface RideMaterials {
@@ -21,18 +23,26 @@ export const RIDE_LOOKS = {
   car: { body: '#7fd6b8', accent: '#2e9e5b', open: true } satisfies KeiLook,
 };
 
+/** The sakura paint: a blossom-pink frame (a deeper pink on the e-bike), white fenders and basket, blossom stickers. */
+export const RIDE_SKINS: Record<RideSkin, { bike: BikeLook; ebike: BikeLook }> = {
+  sakura: {
+    bike: { frame: '#f29bb8', paint: { fender: '#fff6f8', basket: '#fbeff3', saddle: '#c2577a', petal: '#ff8fb1', heart: '#ffd166' } },
+    ebike: { frame: '#e0729a', ebike: true, paint: { fender: '#fff6f8', basket: '#fbeff3', saddle: '#9c3a5e', petal: '#ff8fb1', heart: '#ffd166' } },
+  },
+};
+
 /**
  * The mesh `world.setRide(kind)` mounts under the player (origin at the ground, +z forward, the rider's seat at the
  * origin). One toon mesh plus, when the ride has lamps, one glow mesh, both with the world's shared materials; the
  * world disposes the geometry. Returns null for a kind it cannot draw.
  */
-export function buildRide(kind: RideKind, mats: RideMaterials): THREE.Object3D | null {
+export function buildRide(kind: RideKind, mats: RideMaterials, skin: RideSkin | null = null): THREE.Object3D | null {
   const solid = new Batch();
   const glow = new Batch();
   const forward = -Math.PI / 2; // local +x becomes world +z
   if (kind === 'bike' || kind === 'ebike') {
     const a = anchorFor(BIKE.saddleX * BIKE.rideScale, forward);
-    addBike(solid, glow, a.x, a.z, forward, RIDE_LOOKS[kind], { k: BIKE.rideScale });
+    addBike(solid, glow, a.x, a.z, forward, skin ? RIDE_SKINS[skin][kind] : RIDE_LOOKS[kind], { k: BIKE.rideScale });
   } else if (kind === 'car') {
     const a = anchorFor(KEI_SEAT_X, forward);
     addKei(solid, glow, a.x, a.z, forward, RIDE_LOOKS.car);
@@ -41,6 +51,7 @@ export function buildRide(kind: RideKind, mats: RideMaterials): THREE.Object3D |
   }
   const root = new THREE.Group();
   root.name = `ride-${kind}`;
+  if (skin && kind !== 'car') root.userData.skin = skin;
   const body = solid.build(mats.toon, { cast: true, receive: false, name: `ride-${kind}-body` });
   if (body) root.add(body);
   const lamps = glow.build(mats.glow, { cast: false, receive: false, name: `ride-${kind}-lamps` });

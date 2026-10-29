@@ -21,6 +21,8 @@ import { BALANCE, hearts as heartsOf } from '@lw/game';
 import { useT, useWorld } from '../hooks';
 import { useStore } from '../store';
 import { requestAudioCheckFocus } from '../components/AudioCheck';
+import { VoiceHint } from '../components/VoiceHint';
+import { currentUa, sttErrorKey, touchDevice } from '../voiceHelp';
 import { Icon } from '../components/Icon';
 import { JaText } from '../components/JaText';
 import { Portrait } from '../components/Portrait';
@@ -40,7 +42,6 @@ import { PACK } from '../game/pack';
 import { gameView } from '../game/selectors';
 import { isOwnGuestScenario, shownScenario } from '../game/ownLogic';
 import { blip, haptic, stt, tts } from '../services';
-import type { StringKey } from '../i18n';
 import { useUi } from '../ui';
 
 interface Assist {
@@ -68,6 +69,9 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
   const go = useStore((s) => s.go);
   const say = useStore((s) => s.say);
   const openWord = useUi((s) => s.openWord);
+  // voice guidance in the very first conversation (an in-app browser, Siri & Dictation, no Japanese voice): one line over the messages
+  const [firstTalk] = useState(() => Object.keys(useStore.getState().completed).length === 0 && Object.keys(getGame().runs).length === 0);
+  const [sttErr, setSttErr] = useState<ReturnType<typeof explainSttError> | null>(null);
 
   const character = characterById(characterId)!;
   const l1 = profile.l1;
@@ -378,7 +382,8 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
         if (!mine()) return;
         const id = explainSttError(e);
         const fix = id !== 'silent' && id !== 'cancelled' && id !== 'timeout' && id !== 'network';
-        setMic((m) => ({ ...m, listening: false, msg: id === 'cancelled' ? undefined : t(`audio.mic.err.${id}` as StringKey), fix }));
+        setSttErr(id);
+        setMic((m) => ({ ...m, listening: false, msg: id === 'cancelled' ? undefined : t(sttErrorKey(id, currentUa(), touchDevice())), fix }));
         setInput('');
       })
       .finally(() => {
@@ -552,6 +557,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
 
       <section className="sheet convo-sheet" aria-live="polite">
         <div className="messages" ref={listRef}>
+          {firstTalk && !chat && <VoiceHint where="convo" sttError={sttErr} />}
           {phase === 'intro' && (
             <div className="setup" dir="auto">
               <strong>{shownScenario(PACK, profile.age, scenario).title[lang]}</strong>

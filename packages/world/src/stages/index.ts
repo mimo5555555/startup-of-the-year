@@ -18,7 +18,7 @@ export const STAGES: Partial<Record<StageId, Stage>> = {
 
 /** The player's own rooms: no host, furniture slots, an optional guest. */
 export const OWN_STAGES = ['dorm', 'ono_flat'] as const satisfies readonly StageId[];
-export { FURNITURE_IDS, FURNITURE_SLOT, parseSlotPick, slotPickId } from './furniture';
+export { DECOR_IDS, FURNITURE_IDS, FURNITURE_SLOT, parseSlotPick, slotPickId } from './furniture';
 export { DORM_SLOTS } from './dorm';
 export { ONO_SLOTS } from './ono_flat';
 

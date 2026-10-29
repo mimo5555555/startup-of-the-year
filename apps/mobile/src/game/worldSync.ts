@@ -29,6 +29,7 @@ import { cooldownDays, doorsOpen } from './homeLogic';
 import { furnitureOpen, inviteStatus, ownDoors } from './ownLogic';
 import { heartsOf } from './selectors';
 import { festivalOpen, festivalPickOf, festivalRowOf, isFestivalRow, syncFestival, FESTIVAL, type FestivalPick } from './festivalSync';
+import { KYOTO, isKyotoScenario, rideSkinOf } from './goenLogic';
 
 // ---------------------------------------------------------------------------------------------------------------
 // HUD disclosure: which elements are on screen (§2.5)
@@ -154,6 +155,8 @@ export function interactionRows(env: InteractionEnv, characterId: string): Optio
   const rows: OptionRow[] = [];
   for (const raw of env.pack.interactions[characterId] ?? []) {
     if (!listable(env, raw, characterId)) continue;
+    // a row a Goen item opens (the Kyoto trip at the station) is not shown before the item is owned: no lock nobody can open with play
+    if (raw.gate?.k === 'goen' && env.state.goen?.owned[raw.gate.item] === undefined) continue;
     // the flat is rented once: the viewing and the contract are done with when the room is the player's (no row to a conversation that only says so)
     if (env.state.home.tier === 'ono' && (raw.scenarioId === 'aiko_viewing' || raw.scenarioId === 'aiko_contract')) continue;
     // the festival's rows (Kenji's stall, Hanako's speech) are listed only while the park is the festival (`festivalOpen`, Chapter 7)
@@ -167,8 +170,16 @@ export function interactionRows(env: InteractionEnv, characterId: string): Optio
   const invite = inviteRow(env, characterId);
   if (invite) rows.push(invite);
   if (characterId === 'hanako' && letterOpen(env.state)) rows.push({ it: LETTER_ROW, lock: null });
+  // the Kyoto Journey (Goen, docs/GOEN.md): Sato's "Kyoto trip" row once it is owned (the pack's own row when it has one)
+  if (characterId === 'sato' && env.state.goen?.owned[KYOTO.item] !== undefined && !rows.some((r) => isKyotoRow(r.it))) rows.push({ it: KYOTO_ROW, lock: null });
   return rows;
 }
+
+/** Sato's Shinkansen row of the Kyoto Journey: the round trip is charged and the Kyoto map opens (KyotoPanel), no conversation at the station. */
+export const KYOTO_ROW_ID = 'sato_kyoto';
+const KYOTO_ROW: Interaction = { id: KYOTO_ROW_ID, kind: 'trip', label: { en: 'Kyoto trip (Shinkansen)', ar: 'رحلة إلى كيوتو (شينكانسن)' } };
+export const isKyotoRow = (it: Interaction): boolean =>
+  it.id === KYOTO_ROW_ID || (it.gate?.k === 'goen' && it.gate.item === KYOTO.item) || (!!it.scenarioId && isKyotoScenario(it.scenarioId));
 
 /** Hanako opens the Letter Home (c8_1, `screen:'letter'`) from Chapter 8 on; at Free Walk the row reopens the written Letter. */
 export const LETTER_ROW_ID = 'hanako_letter';
@@ -272,7 +283,9 @@ export type Plan =
   | { t: 'gift'; characterId: string }
   | { t: 'window'; shopId: string }
   /** the Letter Home screen (Chapter 8) */
-  | { t: 'letter' };
+  | { t: 'letter' }
+  /** the Kyoto Journey's Shinkansen (Goen): charge the round trip, then the Kyoto map */
+  | { t: 'kyoto' };
 
 /** A scenario has a pocket the player has not made ready yet (soft Prepare, §11.1; skipping it is Prepare's own button). */
 export function wantsPrepare(env: InteractionEnv, scenarioId: string): boolean {
@@ -284,6 +297,7 @@ export function wantsPrepare(env: InteractionEnv, scenarioId: string): boolean {
 export function planFor(env: InteractionEnv, it: Interaction, characterId: string): Plan {
   const { pack, state } = env;
   if (it.id === LETTER_ROW_ID) return { t: 'letter' };
+  if (isKyotoRow(it)) return { t: 'kyoto' };
   // the capstone always opens on its five-line rehearsal (Prepare), whatever the pocket says
   if (it.scenarioId === FESTIVAL.speechScenario) return { t: 'prepare', scenarioId: it.scenarioId, characterId };
   switch (it.kind) {
@@ -377,6 +391,8 @@ export function syncWorld(
   const fx = worldFx(env.pack, env.state, base ?? CHARACTERS[0].avatar);
   world.setMoveMultiplier(fx.moveMultiplier);
   world.setRide(fx.ride);
+  // the sakura paint of the bicycle (Goen): on while owned and switched on in the Wallet
+  (world as unknown as { setRideSkin?: (s: 'sakura' | null) => void }).setRideSkin?.(rideSkinOf(env.state));
   if (base) applyAvatar(world, fx.spec, base);
   // Chapter 7: the park is the festival on the festival day, with the friends at two hearts or more
   syncFestival(world, env.pack, env.state);
@@ -479,6 +495,8 @@ export type PickRoute =
   | { t: 'shop'; shopId: string }
   /** a festival stall or the stage (only pickable while the festival is on) */
   | { t: 'festival'; pick: FestivalPick }
+  /** the shrine (Goen): the offering box opens the Shrine panel, the water basin shows the manners card */
+  | { t: 'shrine'; what: 'box' | 'chozuya' }
   | null;
 
 /** World pick ids are routed game first (§7.6): panels, doors and shop fronts here; every other id keeps the sign word card. */
@@ -490,6 +508,8 @@ export function routePick(id: string): PickRoute {
   if (id === 'door:flat') return { t: 'own', door: 'flat' };
   if (id.startsWith('door:')) return { t: 'door', friend: id.slice(5) };
   if (id.startsWith('shop:')) return { t: 'shop', shopId: id.slice(5) };
+  if (id === 'shrine:box') return { t: 'shrine', what: 'box' };
+  if (id === 'shrine:chozuya') return { t: 'shrine', what: 'chozuya' };
   const fest = festivalPickOf(id);
   if (fest) return { t: 'festival', pick: fest };
   return null;

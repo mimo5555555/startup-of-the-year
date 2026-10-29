@@ -3,6 +3,7 @@
 // under `_extra`, and moves it back when a later pack knows it again), and repairs what a hand edit or a half-written save broke.
 import { BALANCE } from './balance';
 import { emptyFriend, emptyJob, emptyPay, emptyRun } from './defaults';
+import { cleanGoen, grantOldChapters } from './goen';
 import { payForDay } from './integrity';
 import { dayKey, reconcile } from './ledger';
 import { walletLimits } from './money';
@@ -496,6 +497,7 @@ export function migrate(persisted: unknown, from: number, pack: GamePack): GameS
       ...(typeof flags.welcomeSeenDay === 'number' && Number.isFinite(flags.welcomeSeenDay) ? { welcomeSeenDay: Math.trunc(flags.welcomeSeenDay) } : {}),
     },
     seeded: bool(src.seeded),
+    goen: cleanGoen(src.goen),
   };
 
   // what the pack does not know is parked, not dropped
@@ -521,6 +523,8 @@ export function migrate(persisted: unknown, from: number, pack: GamePack): GameS
   const fields = extraFields;
   if (nonEmpty(parked) || nonEmpty(fields)) result._extra = { ...(nonEmpty(parked) ? { ids: parked } : {}), ...(nonEmpty(fields) ? { fields } : {}) };
   result.chapter = { ...result.chapter, completed: deriveCompleted(pack, result, NO_VIEW) };
+  // a save from before Goen (docs/GOEN.md): the chapters it already completed grant their Goen once, now; nothing else is retroactive
+  if (!isRec(src.goen) && pack.goen) return grantOldChapters(result, clock.lastSeenAt);
   return result;
 }
 

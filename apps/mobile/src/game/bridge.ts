@@ -17,7 +17,7 @@ import {
 import { LEXICON, entryToToken, festivalReturned, plainText, romajiText, scenarioById, tokenize } from '@lw/content';
 import { translate, type StringKey } from '../i18n';
 import { blip, haptic } from '../services';
-import { setLoopFactsHook, flushNow, useStore, type VocabItem } from '../store';
+import { setLoopFactsHook, setStreakCharmHook, flushNow, useStore, type VocabItem } from '../store';
 import { useUi, type ConvoRequest, type ScreenArgs } from '../ui';
 import { PACK, beatById, friendById } from './pack';
 import { heartEventOfBeat, pendingHeartBeats } from './friendsLogic';
@@ -29,6 +29,8 @@ import { FESTIVAL, isFestivalScenario } from './festivalSync';
 import { tripOf, tripPaid, tripQuote } from './tripLogic';
 import { autoWearOutfit } from './avatarFx';
 import { gameView } from './selectors';
+import { KYOTO, RIDE_PAINT, goenReason, goenToastVars, ridePaintColours } from './goenLogic';
+import { useShrine } from './goenStore';
 
 /** The beat Hanako plays when the player comes back after BALANCE.nextGoal.awayDays or more (§11.7; no streak scolding). */
 export const WELCOME_BACK_BEAT = 'b_welcome_back';
@@ -47,7 +49,15 @@ export function dispatch(event: InputEvent): ReduceResult {
     noteRewards(event.facts.sessionId, before, result.state);
     // the trip is filed when the talk at the other end runs to its close (`visit trip:hikarigaoka`; the paper ticket of the trip is used up)
     const trip = tripOf(PACK, event.facts.scenarioId);
-    if (trip && !event.facts.abandoned) dispatch({ t: 'trip_done', id: trip });
+    // (the Kyoto Journey files its ride back from the Kyoto map, not after each of its three conversations)
+    if (trip && trip !== KYOTO.place && !event.facts.abandoned) dispatch({ t: 'trip_done', id: trip });
+    // the wish of the ritual was made: the shrine sheet shows its celebration when the debrief closes
+    if (event.facts.scenarioId === 'shrine_wish' && useShrine.getState().ritual?.step === 'wish') useShrine.getState().patch({ step: 'done' });
+  }
+  // the sakura paint goes on the bicycle the moment it is bought (the Wallet's ride card switches it off and on)
+  if (result.derived.some((d) => d.t === 'goen_owned' && (PACK.goen?.catalog.find((c) => c.id === d.itemId)?.itemId ?? d.itemId) === RIDE_PAINT)) {
+    const g = getGame();
+    dispatch({ t: 'outfit_changed', equipped: g.outfit.equipped, colours: ridePaintColours(g, true) });
   }
   // a wearable that just came home (the bicycle helmet) goes on the avatar at once; Wear / Take off stays in the Wallet
   if (event.t !== 'outfit_changed') {
@@ -59,10 +69,28 @@ export function dispatch(event: InputEvent): ReduceResult {
   // Chapter 8 and Free Walk: a Saturday brings the festival back to the park; the toast says why the park turned to dusk (first: the one
   // toast slot then goes to an effect or a delivery of the same day, which say more)
   if (festivalReturned(before, result.state)) useStore.getState().say(translate(useStore.getState().uiLang, 'story.festivalSaturday'));
+  const toastBefore = useStore.getState().toast?.id;
   routeEffects(result.effects);
   queueHeartBeats(result.derived);
   announceDeliveries(result.derived);
+  announceGoen(result.derived, toastBefore);
   return result;
+}
+
+/**
+ * Goen earned (docs/GOEN.md): one toast with the amount and the reason ("+25 Goen: Chapter 3 completed"). When this event already showed a
+ * toast of its own (a chapter's, a purchase's), the Goen one follows it instead of hiding it.
+ */
+function announceGoen(derived: DerivedEvent[], toastBefore: number | undefined): void {
+  const earned = derived.filter((d): d is Extract<DerivedEvent, { t: 'goen_changed' }> => d.t === 'goen_changed' && d.delta > 0);
+  if (earned.length === 0) return;
+  const st = useStore.getState();
+  const t = (k: StringKey, v?: Record<string, string | number>) => translate(st.uiLang, k, v);
+  const n = earned.reduce((sum, d) => sum + d.delta, 0);
+  const reason = [...new Set(earned.map((d) => goenReason(t, d.reason, d.ref)))].join(', ');
+  const text = t('gn.earned', { n, reason });
+  if (st.toast && st.toast.id !== toastBefore) setTimeout(() => useStore.getState().say(text, 'good'), 2400);
+  else st.say(text, 'good');
 }
 
 /** A piece of furniture that was on its way came (the clock reached its day: a new day, a reload, a week away): one toast per piece. */
@@ -90,7 +118,9 @@ export function routeEffects(effects: UiEffect[]): void {
   for (const e of effects) {
     switch (e.t) {
       case 'toast':
-        st.say(translate(st.uiLang, e.key as StringKey, e.vars), 'good');
+        // Goen earned is said once, with its reason, by `announceGoen`; the other Goen toasts name their task / tier in the player's language
+        if (e.key === 'goen.toast.earned') break;
+        st.say(translate(st.uiLang, e.key as StringKey, goenToastVars(PACK, e.key, e.vars, st.uiLang)), 'good');
         break;
       case 'fanfare':
         blip(e.kind === 'purchase' ? 'good' : 'level', st.settings.autoSpeak);
@@ -252,6 +282,8 @@ export function init(): Promise<void> {
     useGame.setState({ hydrated: true });
     flushGameNow();
     setLoopFactsHook((facts) => void dispatch({ t: 'conversation_done', facts }));
+    // the streak omamori (Goen): a held charm bridges one missed day; the game counts it down once that day
+    setStreakCharmHook({ charms: () => getGame().goen?.charms ?? 0, used: (day) => void dispatch({ t: 'goen_charm_used', day }) });
     const unlisten = listenToThePage();
     const unwatch = watchLegacyProgress();
     removeListeners = () => {
@@ -271,6 +303,7 @@ export function resetBridgeForTests(): void {
   removeListeners = null;
   booting = null;
   setLoopFactsHook(null);
+  setStreakCharmHook(null);
   useGame.setState({ hydrated: false });
 }
 
@@ -306,7 +339,8 @@ export function startConversation(req: ConvoRequest): void {
   const g = getGame();
   // a trip: the round-trip fare is charged up front, once; short of money nothing is charged and the conversation does not start (a toast says what it costs)
   const place = req.channel === 'chat' ? null : tripOf(PACK, req.scenarioId);
-  if (place && !payTrip(req.scenarioId, place)) return;
+  // (the Kyoto Journey's round trip was charged once, at the station: its three conversations are not fares)
+  if (place && place !== KYOTO.place && !payTrip(req.scenarioId, place)) return;
   // the talk of a trip is with the person at the other end (Kato), whoever's row (Sato's) started it
   if (place) req = { ...req, characterId: scenarioById(req.scenarioId)?.characterId ?? req.characterId };
   // Chapter 6: Hanako's "try it without chips" is offered before the first shop conversation that has a Real mode; this one starts when her beat is over

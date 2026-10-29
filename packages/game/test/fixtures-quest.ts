@@ -1,6 +1,7 @@
 // Shared fixtures of the quest tests (agent 1D): a small synthetic pack (five chapters, dreams, the ten daily templates) and a
 // hand-built GameState / GameView. The full JP pack is authored later (slice 2); nothing here imports content.
 import { BALANCE } from '../src/balance';
+import { emptyGoen } from '../src/goen';
 import { ECON, JPY, RULES, TAX, rng } from './fixtures-money';
 import type {
   ChapterDef,
@@ -360,6 +361,7 @@ export function mkState(over: { cash?: number; chapter?: number; dayIndex?: numb
     me: { nameKana: '' },
     flags: {},
     seeded: true,
+    goen: emptyGoen(),
   };
 }
 

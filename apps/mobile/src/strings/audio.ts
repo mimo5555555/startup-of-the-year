@@ -95,6 +95,12 @@ export const en = {
   'audio.mic.err.unknown': 'Voice input did not work. Try again, or type instead.',
   'audio.mic.checkBtn': 'Check audio',
 
+  // voice guidance (Goen stage 1): an in-app browser (Instagram, Facebook, WhatsApp, Line, TikTok, Gmail / Google app), Siri & Dictation on iPhone
+  'audio.inApp': 'Open this page in Safari / Chrome to use your voice. This app\'s built-in browser blocks the microphone and the Japanese voices.',
+  'audio.inApp.copy': 'Copy the link',
+  'audio.inApp.copied': 'Link copied: paste it in Safari / Chrome',
+  'audio.mic.err.siri': 'Speech recognition is off on this iPhone. Turn on Siri & Dictation: Settings > General > Keyboard > Enable Dictation, and Settings > Siri. Or type instead.',
+
   // consent, adult gate and the listening waiver (docs/GAME_DESIGN.md §7.6)
   'audio.consent': 'On Chrome, voice recognition sends your audio to Google. Typing never leaves your device. Allow voice input?',
   'audio.consentKids': 'Voice input is off. A grown-up can turn it on in Settings.',
@@ -191,6 +197,11 @@ export const ar: Record<keyof typeof en, string> = {
   'audio.mic.err.timeout': 'انتهت مهلة الاستماع. المس وتحدّث فورًا.',
   'audio.mic.err.unknown': 'لم يعمل الإدخال الصوتي. حاول مجددًا أو اكتب.',
   'audio.mic.checkBtn': 'فحص الصوت',
+
+  'audio.inApp': 'افتح هذه الصفحة في Safari / Chrome لتستخدم صوتك. المتصفح المدمج في هذا التطبيق يحظر الميكروفون والأصوات اليابانية.',
+  'audio.inApp.copy': 'انسخ الرابط',
+  'audio.inApp.copied': 'نُسخ الرابط: الصقه في Safari / Chrome',
+  'audio.mic.err.siri': 'التعرّف على الكلام متوقف على هذا الآيفون. فعّل Siri والإملاء: الإعدادات > عام > لوحة المفاتيح > تفعيل الإملاء، والإعدادات > Siri. أو اكتب بدلًا من ذلك.',
 
   'audio.consent': 'في Chrome يرسل التعرّف على الصوت تسجيلك إلى Google. الكتابة لا تغادر جهازك أبدًا. هل تسمح بالإدخال الصوتي؟',
   'audio.consentKids': 'الإدخال الصوتي متوقف. يمكن لشخص بالغ تفعيله من الإعدادات.',

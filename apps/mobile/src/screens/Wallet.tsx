@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Inventory } from '../components/game/Inventory';
 import { Receipts } from '../components/game/Receipts';
+import { GoenWalletCard } from '../components/game/GoenPill';
 import { Ltr, yen } from '../components/game/WalletPill';
 import { Icon } from '../components/Icon';
 import { useDerivedFlags, useGameState, useWallet } from '../game/hooks';
@@ -55,6 +56,8 @@ export function Wallet() {
             <Ltr text={t('wallet.totals', { earned: yen(totals.earned), spent: yen(totals.spent) })} />
           </small>
         </section>
+        {/* Goen (docs/GOEN.md): its own card, apart from the yen; the Shrine is one tap away */}
+        <GoenWalletCard />
         <nav className="qst-tabs wlt-tabs" role="tablist" aria-label={t('hud.wallet')}>
           {TABS.map((id) => (
             <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'on' : ''} data-tab={id} onClick={() => setTab(id)}>

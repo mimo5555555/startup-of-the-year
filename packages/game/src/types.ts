@@ -88,6 +88,8 @@ export type Pred =
   | { k: 'said'; scenario: string; intent: string }
   | { k: 'srs_reviews'; n: number }
   | { k: 'item_placed'; n: number }
+  /** a Goen catalog item is owned (`goen.owned`, docs/GOEN.md): gates the Kyoto Journey's interaction; never a chapter objective */
+  | { k: 'goen'; item: string }
   /** set by scripted beats / scenarios (`chapter.flags`) */
   | { k: 'flag'; id: string }
   | { k: 'all'; of: Pred[] }
@@ -753,6 +755,122 @@ export interface GamePack {
   keepsakes?: Record<string, NameGloss>;
   /** a capped release: only the first chapters are played, then Free Walk (see `ReleaseDef`) */
   release?: ReleaseDef;
+  /** Goen (ご縁, docs/GOEN.md): the catalog, the seasons, the Journeys and the omikuji wording; absent = a pack without Goen */
+  goen?: GoenPackDef;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Goen (ご縁, docs/GOEN.md): the second currency, earned free in play (stage 1), spent at the shrine. Never yen, never learning progress.
+// ---------------------------------------------------------------------------------------------------------------
+
+export type GoenItemKind = 'journey' | 'season' | 'cosmetic' | 'charm';
+
+/** One row of the shrine catalog (`GOEN_CATALOG`): exactly what it is and what it costs (no paid randomness). */
+export interface GoenItemDef {
+  id: string;
+  kind: GoenItemKind;
+  /** Goen */
+  price: number;
+  name: NameGloss;
+  /** what it gives, one line */
+  gives: Gloss;
+  /** the wish of the ritual (「{wish}ますように。」), the one model line of `shrine_wish` for this item */
+  wish: Line;
+  /** a cosmetic grants this ItemDef into `owned` (the Wardrobe, the furniture placer and the ride card read it there); absent = the catalog id */
+  itemId?: string;
+  /** kind 'journey': the JourneyDef id; kind 'season': the SeasonDef id whose premium track it unlocks */
+  ref?: string;
+}
+
+/** What a season task counts, from the season's start (docs/GOEN.md "season points from speaking tasks"). */
+export type SeasonCounter =
+  /** finished conversations at >= `min` stars */
+  | 'conv_stars'
+  /** distinct `SeasonDef.words` said in class-I turns */
+  | 'season_words'
+  /** purchases of `ids` (item or menu ids) */
+  | 'buy'
+  /** omikuji drawn (one a day) */
+  | 'omikuji'
+  /** gifts handed over by naming them (not tapped, not bare) */
+  | 'gift'
+  /** good shifts */
+  | 'shift'
+  /** finished conversations in Real mode */
+  | 'real'
+  /** the learner's own lines (class-I substantive turns) */
+  | 'own_lines'
+  /** finished conversations of `ids` */
+  | 'scenario';
+
+export interface SeasonTask {
+  id: string;
+  text: Gloss;
+  counter: SeasonCounter;
+  target: number;
+  /** season points when done (once) */
+  sp: number;
+  ids?: string[];
+  min?: 1 | 2 | 3;
+}
+
+export type SeasonReward =
+  | { t: 'goen'; n: number }
+  /** an ItemDef granted into `owned` (a scarf, a plant, a ride sticker) */
+  | { t: 'item'; id: string }
+  | { t: 'keepsake'; id: string }
+  | { t: 'sticker'; id: string }
+  | { t: 'title'; id: string };
+
+export interface SeasonTier {
+  n: number;
+  /** season points needed (cumulative) */
+  sp: number;
+  free: SeasonReward[];
+  premium: SeasonReward[];
+}
+
+export interface SeasonDef {
+  id: string;
+  name: NameGloss;
+  /** the real-calendar window, every year: 'MM-DD' inclusive (autumn '10-15' .. '12-15') */
+  window: { from: string; to: string };
+  /** the GoenItemDef id that unlocks the premium track */
+  premiumItem: string;
+  tasks: SeasonTask[];
+  tiers: SeasonTier[];
+  /** the words `season_words` counts (lexicon surfaces) */
+  words: string[];
+}
+
+/** A Journey (a content pack bought with Goen): its trip, its conversations, its objective set and its one completion reward. */
+export interface JourneyDef {
+  id: string;
+  /** the GoenItemDef id that owns it */
+  itemId: string;
+  name: NameGloss;
+  /** the `fare` place and `trip_done` id ('kyoto'); the visit is `trip:<trip>` */
+  trip: string;
+  scenarios: string[];
+  objectives: Objective[];
+  reward: { goen: number; keepsake?: string; title?: string };
+}
+
+/** The omikuji's wording (大吉 / 吉 / 小吉 decide the wording only; nothing random is ever an item or currency). */
+export interface OmikujiFortune {
+  id: 'daikichi' | 'kichi' | 'shokichi';
+  name: NameGloss;
+  /** the fortune line, with `{word}` for the word due for review */
+  line: Line;
+  /** relative chance of the wording */
+  weight: number;
+}
+
+export interface GoenPackDef {
+  catalog: GoenItemDef[];
+  seasons: SeasonDef[];
+  journeys: JourneyDef[];
+  omikuji: OmikujiFortune[];
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -1085,6 +1203,65 @@ export interface LetterSentence {
   assisted: boolean;
 }
 
+export type GoenReason = 'chapter' | 'daily' | 'streak' | 'capstone' | 'letter' | 'season' | 'journey' | 'spend';
+
+/** One Goen ledger entry: an earn (delta > 0) or a spend (delta < 0). Ids in `GOEN_IDS` (goen.ts). */
+export interface GoenEntry {
+  id: string;
+  at: number;
+  delta: number;
+  kind: GoenReason;
+  ref?: string;
+}
+
+/** The season the progress belongs to (`key` = '<seasonId>:<year of the window>'), counted from the season's start. */
+export interface GoenSeasonState {
+  key: string | null;
+  sp: number;
+  /** task id -> count so far */
+  counts: Record<string, number>;
+  /** the season words said so far (`season_words`) */
+  words: string[];
+  /** task id -> dayKey done (its SP added once) */
+  done: Record<string, DayKey>;
+  /** 'free:<n>' / 'premium:<n>' -> dayKey granted (each reward once) */
+  tiers: Record<string, DayKey>;
+}
+
+export interface GoenJourneyState {
+  /** objective id -> dayKey done (never reverts) */
+  done: Record<string, DayKey>;
+  /** dayKey the whole set was done and the reward paid */
+  complete: DayKey | null;
+}
+
+/**
+ * Goen (docs/GOEN.md "Data and integrity"). `balance` = `totals.earned - totals.spent` (`reconcileGoen`), every earn and spend is one
+ * idempotent entry: an earn reason is paid once (`earned`), a once-item is bought once (`owned`), a charm purchase is keyed by its event id.
+ * Nothing here is yen or learning progress, and no Goen event writes the wallet, the yen ledger, the chapter, the objectives or the hearts.
+ */
+export interface GoenState {
+  v: 1;
+  balance: number;
+  /** earn reason ids already paid ('chapter:3', 'daily:d12', 'streak:d40:14', 'capstone', 'letter', 'season:<key>:<n>', 'journey:<id>') */
+  earned: Record<string, true>;
+  /** ring of the last BALANCE.goen.ledger entries, newest last */
+  ledger: GoenEntry[];
+  totals: { earned: number; spent: number };
+  /** catalog item id -> dayKey bought (the streak charm is counted in `charms`, never here) */
+  owned: Record<string, DayKey>;
+  /** streak omamori held (0..BALANCE.goen.charmsMax) */
+  charms: number;
+  /** local dates (YYYY-MM-DD) on which a charm saved the streak, newest last (one charm a day at most) */
+  charmDays: string[];
+  /** the speaking streak as last observed (`last`, -1 = not yet observed after a migration) and the multiple of 7 last paid */
+  streak: { last: number; paid: number };
+  /** today's omikuji (one draw a dayIndex) */
+  omikuji: { day: number; fortune: OmikujiFortune['id']; word: string | null } | null;
+  season: GoenSeasonState;
+  journeys: Record<string, GoenJourneyState>;
+}
+
 export interface GameState {
   v: 1;
   packId: string;
@@ -1134,6 +1311,8 @@ export interface GameState {
   flags: { dev?: boolean; welcomeSeenDay?: number };
   /** seed-once marker (§14.7) */
   seeded: boolean;
+  /** the second currency (docs/GOEN.md); `migrate` fills it for an older save */
+  goen: GoenState;
   /** unknown ids and fields are kept here, never dropped (§14.7) */
   _extra?: Record<string, unknown>;
 }
@@ -1318,7 +1497,13 @@ export type InputEvent =
   /** the friend's heart event for `level` was played (`FriendState.events`; awards BALANCE.ap.event once) */
   | { t: 'heart_event_done'; friendId: string; level: number }
   /** QA tools (Settings, 7 taps); ignored unless `flags.dev` */
-  | { t: 'dev'; cmd: 'cash' | 'complete_objective' | 'advance_chapter' | 'advance_day'; amount?: number };
+  | { t: 'dev'; cmd: 'cash' | 'complete_objective' | 'advance_chapter' | 'advance_day'; amount?: number }
+  /** the wish ritual's coin toss (docs/GOEN.md): spends Goen on a catalog item; only with enough balance, once per item (the charm while fewer than 2 are held) */
+  | { t: 'goen_spend'; itemId: string; id: string }
+  /** the streak hook used a held omamori to bridge one missed day on local date `day` (YYYY-MM-DD) */
+  | { t: 'goen_charm_used'; day: string }
+  /** the free daily omikuji: `words` are vocabulary keys due for review (the app knows them); the reducer picks one and the wording, once a day */
+  | { t: 'omikuji_drawn'; words: string[] };
 
 export type PurchaseEvent = Extract<InputEvent, { t: 'purchase' }>;
 
@@ -1347,7 +1532,19 @@ export type DerivedEvent =
   | { t: 'ap_gained'; friendId: string; ap: number; parts: ApResult['parts'] }
   | { t: 'gift_reacted'; friendId: string; itemId: string; reaction: GiftReaction; ap: number }
   /** the shift result card (§9.4); a rank-up is `rankAfter > rankBefore` */
-  | { t: 'shift_settled'; jobId: string; score: ShiftScore; pay: number; rankBefore: number; rankAfter: number };
+  | { t: 'shift_settled'; jobId: string; score: ShiftScore; pay: number; rankBefore: number; rankAfter: number }
+  /** Goen earned (delta > 0) or spent (delta < 0) */
+  | { t: 'goen_changed'; delta: number; balance: number; reason: GoenReason; ref?: string }
+  /** a catalog item was bought (granted at once) */
+  | { t: 'goen_owned'; itemId: string }
+  /** a held omamori kept the streak alive; `left` are still held */
+  | { t: 'charm_used'; left: number }
+  | { t: 'season_task_done'; season: string; task: string }
+  /** a tier's reward on one track was granted */
+  | { t: 'season_tier'; season: string; tier: number; track: 'free' | 'premium' }
+  | { t: 'journey_objective_done'; journey: string; id: string }
+  | { t: 'journey_done'; journey: string }
+  | { t: 'omikuji'; fortune: OmikujiFortune['id']; word: string | null };
 
 export type UiEffect =
   | { t: 'toast'; key: string; vars?: Record<string, string | number> }

@@ -4,6 +4,8 @@ import type { TokyoWorld } from '@lw/world';
 import { WorldCtx } from '../hooks';
 import { Conversation } from '../screens/Conversation';
 import { TripBackdrop } from '../components/game/TripBackdrop';
+import { KyotoBackdrop } from '../components/game/KyotoBackdrop';
+import { kyotoStopOf } from './goenLogic';
 import { characterById } from '../content';
 import { PACK } from './pack';
 import { useStore } from '../store';
@@ -31,10 +33,13 @@ export function ConversationHost() {
   const ownPanel = useOwn((s) => s.room?.mode === 'panel');
   const panelRoom = homePanel || ownPanel;
   if (!convo) return null;
-  const tripHost = convo.channel !== 'chat' && isTripScenario(convo.scenarioId) ? characterById(convo.characterId) : undefined;
+  // a Kyoto stop (the ryokan, the temple, the matcha café) is a panel destination with its own CSS scene: the street camera is left alone
+  const kyoto = convo.channel !== 'chat' ? kyotoStopOf(convo.scenarioId) : null;
+  const tripHost = !kyoto && convo.channel !== 'chat' && isTripScenario(convo.scenarioId) ? characterById(convo.characterId) : undefined;
   return (
-    <WorldCtx.Provider value={panelRoom ? null : currentWorld()}>
+    <WorldCtx.Provider value={panelRoom || kyoto ? null : currentWorld()}>
       {tripHost && <TripBackdrop host={tripHost} />}
+      {kyoto && <KyotoBackdrop place={kyoto.place} host={characterById(convo.characterId)} />}
       <Conversation key={`${convo.scenarioId}:${convo.startNode ?? ''}`} characterId={convo.characterId} onClose={end} />
     </WorldCtx.Provider>
   );

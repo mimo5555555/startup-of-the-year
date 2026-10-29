@@ -217,6 +217,12 @@ export const BALANCE = deepFreeze({
   // --- §4.5 Free Walk is chapter.n = 9 (D36) ------------------------------------------------------------------------------
   freeWalkChapter: 9,
   chapters: 8,
+
+  // --- docs/GOEN.md: Goen (ご縁), the second currency, earned free in play (stage 1). Goen, never yen: nothing here is scaled -------------
+  /** chapter completed (once each), all daily goals (once a play day), each multiple of `streakEvery` speaking-streak days, the capstone speech
+   *  in Real mode with `capstoneOwn` own lines (once), the Letter Home (once), a Journey's final objective (once each); at most `charmsMax`
+   *  streak omamori held; the Goen ledger ring keeps `ledger` entries */
+  goen: { chapter: 25, daily: 5, streak: 20, streakEvery: 7, capstone: 30, capstoneOwn: 5, letter: 20, journey: 20, charmsMax: 2, ledger: 100 },
 });
 
 export type Balance = typeof BALANCE;

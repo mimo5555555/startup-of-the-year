@@ -1,0 +1,1263 @@
+/* Goen stage 1 (docs/GOEN.md): the Goen pill and Wallet card, the Shrine panel, its catalog cards and the omikuji, the wish ritual sheet over the
+   3D shrine, the Season screen, the Kyoto Journey (map panel and CSS backdrops), and the voice guidance line. Classes are prefixed gn- (Goen),
+   kyo- (Kyoto) and voice-hint. Shrine colours: vermilion torii, gold coin, washi paper. */
+:root {
+  --gn-red: #d2452f;
+  --gn-red-soft: #fde6df;
+  --gn-gold: #e2a93b;
+  --gn-paper: #fffaf0;
+}
+
+/* ---- the Goen pill ---- */
+.gn-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 44px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  border: 1.5px solid var(--line);
+  background: var(--gn-paper);
+  color: var(--ink);
+  text-align: start;
+  font: inherit;
+  width: 100%;
+}
+button.gn-pill {
+  cursor: pointer;
+}
+.gn-pill-ic {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--gn-red);
+  color: #fff;
+}
+.gn-pill-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  flex: 1;
+}
+.gn-pill-text strong {
+  font-size: 17px;
+}
+.gn-pill-text small {
+  color: #6a6280;
+  font-size: 12.5px;
+  overflow-wrap: anywhere;
+}
+.gn-pill-go {
+  flex: none;
+  color: #6a6280;
+}
+html[dir='rtl'] .gn-pill-go {
+  transform: scaleX(-1);
+}
+
+/* ---- the Wallet's Goen card ---- */
+.wlt-goen {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.wlt-goen > header {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+}
+.wlt-goen > header > svg {
+  flex: none;
+  color: var(--gn-red);
+  margin-top: 2px;
+}
+.wlt-goen > header div {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.wlt-goen > header small {
+  color: var(--fg-2);
+  font-size: 12.5px;
+}
+.wlt-charm {
+  margin: 0;
+  font-size: 13.5px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  align-items: center;
+}
+.wlt-charm svg {
+  color: var(--gn-red);
+}
+.wlt-paint {
+  width: 100%;
+}
+.wlt-paint small {
+  font-weight: 600;
+}
+
+/* ---- the Shrine panel ---- */
+.gn-shrine .panel-head h1,
+.gn-season .panel-head h1 {
+  display: flex;
+  flex-direction: column;
+  font-size: 19px;
+  min-width: 0;
+}
+.gn-shrine .panel-head h1 small {
+  font-size: 12.5px;
+  font-weight: 700;
+  color: var(--fg-2);
+}
+.gn-body {
+  gap: 14px;
+}
+.gn-shrine-top {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.gn-shrine-top p {
+  margin: 0;
+}
+.gn-season-link {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 60px;
+  padding: 10px 14px;
+  text-align: start;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+  width: 100%;
+}
+.gn-season-link > span:nth-child(2) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.gn-season-link small {
+  color: var(--fg-2);
+  font-size: 12.5px;
+}
+
+/* catalog cards */
+.gn-cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.gn-card {
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr);
+  gap: 4px 12px;
+  padding: 12px;
+}
+.gn-card.owned {
+  border-color: #b9e2cd;
+}
+.gn-pic {
+  grid-row: span 2;
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(160deg, #e9765f, var(--gn-red));
+  position: relative;
+  overflow: hidden;
+}
+.gn-pic::after {
+  /* a falling leaf / petal on every picture */
+  content: '';
+  position: absolute;
+  width: 12px;
+  height: 12px;
+  inset-inline-end: 5px;
+  top: 5px;
+  border-radius: 0 60% 0 60%;
+  background: rgba(255, 255, 255, 0.55);
+}
+.gn-pic-journey_kyoto {
+  background: linear-gradient(160deg, #6f8fd8, #3c5aa8);
+}
+.gn-pic-season_autumn_premium {
+  background: linear-gradient(160deg, #f0a24a, #c8612b);
+}
+.gn-pic-kimono_momiji {
+  background: linear-gradient(160deg, #e0563f, #8f2f24);
+}
+.gn-pic-room_momiji {
+  background: linear-gradient(160deg, #b9774a, #7a4a2c);
+}
+.gn-pic-ride_sakura {
+  background: linear-gradient(160deg, #f6b6c8, #e0789a);
+}
+.gn-pic-omamori_streak {
+  background: linear-gradient(160deg, #e2a93b, #b5762a);
+}
+.gn-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+.gn-kind {
+  font-size: 11.5px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--gn-red);
+}
+html[lang='ar'] .gn-kind {
+  text-transform: none;
+  letter-spacing: 0;
+}
+.gn-card-body strong {
+  font-size: 16px;
+  line-height: 1.25;
+}
+.gn-ja {
+  font-family: var(--font-ja);
+  font-size: 13px;
+  color: var(--fg-2);
+}
+.gn-gives {
+  margin: 4px 0 0;
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+.gn-held {
+  color: var(--fg-2);
+  font-size: 12.5px;
+}
+.gn-card-foot {
+  grid-column: 2;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.gn-price {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 800;
+  font-size: 15px;
+  color: var(--ink);
+  background: var(--gn-paper);
+  border: 1.5px solid #efd9a7;
+  border-radius: 999px;
+  padding: 4px 10px;
+}
+.gn-price svg {
+  color: var(--gn-red);
+}
+.gn-owned {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-weight: 800;
+  color: var(--good);
+}
+.gn-wish-btn {
+  min-height: 44px;
+  padding: 0 16px;
+}
+.gn-why {
+  grid-column: 1 / -1;
+  margin: 4px 0 0;
+  padding: 8px 10px;
+  border-radius: 12px;
+  background: var(--bg-2);
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+/* the omikuji */
+.gn-omikuji {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.gn-omikuji > header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.gn-omikuji > header div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.gn-omikuji > header small {
+  color: var(--fg-2);
+  font-size: 12.5px;
+}
+.gn-slip-ic {
+  flex: none;
+  width: 36px;
+  height: 44px;
+  border-radius: 6px;
+  background: #fff;
+  border: 2px solid var(--gn-red);
+  position: relative;
+}
+.gn-slip-ic i {
+  position: absolute;
+  inset: 6px 8px;
+  background: repeating-linear-gradient(180deg, var(--gn-red) 0 2px, transparent 2px 7px);
+  opacity: 0.6;
+}
+.gn-slip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 12px;
+  border-radius: 14px;
+  background: var(--gn-paper);
+  border: 1.5px dashed #e8c9a0;
+  text-align: center;
+  color: var(--ink);
+}
+.gn-fortune {
+  font-family: var(--font-ja);
+  font-size: 34px;
+  font-weight: 800;
+  color: var(--gn-red);
+  line-height: 1.1;
+}
+.gn-slip-line {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 14px;
+}
+.gn-slip-word {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+}
+.gn-word {
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  padding: 6px 14px;
+  border-radius: 14px;
+  border: 1.5px solid var(--line);
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-weight: 700;
+  max-width: 100%;
+}
+.gn-word bdi {
+  font-family: var(--font-ja);
+  font-size: 18px;
+}
+
+/* ---- the wish ritual: a sheet over the 3D shrine ---- */
+.gn-ritual {
+  position: absolute;
+  z-index: 12;
+  inset-inline: 8px;
+  bottom: calc(var(--safe-bottom) + 8px);
+  max-height: min(56dvh, 460px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+}
+.gn-ritual-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+.gn-ritual-head h2 {
+  margin: 0;
+  font-size: 16px;
+  font-family: var(--font-display);
+  min-width: 0;
+}
+.gn-ritual-later {
+  flex: none;
+  min-height: 44px;
+  padding: 0 14px;
+}
+.gn-coin-btn {
+  justify-content: flex-start;
+  gap: 12px;
+  min-height: 64px;
+  text-align: start;
+}
+.gn-coin-btn > span:last-child {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.gn-coin-btn small {
+  font-weight: 600;
+  opacity: 0.9;
+}
+.gn-coin {
+  flex: none;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #ffe49a, var(--gn-gold) 60%, #b5762a);
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 0 0 2px rgba(120, 70, 20, 0.35);
+}
+.gn-coin i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: rgba(36, 31, 61, 0.55);
+}
+.gn-ritual-order {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.45;
+}
+.gn-ritual-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+}
+.gn-ritual-steps li {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-family: var(--font-ja);
+  font-weight: 800;
+  font-size: 18px;
+  border: 2px solid rgba(255, 255, 255, 0.35);
+  color: rgba(255, 255, 255, 0.6);
+}
+.gn-ritual-steps li.now {
+  border-color: #fff;
+  color: #fff;
+}
+.gn-ritual-steps li.on {
+  background: var(--gn-red);
+  border-color: var(--gn-red);
+  color: #fff;
+}
+.gn-ritual-taps {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+.gn-tap {
+  min-height: 56px;
+  flex-direction: column;
+  gap: 0;
+  padding: 4px 8px;
+}
+.gn-tap-ja {
+  font-family: var(--font-ja);
+  font-size: 18px;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.gn-hint {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.14);
+}
+.gn-hint p {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+.gn-wish-line {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 8px 12px;
+  border-radius: 14px;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+  font-family: var(--font-ja);
+  font-size: 18px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+.gn-done {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  text-align: center;
+}
+.gn-done strong {
+  font-size: 18px;
+}
+.gn-done p {
+  margin: 0;
+}
+.gn-done .muted {
+  color: rgba(255, 255, 255, 0.8);
+}
+.gn-done-burst {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--gn-red);
+  color: #fff;
+  box-shadow: 0 0 0 6px rgba(226, 169, 59, 0.45);
+  animation: gn-burst 0.9s ease-out;
+}
+@keyframes gn-burst {
+  from {
+    transform: scale(0.4);
+    box-shadow: 0 0 0 0 rgba(226, 169, 59, 0.8);
+  }
+  to {
+    transform: scale(1);
+    box-shadow: 0 0 0 6px rgba(226, 169, 59, 0.45);
+  }
+}
+.gn-done-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 6px;
+  width: 100%;
+}
+.gn-done-row .btn {
+  flex: 1 1 120px;
+}
+
+/* ---- the Season screen ---- */
+.gn-season-top {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-items: flex-start;
+}
+.gn-season-ja {
+  font-family: var(--font-ja);
+  font-size: 26px;
+  font-weight: 800;
+  color: #c8612b;
+}
+.gn-season-top small {
+  color: var(--fg-2);
+}
+.gn-sp {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+  margin-top: 6px;
+}
+.gn-sp-bar {
+  display: block;
+  height: 10px;
+  border-radius: 999px;
+  background: var(--bg-2);
+  overflow: hidden;
+}
+.gn-sp-bar i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--gn-gold), #c8612b);
+}
+.gn-soon {
+  margin: 6px 0 0;
+}
+.gn-premium-lock {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 10px;
+  background: var(--warn-soft);
+}
+.gn-premium-lock p {
+  margin: 0;
+  font-size: 14px;
+}
+.gn-premium-lock .btn {
+  grid-column: 1 / -1;
+}
+.gn-tasks {
+  list-style: none;
+  margin: 0;
+  padding: 6px 12px;
+  display: flex;
+  flex-direction: column;
+}
+.gn-task {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--line);
+}
+.gn-task:last-child {
+  border-bottom: 0;
+}
+.gn-task > div {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.gn-task strong {
+  font-size: 14.5px;
+  font-weight: 700;
+}
+.gn-task small {
+  color: var(--fg-2);
+  font-size: 12.5px;
+}
+.gn-task.done strong {
+  color: var(--good);
+}
+.gn-track {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.gn-track-head,
+.gn-tier {
+  display: grid;
+  grid-template-columns: 78px minmax(0, 1fr) minmax(0, 1fr);
+  gap: 6px;
+}
+.gn-track-head span {
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--fg-2);
+  text-align: center;
+}
+.gn-tiers {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.gn-tier-n {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 6px 8px;
+  border-radius: 12px;
+  background: var(--bg-2);
+  font-size: 13px;
+  position: relative;
+  overflow: hidden;
+}
+.gn-tier-n small {
+  color: var(--fg-2);
+  font-size: 11.5px;
+}
+.gn-tier-bar {
+  position: absolute;
+  inset-inline-start: 0;
+  bottom: 0;
+  height: 3px;
+  width: var(--p, 0%);
+  background: var(--gn-gold);
+}
+.gn-tier.reached .gn-tier-n {
+  background: #fdebc8;
+}
+.gn-cell {
+  position: relative;
+  padding: 6px 8px;
+  border-radius: 12px;
+  border: 1.5px solid var(--line);
+  background: var(--card);
+  font-size: 12.5px;
+  line-height: 1.35;
+  min-height: 48px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+.gn-cell ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.gn-cell.premium {
+  background: #fff6ec;
+}
+.gn-cell.locked {
+  opacity: 0.62;
+}
+.gn-cell.reached {
+  border-color: var(--gn-gold);
+}
+.gn-cell.claimed {
+  border-color: #9fd8bc;
+  background: var(--good-soft);
+}
+.gn-claimed {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  color: var(--good);
+  font-weight: 800;
+}
+.gn-cell-lock {
+  position: absolute;
+  top: 4px;
+  inset-inline-end: 4px;
+  color: var(--fg-2);
+}
+
+/* the Journey card (Quests, the Kyoto map) */
+.gn-journey {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  text-align: start;
+}
+.gn-journey > header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.gn-journey > header svg {
+  color: #3c5aa8;
+}
+.gn-journey-done {
+  margin: 0;
+  color: var(--good);
+}
+.gn-journey.compact {
+  padding: 10px 12px;
+  color: var(--ink);
+}
+
+/* ---- Kyoto: the map panel over the street ---- */
+.kyo-panel {
+  position: absolute;
+  inset: 0;
+  z-index: 14;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: calc(var(--safe-top) + 8px) 8px calc(var(--safe-bottom) + 8px);
+}
+.kyo-sheet {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 12px;
+  max-height: min(78dvh, 640px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.kyo-head h2 {
+  margin: 0;
+  font-size: 18px;
+  font-family: var(--font-display);
+}
+.kyo-head h2 span {
+  font-family: var(--font-ja);
+}
+.kyo-head small {
+  opacity: 0.85;
+}
+.kyo-map {
+  position: relative;
+  height: 196px;
+  border-radius: 16px;
+  overflow: hidden;
+  flex: none;
+  background: linear-gradient(160deg, #e9f1dc 0%, #dfe9cf 60%, #d4e0c1 100%);
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+}
+.kyo-river {
+  position: absolute;
+  top: -10%;
+  bottom: -10%;
+  left: 47%;
+  width: 16px;
+  background: #9cc8e6;
+  transform: rotate(8deg);
+  border-radius: 999px;
+}
+.kyo-hill {
+  position: absolute;
+  right: -12%;
+  top: -18%;
+  width: 52%;
+  height: 62%;
+  border-radius: 50%;
+  background: #b9cf9c;
+}
+.kyo-station {
+  position: absolute;
+  left: 50%;
+  bottom: 6px;
+  transform: translateX(-50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: #fff;
+  color: #3c5aa8;
+  font-size: 12.5px;
+  font-weight: 800;
+}
+.kyo-pin {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 44px;
+  min-width: 44px;
+  max-width: 46%;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  border: 0;
+  background: #fff;
+  color: var(--ink);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 800;
+  box-shadow: 0 4px 10px rgba(36, 31, 61, 0.22);
+  cursor: pointer;
+}
+.kyo-pin-dot {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--gn-red);
+  color: #fff;
+}
+.kyo-pin.done .kyo-pin-dot {
+  background: var(--good);
+}
+.kyo-pin-name {
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.kyo-back {
+  min-height: 48px;
+}
+
+/* ---- Kyoto: the scenes behind the conversations (and the still under the map) ---- */
+.kyo-scene {
+  position: absolute;
+  inset: 0;
+  z-index: 19; /* under the conversation (.convo is 20), over the 3D street */
+  overflow: hidden;
+}
+.kyo-scene.still {
+  z-index: 1;
+}
+.kyo-set,
+.kyo-set > i {
+  position: absolute;
+}
+.kyo-set {
+  inset: 0;
+}
+.kyo-sign {
+  position: absolute;
+  top: calc(var(--safe-top) + 16%);
+  inset-inline-end: 6%;
+  padding: 8px 6px;
+  writing-mode: vertical-rl;
+  font-family: var(--font-ja);
+  font-weight: 800;
+  font-size: 20px;
+  color: #fff;
+  background: #3b2a22;
+  border-radius: 6px;
+  box-shadow: 0 4px 10px rgba(20, 10, 0, 0.3);
+  letter-spacing: 0.1em;
+}
+.kyo-host {
+  position: absolute;
+  inset-inline-start: 50%;
+  top: 16%;
+  transform: translateX(-50%);
+  z-index: 2;
+  filter: drop-shadow(0 8px 10px rgba(36, 31, 61, 0.25));
+}
+html[dir='rtl'] .kyo-host {
+  transform: translateX(50%);
+}
+
+/* the ryokan: shoji, tokonoma, tatami, a low table */
+.kyo-ryokan {
+  background: linear-gradient(180deg, #efe3c9 0%, #e6d6b4 46%, #c9b98a 46%, #bfae7c 100%);
+}
+.kyo-shoji {
+  top: 4%;
+  height: 40%;
+  width: 34%;
+  background:
+    repeating-linear-gradient(90deg, transparent 0 22px, #8a6a45 22px 25px),
+    repeating-linear-gradient(180deg, transparent 0 26px, #8a6a45 26px 29px),
+    #fbf5e6;
+  border: 5px solid #7a5a38;
+}
+.kyo-shoji.s1 {
+  inset-inline-start: 3%;
+}
+.kyo-shoji.s2 {
+  inset-inline-end: 3%;
+}
+.kyo-tokonoma {
+  top: 8%;
+  left: 39%;
+  width: 22%;
+  height: 34%;
+  background: #d9c79e;
+  border: 4px solid #6e5134;
+}
+.kyo-scroll {
+  position: absolute;
+  left: 30%;
+  top: 6%;
+  width: 40%;
+  height: 70%;
+  background: linear-gradient(180deg, #f7f0dc, #efe4c4);
+  border-top: 4px solid #4a3a2a;
+  border-bottom: 4px solid #4a3a2a;
+}
+.kyo-ikebana {
+  position: absolute;
+  right: 6%;
+  bottom: 6%;
+  width: 16px;
+  height: 22px;
+  border-radius: 50% 50% 6px 6px;
+  background: #d2452f;
+}
+.kyo-tatami {
+  inset: 46% 0 0;
+  background: repeating-linear-gradient(90deg, transparent 0 88px, #9c8a58 88px 91px);
+}
+.kyo-table {
+  left: 18%;
+  right: 18%;
+  top: 50%;
+  height: 22px;
+  border-radius: 6px;
+  background: #5e3b24;
+  box-shadow: 0 10px 0 -4px #3d2616;
+}
+
+/* the temple: hills, a pagoda, maples, raked gravel, a lantern and the amulet counter */
+.kyo-temple {
+  background: linear-gradient(180deg, #f7d9b8 0%, #fbe9d4 40%, #dcd6c8 40%, #cfc8b8 100%);
+}
+.kyo-hills {
+  left: -10%;
+  right: -10%;
+  top: 22%;
+  height: 22%;
+  border-radius: 50% 50% 0 0;
+  background: #a9b98c;
+}
+.kyo-pagoda {
+  left: 8%;
+  bottom: 60%;
+  width: 70px;
+  height: 120px;
+}
+.kyo-pagoda b {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  height: 12px;
+  border-radius: 3px;
+  background: #4a2f24;
+}
+.kyo-pagoda b::after {
+  content: '';
+  position: absolute;
+  left: 22%;
+  right: 22%;
+  top: 12px;
+  height: 22px;
+  background: #b9472e;
+}
+.kyo-pagoda .r1 {
+  bottom: 84px;
+  width: 44px;
+}
+.kyo-pagoda .r2 {
+  bottom: 50px;
+  width: 58px;
+}
+.kyo-pagoda .r3 {
+  bottom: 16px;
+  width: 72px;
+}
+.kyo-maple {
+  width: 74px;
+  height: 64px;
+  border-radius: 50%;
+  background: radial-gradient(circle at 40% 40%, #ef7a3a, #c8402a 70%);
+}
+.kyo-maple.m1 {
+  inset-inline-end: 4%;
+  top: 20%;
+}
+.kyo-maple.m2 {
+  inset-inline-end: 22%;
+  top: 28%;
+  width: 54px;
+  height: 46px;
+  background: radial-gradient(circle at 40% 40%, #f2b13b, #d9772b 70%);
+}
+.kyo-maple.m3 {
+  inset-inline-start: 34%;
+  top: 30%;
+  width: 46px;
+  height: 40px;
+}
+.kyo-gravel {
+  inset: 40% 0 0;
+  background: repeating-radial-gradient(ellipse at 50% 120%, transparent 0 12px, rgba(255, 255, 255, 0.45) 12px 14px);
+}
+.kyo-lantern {
+  inset-inline-start: 6%;
+  top: 42%;
+  width: 22px;
+  height: 46px;
+  background: linear-gradient(180deg, #9a958a 0 20%, #b8b2a5 20% 60%, #9a958a 60%);
+  border-radius: 4px;
+}
+.kyo-counter {
+  left: 20%;
+  right: 20%;
+  top: 50%;
+  height: 26px;
+  border-radius: 6px;
+  background: #f4efe4;
+  border-top: 6px solid #b9472e;
+}
+
+/* the matcha café: plaster wall, noren, counter, a bowl and a sweet */
+.kyo-matcha {
+  background: linear-gradient(180deg, #ece4d2 0%, #e4dac4 46%, #7a5a3a 46%, #6a4c30 100%);
+}
+.kyo-wall {
+  inset: 0 0 54%;
+  background: repeating-linear-gradient(90deg, transparent 0 120px, rgba(90, 60, 30, 0.25) 120px 126px);
+}
+.kyo-noren {
+  top: 4%;
+  inset-inline-start: 6%;
+  width: 96px;
+  height: 84px;
+  display: flex;
+  gap: 4px;
+}
+.kyo-noren b {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  background: #3f5b3a;
+  color: #fff;
+  font-family: var(--font-ja);
+  font-size: 22px;
+  border-radius: 0 0 6px 6px;
+}
+.kyo-bar {
+  left: 0;
+  right: 0;
+  top: 46%;
+  height: 18px;
+  background: #4d321d;
+}
+.kyo-bowl {
+  left: 26%;
+  top: 38%;
+  width: 46px;
+  height: 26px;
+  border-radius: 0 0 26px 26px;
+  background: radial-gradient(ellipse at 50% 0%, #8fbf4f 0 45%, #3a3a3a 46%);
+}
+.kyo-wagashi {
+  left: 62%;
+  top: 40%;
+  width: 30px;
+  height: 20px;
+  border-radius: 50% 50% 40% 40%;
+  background: #f2a7b8;
+  box-shadow: 0 6px 0 -2px #fff;
+}
+
+/* the Shinkansen window, two and a half seconds after the departure */
+.kyo-ride {
+  position: absolute;
+  inset: 0;
+  z-index: 4;
+  display: grid;
+  justify-items: center;
+  align-content: start;
+  padding-top: 16%;
+  gap: 10px;
+  background: linear-gradient(180deg, #24324f 0%, #34466c 100%);
+  color: #fff;
+  font-weight: 800;
+  pointer-events: none;
+  animation: trip-ride-out 2.6s ease-in forwards;
+}
+.kyo-ride p {
+  margin: 0;
+  padding: 0 24px;
+  text-align: center;
+  font-size: 17px;
+}
+.kyo-window {
+  position: relative;
+  width: min(300px, 80%);
+  height: 96px;
+  border-radius: 28px 28px 18px 18px;
+  border: 8px solid #e8edf5;
+  background: linear-gradient(180deg, #a9dcf7 0%, #e9f7ff 66%, #8fbf6f 66%);
+  overflow: hidden;
+}
+.kyo-fuji {
+  position: absolute;
+  left: 34%;
+  bottom: 34%;
+  width: 0;
+  height: 0;
+  border-left: 46px solid transparent;
+  border-right: 46px solid transparent;
+  border-bottom: 40px solid #7b8fb5;
+}
+.kyo-fuji::after {
+  content: '';
+  position: absolute;
+  left: -14px;
+  top: 0;
+  border-left: 14px solid transparent;
+  border-right: 14px solid transparent;
+  border-bottom: 12px solid #fff;
+}
+.kyo-pass {
+  position: absolute;
+  bottom: 22%;
+  width: 10px;
+  height: 46px;
+  border-radius: 3px;
+  background: #5b6478;
+  inset-inline-start: 110%;
+  animation: trip-pass 0.45s linear infinite;
+}
+.kyo-pass.p2 {
+  animation-delay: 0.22s;
+  height: 30px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .kyo-ride {
+    animation-duration: 0.01s;
+  }
+  .gn-done-burst {
+    animation: none;
+  }
+}
+
+/* ---- voice guidance: an in-app browser, Siri & Dictation, no Japanese voice ---- */
+.voice-hint {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 6px 10px;
+  align-items: start;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: var(--warn-soft);
+  color: var(--ink);
+  border: 1.5px solid #f1d49a;
+  font-size: 13.5px;
+  line-height: 1.45;
+}
+.voice-hint > svg {
+  margin-top: 2px;
+  color: #b5762a;
+}
+.voice-hint p {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+.voice-hint em {
+  font-style: normal;
+  color: var(--fg-2);
+}
+.voice-hint-url {
+  font-size: 12px;
+  overflow-wrap: anywhere;
+  user-select: all;
+}
+.voice-hint-copy {
+  grid-column: 1 / -1;
+  min-height: 44px;
+}
+.voice-hint.check {
+  margin-top: 10px;
+}
+.voice-hint.convo {
+  margin: 4px 0 8px;
+}

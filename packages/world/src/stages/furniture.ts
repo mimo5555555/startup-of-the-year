@@ -313,7 +313,50 @@ export const dormPlank: Model = ({ s, w, d, rnd }) => {
   s.cyl(w / 2 - 0.2, y + 0.03, -d / 2 + 0.1, 0.035, 0.03, 0.08, '#f4f1e6', 7);
 };
 
+/**
+ * `room_momiji` (Goen stage 1): the autumn decor set, a momiji bonsai on a low stand in front of a little two-leaf gold screen with
+ * maple leaves, a few fallen leaves round it. Free-standing (the dorm's plant corner has no wall behind it); sized to the footprint.
+ */
+const momiji: Model = ({ s, w, d, rnd }) => {
+  const sw = Math.min(w, 0.62) - 0.04;
+  const sd = Math.min(d, 0.62) - 0.04;
+  // the byōbu: two gold leaves at a slight fold along the back, dark lacquer frames, leaves painted on
+  const bz = -sd / 2 + 0.05;
+  const leafW = sw / 2;
+  for (const side of [-1, 1]) {
+    const lx = (side * leafW) / 2;
+    s.box(lx, 0, bz + 0.02 * side, leafW, 0.62, 0.02, '#e3bd5a', { ry: side * 0.22 });
+    s.box(lx, 0.6, bz + 0.02 * side, leafW + 0.01, 0.025, 0.03, '#3a2422', { ry: side * 0.22 });
+    s.box(lx, 0, bz + 0.02 * side, leafW + 0.01, 0.025, 0.03, '#3a2422', { ry: side * 0.22 });
+    for (let i = 0; i < 3; i++) s.ball(lx + (rnd() - 0.5) * leafW * 0.6, 0.18 + rnd() * 0.36, bz + 0.02 * side + 0.014, 0.035, ['#c4472b', '#f07a2a', '#9c2a22'][i], { sz: 0.25, ws: 5, hs: 3 });
+  }
+  // the low stand and the shallow pot
+  const st = Math.min(sw, sd) * 0.78;
+  s.box(0, 0.1, 0.03, st, 0.035, st * 0.8, C.woodDark);
+  for (const sx of [-1, 1]) s.box(sx * (st / 2 - 0.03), 0, 0.03, 0.04, 0.1, st * 0.8 - 0.02, C.woodDark);
+  s.box(0, 0.135, 0.03, st * 0.66, 0.06, st * 0.5, '#4b5a6e');
+  s.box(0, 0.19, 0.03, st * 0.6, 0.008, st * 0.44, '#6b5a44');
+  // the tree: a leaning trunk with two branches, crowned with red, orange and gold
+  s.cyl(0.0, 0.19, 0.03, 0.025, 0.04, 0.22, '#5a3e30', 7);
+  s.box(0.04, 0.36, 0.03, 0.03, 0.16, 0.03, '#5a3e30', { rz: -0.6 });
+  s.box(-0.05, 0.36, 0.03, 0.025, 0.14, 0.025, '#5a3e30', { rz: 0.7 });
+  const crown: Array<[number, number, number, number, string]> = [
+    [0, 0.52, 0.03, 0.11, '#c4472b'], [0.1, 0.47, 0.06, 0.085, '#e0582c'], [-0.1, 0.46, 0.0, 0.085, '#f07a2a'],
+    [0.03, 0.44, -0.06, 0.08, '#9c2a22'], [-0.03, 0.47, 0.12, 0.075, '#f2a33d'], [0.12, 0.42, -0.04, 0.06, '#f2b33d'],
+  ];
+  for (const [x, y, z, r, c] of crown) s.ball(x, y, z, r, c, { sy: 0.75, ws: 7, hs: 5 });
+  // fallen leaves on the stand and the floor
+  for (let i = 0; i < 6; i++) {
+    const on = i < 2;
+    s.box((rnd() - 0.5) * (on ? st * 0.7 : sw), on ? 0.136 : 0.004, 0.03 + (rnd() - 0.5) * (on ? st * 0.5 : sd * 0.8), 0.04, 0.006, 0.035, ['#c4472b', '#f07a2a', '#f2b33d'][i % 3], { ry: rnd() * 3 });
+  }
+};
+
+/** Goen's decor pieces (drawn like furniture, in the slot their item names; `room_momiji` is made for the `plant` slot). */
+export const DECOR_IDS = ['room_momiji'] as const;
+
 const MODELS: Readonly<Record<string, Model>> = {
+  room_momiji: momiji,
   futon_set: futon,
   desk_study: desk,
   bookshelf,

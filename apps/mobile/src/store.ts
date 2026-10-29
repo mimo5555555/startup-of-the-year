@@ -42,7 +42,10 @@ export type Screen =
   | 'wallet'
   | 'letter'
   | 'culture'
-  | 'beat';
+  | 'beat'
+  /** Goen stage 1 (docs/GOEN.md): the Shrine panel and the Season screen */
+  | 'shrine'
+  | 'season';
 
 export interface Profile {
   name: string;
@@ -264,6 +267,21 @@ export const setLoopFactsHook = (fn: ((facts: ConversationFacts) => void) | null
   onLoopFacts = fn;
 };
 
+/**
+ * The streak omamori (docs/GOEN.md): the game's held charms bridge one missed day when no freeze is left. `bridge.init` installs it like the
+ * loop-facts hook: `charms` reads the game state, `used` dispatches `goen_charm_used` for the day. Without it the streak works as before.
+ */
+let streakCharm: { charms: () => number; used: (day: string) => void } | null = null;
+export const setStreakCharmHook = (hook: { charms: () => number; used: (day: string) => void } | null) => {
+  streakCharm = hook;
+};
+function touch(streak: StreakState): StreakState {
+  const today = localDate();
+  const r = touchStreak(streak, today, streakCharm?.charms() ?? 0);
+  if (r.usedCharm) streakCharm?.used(today);
+  return r.state;
+}
+
 export const useStore = create<State>()((set, get) => ({
   ...initialPersisted(),
   ready: false,
@@ -333,7 +351,7 @@ export const useStore = create<State>()((set, get) => ({
     const today = localDate();
     const day = { ...(s.days[today] ?? emptyDay()) };
     day.xp += 2;
-    const streak = touchStreak(s.streak).state;
+    const streak = touch(s.streak);
     set({ discovered: [...s.discovered, id], xp: s.xp + 2, days: { ...s.days, [today]: day }, streak });
     return true;
   },
@@ -343,7 +361,7 @@ export const useStore = create<State>()((set, get) => ({
     const today = localDate();
     const day = { ...(s.days[today] ?? emptyDay()) };
     day.xp += n;
-    set({ xp: s.xp + n, days: { ...s.days, [today]: day }, streak: touchStreak(s.streak).state });
+    set({ xp: s.xp + n, days: { ...s.days, [today]: day }, streak: touch(s.streak) });
   },
 
   recordLoop({ scenarioId, report, turns, facts }) {
@@ -377,7 +395,7 @@ export const useStore = create<State>()((set, get) => ({
       loops: [rec, ...s.loops].slice(0, 60),
       completed: { ...s.completed, [scenarioId]: { count: prev.count + 1, best: Math.max(prev.best, report.scores.goal) } },
       errors,
-      streak: touchStreak(s.streak).state,
+      streak: touch(s.streak),
     });
     const data: ReportData = { report, scenarioId, xp, levelBefore, levelAfter, turns };
     set({ report: data });

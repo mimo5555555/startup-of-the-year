@@ -19,6 +19,10 @@ import { DoorTip, HomeStage, type DoorTipStatus } from '../components/game/HomeS
 import { HomeOwn } from '../components/game/HomeOwn';
 import { TicketPanel } from './TicketPanel';
 import { VendingPanel } from './VendingPanel';
+import { WishRitual } from '../components/game/WishRitual';
+import { KyotoPanel, beginKyoto } from '../components/game/KyotoPanel';
+import { useKyoto, useShrine } from '../game/goenStore';
+import { inKyoto } from '../game/goenLogic';
 import { TOTAL_SIGNS, characterById, displayName, entryForSign, npcLabels, registeredLessonIds, registeredScenarioIds, tokenOf } from '../content';
 import { useUi } from '../ui';
 import { blip, haptic } from '../services';
@@ -71,6 +75,9 @@ export function WorldScreen() {
   /** the player's own room is on (the dorm or the flat; Release 2 wave B2): the same hush */
   const own = useOwn((s) => s.room);
   const panelRoom = visit?.mode === 'panel' || own?.mode === 'panel';
+  /** Goen: the wish ritual at the shrine (a sheet over the 3D shrine) and the Kyoto Journey (a panel over the street) */
+  const ritual = useShrine((s) => s.ritual);
+  const kyotoAway = useKyoto((s) => s.away);
 
   const screen = useStore((s) => s.screen);
   const xp = useStore((s) => s.xp);
@@ -100,6 +107,7 @@ export function WorldScreen() {
   const envRef = useRef(env);
   envRef.current = env;
   const elements = hudElements(disclosure);
+  const kyoto = inKyoto(game, kyotoAway);
   const unread = Object.values(game.friends).reduce((n, f) => n + (f.unread ?? 0), 0);
 
   // ---- create the 3D world once ----
@@ -131,6 +139,7 @@ export function WorldScreen() {
     setSheet(null);
     setMenu(false);
     if (plan.t === 'window') setGoods({ shopId: plan.shopId, window: true });
+    else if (plan.t === 'kyoto') beginKyoto();
     else runPlan(plan);
   };
 
@@ -159,6 +168,10 @@ export function WorldScreen() {
       if (st.t === 'open' && route.friend && row) run(planFor(e, row.it, route.friend));
       else if (st.t === 'hearts' || st.t === 'wait') setDoorTip({ status: st, friend: route.friend! });
       else say(t('hud.doorLocked'));
+    } else if (route.t === 'shrine') {
+      // the offering box opens the Shrine panel; the water basin shows the shrine manners card (wash, bow, clap, bow)
+      if (route.what === 'box') go('shrine');
+      else if (PACK.culture.some((c) => c.id === 'cc_sanpai')) useUi.getState().showCulture('cc_sanpai');
     } else if (route.t === 'festival') {
       // a festival stall (Kenji's row) or the stage (the speech, through its rehearsal); nothing while the row is not open. The goldfish
       // scoop sells no food: a line of its own
@@ -206,8 +219,8 @@ export function WorldScreen() {
   useEffect(() => {
     if (!world) return;
     // the panel fallback covers the street: nothing behind it needs drawing
-    world.setActive(screen === 'world' && !panelRoom);
-  }, [world, screen, panelRoom]);
+    world.setActive(screen === 'world' && !panelRoom && !kyoto);
+  }, [world, screen, panelRoom, kyoto]);
   useEffect(() => {
     world?.setDiscovered(discovered);
   }, [world, discovered]);
@@ -253,7 +266,7 @@ export function WorldScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [world, pendingTalk]);
 
-  const busy = inConvo || !!sheet || !!goods || !!panel || !!visit || !!own;
+  const busy = inConvo || !!sheet || !!goods || !!panel || !!visit || !!own || !!ritual || kyoto;
   // E or Enter talks to whoever is closest
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -316,7 +329,7 @@ export function WorldScreen() {
           </div>
         )}
 
-        {world && !inConvo && screen === 'world' && !visit && !own && (
+        {world && !inConvo && screen === 'world' && !visit && !own && !ritual && !kyoto && (
           <div className="hud">
             <div className="hud-top">
               <div className="hud-left">
@@ -440,6 +453,8 @@ export function WorldScreen() {
         {goods && screen === 'world' && <GoodsSheet shopId={goods.shopId} window={goods.window} onClose={() => setGoods(null)} />}
         {panel?.t === 'vending' && screen === 'world' && <VendingPanel onClose={() => setPanel(null)} />}
         {panel?.t === 'ticket' && screen === 'world' && <TicketPanel kind={panel.kind} onClose={() => setPanel(null)} />}
+        {ritual && !kyoto && screen === 'world' && !inConvo && <WishRitual />}
+        {kyoto && screen === 'world' && !inConvo && <KyotoPanel />}
       </div>
     </WorldCtx.Provider>
   );

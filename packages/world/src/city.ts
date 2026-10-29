@@ -4,7 +4,8 @@ import { createBuildCtx, makeShutter, type Pickable } from './buildctx';
 import { FRONT_OVERRIDES, FRONT_STYLES } from './buildings';
 import { TOKYO_DISTRICT, type District } from './district';
 import { COLORS as C } from './palette';
-import { ALLEY, GROUND_X, LAMPS, POLES, SKYLINE, SOUTH_FRONT, SOUTH_FRONTS, TRAFFIC, VENDING, VENDING_SIZE, type MapRect, type Occluder, type Rect, type SpawnSite } from './layout';
+import { ALLEY, GROUND_X, LAMPS, POLES, SHRINE, SKYLINE, SOUTH_FRONT, SOUTH_FRONTS, TRAFFIC, VENDING, VENDING_SIZE, type MapRect, type Occluder, type Rect, type SpawnSite } from './layout';
+import { buildShrine, type ShrineHandle } from './buildings/shrine';
 import {
   asphaltTexture,
   blobTexture,
@@ -30,6 +31,8 @@ export interface City {
   materials: { toon: THREE.Material; glow: THREE.Material };
   /** buildings whose builder ran; an NPC whose spawn names a `site` appears only if it is in here */
   built: ReadonlySet<SpawnSite>;
+  /** the shrine at the torii (Goen stage 1): its ritual animations */
+  shrine: ShrineHandle;
   /** shows or hides the 準備中 shutter of a shop (no-op for a place without an open front) */
   setShopOpen(shopId: string, open: boolean): void;
   update(dt: number, t: number, player: THREE.Vector3): void;
@@ -168,6 +171,8 @@ export function buildCity(district: District = TOKYO_DISTRICT): City {
       collide(x + dx, z + 0.4, 0.7, 0.7);
     }
   }
+  // the shrine just inside the torii (buildings/shrine.ts; its place and colliders are layout's SHRINE)
+  const shrine = buildShrine(ctx);
 
   // cherry trees
   const sakuraSpots: Array<[number, number, number]> = [
@@ -299,7 +304,7 @@ export function buildCity(district: District = TOKYO_DISTRICT): City {
     collide(x, z, 0.6, 0.6);
     pickAt('bin', x, 0.6, z, 0.8);
   };
-  bin(-14.8, 11.5);
+  bin(SHRINE.bin.x, SHRINE.bin.z); // moved from (-14.8, 11.5): it stood on the stepping stones to the shrine
   bin(-9.2, 28.6);
   // low wall for the cat
   solid.boxB(-5.2, 0, 11.3, 3.4, 0.6, 0.55, '#b9b3a6');
@@ -642,6 +647,7 @@ export function buildCity(district: District = TOKYO_DISTRICT): City {
     sunDir,
     materials: { toon, glow: glowMat },
     built: out.built,
+    shrine,
     setShopOpen(shopId, open) {
       let shutter = out.shutters.get(shopId);
       if (!shutter && !open) {

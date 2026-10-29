@@ -2,7 +2,8 @@ import * as THREE from 'three';
 import type { AvatarSpec, Character, Emotion } from '@lw/content';
 import { Avatar, DEFAULT_PLAYER } from './avatar';
 import { toonRamp } from './batch';
-import { buildRide, type RideKind } from './buildings';
+import { buildRide, type RideKind, type RideSkin } from './buildings';
+import { SHRINE_RITUAL_STEPS, type ShrineRitualStep } from './buildings/shrine';
 import { buildCity, type City } from './city';
 import { clamp, clampToBounds, clipDistance, resolveCircle } from './collision';
 import { TOKYO_DISTRICT, type District } from './district';
@@ -19,7 +20,7 @@ import {
   newLighting,
   type FestivalPark,
 } from './festival';
-import { DOOR_RETURN, PLAYER_START, shopRect, spotsAt, type NpcSpawn, type Rect, type ShopDef, type SpotId } from './layout';
+import { DOOR_RETURN, PLAYER_START, SHRINE, SHRINE_PICKS, shopRect, spotsAt, type NpcSpawn, type Rect, type ShopDef, type SpotId } from './layout';
 import { COLORS } from './palette';
 import type { Stage, StageHandle, StageId, StagePick, StageState } from './stage';
 import { STAGES } from './stages';
@@ -81,6 +82,9 @@ export const MAX_STEP = 0.25;
 /** A spot is left only once the player is this far outside its radius, so standing on the edge cannot re-fire it. */
 const SPOT_EXIT_MARGIN = 0.3;
 const MULT_RANGE = { min: 0.25, max: 10 };
+/** the shrine's ritual shot holds this long after a step (walking away ends it at once), and this long after 'done' */
+const RITUAL_HOLD_S = 120;
+const RITUAL_END_S = 2.5;
 /** quality-dependent light levels; the festival preset scales them */
 const HEMI_LEVEL = { high: 1.95, low: 2.3 };
 const SUN_LEVEL = { high: 2.2, low: 1.2 };
@@ -184,7 +188,11 @@ export class TokyoWorld {
   private closedShops = new Set<string>();
   private moveMult = 1;
   private ride: RideKind | null = null;
+  private rideSkin: RideSkin | null = null;
   private rideMesh: THREE.Object3D | null = null;
+  /** the shrine's wish ritual: how long its camera shot still holds (0: off), and the blend into it */
+  private ritualHold = 0;
+  private ritualBlend = 0;
   private festivalTarget = 0;
   private festivalBlend = 0;
   private festivalScenery: FestivalPark | null = null;
@@ -493,7 +501,7 @@ export class TokyoWorld {
       this.rideMesh = null;
     }
     if (!next) return;
-    this.rideMesh = buildRide(next, this.city.materials);
+    this.rideMesh = buildRide(next, this.city.materials, this.rideSkin);
     if (this.rideMesh) {
       this.rideMesh.position.copy(this.playerPos);
       this.rideMesh.rotation.y = this.playerHeading;
@@ -503,6 +511,69 @@ export class TokyoWorld {
   }
   getRide() {
     return this.ride;
+  }
+
+  /**
+   * The bike and e-bike paint (`'sakura'`: the `ride_sakura` cosmetic) or null for the plain one. A mounted bike is repainted at
+   * once; the car has no paint. It stays chosen across `setRide` calls.
+   */
+  setRideSkin(skin: RideSkin | null) {
+    const next = skin ?? null;
+    if (next === this.rideSkin) return;
+    this.rideSkin = next;
+    const kind = this.ride;
+    if (kind && kind !== 'car') {
+      this.ride = null;
+      this.setRide(kind);
+    }
+  }
+  getRideSkin() {
+    return this.rideSkin;
+  }
+
+  /**
+   * One step of the shrine's wish ritual (docs/GOEN.md; the app runs the order and the taps). Any step first puts the player at the
+   * box facing the hall (`SHRINE.stand`) and turns the camera to the ritual shot, which holds until the player walks away or ends
+   * 2.5 s after 'done'. 'coin': a 5-yen coin arcs into the box and sparkles; 'bow': a deep bow; 'clap': one clap; 'bell': both hands
+   * on the rope, which sways; 'done': a shimmer over the box. False (nothing happens) in a room or during a conversation.
+   * Idle, none of it is drawn.
+   */
+  shrineRitual(step: ShrineRitualStep): boolean {
+    if (this.stage || this.conv || !SHRINE_RITUAL_STEPS.includes(step)) return false;
+    const st = SHRINE.stand;
+    if (Math.hypot(this.playerPos.x - st.x, this.playerPos.z - st.z) > 0.3 || Math.abs(angleDiff(this.playerHeading, st.heading)) > 0.2) {
+      this.playerPos.set(st.x, 0, st.z);
+      this.playerHeading = st.heading;
+      this.player.root.position.copy(this.playerPos);
+      this.player.root.rotation.y = st.heading;
+      if (this.rideMesh) {
+        this.rideMesh.position.copy(this.playerPos);
+        this.rideMesh.rotation.y = st.heading;
+      }
+      this.yaw = st.heading + Math.PI + 0.6; // the follow camera comes back behind the right shoulder
+      this.updateSpots();
+      this.updateNearby();
+    }
+    this.moveTarget = null;
+    this.stick.set(0, 0);
+    this.vel.set(0, 0, 0);
+    this.player.setWalking(0);
+    this.ritualHold = step === 'done' ? RITUAL_END_S : RITUAL_HOLD_S;
+    const shrine = this.city.shrine;
+    if (step === 'coin') shrine.play('coin', new THREE.Vector3(st.x + Math.sin(st.heading) * 0.3, 1.05, st.z + Math.cos(st.heading) * 0.3));
+    else if (step === 'bow') this.player.bow(0.85);
+    else if (step === 'clap') this.player.clap();
+    else if (step === 'bell') {
+      this.player.ropeShake();
+      shrine.play('bell');
+    } else shrine.play('done');
+    return true;
+  }
+
+  /** The shrine's draw cost (its own meshes and sprites; the rest is merged into the street), picks, stand and ritual state. */
+  shrineInfo() {
+    const s = this.city.shrine;
+    return { ...s.info(), picks: SHRINE_PICKS.map((p) => p.id), stand: { ...SHRINE.stand }, framing: this.ritualHold > 0, busy: s.busy() };
   }
 
   /**
@@ -1297,6 +1368,7 @@ export class TokyoWorld {
       }
     }
 
+    if (this.ritualHold > 0 && wish.lengthSq() > 0) this.ritualHold = 0; // walking away ends the shrine's ritual shot
     const targetVel = wish.multiplyScalar(speed);
     this.vel.x = damp(this.vel.x, targetVel.x, 14, dt);
     this.vel.z = damp(this.vel.z, targetVel.z, 14, dt);
@@ -1579,7 +1651,7 @@ export class TokyoWorld {
   // ---------------- camera ----------------
 
   private applyViewOffset() {
-    const shift = this.convBlend * 0.2 * this.height;
+    const shift = Math.max(this.convBlend, this.ritualBlend) * 0.2 * this.height;
     if (shift > 0.5) this.camera.setViewOffset(this.width, this.height, 0, shift, this.width, this.height);
     else this.camera.clearViewOffset();
     this.camera.updateProjectionMatrix();
@@ -1685,6 +1757,20 @@ export class TokyoWorld {
       const k = easeInOut(this.convBlend);
       pos = follow.pos.clone().lerp(pose.pos, k);
       look = follow.look.clone().lerp(pose.look, k);
+    }
+    // the shrine's ritual shot: the player, the box and the bell from the path side (the app's panel covers the lower part)
+    if (this.ritualHold > 0) this.ritualHold = Math.max(0, this.ritualHold - dt);
+    const ritual = this.ritualHold > 0 && !this.conv && !this.stage ? 1 : 0;
+    this.ritualBlend = clamp(this.ritualBlend + (ritual - this.ritualBlend) * (1 - Math.exp(-4.2 * dt)), 0, 1);
+    if (Math.abs(this.ritualBlend - ritual) < 0.002) this.ritualBlend = ritual;
+    if (this.ritualBlend > 0.001) {
+      const st = SHRINE.stand;
+      const portrait = this.camera.aspect < 1;
+      const at = new THREE.Vector3(st.x + Math.sin(st.heading) * 0.45, 1.3, st.z);
+      const from = at.clone().add(portrait ? new THREE.Vector3(3.6, 1.5, 3.0) : new THREE.Vector3(3.0, 1.2, 2.4));
+      const k = easeInOut(this.ritualBlend);
+      pos = pos.clone().lerp(from, k);
+      look = look.clone().lerp(at, k);
     }
     const rate = this.conv || this.convBlend > 0.01 ? 7 : 22;
     this.camPos.x = damp(this.camPos.x, pos.x, rate, dt);

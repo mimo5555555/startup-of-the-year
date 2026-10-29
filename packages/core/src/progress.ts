@@ -25,26 +25,33 @@ export function newStreak(): StreakState {
   return { days: 0, freezes: MAX_FREEZES, lastActive: null };
 }
 
-/** Record activity today. One missed day is bridged by a streak freeze when one is available. */
-export function touchStreak(s: StreakState, today = localDate()): { state: StreakState; usedFreeze: boolean; extended: boolean } {
-  if (s.lastActive === today) return { state: s, usedFreeze: false, extended: false };
-  if (s.lastActive === null) return { state: { ...s, days: 1, lastActive: today }, usedFreeze: false, extended: true };
+/**
+ * Record activity today. One missed day is bridged by a streak freeze when one is available, else by one of `charms` (the game's streak
+ * omamori, docs/GOEN.md, held outside this state: `usedCharm` tells the caller to spend one).
+ */
+export function touchStreak(s: StreakState, today = localDate(), charms = 0): { state: StreakState; usedFreeze: boolean; usedCharm: boolean; extended: boolean } {
+  if (s.lastActive === today) return { state: s, usedFreeze: false, usedCharm: false, extended: false };
+  if (s.lastActive === null) return { state: { ...s, days: 1, lastActive: today }, usedFreeze: false, usedCharm: false, extended: true };
   const gap = dayDiff(s.lastActive, today);
   let days = s.days;
   let freezes = s.freezes;
   let usedFreeze = false;
+  let usedCharm = false;
   if (gap === 1) {
     days += 1;
   } else if (gap === 2 && freezes > 0) {
     freezes -= 1;
     days += 1;
     usedFreeze = true;
+  } else if (gap === 2 && charms > 0 && days > 0) {
+    days += 1;
+    usedCharm = true;
   } else {
     days = 1;
   }
   // earn a freeze back every 7 days of streak
   if (days > 0 && days % 7 === 0 && freezes < MAX_FREEZES) freezes += 1;
-  return { state: { days, freezes, lastActive: today }, usedFreeze, extended: true };
+  return { state: { days, freezes, lastActive: today }, usedFreeze, usedCharm, extended: true };
 }
 
 /** A streak that will be lost if no activity happens today. */

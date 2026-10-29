@@ -177,6 +177,8 @@ export function predProgress(pred: Pred, state: GameState, ctx: Pick<ReduceCtx, 
       return prog(Object.values(state.home.placed).filter(Boolean).length, pred.n);
     case 'flag':
       return flag(state.chapter.flags.includes(pred.id));
+    case 'goen':
+      return flag(state.goen?.owned[pred.item] !== undefined);
     case 'all':
       return sum(pred.of.map((p) => predProgress(p, state, ctx)));
     case 'any': {

@@ -4,6 +4,8 @@ import { ChapterCard, ChapterTeaser } from '../components/game/ChapterCard';
 import { DailyList } from '../components/game/DailyList';
 import { DreamPanel, DreamPicker } from '../components/game/DreamPicker';
 import { ObjectiveRow } from '../components/game/ObjectiveRow';
+import { JourneyCard } from '../components/game/KyotoPanel';
+import { SeasonLink } from './Season';
 import { Ltr } from '../components/game/WalletPill';
 import { Icon } from '../components/Icon';
 import { characterById, displayName } from '../content';
@@ -165,6 +167,9 @@ function StoryTab() {
             {t('quests.readLetter')}
           </button>
         )}
+        {/* Goen (docs/GOEN.md): the Journey's objectives while it is owned, and the season */}
+        <JourneyCard />
+        <SeasonLink from="quests" />
       </section>
     );
   }
@@ -227,6 +232,10 @@ function StoryTab() {
           <span>{t(def && PACK.chapters.find((c) => c.n === def.n + 1)?.startGate?.k === 'hearts_count' ? 'quests.gate.friend' : 'quests.gate.other')}</span>
         </section>
       )}
+
+      {/* Goen (docs/GOEN.md): the Journey's objectives while it is owned, and the season */}
+      <JourneyCard />
+      <SeasonLink from="quests" />
 
       {later.length > 0 && (
         <section>

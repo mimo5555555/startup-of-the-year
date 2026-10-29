@@ -1,6 +1,6 @@
 // A small hand-built pack and state for the friends / gifts / inventory / shifts / integrity tests (agent 1E). Ids follow the design
 // document (§5, §8.5, §9.3); only what those modules read is filled in. Not the Japan pack: @lw/game never imports @lw/content.
-import { BALANCE, emptyPay } from '@lw/game';
+import { BALANCE, emptyGoen, emptyPay } from '@lw/game';
 import type { AgeProfile, ConversationFacts, FriendDef, GamePack, GameState, ItemDef, JobDef, MenuItem, ReduceCtx, ScenarioMeta, ShopDef } from '@lw/game';
 
 const g = (en: string) => ({ en, ar: en });
@@ -302,6 +302,7 @@ export function makeState(dayIndex = 10): GameState {
     me: { nameKana: '' },
     flags: {},
     seeded: true,
+    goen: emptyGoen(),
   };
 }
 

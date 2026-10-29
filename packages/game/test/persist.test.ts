@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { BALANCE } from '../src/balance';
+import { emptyGoen } from '../src/goen';
 import { reconcile } from '../src/ledger';
 import { GAME_STORE_VERSION, gameStorageKey, migrate, parseSaved, seedFromLegacy, serializeState } from '../src/persist';
 import { createGameState, reduce } from '../src/reducer';
@@ -40,19 +41,23 @@ describe('migrate: frozen v1 fixtures', () => {
 
   it('typical: a played save comes back unchanged and validates', () => {
     const raw = saved('v1-typical') as GameState;
-    const s = migrate(raw, 1, pack);
+    const { goen, ...s } = migrate(raw, 1, pack);
     expect(s).toEqual(raw);
-    expect(validateState(s, pack)).toEqual([]);
-    expect(reconcile(s, 3000).ok).toBe(true);
+    // a save from before Goen gains the empty Goen state (this pack has no Goen, so nothing is granted)
+    expect(goen).toEqual({ ...emptyGoen(), streak: { last: -1, paid: 0 } });
+    expect(validateState({ ...s, goen }, pack)).toEqual([]);
+    expect(reconcile({ ...s, goen }, 3000).ok).toBe(true);
   });
 
   it('heavy: full rings, a long game, a rich wallet: unchanged and valid', () => {
     const raw = saved('v1-heavy') as GameState;
     expect(raw.ledger).toHaveLength(BALANCE.ledger.entries);
     expect(raw.seen).toHaveLength(BALANCE.ledger.seen);
-    const s = migrate(raw, 1, pack);
+    const m = migrate(raw, 1, pack);
+    const { goen: _goen, ...s } = m;
+    void _goen;
     expect(s).toEqual(raw);
-    expect(validateState(s, pack)).toEqual([]);
+    expect(validateState(m, pack)).toEqual([]);
   });
 
   it('corrupt: every damaged field is repaired, nothing throws, the result validates', () => {

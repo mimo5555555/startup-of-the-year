@@ -6,6 +6,7 @@ import { BALANCE } from './balance';
 import { updateDaily, swapDaily } from './daily';
 import { emptyFriend, emptyPay } from './defaults';
 import { availableDreams } from './dreams';
+import { drawOmikuji, emptyGoen, spendGoen, updateGoen, useCharm } from './goen';
 import { applyGift, applyHeartEvent, applyTalk, contactOpen, queueThreads } from './friends';
 import { dedupe, localDateString, markActive, observeClock, payForDay } from './integrity';
 import { applyOutfit, arriveDeliveries, grantItem, hasFeature, placeItem } from './inventory';
@@ -75,6 +76,7 @@ export function createGameState(pack: GamePack, now: number): GameState {
     me: { nameKana: '' },
     flags: {},
     seeded: false,
+    goen: emptyGoen(),
   };
 }
 
@@ -100,6 +102,9 @@ export function needsFlush(ev: InputEvent): boolean {
     case 'trip_done':
     case 'culture_say':
     case 'dev':
+    case 'goen_spend':
+    case 'goen_charm_used':
+    case 'omikuji_drawn':
       return true;
     default:
       return false;
@@ -878,6 +883,25 @@ function apply(a: Acc, ev: InputEvent, ctx: ReduceCtx): void {
     case 'dev':
       onDev(a, ev, ctx);
       break;
+    // Goen (docs/GOEN.md): its own ledger and state only; a refused spend, charm or second omikuji changes nothing
+    case 'goen_spend': {
+      const r = spendGoen(a.s, pack, ev, ctx.now);
+      if (!r.ok) a.effective = false;
+      absorb(a, r);
+      break;
+    }
+    case 'goen_charm_used': {
+      const r = useCharm(a.s, ev.day);
+      if (!r.ok) a.effective = false;
+      absorb(a, r);
+      break;
+    }
+    case 'omikuji_drawn': {
+      const r = drawOmikuji(a.s, pack, ev.words, ctx.rng);
+      if (!r.ok) a.effective = false;
+      absorb(a, r);
+      break;
+    }
     default: {
       // a future event type: unknown to this build, so nothing to do
       const never: never = ev;
@@ -950,6 +974,8 @@ export function reduce(state: GameState, ev: InputEvent, ctx: ReduceCtx): Reduce
   absorb(a, daily);
   // a goal's yen can complete a wallet objective: judge once more (idempotent when nothing changed)
   if (paidToday) absorb(a, evaluateAll(a.s, c));
+  // Goen: earned from what the stages above did, the season's tasks and tiers, the owned Journeys (never the wallet, the chapter or the hearts)
+  absorb(a, updateGoen(a.s, a.effective ? ev : null, a.derived, c));
 
   // effects
   if (ev.t === 'day_observed') a.effects.push(...pendingBeats(a.s, c));

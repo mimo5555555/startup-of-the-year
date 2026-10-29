@@ -4,6 +4,8 @@ import { Icon } from './Icon';
 import { audio } from '../services';
 import { useT } from '../hooks';
 import type { StringKey } from '../i18n';
+import { currentUa, sttErrorKey, touchDevice } from '../voiceHelp';
+import { VoiceHint } from './VoiceHint';
 
 /** Id of the Settings section that holds the check, so other screens can link to it. */
 export const AUDIO_CHECK_ID = 'audio-check';
@@ -226,6 +228,8 @@ export function AudioCheck() {
             ))}
       </ul>
 
+      {/* one line first: an in-app browser (open in Safari / Chrome), Siri & Dictation, or the steps to install a Japanese voice */}
+      {R && <VoiceHint where="check" report={R} sttError={mic.phase === 'error' ? mic.err : null} />}
       <div className="au-fix" aria-live="polite">
         {R && (
           <>
@@ -293,7 +297,7 @@ export function AudioCheck() {
               <small>{mic.confidence > 0 ? t('audio.mic.confidence', { n: confPct }) : t('audio.mic.noConfidence')}</small>
             </>
           )}
-          {mic.phase === 'error' && <span dir="auto">{t(`audio.mic.err.${mic.err ?? 'unknown'}` as StringKey)}</span>}
+          {mic.phase === 'error' && <span dir="auto">{t(sttErrorKey(mic.err ?? 'unknown', currentUa(), touchDevice()))}</span>}
         </div>
       </div>
     </div>

@@ -6,7 +6,18 @@ const BLUSH = '#ff9fa8';
 /** polar angle where a beanie ends (about 73 degrees from the crown): its edge clears the eyes and brows */
 const BEANIE_EDGE = 1.28;
 const EYE = '#2a2230';
+/** The accessory that draws the long robe (kimono_momiji, Goen stage 1): robe = `top`, hem band = `bottom`, obi = `accent`, zori = `shoes`. */
+export const KIMONO_ACCESSORY = 'kimono';
+/** The momiji kimono's colours (the item's avatar patch carries them with `accessory: 'kimono'`). */
+export const KIMONO_MOMIJI_LOOK = { top: '#c4472b', bottom: '#8f2f24', accent: '#e9b949', shoes: '#6b4a3c' } as const;
+/** accessories that would clash with the obi and the robe's front; they are not drawn while the kimono is worn */
+const UNDER_KIMONO = ['backpack', 'apron', 'tie', 'camera'];
+/** small momiji leaves on the robe: gold, orange and a deep red (the robe's own red would vanish on it) */
+const LEAF_COLOURS = ['#f2b33d', '#f07a2a', '#ffd27a', '#7a1f1a'];
+/** a flat five-pointed leaf: a five-sided cone pressed flat (its axis is turned to face out of the robe) */
+const LEAF = new THREE.ConeGeometry(1, 1, 5);
 const MOUTH = '#8a3b45';
+const TABI = '#f7f4ec';
 
 const shade = (hex: string, k: number) => {
   const c = new THREE.Color(hex);
@@ -27,6 +38,9 @@ export const DEFAULT_PLAYER: AvatarSpec = {
 };
 
 const ease = (x: number) => x * x * (3 - 2 * x);
+/** how long one clap and one rope shake take, in seconds */
+const CLAP_S = 0.85;
+const ROPE_S = 1.3;
 const damp = (current: number, target: number, rate: number, dt: number) => current + (target - current) * (1 - Math.exp(-rate * dt));
 
 interface EmotionLook {
@@ -68,7 +82,13 @@ export class Avatar {
   private emotion: Emotion = 'neutral';
   private look = { ...LOOKS.neutral };
   private bowT = 1;
+  private bowDepth = 0.55;
   private waveT = 0;
+  /** a two-handed gesture (the shrine's clap, the bell rope): time left, its kind */
+  private handsT = 0;
+  private hands: 'clap' | 'rope' = 'clap';
+  /** a robe allows only small steps */
+  private stride = 1;
   private blinkAt = 1 + Math.random() * 3;
   private blinkT = 0;
   private lookYaw = 0;
@@ -99,15 +119,27 @@ export class Avatar {
     const hairC = spec.hair.color;
     // widened to string: the 'helmet' accessory is added to the content type by the engine/content slice
     const acc = new Set<string>(spec.accessories);
+    const kimono = acc.has(KIMONO_ACCESSORY);
+    if (kimono) {
+      for (const a of UNDER_KIMONO) acc.delete(a);
+      this.stride = 0.42;
+    }
 
     // ---- legs ----
     for (const side of [-1, 1] as const) {
       const g = side < 0 ? this.legL : this.legR;
       g.position.set(side * 0.115 * stocky, 0.56, 0);
       const b = new Batch();
-      b.cyl(0, -0.46, 0, 0.098 * stocky, 0.088 * stocky, 0.46, spec.bottom, { seg: 10 });
-      b.box(0, -0.51, 0.045, 0.17 * stocky, 0.1, 0.3, spec.shoes, { jitter: 0.0 });
-      b.sphere(0, -0.47, 0.17, 0.085, spec.shoes, { sx: 0.95, sy: 0.7, sz: 0.9, ws: 8, hs: 6 });
+      if (kimono) {
+        // white tabi on zori under the hem
+        b.cyl(0, -0.46, 0, 0.085 * stocky, 0.08 * stocky, 0.46, TABI, { seg: 8 });
+        b.box(0, -0.555, 0.05, 0.15 * stocky, 0.035, 0.3, spec.shoes, { jitter: 0.0 });
+        b.sphere(0, -0.48, 0.13, 0.075, TABI, { sx: 0.95, sy: 0.65, sz: 1.1, ws: 8, hs: 6 });
+      } else {
+        b.cyl(0, -0.46, 0, 0.098 * stocky, 0.088 * stocky, 0.46, spec.bottom, { seg: 10 });
+        b.box(0, -0.51, 0.045, 0.17 * stocky, 0.1, 0.3, spec.shoes, { jitter: 0.0 });
+        b.sphere(0, -0.47, 0.17, 0.085, spec.shoes, { sx: 0.95, sy: 0.7, sz: 0.9, ws: 8, hs: 6 });
+      }
       const m = this.mesh(b, material);
       if (m) g.add(m);
       this.root.add(g);
@@ -122,8 +154,9 @@ export class Avatar {
     t.cyl(0, -0.02, 0, 0.23 * stocky, 0.235 * stocky, 0.14, spec.bottom, { seg: 14 });
     t.sphere(0, 0.5, 0, 0.205 * stocky, spec.top, { sy: 0.5, ws: 14, hs: 8 });
     t.cyl(0, 0.52, 0, 0.07, 0.075, 0.1, skinShade, { seg: 8 });
+    if (kimono) this.kimonoTorso(t, spec, stocky);
     // collar
-    t.torus(0, 0.545, 0, 0.1, 0.022, shade(spec.top, 1.12), { rx: Math.PI / 2 });
+    else t.torus(0, 0.545, 0, 0.1, 0.022, shade(spec.top, 1.12), { rx: Math.PI / 2 });
     if (acc.has('apron')) {
       t.box(0, 0.26, 0.215 * stocky, 0.34 * stocky, 0.4, 0.045, spec.accent, { jitter: 0 });
       t.box(0, 0.12, 0.245 * stocky, 0.2, 0.09, 0.03, shade(spec.accent, 0.82));
@@ -158,7 +191,8 @@ export class Avatar {
       g.rotation.z = side * 0.07;
       const b = new Batch();
       b.cyl(0, -0.27, 0, 0.072, 0.066, 0.27, spec.top, { seg: 10 });
-      b.cyl(0, -0.5, 0, 0.056, 0.05, 0.24, skin, { seg: 10 });
+      b.cyl(0, -0.5, 0, 0.056, 0.05, 0.24, kimono ? spec.top : skin, { seg: 10 });
+      if (kimono) this.kimonoSleeve(b, spec, side);
       b.sphere(0, -0.52, 0.01, 0.066, skin, { ws: 8, hs: 6 });
       b.sphere(0, 0.0, 0, 0.078, spec.top, { ws: 8, hs: 6 });
       const m = this.mesh(b, material);
@@ -241,6 +275,60 @@ export class Avatar {
     } else if (mouth) {
       this.mouth = mouth;
     }
+    if (kimono) this.kimonoRobe(spec, material, stocky);
+  }
+
+  /** the kimono's front: the crossed collar (left over right), the obi with its cord and the knot at the back */
+  private kimonoTorso(t: Batch, spec: AvatarSpec, stocky: number) {
+    const r = 0.212 * stocky;
+    // the white under-collar, then the robe's own collar band beside it, each crossing from a shoulder down to the obi
+    for (const [side, col, dz] of [[-1, '#f6efe2', 0.004], [1, '#f6efe2', 0.012], [1, shade(spec.top, 0.72), 0.018]] as const) {
+      const off = col === '#f6efe2' ? 0 : 0.03;
+      t.box(side * (0.04 + off * 0.5), 0.4, r - 0.012 + dz, 0.035, 0.3, 0.02, col, { rz: side * 0.42 });
+    }
+    t.torus(0, 0.545, 0, 0.095, 0.02, '#f6efe2', { rx: Math.PI / 2 });
+    // the obi, its cord and the taiko knot
+    t.cyl(0, 0.07, 0, r + 0.022, r + 0.026, 0.22, spec.accent, { seg: 14 });
+    t.torus(0, 0.18, 0, r + 0.026, 0.012, shade(spec.bottom, 0.9), { rx: Math.PI / 2 });
+    t.box(0, 0.1, -(r + 0.05), 0.28 * stocky, 0.24, 0.08, spec.accent, { jitter: 0 });
+    t.box(0, 0.3, -(r + 0.04), 0.2 * stocky, 0.07, 0.06, shade(spec.accent, 0.82), { jitter: 0 });
+    // a few leaves on the chest
+    for (const [x, y] of [[0.11, 0.33], [-0.13, 0.42]] as const) this.leaf(t, x, y, Math.sqrt(Math.max(0, r * r - x * x)) + 0.004, 0.032, LEAF_COLOURS[(x > 0 ? 0 : 1)]);
+  }
+
+  /** a wide hanging sleeve (tamoto) under the arm, the robe's colour with a leaf */
+  private kimonoSleeve(b: Batch, spec: AvatarSpec, side: -1 | 1) {
+    b.box(side * 0.012, -0.47, -0.05, 0.05, 0.4, 0.26, spec.top, { jitter: 0 });
+    b.box(side * 0.012, -0.69, -0.05, 0.052, 0.04, 0.262, spec.bottom, { jitter: 0 });
+    this.leaf(b, side * 0.04, -0.4, -0.05, 0.035, LEAF_COLOURS[2], Math.PI / 2 * side);
+  }
+
+  /** a small flat maple leaf on a surface whose outward normal is the turn `ry` (0 = +z) */
+  private leaf(b: Batch, x: number, y: number, z: number, r: number, color: string, ry = Math.atan2(x, z)) {
+    b.raw(LEAF, x, y, z, r, 0.004, r, color, { rx: Math.PI / 2, ry, rz: 0.3 });
+  }
+
+  /** the long robe below the obi: a column to the ankles, the overlap line at the front, a hem band and momiji leaves */
+  private kimonoRobe(spec: AvatarSpec, material: THREE.Material, stocky: number) {
+    const b = new Batch();
+    const rTop = 0.232 * stocky;
+    const rBot = 0.222 * stocky;
+    const y0 = 0.1;
+    const y1 = 0.66;
+    b.cyl(0, y0, 0, rTop, rBot, y1 - y0, spec.top, { seg: 14 });
+    b.cyl(0, y0 - 0.005, 0, rBot + 0.006, rBot + 0.004, 0.09, spec.bottom, { seg: 14 });
+    // the left panel over the right: its edge runs down the front, a little to the wearer's right
+    b.box(-0.06, y0 + 0.04, rBot + 0.004, 0.022, y1 - y0 - 0.06, 0.012, shade(spec.top, 0.72), { rz: -0.04 });
+    const spots: Array<[number, number]> = [[-1.2, 0.22], [-0.55, 0.42], [0.25, 0.18], [0.75, 0.47], [1.35, 0.3], [2.4, 0.26], [-2.3, 0.4], [0.05, 0.52], [-0.15, 0.3]];
+    spots.forEach(([a, y], i) => {
+      const r = rBot + (rTop - rBot) * ((y - y0) / (y1 - y0)) + 0.004;
+      this.leaf(b, Math.sin(a) * r, y, Math.cos(a) * r, 0.034 + (i % 3) * 0.006, LEAF_COLOURS[i % LEAF_COLOURS.length], a);
+    });
+    const m = this.mesh(b, material);
+    if (m) {
+      m.name = 'kimono-robe';
+      this.root.add(m);
+    }
   }
 
   private hair(h: Batch, style: HairStyle, c: string, cy: number, accent: string) {
@@ -301,8 +389,20 @@ export class Avatar {
   setEmotion(e: Emotion) {
     this.emotion = e;
   }
-  bow() {
+  /** a bow from the hips; `depth` is the torso's pitch at the bottom (0.55 rad greets, the shrine's deep bow is about 0.85) */
+  bow(depth = 0.55) {
     this.bowT = 0;
+    this.bowDepth = depth;
+  }
+  /** one clap with both hands before the chest (the shrine's 拍手) */
+  clap() {
+    this.hands = 'clap';
+    this.handsT = CLAP_S;
+  }
+  /** both hands up on the bell rope, shaking it */
+  ropeShake() {
+    this.hands = 'rope';
+    this.handsT = ROPE_S;
   }
   wave() {
     this.waveT = 1.6;
@@ -329,7 +429,7 @@ export class Avatar {
     const moving = this.walkSpeed > 0.05;
     this.walkBlend = damp(this.walkBlend, moving ? Math.min(1, this.walkSpeed / 3.2) : 0, 12, dt);
     if (moving) this.phase += dt * (5.5 + this.walkSpeed * 1.6);
-    const sw = Math.sin(this.phase) * 0.75 * this.walkBlend;
+    const sw = Math.sin(this.phase) * 0.75 * this.walkBlend * this.stride;
     this.legL.rotation.x = -sw;
     this.legR.rotation.x = sw;
     this.armL.rotation.x = sw * 0.85;
@@ -344,7 +444,7 @@ export class Avatar {
     let lean = 0;
     if (this.bowT < 1) {
       this.bowT = Math.min(1, this.bowT + dt / 1.5);
-      lean = Math.sin(Math.PI * ease(this.bowT)) * 0.55;
+      lean = Math.sin(Math.PI * ease(this.bowT)) * this.bowDepth;
     }
     this.upper.rotation.x = lean + this.walkBlend * 0.06;
 
@@ -366,6 +466,28 @@ export class Avatar {
       this.armL.rotation.z = -(0.07 + k * (2.4 + Math.sin(t * 13) * 0.25));
     } else {
       this.armL.rotation.z = -0.07;
+    }
+    // a two-handed gesture overrides both arms: up before the chest, the hands meet (a clap) or hold the rope and shake it
+    if (this.handsT > 0) {
+      this.handsT = Math.max(0, this.handsT - dt);
+      const dur = this.hands === 'clap' ? CLAP_S : ROPE_S;
+      const e = dur - this.handsT; // elapsed
+      const k = ease(Math.min(1, e / 0.22, this.handsT / 0.22));
+      let pitch: number;
+      let inward: number;
+      if (this.hands === 'clap') {
+        // apart while rising, then together at 45% of the clap, and held
+        const together = e > dur * 0.45 ? 1 : ease(Math.max(0, (e - dur * 0.3) / (dur * 0.15)));
+        pitch = -1.42;
+        inward = 0.3 + 0.27 * together;
+      } else {
+        pitch = -1.9 + Math.sin(e * 17) * 0.13 * Math.min(1, e / 0.3);
+        inward = 0.5;
+      }
+      this.armL.rotation.x = pitch * k;
+      this.armR.rotation.x = pitch * k;
+      this.armL.rotation.z = -0.07 + (inward + 0.07) * k;
+      this.armR.rotation.z = 0.07 - (inward + 0.07) * k;
     }
 
     // face

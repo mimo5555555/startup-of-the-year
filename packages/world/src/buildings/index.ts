@@ -15,8 +15,8 @@ import { buildRamen } from './ramen';
 import { buildSchool } from './school';
 import { buildStation } from './station';
 
-export type { RideKind, RideMaterials } from './rides';
-export { buildRide } from './rides';
+export type { RideKind, RideMaterials, RideSkin } from './rides';
+export { buildRide, RIDE_SKINS } from './rides';
 
 /** Builds one open-front shop diorama for its `ShopDef`. */
 export type BuildingBuilder = (ctx: BuildCtx, shop: ShopDef) => void;

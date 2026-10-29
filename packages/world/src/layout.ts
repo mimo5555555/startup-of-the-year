@@ -221,6 +221,34 @@ export const SPOTS: SpotDef[] = [
 /** Spots that contain the point (a spot at a pick-less place has no sparkle, so the world polls this). */
 export const spotsAt = (x: number, z: number, spots: readonly SpotDef[] = SPOTS): SpotDef[] => spots.filter((s) => Math.hypot(x - s.x, z - s.z) <= s.r);
 
+/**
+ * The shrine (桜町神社, Goen stage 1, docs/GOEN.md) just inside the park's torii: west of the path, its hall facing east across it.
+ * The colliders touch each other, the hedge or leave >= 0.84 m (the player's width), so there is no slit to get stuck in: the box's
+ * collider runs back to the hall's front and north to the ema rack, which stands against the hedge and the hall.
+ */
+export const SHRINE = {
+  /** the hall (haiden front): its back wall is at x0, its front (the lattice doors) faces +x at x1; flush with the hedge at z0 */
+  hall: { x0: -20.6, x1: -18.4, z0: 9.95, z1: 12.75 } as Rect,
+  /** the saisen box's collider (the box itself is x -18.35..-17.8, z 10.85..11.85) */
+  box: { x0: -18.4, x1: -17.75, z0: 10.35, z1: 11.85 } as Rect,
+  /** the ema rack against the hedge, its plaques facing south */
+  ema: { x0: -18.4, x1: -17.3, z0: 9.95, z1: 10.35 } as Rect,
+  /** the chōzuya (water basin under a little roof), long side facing the path */
+  chozuya: { x0: -16.95, x1: -16.15, z0: 13.2, z1: 14.3 } as Rect,
+  /** where the worshipper stands for the ritual: in front of the box, facing it (west) */
+  stand: { x: -17.3, z: 11.35, heading: -Math.PI / 2 },
+  /** the moved park bin (it stood on the line from the path to the box) */
+  bin: { x: -14.9, z: 13.1 },
+};
+export const SHRINE_BOX_PICK = 'shrine:box';
+export const SHRINE_CHOZUYA_PICK = 'shrine:chozuya';
+/** the ray picks: the box (with the bell rope above it) opens the Shrine panel, the basin the shrine manners card */
+export const SHRINE_PICKS: ReadonlyArray<{ id: string; x: number; y: number; z: number; radius: number }> = [
+  { id: SHRINE_BOX_PICK, x: -18.0, y: 1.05, z: 11.35, radius: 1.0 },
+  { id: SHRINE_CHOZUYA_PICK, x: -16.55, y: 0.95, z: 13.75, radius: 0.8 },
+];
+export const shrineColliders = (): Rect[] => [SHRINE.hall, SHRINE.box, SHRINE.ema, SHRINE.chozuya].map((r) => ({ ...r }));
+
 export interface VendingDef {
   x: number;
   z: number;
@@ -270,5 +298,6 @@ export function layoutColliders(): Array<{ id: string; rect: Rect }> {
   for (const x of LAMPS.northX) out.push({ id: `lamp:n:${x}`, rect: boxRect(x, LAMPS.northZ, LAMPS.size, LAMPS.size) });
   for (const x of LAMPS.southX) out.push({ id: `lamp:s:${x}`, rect: boxRect(x, LAMPS.southZ, LAMPS.size, LAMPS.size) });
   for (const x of POLES.x) out.push({ id: `pole:${x}`, rect: boxRect(x, POLES.z, POLES.size, POLES.size) });
+  shrineColliders().forEach((rect, i) => out.push({ id: `shrine:${['hall', 'box', 'ema', 'chozuya'][i]}`, rect }));
   return out;
 }

@@ -1,6 +1,6 @@
 export { TokyoWorld, MAX_STEP, shopIdOf } from './world';
 export type { WorldEvent, WorldOptions, WorldSnapshot, Badge, Quality } from './world';
-export { Avatar, DEFAULT_PLAYER } from './avatar';
+export { Avatar, DEFAULT_PLAYER, KIMONO_ACCESSORY, KIMONO_MOMIJI_LOOK } from './avatar';
 export {
   BOUNDS,
   FRONT_Z,
@@ -11,14 +11,20 @@ export {
   SPOTS,
   DOOR_RETURN,
   SHOP_COUNTERS,
+  SHRINE,
+  SHRINE_BOX_PICK,
+  SHRINE_CHOZUYA_PICK,
+  SHRINE_PICKS,
   spotsAt,
 } from './layout';
 export type { Rect, MapRect, ShopDef, NpcSpawn, SpawnSite, DoorId, DoorDef, SpotId, SpotDef } from './layout';
 export { TOKYO_DISTRICT } from './district';
 export type { District } from './district';
 export type { BuildCtx, Pickable } from './buildctx';
-export { SHOP_BUILDERS, FRONT_OVERRIDES, FRONT_STYLES } from './buildings';
-export type { BuildingBuilder, FrontOverride, FrontInfo, FrontStyle, RideKind } from './buildings';
+export { SHOP_BUILDERS, FRONT_OVERRIDES, FRONT_STYLES, RIDE_SKINS } from './buildings';
+export type { BuildingBuilder, FrontOverride, FrontInfo, FrontStyle, RideKind, RideSkin } from './buildings';
+export { SHRINE_RITUAL_STEPS } from './buildings/shrine';
+export type { ShrineRitualStep } from './buildings/shrine';
 export {
   DAY_LIGHTING,
   DUSK_LIGHTING,
@@ -41,6 +47,7 @@ export {
   OWN_STAGES,
   DORM_SLOTS,
   ONO_SLOTS,
+  DECOR_IDS,
   FURNITURE_IDS,
   FURNITURE_SLOT,
   parseSlotPick,
