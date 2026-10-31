@@ -22,6 +22,12 @@ export const en = {
   'gn.reason.journey': 'the Kyoto Journey',
   'gn.reason.other': 'a new connection',
 
+  // the game's Goen toasts when its own strings are missing (bridge.routeEffects falls back to these)
+  'gn.toast.charm': 'Your omamori kept your speaking streak alive. Charms left: {left}',
+  'gn.toast.tier': 'Season tier {tier} reached!',
+  'gn.toast.journeyDone': 'Journey complete! +{n} Goen',
+  'gn.toast.task': 'Season task done: {task}',
+
   // the streak charm
   'gn.charm.title': 'Streak charm (お守り)',
   'gn.charm.count': 'You hold {n} of {max}. Each one keeps your speaking streak alive for one missed day, by itself.',
@@ -153,6 +159,10 @@ export const ar: Record<keyof typeof en, string> = {
   'gn.reason.journey': 'رحلة كيوتو',
   'gn.reason.other': 'صلة جديدة',
 
+  'gn.toast.charm': 'حفظت تميمتك سلسلة كلامك. التمائم الباقية: {left}',
+  'gn.toast.tier': 'وصلت إلى المستوى {tier} من الموسم!',
+  'gn.toast.journeyDone': 'اكتملت الرحلة! +{n} غوإن',
+  'gn.toast.task': 'أنجزت مهمة الموسم: {task}',
   'gn.charm.title': 'تميمة السلسلة (お守り)',
   'gn.charm.count': 'معك {n} من {max}. كل واحدة تحفظ سلسلة كلامك ليوم واحد فاتك، تلقائيًا.',
   'gn.charm.saved': 'حفظت تميمتك سلسلتك البالغة {n} أيام.',

@@ -15,7 +15,7 @@ import {
   type UiEffect,
 } from '@lw/game';
 import { LEXICON, entryToToken, festivalReturned, plainText, romajiText, scenarioById, tokenize } from '@lw/content';
-import { translate, type StringKey } from '../i18n';
+import { STRINGS, translate, type StringKey } from '../i18n';
 import { blip, haptic } from '../services';
 import { setLoopFactsHook, setStreakCharmHook, flushNow, useStore, type VocabItem } from '../store';
 import { useUi, type ConvoRequest, type ScreenArgs } from '../ui';
@@ -112,6 +112,14 @@ function queueHeartBeats(derived: DerivedEvent[]): void {
   }
 }
 
+/** A Goen toast whose game-side string is missing says the app's own line (`gn.toast.*`), never the raw key. */
+function toastKey(key: string): StringKey {
+  if (key in STRINGS.en) return key as StringKey;
+  const m = key.match(/^goen\.toast\.(\w+)$/);
+  const alt = m ? `gn.toast.${m[1]}` : null;
+  return (alt && alt in STRINGS.en ? alt : key) as StringKey;
+}
+
 /** Applies what the reducer asked the app to do (exported for tests; screens call `dispatch`). */
 export function routeEffects(effects: UiEffect[]): void {
   const st = useStore.getState();
@@ -120,7 +128,7 @@ export function routeEffects(effects: UiEffect[]): void {
       case 'toast':
         // Goen earned is said once, with its reason, by `announceGoen`; the other Goen toasts name their task / tier in the player's language
         if (e.key === 'goen.toast.earned') break;
-        st.say(translate(st.uiLang, e.key as StringKey, goenToastVars(PACK, e.key, e.vars, st.uiLang)), 'good');
+        st.say(translate(st.uiLang, toastKey(e.key), goenToastVars(PACK, e.key, e.vars, st.uiLang)), 'good');
         break;
       case 'fanfare':
         blip(e.kind === 'purchase' ? 'good' : 'level', st.settings.autoSpeak);
