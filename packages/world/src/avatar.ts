@@ -41,6 +41,7 @@ const ease = (x: number) => x * x * (3 - 2 * x);
 /** how long one clap and one rope shake take, in seconds */
 const CLAP_S = 0.85;
 const ROPE_S = 1.3;
+const TOSS_S = 0.75;
 const damp = (current: number, target: number, rate: number, dt: number) => current + (target - current) * (1 - Math.exp(-rate * dt));
 
 interface EmotionLook {
@@ -86,7 +87,7 @@ export class Avatar {
   private waveT = 0;
   /** a two-handed gesture (the shrine's clap, the bell rope): time left, its kind */
   private handsT = 0;
-  private hands: 'clap' | 'rope' = 'clap';
+  private hands: 'clap' | 'rope' | 'toss' = 'clap';
   /** a robe allows only small steps */
   private stride = 1;
   private blinkAt = 1 + Math.random() * 3;
@@ -399,6 +400,11 @@ export class Avatar {
     this.hands = 'clap';
     this.handsT = CLAP_S;
   }
+  /** the left arm (local +x) swings forward and up: a coin tossed into the box */
+  toss() {
+    this.hands = 'toss';
+    this.handsT = TOSS_S;
+  }
   /** both hands up on the bell rope, shaking it */
   ropeShake() {
     this.hands = 'rope';
@@ -470,12 +476,18 @@ export class Avatar {
     // a two-handed gesture overrides both arms: up before the chest, the hands meet (a clap) or hold the rope and shake it
     if (this.handsT > 0) {
       this.handsT = Math.max(0, this.handsT - dt);
-      const dur = this.hands === 'clap' ? CLAP_S : ROPE_S;
+      const dur = this.hands === 'clap' ? CLAP_S : this.hands === 'rope' ? ROPE_S : TOSS_S;
       const e = dur - this.handsT; // elapsed
       const k = ease(Math.min(1, e / 0.22, this.handsT / 0.22));
-      let pitch: number;
-      let inward: number;
-      if (this.hands === 'clap') {
+      let pitch = 0;
+      let inward = 0;
+      if (this.hands === 'toss') {
+        // one arm: back a little, then forward and up past the shoulder as the coin leaves the hand (at ~35%)
+        const u = e / dur;
+        const swing = u < 0.2 ? (u / 0.2) * 0.35 : 0.35 - 2.15 * Math.sin((Math.PI / 2) * Math.min(1, (u - 0.2) / 0.25));
+        this.armR.rotation.x = swing * (1 - Math.max(0, (u - 0.6) / 0.4));
+        this.armR.rotation.z = 0.07 + 0.12 * k;
+      } else if (this.hands === 'clap') {
         // apart while rising, then together at 45% of the clap, and held
         const together = e > dur * 0.45 ? 1 : ease(Math.max(0, (e - dur * 0.3) / (dur * 0.15)));
         pitch = -1.42;
@@ -484,10 +496,12 @@ export class Avatar {
         pitch = -1.9 + Math.sin(e * 17) * 0.13 * Math.min(1, e / 0.3);
         inward = 0.5;
       }
-      this.armL.rotation.x = pitch * k;
-      this.armR.rotation.x = pitch * k;
-      this.armL.rotation.z = -0.07 + (inward + 0.07) * k;
-      this.armR.rotation.z = 0.07 - (inward + 0.07) * k;
+      if (this.hands !== 'toss') {
+        this.armL.rotation.x = pitch * k;
+        this.armR.rotation.x = pitch * k;
+        this.armL.rotation.z = -0.07 + (inward + 0.07) * k;
+        this.armR.rotation.z = 0.07 - (inward + 0.07) * k;
+      }
     }
 
     // face

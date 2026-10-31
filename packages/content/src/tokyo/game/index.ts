@@ -19,6 +19,8 @@ import { TITLES } from './titles';
 import { POCKETS } from './pockets';
 import { SCENARIO_META } from './meta';
 import { BEATS } from './beats';
+import { GOEN, SHRINE_SHOP } from './goen';
+import { KYOTO_MENU, KYOTO_SHOPS } from './journeys';
 
 /**
  * A shift row whose job is not in the pack is left out of the released table (Release 1 built the konbini shift only; the café and the station
@@ -46,9 +48,10 @@ export const JP_PACK: GamePack = {
   tax: JP_TAX,
   rules: JP_RULES,
   lang: JP_LANGUAGE,
-  menu: MENU,
+  // Goen stage 1 (docs/GOEN.md): the Kyoto Journey's temple and café rows and shops, the shrine's (sells nothing for yen)
+  menu: [...MENU, ...KYOTO_MENU],
   items: ITEMS,
-  shops: SHOPS,
+  shops: [...SHOPS, ...KYOTO_SHOPS, SHRINE_SHOP],
   fares: FARES,
   jobs: JOBS,
   // Release 2 wave C2 plays the whole story, chapters 1-8, then Free Walk (docs/RELEASE_1.md, RELEASE_2.md); the Dream picker offers the dreams that can be finished with it
@@ -67,4 +70,5 @@ export const JP_PACK: GamePack = {
   keepsakes: KEEPSAKES,
   // the closing of the last played chapter: Chapter 8's own ending (Hanako reads the Letter back) now that the whole story is released
   release: { lastChapter: RELEASE_LAST_CHAPTER, epilogue: RELEASE_CLOSING },
+  goen: GOEN,
 };

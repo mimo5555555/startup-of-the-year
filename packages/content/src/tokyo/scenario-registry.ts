@@ -13,6 +13,8 @@ import { JOBS_SCENARIOS } from './scenarios-jobs';
 import { FRIENDS_SCENARIOS } from './scenarios-friends';
 import { HEARTS_SCENARIOS } from './scenarios-hearts';
 import { STORY_SCENARIOS } from './scenarios-story';
+import { GOEN_SCENARIOS } from './scenarios-goen';
+import { KYOTO_SCENARIOS } from './scenarios-kyoto';
 
 export const SCENARIOS: Scenario[] = [
   ...CORE_SCENARIOS,
@@ -29,6 +31,8 @@ export const SCENARIOS: Scenario[] = [
   ...FRIENDS_SCENARIOS,
   ...HEARTS_SCENARIOS,
   ...STORY_SCENARIOS,
+  ...GOEN_SCENARIOS,
+  ...KYOTO_SCENARIOS,
 ];
 export const scenarioById = (id: string) => SCENARIOS.find((s) => s.id === id);
 /** Every scenario a character hosts (a character may own several; `Character.scenarioId` is only the default). */

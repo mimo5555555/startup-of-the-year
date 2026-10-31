@@ -22,7 +22,8 @@ export const AIKO_MOTORS_META: ScenarioMeta[] = [
       itemSlot: 'giftItem',
       payStep: 'pay',
       // the lantern fund (svc_lantern) is not sold: it needs a service sink, see the report
-      itemMap: { flower: 'g_flower', wagashi: 'g_wagashi', teaSet: 'g_tea_set', tenugui: 'g_tenugui' },
+      // `kuri`: the autumn sweet of Goen stage 1 (the season task au_kuri)
+      itemMap: { flower: 'g_flower', wagashi: 'g_wagashi', teaSet: 'g_tea_set', tenugui: 'g_tenugui', kuri: 'g_kuri_manju' },
     },
   },
   // browse the garage and decline politely: no purchase, so no `shop` block (and no yen: `pay` is still 'full' for the loop pay of the talk)

@@ -53,7 +53,7 @@ export function beginKyoto(now: number = Date.now()): boolean {
 export function returnFromKyoto(): void {
   dispatch({ t: 'trip_done', id: KYOTO.place });
   useKyoto.getState().setAway(null);
-  const world = (window as unknown as { __world?: { teleportNear(id: string): void } }).__world;
+  const world = typeof window === 'undefined' ? undefined : (window as unknown as { __world?: { teleportNear(id: string): void } }).__world;
   world?.teleportNear('sato');
 }
 

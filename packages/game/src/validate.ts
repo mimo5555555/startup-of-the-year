@@ -202,8 +202,10 @@ function level1(pack: GamePack, out: Out): void {
   for (const [id, p] of Object.entries(pack.pockets)) if (p.id !== id) add(out, 1, 'id_mismatch', `pockets.${id}.id`, `pocket key "${id}" and its id "${p.id}" differ`);
   pack.menu.forEach((m, i) => m.id !== `${m.shop}:${m.option}` && add(out, 1, 'id_mismatch', `menu[${i}].id`, `menu id "${m.id}" must be "${m.shop}:${m.option}"`));
 
+  // a Goen item (a shrine look, a season reward) has no yen price: it is 0 and never sold for yen
+  const goenOnly = goenGrantedItems(pack);
   pack.items.forEach((i, ix) => {
-    if (!isInt(i.price) || i.price < 1) add(out, 1, 'price', `items[${ix}].price`, `price of ${i.id} must be a whole number of at least 1`);
+    if (goenOnly.has(i.id) ? i.price !== 0 : !isInt(i.price) || i.price < 1) add(out, 1, 'price', `items[${ix}].price`, goenOnly.has(i.id) ? `${i.id} is granted by Goen: its yen price is 0` : `price of ${i.id} must be a whole number of at least 1`);
     if (i.body !== undefined && (!isInt(i.body) || i.body < 1 || i.body > i.price)) add(out, 1, 'price', `items[${ix}].body`, `body price of ${i.id} must be a whole number between 1 and the price`);
     if (!isInt(i.gate.ch) || i.gate.ch < 1 || i.gate.ch > BALANCE.freeWalkChapter) add(out, 1, 'gate_range', `items[${ix}].gate.ch`, `gate chapter of ${i.id} is 1-${BALANCE.freeWalkChapter}`);
     if (i.gate.ageMin !== undefined && (!isInt(i.gate.ageMin) || i.gate.ageMin < 0)) add(out, 1, 'gate_range', `items[${ix}].gate.ageMin`, `ageMin of ${i.id} is a whole number`);
@@ -946,7 +948,7 @@ function goenChecks(pack: GamePack, out: Out, index?: ContentIndex): void {
     if (!isInt(c.price) || c.price < 1) add(out, 1, 'goen_price', `${path}.price`, `${c.id}: a price is a whole number of Goen, at least 1`);
     gloss(out, 1, `${path}.name`, c.name);
     gloss(out, 1, `${path}.gives`, c.gives);
-    if (!c.wish?.ja?.includes('ますように')) add(out, 1, 'goen_wish', `${path}.wish`, `${c.id}: the wish is 「…ますように。」`);
+    if (!c.wish?.ja?.replace(/\|/g, '').includes('ますように')) add(out, 1, 'goen_wish', `${path}.wish`, `${c.id}: the wish is 「…ますように。」`);
   });
   if (g.catalog.filter((c) => c.kind === 'charm').length > 1) add(out, 1, 'goen_charm', 'goen.catalog', 'one streak charm row at most');
   if (g.omikuji.length > 0 && !g.omikuji.some((f) => f.weight > 0)) add(out, 1, 'omikuji', 'goen.omikuji', 'at least one fortune needs a weight above 0');

@@ -11,7 +11,7 @@ import { yenToJa } from './game/jp-language';
 // The flat (aiko_viewing, aiko_contract) is not in this wave.
 
 /** Fixed prices (yen, tax included) of the no-hooks fallback variants; they equal the catalog rows of §5.3 (checked in the tests). */
-export const AIKO_PRICES: Record<string, number> = { flower: 1500, wagashi: 1280, teaSet: 1500, tenugui: 1100 };
+export const AIKO_PRICES: Record<string, number> = { flower: 1500, wagashi: 1280, teaSet: 1500, tenugui: 1100, kuri: 600 };
 
 /** What each friend is recommended: a present that friend LOVES (the tests check this against the taste table). */
 export const AIKO_RECOMMENDS: Record<string, string> = { mio: 'wagashi', yuki: 'teaSet', tanaka: 'wagashi', sato: 'teaSet', kenji: 'tenugui', hanako: 'flower' };

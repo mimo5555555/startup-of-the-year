@@ -47,7 +47,7 @@ export function VoiceHint({ report, sttError, where, ua }: VoiceHintProps) {
   const line = voiceLine(ua ?? currentUa(), r, sttError);
   if (!line) return null;
   return (
-    <div className={`voice-hint ${where}`} role="note" data-voice-hint={line.id}>
+    <div className={`voice-hint at-${where}`} role="note" data-voice-hint={line.id}>
       <Icon name={line.id === 'no-ja' ? 'volume' : 'mic'} size={18} />
       <p dir="auto">
         <strong>{t(line.key)}</strong>

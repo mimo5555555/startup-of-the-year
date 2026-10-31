@@ -47,7 +47,11 @@ export function WishRitual() {
   const item = ritual ? PACK.goen?.catalog.find((c) => c.id === ritual.itemId) : undefined;
   const step = ritual?.step;
 
-  // the celebration's shimmer over the hall
+  // the ritual opens at the box: the player steps up and rings the bell (鈴) to greet the shrine; the celebration ends with a shimmer
+  const itemId = ritual?.itemId;
+  useEffect(() => {
+    if (itemId && useShrine.getState().ritual?.step === 'coin') play(world, 'bell');
+  }, [itemId, world]);
   useEffect(() => {
     if (step === 'done') play(world, 'done');
   }, [step, world]);
@@ -75,8 +79,6 @@ export function WishRitual() {
     play(world, 'coin');
     blip('good', useStore.getState().settings.autoSpeak);
     haptic(14);
-    // the bell rope after the coin, then the bows and claps
-    setTimeout(() => play(world, 'bell'), 900);
     patch({ step: 'taps', done: 0, hint: null });
   };
 
@@ -94,8 +96,8 @@ export function WishRitual() {
 
   const wish = () => {
     patch({ step: 'wish' });
-    // the one model line is the item's wish (the scenario reads the request's item); typed or spoken, pay none
-    startConversation({ scenarioId: WISH_SCENARIO, characterId: WISH_HOST, itemId: item.id });
+    // the one model line is the item's wish (its start node `wish_<itemId>`); typed or spoken, pay none
+    startConversation({ scenarioId: WISH_SCENARIO, characterId: WISH_HOST, startNode: `wish_${item.id}` });
   };
 
   const next = nextStepOf(PACK, item.itemId ?? item.id);

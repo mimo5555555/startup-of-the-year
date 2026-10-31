@@ -16,6 +16,8 @@ import { CULTURE_PHRASES } from './culture';
 import { HOME_PHRASES } from './home';
 import { TRIP_PHRASES } from './trip';
 import { MATSURI_PHRASES } from './matsuri';
+import { GOEN_PHRASES } from './goen';
+import { KYOTO_PHRASES } from './kyoto';
 
 export { P } from './helpers';
 
@@ -37,4 +39,6 @@ export const PHRASEBOOK: PhraseEntry[] = [
   ...HOME_PHRASES,
   ...TRIP_PHRASES,
   ...MATSURI_PHRASES,
+  ...GOEN_PHRASES,
+  ...KYOTO_PHRASES,
 ];

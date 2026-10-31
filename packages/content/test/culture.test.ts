@@ -8,6 +8,8 @@ const KINDS: CultureOn[] = ['shop_start', 'talk_start', 'scenario_done', 'paymen
 const IDS = [
   'cc_irasshaimase', 'cc_bow', 'cc_konbini', 'cc_notip', 'cc_itadakimasu', 'cc_vending', 'cc_name', 'cc_gift', 'cc_hanami', 'cc_keigo', 'cc_points', 'cc_tax',
   'cc_taxfree', 'cc_ic', 'cc_trainmanner', 'cc_ticketmachine', 'cc_refuse', 'cc_bikereg', 'cc_shoesoff', 'cc_rent', 'cc_shaken', 'cc_matsuri', 'cc_trash',
+  // Goen stage 1 (docs/GOEN.md): the shrine at the park's torii
+  'cc_goen', 'cc_sanpai',
 ];
 const SAY = ['cc_bow', 'cc_itadakimasu', 'cc_gift', 'cc_keigo', 'cc_ic', 'cc_trainmanner', 'cc_refuse', 'cc_shoesoff'];
 const hasAr = (s: string) => /[؀-ۿ]/.test(s);

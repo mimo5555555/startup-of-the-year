@@ -314,7 +314,8 @@ describe('every offered suggestion works', () => {
         // (the Motors tests walk it with hooks)
         const problems = NEEDS_TOTAL.has(sc.id) ? all.filter((p) => !/\/(confirm|wrong_total)\/#\d+: unresolved variable$/.test(p)) : all;
         expect(problems).toEqual([]);
-        expect(nodes).toBeGreaterThan(2);
+        // the shrine's wish is one node per entry (its item's wish, the free wish): walked node by node in goen-scenarios.test.ts
+        expect(nodes).toBeGreaterThan(sc.id === 'shrine_wish' ? 0 : 2);
       });
     }
   }

@@ -1,4 +1,7 @@
 import { describe, expect, it } from 'vitest';
+import { renderToStaticMarkup } from 'react-dom/server';
+import { createElement } from 'react';
+import { VoiceHint } from '../src/components/VoiceHint';
 import type { AudioReport } from '@lw/engine';
 import { STRINGS } from '../src/i18n';
 import { inAppBrowser, sttErrorKey, voiceLine, voiceMissing } from '../src/voiceHelp';
@@ -92,5 +95,18 @@ describe('the one line of voice guidance', () => {
     expect(STRINGS.en['audio.mic.err.siri' as never]).toContain('Siri & Dictation');
     expect(STRINGS.en['audio.fix.noJa.ios' as never]).toContain('Settings > Accessibility > Spoken Content > Voices > Japanese');
     expect(STRINGS.en['audio.fix.noJa.android' as never]).toMatch(/Text-to-speech.*Google.*Install voice data > Japanese/);
+  });
+});
+
+describe('the hint as a component', () => {
+  it('in the conversation it is a plain block: never the `convo` class of the conversation overlay (regression: it covered the sheet)', () => {
+    const out = renderToStaticMarkup(createElement(VoiceHint, { where: 'convo', report: report({ ja: 0 }) as AudioReport, ua: UA.chromeAndroid }));
+    expect(out).toContain('data-voice-hint="no-ja"');
+    const cls = out.match(/class="([^"]+)"/)![1]!.split(' ');
+    expect(cls).not.toContain('convo');
+    expect(cls).not.toContain('check');
+    const inApp = renderToStaticMarkup(createElement(VoiceHint, { where: 'check', report: report({ stt: false }) as AudioReport, ua: UA.instagramIos }));
+    expect(inApp).toContain('data-copy-link');
+    expect(inApp).toContain('Safari / Chrome');
   });
 });

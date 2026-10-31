@@ -10,6 +10,7 @@ import { FRIENDS_META } from './meta-friends';
 import { HEARTS_META } from './meta-hearts';
 import { STORY_META } from './meta-story';
 import { HOME_META } from './meta-home';
+import { GOEN_META } from './meta-goen';
 
 /** Registry rule (docs/GAME_DESIGN.md §15.1): one part file per owner, spread here. */
 export const SCENARIO_META: ScenarioMeta[] = [
@@ -24,4 +25,5 @@ export const SCENARIO_META: ScenarioMeta[] = [
   ...HEARTS_META,
   ...STORY_META,
   ...HOME_META,
+  ...GOEN_META,
 ];

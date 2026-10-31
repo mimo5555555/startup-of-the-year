@@ -294,4 +294,68 @@ export const ITEMS: ItemDef[] = [
   // ---- Kato's souvenir shop in Hikarigaoka (Release 2 wave C1): the trip opens in Chapter 5 ----
   // (also the station desk's bonus for a perfect shift, `job_station`: a gift the hand-over can name, since it has a sale route)
   gift('g_souvenir', 'お土産', 'おみやげ', 'Souvenir (omiyage)', 'هدية تذكارية (أوميياغي)', 1000, 'kato', 5, ['travel', 'sweet']),
+
+  // ---- Goen stage 1 (docs/GOEN.md) ----
+  // Aiko's autumn sweet (the season task au_kuri), sold by aiko_tea from Chapter 2 with her other presents
+  gift('g_kuri_manju', '栗まんじゅう', 'くりまんじゅう', 'Chestnut manjū (autumn sweet)', 'مانجو الكستناء (حلوى الخريف)', 600, 'aiko', 2, ['sweet', 'tradition', 'autumn']),
+  // the Kyoto souvenir, sold at the matcha café of the Kyoto Journey (kyoto_matcha): a present a friend can be given
+  gift('g_yatsuhashi', '八ツ橋', 'やつはし', 'Yatsuhashi (Kyoto sweets box)', 'ياتسوهاشي (علبة حلويات من كيوتو)', 1000, 'kyoto_cafe', 1, ['travel', 'sweet', 'tradition']),
+  // the shrine's looks and the autumn season's premium rewards: granted by Goen (the shrine's shop sells nothing for yen), so price 0
+  {
+    id: 'kimono_momiji',
+    name: { ja: '紅葉の着物', reading: 'もみじのきもの', en: 'Autumn-leaf kimono', ar: 'كيمونو أوراق الخريف' },
+    price: 0,
+    cat: 'clothing',
+    shop: 'shrine',
+    gate: { ch: 1 },
+    // worn like the yukata: robe = top, hem band = bottom, obi = accent, zori = shoes; the world draws the long robe for the `kimono` accessory
+    fx: [{ t: 'avatar', patch: { top: '#c4472b', bottom: '#8f2f24', accent: '#e9b949', shoes: '#6b4a3c', accessory: 'kimono' } }],
+    tags: ['clothing', 'top', 'bottom', 'kimono'],
+    once: true,
+  },
+  {
+    id: 'room_momiji',
+    name: { ja: '紅葉の飾り', reading: 'もみじのかざり', en: 'Autumn room decor (momiji bonsai)', ar: 'زينة الخريف (بونساي موميجي)' },
+    price: 0,
+    cat: 'home',
+    shop: 'shrine',
+    gate: { ch: 1 },
+    // the dorm and the flat both have the plant slot
+    fx: [{ t: 'home', slot: 'plant', comfort: 1 }],
+    tags: ['home', 'decor', 'autumn'],
+    once: true,
+  },
+  {
+    id: 'ride_sakura',
+    name: { ja: '桜のペイント', reading: 'さくらのペイント', en: 'Sakura paint (bike and e-bike)', ar: 'طلاء ساكورا (الدراجة والدراجة الكهربائية)' },
+    price: 0,
+    cat: 'transport',
+    shop: 'shrine',
+    gate: { ch: 1 },
+    fx: [{ t: 'cosmetic', id: 'ride_sakura' }],
+    tags: ['cosmetic', 'ride'],
+    once: true,
+  },
+  {
+    id: 'scarf_momiji',
+    name: { ja: '紅葉のマフラー', reading: 'もみじのマフラー', en: 'Momiji scarf', ar: 'وشاح موميجي' },
+    price: 0,
+    cat: 'clothing',
+    shop: 'shrine',
+    gate: { ch: 1 },
+    fx: [{ t: 'avatar', patch: { accessory: 'scarf' } }],
+    tags: ['clothing', 'accessory', 'autumn'],
+    once: true,
+  },
+  {
+    id: 'plant_momiji',
+    name: { ja: '秋の鉢植え', reading: 'あきのはちうえ', en: 'Autumn room plant', ar: 'نبتة خريفية للغرفة' },
+    price: 0,
+    cat: 'home',
+    shop: 'shrine',
+    gate: { ch: 1 },
+    fx: [{ t: 'home', slot: 'plant', comfort: 1 }],
+    tags: ['home', 'decor', 'autumn'],
+    once: true,
+  },
 ];

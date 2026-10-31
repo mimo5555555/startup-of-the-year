@@ -53,7 +53,7 @@ export interface SlotOption {
 }
 
 export type HairStyle = 'short' | 'bob' | 'ponytail' | 'bun' | 'spiky' | 'long' | 'bald';
-export type Accessory = 'apron' | 'glasses' | 'headband' | 'cap' | 'scarf' | 'backpack' | 'camera' | 'tie' | 'mask' | 'beanie' | 'helmet';
+export type Accessory = 'apron' | 'glasses' | 'headband' | 'cap' | 'scarf' | 'backpack' | 'camera' | 'tie' | 'mask' | 'beanie' | 'helmet' | 'kimono';
 
 export interface AvatarSpec {
   skin: string;

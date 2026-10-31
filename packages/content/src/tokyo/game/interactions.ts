@@ -45,6 +45,8 @@ export const INTERACTIONS: Record<string, Interaction[]> = {
     scenario('sato_ic', 'station_ic', 'Get or top up an IC card', 'احصل على بطاقة IC أو اشحنها'),
     scenario('sato_way', 'sato_directions', 'Ask the way', 'اسأل عن الطريق', { ch: 3 }),
     { id: 'trip_hikarigaoka', kind: 'trip', scenarioId: 'trip_hikarigaoka', label: { en: 'Take the train', ar: 'اركب القطار' }, ch: 5 },
+    // the Kyoto Journey (Goen stage 1): listed only while it is owned; the app charges the Shinkansen round trip in yen, then the Kyoto map
+    { id: 'trip_kyoto', kind: 'trip', scenarioId: 'kyoto_ryokan', label: { en: 'Kyoto by Shinkansen', ar: 'إلى كيوتو بالشينكانسن' }, gate: { k: 'goen', item: 'journey_kyoto' } },
     shift('sato', 'job_station', 5),
     talk('sato'),
     gift('sato'),
@@ -101,4 +103,10 @@ export const INTERACTIONS: Record<string, Interaction[]> = {
   ],
   // trip only: no spawn in the district, the trip panel starts this scenario
   kato: [scenario('kato_trip', 'trip_hikarigaoka', 'Chat with Kato', 'تحدّث مع كاتو')],
+  // the Kyoto Journey's three conversations (Goen stage 1), started from the Kyoto map of the trip panel
+  fujiwara: [scenario('fujiwara_checkin', 'kyoto_ryokan', 'Check in', 'سجّل الوصول', { gate: { k: 'goen', item: 'journey_kyoto' } })],
+  ishida: [scenario('ishida_counter', 'kyoto_temple', 'At the temple counter', 'عند شبّاك المعبد', { gate: { k: 'goen', item: 'journey_kyoto' } })],
+  mori: [scenario('mori_cafe', 'kyoto_matcha', 'Order matcha', 'اطلب الماتشا', { gate: { k: 'goen', item: 'journey_kyoto' } })],
+  // the shrine's wish (the Shrine panel starts it with the chosen item's `startNode`, wish_<itemId>)
+  kannushi: [scenario('kannushi_wish', 'shrine_wish', 'Make a wish', 'تمنَّ أمنية')],
 };

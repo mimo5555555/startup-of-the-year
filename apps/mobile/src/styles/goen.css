@@ -1255,9 +1255,15 @@ html[dir='rtl'] .kyo-host {
   grid-column: 1 / -1;
   min-height: 44px;
 }
-.voice-hint.check {
+.voice-hint.at-check {
   margin-top: 10px;
 }
-.voice-hint.convo {
-  margin: 4px 0 8px;
+/* in the first conversation: compact, it scrolls away with the messages (regression: the class was `convo`, which is the conversation
+   overlay's own class, and the line covered the whole sheet) */
+.voice-hint.at-convo {
+  flex: none;
+  margin: 0 0 4px;
+  padding: 8px 10px;
+  font-size: 12.5px;
+  line-height: 1.4;
 }

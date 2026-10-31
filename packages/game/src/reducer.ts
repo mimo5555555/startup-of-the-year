@@ -6,7 +6,7 @@ import { BALANCE } from './balance';
 import { updateDaily, swapDaily } from './daily';
 import { emptyFriend, emptyPay } from './defaults';
 import { availableDreams } from './dreams';
-import { drawOmikuji, emptyGoen, spendGoen, updateGoen, useCharm } from './goen';
+import { drawOmikuji, emptyGoen, goenOwns, spendGoen, updateGoen, useCharm } from './goen';
 import { applyGift, applyHeartEvent, applyTalk, contactOpen, queueThreads } from './friends';
 import { dedupe, localDateString, markActive, observeClock, payForDay } from './integrity';
 import { applyOutfit, arriveDeliveries, grantItem, hasFeature, placeItem } from './inventory';
@@ -595,7 +595,9 @@ function rollover(a: Acc, ctx: ReduceCtx): void {
 function onFare(a: Acc, ev: Extract<InputEvent, { t: 'fare' }>, ctx: ReduceCtx): void {
   const { pack } = ctx;
   const unit = fareFor(pack, a.s, ev.place, ev.method);
-  if (pack.fares[ev.place] === undefined || !(unit > 0)) {
+  // a Journey's trip (Kyoto) is ridden only by the Journey's owner (docs/GOEN.md): nobody pays for a ticket that leads to nothing
+  const journey = pack.goen?.journeys.find((j) => j.trip === ev.place);
+  if (pack.fares[ev.place] === undefined || !(unit > 0) || (journey && !goenOwns(a.s, journey.itemId))) {
     a.effective = false;
     return;
   }

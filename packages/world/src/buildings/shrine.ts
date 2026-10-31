@@ -1,6 +1,6 @@
 // The shrine at the park's torii (桜町神社, Goen stage 1, docs/GOEN.md): a haiden front with a gabled copper roof, chigi and
 // katsuogi, a shimenawa, the saisen box (pick `shrine:box`) with the bell (鈴) and its rope above it, an ema rack against the hedge
-// and a chōzuya (pick `shrine:chozuya`) by the stepping stones from the path. The positions and colliders are layout data (SHRINE).
+// and a chōzuya (pick `shrine:chozuya`) just inside the torii, by the stepping stones from the path. The positions and colliders are layout data (SHRINE).
 //
 // Everything that stands still is merged into the city's two batches (no draw call of its own); the plaque is one textured plane
 // and the bell with its rope one small mesh (it sways). The ritual's coin and sparkle are two more objects that exist only while
@@ -45,6 +45,8 @@ const C = {
 
 /** the coin flies this long, then the sparkle on the box this long */
 const COIN_S = 0.8;
+/** the coin leaves the hand this long after 'coin' (the arm swings first) */
+const COIN_DELAY_S = 0.28;
 const SPARK_S = 0.6;
 /** the rope sways this long after 'bell', the shimmer after 'done' this long */
 const RING_S = 2.6;
@@ -81,7 +83,7 @@ export function buildShrine(ctx: BuildCtx): ShrineHandle {
   const ZW = H.z1 - H.z0;
 
   // ---- the precinct: gravel and stepping stones from the path ----
-  solid.boxB(-18.4, 0, 12.275, 5.0, 0.035, 4.65, C.gravel);
+  solid.boxB(-17.9, 0, 11.775, 6.0, 0.035, 3.65, C.gravel);
   for (const [i, x] of [-15.45, -14.8, -14.15].entries()) solid.disc(x, 0.045, SHRINE.stand.z + (i % 2 ? 0.12 : -0.1), 0.27 + R() * 0.04, i % 2 ? C.stone : C.stoneDark, { seg: 9 });
 
   // ---- the hall: stone base, deck, plaster walls, vermilion posts and beams ----
@@ -211,8 +213,8 @@ export function buildShrine(ctx: BuildCtx): ShrineHandle {
     for (const s of [1, -1]) solid.box(cx + s * 0.27, 2.08, cz, 0.62, 0.05, wz + 0.3, C.roof, { rz: -s * 0.43 });
     solid.box(cx, 2.2, cz, 0.1, 0.07, wz + 0.3, C.roofDark);
     // the basin: four stone walls round the water
-    const bw = 0.6;
-    const bd = 0.8;
+    const bw = Math.min(0.6, wx - 0.2);
+    const bd = Math.min(0.8, wz - 0.2);
     const t = 0.07;
     for (const s of [1, -1]) {
       solid.boxB(cx + (s * (bw - t)) / 2, 0, cz, t, 0.6, bd, C.stone);
@@ -267,7 +269,7 @@ export function buildShrine(ctx: BuildCtx): ShrineHandle {
 
   // the 5-yen coin (a brass ring) and the sparkle where it lands; both hidden until they play
   const coinB = new Batch();
-  coinB.torus(0, 0, 0, 0.045, 0.02, '#e8c04a');
+  coinB.torus(0, 0, 0, 0.055, 0.024, '#f0c850');
   const coin = coinB.build(ctx.glowMat, { cast: false, receive: false, name: 'shrine-coin' })!;
   coin.visible = false;
   group.add(coin);
@@ -281,22 +283,24 @@ export function buildShrine(ctx: BuildCtx): ShrineHandle {
 
   const boxTop = new THREE.Vector3((BOX.x0 + BOX.x1) / 2, BOX.h + 0.02, ZC);
   const from = new THREE.Vector3();
-  const defaultFrom = new THREE.Vector3(SHRINE.stand.x - 0.3, 1.05, SHRINE.stand.z);
-  let coinT = -1;
+  const defaultFrom = new THREE.Vector3(SHRINE.stand.x - 0.45, 1.3, SHRINE.stand.z + 0.2);
+  let coinOn = false;
+  let coinT = 0;
   let sparkT = -1;
   let ringT = -1;
   let shimmerT = -1;
 
   ctx.animate((dt) => {
-    if (coinT < 0 && sparkT < 0 && ringT < 0 && shimmerT < 0) return; // idle: nothing to do
-    if (coinT >= 0) {
+    if (!coinOn && sparkT < 0 && ringT < 0 && shimmerT < 0) return; // idle: nothing to do
+    if (coinOn) {
       coinT += dt;
-      const k = Math.min(1, coinT / COIN_S);
+      const k = Math.max(0, Math.min(1, coinT / COIN_S));
+      coin.visible = coinT >= 0;
       coin.position.lerpVectors(from, boxTop, k);
-      coin.position.y += Math.sin(Math.PI * k) * 0.32;
+      coin.position.y += Math.sin(Math.PI * k) * 0.55;
       coin.rotation.set(coinT * 13, 0.6, 0);
       if (k >= 1) {
-        coinT = -1;
+        coinOn = false;
         coin.visible = false;
         sparkT = 0;
       }
@@ -315,7 +319,7 @@ export function buildShrine(ctx: BuildCtx): ShrineHandle {
       const k = sparkT / SPARK_S;
       spark.visible = k < 1;
       spark.position.copy(boxTop).setY(boxTop.y + 0.12 + k * 0.2);
-      spark.scale.setScalar(0.2 + k * 0.55);
+      spark.scale.setScalar(0.35 + Math.sin(Math.PI * Math.min(1, k * 1.4)) * 0.5);
       sparkMat.opacity = Math.max(0, 1 - k);
       sparkMat.rotation = k * 3;
       if (k >= 1) sparkT = -1;
@@ -341,9 +345,10 @@ export function buildShrine(ctx: BuildCtx): ShrineHandle {
     play(step, at) {
       if (step === 'coin') {
         from.copy(at ?? defaultFrom);
-        coinT = 0;
+        coinOn = true;
+        coinT = -COIN_DELAY_S;
         sparkT = -1;
-        coin.visible = true;
+        coin.visible = false;
         coin.position.copy(from);
       } else if (step === 'bell') ringT = 0;
       else if (step === 'done') {
@@ -351,7 +356,7 @@ export function buildShrine(ctx: BuildCtx): ShrineHandle {
         if (ringT < 0) ringT = RING_S * 0.45; // a last gentle swing
       }
     },
-    busy: () => coinT >= 0 || sparkT >= 0 || ringT >= 0 || shimmerT >= 0,
+    busy: () => coinOn || sparkT >= 0 || ringT >= 0 || shimmerT >= 0,
     info() {
       let meshes = 0;
       let triangles = 0;

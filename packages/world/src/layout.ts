@@ -233,19 +233,21 @@ export const SHRINE = {
   box: { x0: -18.4, x1: -17.75, z0: 10.35, z1: 11.85 } as Rect,
   /** the ema rack against the hedge, its plaques facing south */
   ema: { x0: -18.4, x1: -17.3, z0: 9.95, z1: 10.35 } as Rect,
-  /** the chōzuya (water basin under a little roof), long side facing the path */
-  chozuya: { x0: -16.95, x1: -16.15, z0: 13.2, z1: 14.3 } as Rect,
+  /** the chōzuya (water basin under a little roof) by the entrance: against the hedge, the stone lantern and the vending machine */
+  chozuya: { x0: -15.85, x1: -14.95, z0: 9.95, z1: 10.85 } as Rect,
   /** where the worshipper stands for the ritual: in front of the box, facing it (west) */
   stand: { x: -17.3, z: 11.35, heading: -Math.PI / 2 },
-  /** the moved park bin (it stood on the line from the path to the box) */
-  bin: { x: -14.9, z: 13.1 },
+  /** where the friend who hears the wish stands (`setShrineGuest`): by the hall's south-east corner, turned to the worshipper */
+  guest: { x: -17.6, z: 13.4, face: 2.31 },
+  /** the moved park bin (it stood on the line from the path to the box, then in the ritual shot) */
+  bin: { x: -14.3, z: 15.6 },
 };
 export const SHRINE_BOX_PICK = 'shrine:box';
 export const SHRINE_CHOZUYA_PICK = 'shrine:chozuya';
 /** the ray picks: the box (with the bell rope above it) opens the Shrine panel, the basin the shrine manners card */
 export const SHRINE_PICKS: ReadonlyArray<{ id: string; x: number; y: number; z: number; radius: number }> = [
   { id: SHRINE_BOX_PICK, x: -18.0, y: 1.05, z: 11.35, radius: 1.0 },
-  { id: SHRINE_CHOZUYA_PICK, x: -16.55, y: 0.95, z: 13.75, radius: 0.8 },
+  { id: SHRINE_CHOZUYA_PICK, x: -15.4, y: 0.95, z: 10.4, radius: 0.8 },
 ];
 export const shrineColliders = (): Rect[] => [SHRINE.hall, SHRINE.box, SHRINE.ema, SHRINE.chozuya].map((r) => ({ ...r }));
 

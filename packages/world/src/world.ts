@@ -193,6 +193,8 @@ export class TokyoWorld {
   /** the shrine's wish ritual: how long its camera shot still holds (0: off), and the blend into it */
   private ritualHold = 0;
   private ritualBlend = 0;
+  /** the character standing by the shrine for the wish (`setShrineGuest`), or null */
+  private shrineGuest: string | null = null;
   private festivalTarget = 0;
   private festivalBlend = 0;
   private festivalScenery: FestivalPark | null = null;
@@ -560,14 +562,28 @@ export class TokyoWorld {
     this.player.setWalking(0);
     this.ritualHold = step === 'done' ? RITUAL_END_S : RITUAL_HOLD_S;
     const shrine = this.city.shrine;
-    if (step === 'coin') shrine.play('coin', new THREE.Vector3(st.x + Math.sin(st.heading) * 0.3, 1.05, st.z + Math.cos(st.heading) * 0.3));
-    else if (step === 'bow') this.player.bow(0.85);
+    if (step === 'coin') {
+      // from the tossing hand (the avatar's local +x side, forward of the shoulder)
+      const side = new THREE.Vector3(Math.cos(st.heading), 0, -Math.sin(st.heading));
+      shrine.play('coin', new THREE.Vector3(st.x + Math.sin(st.heading) * 0.45, 1.3, st.z + Math.cos(st.heading) * 0.45).addScaledVector(side, 0.2));
+      this.player.toss();
+    } else if (step === 'bow') this.player.bow(0.85);
     else if (step === 'clap') this.player.clap();
     else if (step === 'bell') {
       this.player.ropeShake();
       shrine.play('bell');
     } else shrine.play('done');
     return true;
+  }
+
+  /**
+   * Puts a character (Hanako, who hears the shrine wish) beside the shrine at `SHRINE.guest`, facing the box, so the wish's
+   * conversation happens there and not at their usual place; null sends them home. Moved like a festival guest (talk radius 2.4,
+   * never behind a shutter); a character who is a festival guest stays at the festival.
+   */
+  setShrineGuest(id: string | null) {
+    this.shrineGuest = id;
+    this.syncFestival();
   }
 
   /** The shrine's draw cost (its own meshes and sprites; the rest is merged into the street), picks, stand and ritual state. */
@@ -1483,6 +1499,8 @@ export class TokyoWorld {
         else if (i < FESTIVAL_SPOTS.guests.length) want.set(id, FESTIVAL_SPOTS.guests[i++]);
       }
     }
+    // the friend who walks the player through the shrine's wish stands by the shrine (festival or not)
+    if (this.shrineGuest && !want.has(this.shrineGuest)) want.set(this.shrineGuest, SHRINE.guest);
     for (const n of this.npcs) {
       const spot = want.get(n.id);
       const saved = this.festivalMoved.get(n.id);
@@ -1651,7 +1669,8 @@ export class TokyoWorld {
   // ---------------- camera ----------------
 
   private applyViewOffset() {
-    const shift = Math.max(this.convBlend, this.ritualBlend) * 0.2 * this.height;
+    // a conversation's subject sits above the chat panel; the shrine ritual's above the app's taller ritual sheet
+    const shift = Math.max(this.convBlend * 0.2, this.ritualBlend * 0.25) * this.height;
     if (shift > 0.5) this.camera.setViewOffset(this.width, this.height, 0, shift, this.width, this.height);
     else this.camera.clearViewOffset();
     this.camera.updateProjectionMatrix();
@@ -1766,8 +1785,8 @@ export class TokyoWorld {
     if (this.ritualBlend > 0.001) {
       const st = SHRINE.stand;
       const portrait = this.camera.aspect < 1;
-      const at = new THREE.Vector3(st.x + Math.sin(st.heading) * 0.45, 1.3, st.z);
-      const from = at.clone().add(portrait ? new THREE.Vector3(3.6, 1.5, 3.0) : new THREE.Vector3(3.0, 1.2, 2.4));
+      const at = new THREE.Vector3(st.x + Math.sin(st.heading) * 0.45, 1.2, st.z);
+      const from = at.clone().add(portrait ? new THREE.Vector3(2.6, 1.15, 4.3) : new THREE.Vector3(2.2, 1.0, 3.6));
       const k = easeInOut(this.ritualBlend);
       pos = pos.clone().lerp(from, k);
       look = look.clone().lerp(at, k);

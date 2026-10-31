@@ -168,6 +168,9 @@ export const FURNITURE: Record<string, { slot: string; word: string }> = {
   rice_cooker: { slot: 'kitchen', word: '炊飯器' },
   paper_lamp: { slot: 'light', word: '和風ランプ' },
   tv_small: { slot: 'tv', word: 'テレビ' },
+  // Goen stage 1 (docs/GOEN.md): the shrine's autumn decor and the season's premium plant stand in the plant slot of the dorm and the flat
+  room_momiji: { slot: 'plant', word: '紅葉' },
+  plant_momiji: { slot: 'plant', word: '紅葉' },
 };
 
 /**

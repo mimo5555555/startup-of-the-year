@@ -227,4 +227,26 @@ export const CULTURE: CultureCard[] = [
       ar: 'تُفرز النفايات (قابلة للحرق، بلاستيك، علب، زجاجات...) وتُجمع في أيام محددة. اطلب التقويم من المالك وضعها في الصباح الصحيح فقط.',
     },
   }),
+  // Goen stage 1 (docs/GOEN.md): the first visit to the shrine at the park's torii (the app files `visit shrine` when its panel opens)
+  c({
+    id: 'cc_goen',
+    trigger: { on: 'visit', ids: ['shrine'] },
+    also: [{ on: 'scenario_done', ids: ['shrine_wish'] }],
+    phrase: { ja: 'ご縁|が|あります|ように', en: 'May I find a good connection', ar: 'أتمنى أن أجد صلة طيبة' },
+    text: {
+      en: 'At a shrine people toss a coin into the offering box, often a 5-yen coin: 五円 (go-en) sounds like ご縁, "a connection", so it is a wish for good ties with people and places. In this game Goen buys connections (new places, seasons, looks), never fluency.',
+      ar: 'في المعبد يرمي الناس قطعة نقدية في صندوق التقدمات، وغالبًا قطعة الخمسة ين: فكلمة 五円 (غو-إن) تشبه ご縁 أي «صلة»، فهي أمنية بروابط طيبة مع الناس والأماكن. في هذه اللعبة يشتري الغوين صلات (أماكن جديدة ومواسم ومظاهر)، ولا يشتري الطلاقة أبدًا.',
+    },
+  }),
+  c({
+    id: 'cc_sanpai',
+    trigger: { on: 'scenario_done', ids: ['shrine_wish'] },
+    // the water basin at the shrine (the app files `visit shrine:chozuya` or `culture_seen` from the chōzuya pick)
+    also: [{ on: 'visit', ids: ['shrine:chozuya'] }],
+    phrase: { ja: '二礼|二拍手|一礼', en: 'Two bows, two claps, one bow', ar: 'انحناءتان وتصفيقتان وانحناءة' },
+    text: {
+      en: 'Shrine manners: rinse your hands and mouth at the water basin (手水舎, chōzuya), toss a coin, ring the bell, then bow twice, clap twice, make your wish silently and bow once more. Nobody minds a small mistake.',
+      ar: 'آداب المعبد: اغسل يديك وفمك عند حوض الماء (手水舎، تشوزويا)، وارمِ قطعة نقدية، واقرع الجرس، ثم انحنِ مرتين وصفّق مرتين وتمنَّ بصمت وانحنِ مرة أخرى. لا أحد يمانع خطأً صغيرًا.',
+    },
+  }),
 ];

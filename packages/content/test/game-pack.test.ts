@@ -1,7 +1,7 @@
 // The catalog of Release 1 (docs/GAME_DESIGN.md §5, docs/RELEASE_1.md): the items, the shops and the sale routes of the Japanese pack.
 // The release cap itself (chapters 1-6, the epilogue, Free Walk, the dreams) is in release.test.ts.
 import { describe, expect, it } from 'vitest';
-import { createGameState, itemAvailability, validatePack, type ContentIndex, type GameView, type ItemDef, type ValidationIssue } from '@lw/game';
+import { createGameState, goenGrantedItems, itemAvailability, validatePack, type ContentIndex, type GameView, type ItemDef, type ValidationIssue } from '@lw/game';
 import { CHARACTERS, JP_PACK, LEXICON, SCENARIOS, SLOTS } from '../src';
 import { JP_RULES } from '../src/tokyo/game/economy';
 
@@ -45,6 +45,8 @@ const RELEASED_ITEMS = [
   'g_souvenir',
   // Release 2 wave C2: the yukata (Fuku-Fuku, for the festival)
   'yukata',
+  // Goen stage 1: Aiko's autumn sweet, the Kyoto souvenir, and the looks Goen grants (shop `shrine`, never sold for yen)
+  'g_kuri_manju', 'g_yatsuhashi', 'kimono_momiji', 'room_momiji', 'ride_sakura', 'scarf_momiji', 'plant_momiji',
 ];
 /** Nothing of the design's catalog is deferred any more (the yukata is sold since wave C2). */
 const DEFERRED_ITEMS: string[] = [];
@@ -84,6 +86,14 @@ describe('the released catalog (§5.2, §5.3)', () => {
       backpack: 6_900,
       suit_set: 19_800,
       yukata: 8_900,
+      // Goen stage 1: the autumn sweet and the Kyoto souvenir; the Goen looks have no yen price
+      g_kuri_manju: 600,
+      g_yatsuhashi: 1_000,
+      kimono_momiji: 0,
+      room_momiji: 0,
+      ride_sakura: 0,
+      scarf_momiji: 0,
+      plant_momiji: 0,
       g_plush: 800,
       g_guitar_pick: 300,
       g_flower: 1_500,
@@ -102,9 +112,10 @@ describe('the released catalog (§5.2, §5.3)', () => {
       // wave C1
       g_souvenir: 1_000,
     });
-    for (const i of JP_PACK.items) expect(Number.isInteger(i.price) && i.price >= 1, i.id).toBe(true);
-    // the total of the released rows is a constant the design can be checked against
-    expect(JP_PACK.items.reduce((sum, i) => sum + i.price, 0)).toBe(1_216_190 + 8_900);
+    const goen = goenGrantedItems(JP_PACK);
+    for (const i of JP_PACK.items) expect(goen.has(i.id) ? i.price === 0 : Number.isInteger(i.price) && i.price >= 1, i.id).toBe(true);
+    // the total of the released rows is a constant the design can be checked against (Goen stage 1 adds the autumn sweet and the Kyoto souvenir)
+    expect(JP_PACK.items.reduce((sum, i) => sum + i.price, 0)).toBe(1_216_190 + 8_900 + 600 + 1_000);
   });
 
   it('every item has an English, Japanese and Arabic name, with a reading for kanji', () => {
@@ -151,7 +162,7 @@ describe('the released catalog (§5.2, §5.3)', () => {
 
   it('presents are giftable: category gift, a gift effect carrying the tags, the same tags on the item', () => {
     const gifts = JP_PACK.items.filter((i) => i.cat === 'gift');
-    expect(gifts.map((i) => i.id).sort()).toEqual(['g_carfresh', 'g_choco', 'g_flower', 'g_game_card', 'g_guitar_pick', 'g_manga', 'g_music_cd', 'g_plush', 'g_souvenir', 'g_tea_set', 'g_tenugui', 'g_wagashi']);
+    expect(gifts.map((i) => i.id).sort()).toEqual(['g_carfresh', 'g_choco', 'g_flower', 'g_game_card', 'g_guitar_pick', 'g_manga', 'g_music_cd', 'g_plush', 'g_souvenir', 'g_tea_set', 'g_tenugui', 'g_wagashi', 'g_kuri_manju', 'g_yatsuhashi'].sort());
     for (const g of gifts) {
       const fx = g.fx.find((f) => f.t === 'gift');
       expect(fx, g.id).toBeTruthy();
@@ -187,7 +198,9 @@ describe('shops (D36 openChapter)', () => {
 
   it('each shop lists exactly the items that name it, and every shop id of the pack has a place', () => {
     for (const s of JP_PACK.shops) {
-      const own = JP_PACK.items.filter((i) => i.shop === s.id).map((i) => i.id);
+      // the shrine's looks are granted by Goen and sold for no yen (the shrine's shop lists nothing)
+      const goen = goenGrantedItems(JP_PACK);
+      const own = JP_PACK.items.filter((i) => i.shop === s.id && !goen.has(i.id)).map((i) => i.id);
       expect(s.sells.filter((id) => JP_PACK.items.some((i) => i.id === id)).sort(), s.id).toEqual(own.sort());
       expect(s.placeId, s.id).toBeTruthy();
     }

@@ -17,7 +17,7 @@ import { AIKO_PRICES, AIKO_RECOMMENDS } from '../src/tokyo/scenarios-aiko';
 
 const sc = scenarioById('aiko_tea') as Scenario;
 const meta = AIKO_MOTORS_META.find((m) => m.id === 'aiko_tea')!;
-const AIKO_ITEMS = { flower: 'g_flower', wagashi: 'g_wagashi', teaSet: 'g_tea_set', tenugui: 'g_tenugui' };
+const AIKO_ITEMS = { flower: 'g_flower', wagashi: 'g_wagashi', teaSet: 'g_tea_set', tenugui: 'g_tenugui', kuri: 'g_kuri_manju' };
 const lines = (): Array<{ line: Line; where: string }> => {
   const out: Array<{ line: Line; where: string }> = [];
   for (const n of Object.values(sc.nodes)) {
@@ -122,10 +122,11 @@ describe('aiko_tea: scenario', () => {
   });
 
   it('the fixed fallback prices equal the catalog rows and are spelled right', () => {
-    expect(AIKO_PRICES).toEqual({ flower: 1500, wagashi: 1280, teaSet: 1500, tenugui: 1100 });
+    // kuri: the autumn sweet of Goen stage 1 (the season task au_kuri)
+    expect(AIKO_PRICES).toEqual({ flower: 1500, wagashi: 1280, teaSet: 1500, tenugui: 1100, kuri: 600 });
     for (const [slotId, itemId] of Object.entries(AIKO_ITEMS)) expect(AIKO_PRICES[slotId], slotId).toBe(JP_PACK.items.find((i) => i.id === itemId)!.price);
     const quote = sc.nodes.quote.say.filter((v) => v.when && 'slot' in v.when);
-    expect(quote).toHaveLength(4);
+    expect(quote).toHaveLength(5);
     const wagashi = quote.find((v) => v.when && 'slot' in v.when && v.when.in.includes('wagashi'))!;
     expect(wagashi.line.ja.replace(/\|/g, '')).toContain('千二百八十円');
     expect(wagashi.line.en).toContain('1,280 yen');
@@ -238,7 +239,7 @@ describe('aiko_tea: ScenarioMeta, pockets, items, shop', () => {
   it('the shop opens with Chapter 2, takes cash, sells exactly the four presents and the room at Ono-sō (wave B2); Chapter 2 opens it', () => {
     const shop = JP_PACK.shops.find((s) => s.id === 'aiko')!;
     expect(shop).toMatchObject({ placeId: 'ono', openChapter: 2, surface: 'world', register: 'polite', pay: ['cash'] });
-    expect(shop.sells.sort()).toEqual(['g_flower', 'g_tea_set', 'g_tenugui', 'g_wagashi', 'home_room_ono']);
+    expect(shop.sells.sort()).toEqual(['g_flower', 'g_kuri_manju', 'g_tea_set', 'g_tenugui', 'g_wagashi', 'home_room_ono']);
     expect(JP_PACK.chapters.find((c) => c.n === 2)!.opens).toContainEqual({ kind: 'shop', id: 'aiko' });
   });
 

@@ -16,6 +16,8 @@ export const FARES: Record<string, number> = {
   asakusa: 260,
   airport: 520,
   hikarigaoka: 170,
+  // the Kyoto Journey's Shinkansen (Goen stage 1, docs/GOEN.md): a game price of ¥1,800 a leg, the round trip ¥3,600 charged up front
+  kyoto: 1800,
 };
 
 /**

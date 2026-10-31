@@ -318,7 +318,7 @@ export const dormPlank: Model = ({ s, w, d, rnd }) => {
  * maple leaves, a few fallen leaves round it. Free-standing (the dorm's plant corner has no wall behind it); sized to the footprint.
  */
 const momiji: Model = ({ s, w, d, rnd }) => {
-  const sw = Math.min(w, 0.62) - 0.04;
+  const sw = Math.min(w, 0.8) - 0.04;
   const sd = Math.min(d, 0.62) - 0.04;
   // the byōbu: two gold leaves at a slight fold along the back, dark lacquer frames, leaves painted on
   const bz = -sd / 2 + 0.05;
@@ -328,7 +328,12 @@ const momiji: Model = ({ s, w, d, rnd }) => {
     s.box(lx, 0, bz + 0.02 * side, leafW, 0.62, 0.02, '#e3bd5a', { ry: side * 0.22 });
     s.box(lx, 0.6, bz + 0.02 * side, leafW + 0.01, 0.025, 0.03, '#3a2422', { ry: side * 0.22 });
     s.box(lx, 0, bz + 0.02 * side, leafW + 0.01, 0.025, 0.03, '#3a2422', { ry: side * 0.22 });
-    for (let i = 0; i < 3; i++) s.ball(lx + (rnd() - 0.5) * leafW * 0.6, 0.18 + rnd() * 0.36, bz + 0.02 * side + 0.014, 0.035, ['#c4472b', '#f07a2a', '#9c2a22'][i], { sz: 0.25, ws: 5, hs: 3 });
+    // painted leaves on the leaf's face: a point u along the turned leaf, nudged out along its normal
+    const a = side * 0.22;
+    for (let i = 0; i < 3; i++) {
+      const u = (rnd() - 0.5) * leafW * 0.6;
+      s.ball(lx + u * Math.cos(a) + Math.sin(a) * 0.014, 0.18 + rnd() * 0.36, bz + 0.02 * side - u * Math.sin(a) + Math.cos(a) * 0.014, 0.035, ['#c4472b', '#f07a2a', '#9c2a22'][i], { sz: 0.25, ws: 5, hs: 3 });
+    }
   }
   // the low stand and the shallow pot
   const st = Math.min(sw, sd) * 0.78;
@@ -352,11 +357,30 @@ const momiji: Model = ({ s, w, d, rnd }) => {
   }
 };
 
-/** Goen's decor pieces (drawn like furniture, in the slot their item names; `room_momiji` is made for the `plant` slot). */
-export const DECOR_IDS = ['room_momiji'] as const;
+/** `plant_momiji` (the autumn season's premium plant): a young maple in a dark glazed pot, red going to gold at the tips */
+const momijiPlant: Model = ({ s, w, d }) => {
+  const r = Math.min(w, d, 0.5) / 2 - 0.04;
+  s.cyl(0, 0, 0, r * 0.8, r * 0.62, 0.26, '#6b3f34', 9);
+  s.cyl(0, 0.25, 0, r * 0.86, r * 0.84, 0.04, '#4e2e26', 9);
+  s.cyl(0, 0.27, 0, r * 0.7, r * 0.7, 0.01, '#5a4636', 9);
+  s.cyl(0, 0.28, 0, 0.018, 0.03, 0.46, '#5a3e30', 6);
+  s.box(0.03, 0.55, 0, 0.022, 0.18, 0.022, '#5a3e30', { rz: -0.5 });
+  const crown: Array<[number, number, number, number, string]> = [
+    [0, 0.86, 0, 0.12, '#c4472b'], [0.1, 0.76, 0.04, 0.09, '#e0582c'], [-0.09, 0.74, -0.03, 0.09, '#9c2a22'],
+    [0.02, 0.72, 0.1, 0.08, '#f07a2a'], [-0.03, 0.95, -0.04, 0.07, '#f2a33d'], [0.12, 0.9, -0.05, 0.06, '#f2b33d'],
+  ];
+  for (const [x, y, z, rr, c] of crown) s.ball(x, y, z, rr, c, { sy: 0.8, ws: 7, hs: 5 });
+};
+
+/**
+ * Goen's decor pieces (drawn like furniture, in the slot their item names): `room_momiji` (the catalog's decor set) fits any slot,
+ * `plant_momiji` (the season's plant) is made for the `plant` slot.
+ */
+export const DECOR_IDS = ['room_momiji', 'plant_momiji'] as const;
 
 const MODELS: Readonly<Record<string, Model>> = {
   room_momiji: momiji,
+  plant_momiji: momijiPlant,
   futon_set: futon,
   desk_study: desk,
   bookshelf,

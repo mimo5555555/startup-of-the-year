@@ -57,4 +57,8 @@ export const KEEPSAKES: Record<string, NameGloss> = {
   photo_printed: { ja: 'ミオが撮った写真', en: 'A printed photo Mio took of you', ar: 'صورة مطبوعة التقطتها ميو لك' },
   tea_cup: { ja: 'あいこの湯のみ', en: "Aiko's tea cup", ar: 'كوب شاي أيكو' },
   hina_drawing: { ja: 'ひなの絵', en: "Hina's drawing", ar: 'رسمة هينا' },
+  // Goen stage 1 (docs/GOEN.md): the Kyoto Journey's completion and the autumn season's free (tier 3) and premium (tier 8) keepsakes
+  kp_kyoto: { ja: '京都の思い出', reading: 'きょうとのおもいで', en: 'A memory of Kyoto (your goshuin page)', ar: 'ذكرى من كيوتو (صفحة الغوشوين)' },
+  kp_maple: { ja: '押し紅葉', reading: 'おしもみじ', en: 'A pressed maple leaf', ar: 'ورقة قيقب مضغوطة' },
+  kp_autumn: { ja: '秋の写真立て', reading: 'あきのしゃしんたて', en: 'An autumn photo frame', ar: 'إطار صور خريفي' },
 };

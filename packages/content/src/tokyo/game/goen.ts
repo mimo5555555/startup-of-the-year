@@ -1,5 +1,6 @@
-import type { GoenItemDef, OmikujiFortune, SeasonDef } from '@lw/game';
+import type { GoenItemDef, GoenPackDef, OmikujiFortune, SeasonDef, ShopDef } from '@lw/game';
 import { L } from '../dsl';
+import { JOURNEYS } from './journeys';
 
 // Goen (ご縁, docs/GOEN.md stage 1): the shrine catalog, the autumn season and the omikuji wording. Goen is earned free in play and spent at
 // the shrine at the park's torii; every row shows exactly what it is and what it costs (no paid randomness). The looks are ordinary ItemDefs
@@ -28,7 +29,7 @@ export const GOEN_CATALOG: GoenItemDef[] = [
     name: { ja: '秋の季節・特別', reading: 'あきのきせつ・とくべつ', en: 'Autumn season: premium track', ar: 'موسم الخريف: المسار المميز' },
     gives: {
       en: 'The premium track of the autumn season: a momiji scarf, an autumn room plant, a ride sticker, a title and a keepsake',
-      ar: 'المسار المميز لموسم الخريف: وشاح مومیجي ونبتة خريفية للغرفة وملصق للدراجة ولقب وتذكار',
+      ar: 'المسار المميز لموسم الخريف: وشاح موميجي ونبتة خريفية للغرفة وملصق للدراجة ولقب وتذكار',
     },
     wish: L('きれい|な|紅葉|が|見られます|ように。', 'I hope I can see beautiful autumn leaves.', 'أتمنى أن أرى أوراق الخريف الجميلة.'),
   },
@@ -45,7 +46,7 @@ export const GOEN_CATALOG: GoenItemDef[] = [
     kind: 'cosmetic',
     price: 60,
     name: { ja: '紅葉の飾り', reading: 'もみじのかざり', en: 'Autumn room decor', ar: 'زينة الخريف للغرفة' },
-    gives: { en: 'A momiji bonsai and a little gold screen for your room (comfort +1)', ar: 'بونساي مومیجي وستارة ذهبية صغيرة لغرفتك (راحة +1)' },
+    gives: { en: 'A momiji bonsai and a little gold screen for your room (comfort +1)', ar: 'بونساي موميجي وستارة ذهبية صغيرة لغرفتك (راحة +1)' },
     wish: L('いい|部屋|に|なります|ように。', 'I hope it becomes a nice room.', 'أتمنى أن تصبح غرفة جميلة.'),
   },
   {
@@ -133,3 +134,21 @@ export const OMIKUJI: OmikujiFortune[] = [
     weight: 3,
   },
 ];
+
+/**
+ * The shrine's shop row: the looks (items.ts, shop `shrine`) are granted by the coin toss and never sold for yen, so it sells nothing and takes no
+ * payment (a yen purchase of a Goen item is `not_sold`).
+ */
+export const SHRINE_SHOP: ShopDef = {
+  id: 'shrine',
+  placeId: 'park',
+  name: { en: 'Sakura-chō Shrine', ar: 'معبد ساكورا-تشو' },
+  openChapter: 1,
+  surface: 'panel',
+  register: 'polite',
+  pay: [],
+  sells: [],
+};
+
+/** `JP_PACK.goen`. */
+export const GOEN: GoenPackDef = { catalog: GOEN_CATALOG, seasons: SEASONS, journeys: JOURNEYS, omikuji: OMIKUJI };

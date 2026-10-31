@@ -35,14 +35,18 @@ const run = (s: GameState, ev: Parameters<typeof reduce>[1]) => reduce(s, ev, { 
 
 describe('fares (§5.4)', () => {
   it('are the table of the design, from Sakura-chō station, in whole yen', () => {
-    expect(FARES).toEqual({ shibuya: 170, shinjuku: 190, tokyoStation: 210, akihabara: 210, ueno: 230, asakusa: 260, airport: 520, hikarigaoka: 170 });
+    // kyoto: the Kyoto Journey's Shinkansen (Goen stage 1), ¥1,800 a leg, sold only to a Journey owner at the station's Kyoto row
+    expect(FARES).toEqual({ shibuya: 170, shinjuku: 190, tokyoStation: 210, akihabara: 210, ueno: 230, asakusa: 260, airport: 520, hikarigaoka: 170, kyoto: 1800 });
     expect(JP_PACK.fares).toBe(FARES);
     for (const [place, fare] of Object.entries(FARES)) expect(Number.isInteger(fare) && fare >= 1, place).toBe(true);
   });
 
   it('every destination is an option of the place slot, and the slot keeps its names (Haneda for the airport, Hikarigaoka new)', () => {
     const options = new Map(SLOTS.place.map((o) => [o.id, o]));
-    for (const place of Object.keys(FARES)) expect(options.has(place), place).toBe(true);
+    // a Journey's trip is not a ticket of the station conversation (only its owner rides it, from the Journey's own row)
+    const journeyTrips = new Set((JP_PACK.goen?.journeys ?? []).map((j) => j.trip));
+    for (const place of Object.keys(FARES)) expect(options.has(place) || journeyTrips.has(place), place).toBe(true);
+    expect(options.has('kyoto')).toBe(false);
     expect(options.get('airport')!.ja).toBe('羽田空港');
     expect(options.get('airport')!.gloss.en).toBe('Haneda Airport');
     expect(options.get('airport')!.keys.ja).toContain('空港');

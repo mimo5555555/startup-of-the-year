@@ -44,6 +44,8 @@ const GIFT: SlotOption[] = [
   raw('wagashi', '和菓子', 'wagashi assortment', 'علبة حلويات يابانية', { ja: ['わがし', '和菓子の詰め合わせ'], en: ['wagashi', 'japanese sweets', 'a wagashi assortment', 'wagashi assortment', 'sweets'], ar: ['واغاشي', 'حلويات يابانية', 'علبة حلويات'] }),
   raw('teaSet', 'お茶セット', 'tea set', 'طقم شاي', { ja: ['おちゃせっと', 'お茶のセット'], en: ['tea set', 'a tea set'], ar: ['طقم شاي', 'طقم الشاي'] }),
   raw('tenugui', '手ぬぐい', 'tenugui hand towel', 'منشفة تينوغوي', { ja: ['てぬぐい', '手拭い'], en: ['tenugui', 'hand towel', 'a tenugui', 'a hand towel'], ar: ['تينوغوي', 'منشفة تينوغوي', 'منشفة يد'] }),
+  // Aiko's autumn sweet (Goen stage 1: the season task au_kuri)
+  raw('kuri', '栗まんじゅう', 'chestnut manjū', 'مانجو الكستناء', { ja: ['くりまんじゅう', '栗饅頭'], en: ['chestnut manju', 'kuri manju', 'a chestnut manju', 'the chestnut sweet', 'a chestnut sweet', 'the autumn sweet'], ar: ['مانجو الكستناء', 'حلوى الكستناء', 'كوري مانجو', 'حلوى الخريف'] }),
   raw('lantern', '灯籠', 'lantern', 'فانوس', { ja: ['とうろう', '灯ろう'], en: ['lantern', 'a lantern', 'lantern fund'], ar: ['فانوس', 'فانوس ورقي'] }),
   raw('carFresh', '車の芳香剤', 'car air freshener', 'معطّر سيارة', { ja: ['くるまのほうこうざい', '芳香剤'], en: ['air freshener', 'car air freshener', 'an air freshener', 'car freshener'], ar: ['معطر سيارة', 'معطر', 'معطر جو للسيارة'] }),
   raw('souvenir', 'おみやげ', 'souvenir', 'هدية تذكارية', { ja: ['お土産', 'みやげ'], en: ['souvenir', 'a souvenir', 'omiyage', 'gift from the trip'], ar: ['هدية تذكارية', 'تذكار', 'أوميياغي'] }),
