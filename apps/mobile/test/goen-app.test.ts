@@ -106,7 +106,7 @@ describe('the wish ritual: 二礼二拍手一礼', () => {
     useShrine.getState().start('room_momiji', 'w2');
     useShrine.getState().patch({ step: 'wish' });
     const facts: ConversationFacts = {
-      sessionId: 'sw1', scenarioId: 'shrine_wish', characterId: 'hanako', mode: 'guided', abandoned: false, durationSec: 30, goalDone: 1, goalTotal: 1, turns: [], fallbacks: 0, hintUses: 0,
+      sessionId: 'sw1', scenarioId: 'shrine_wish', characterId: 'kannushi', mode: 'guided', abandoned: false, durationSec: 30, goalDone: 1, goalTotal: 1, turns: [], fallbacks: 0, hintUses: 0,
       accuracy: null, requestsPolite: true, prepared: false, remembered: {},
     };
     dispatch({ t: 'conversation_done', facts });

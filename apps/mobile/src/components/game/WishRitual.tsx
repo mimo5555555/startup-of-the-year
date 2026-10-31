@@ -19,9 +19,9 @@ import { Portrait } from '../Portrait';
 import { Ltr } from './WalletPill';
 import { openSeason } from '../../screens/Season';
 
-/** The shrine_wish conversation: Hanako walks the player through the wish (handoff-game.md). */
+/** The shrine_wish conversation is heard by the shrine priest (kannushi, not a friend: the wish adds no hearts); Hanako's hints stay text. */
 export const WISH_SCENARIO = 'shrine_wish';
-export const WISH_HOST = 'hanako';
+export const WISH_HOST = 'kannushi';
 
 const GLYPH: Record<RitualTap, string> = { bow: '礼', clap: '拍' };
 
@@ -107,7 +107,7 @@ export function WishRitual() {
     else if (next.open === 'season') openSeason('world');
     else if (next.open === 'room') beginOwn();
   };
-  const hanako = characterById(WISH_HOST);
+  const hanako = characterById('hanako');
 
   return (
     <section className="gn-ritual glass-card" dir={dir} role="dialog" aria-label={t('gn.ritual.title', { item: name })} data-ritual={item.id} data-step={ritual.step}>

@@ -299,7 +299,9 @@ describe('station ticket machine', () => {
   it('puts every destination with a fare on the map; a fare without a place on the map is placed, not lost', () => {
     const w = world();
     const stops = fareStops(pack, w.state);
-    expect(stops.map((s) => s.place).sort()).toEqual(Object.keys(pack.fares).sort());
+    // a Goen Journey's trip (Kyoto) is not on the ticket machine: its owner rides it from the Journey's own station row
+    const journeys = new Set((pack.goen?.journeys ?? []).map((j) => j.trip));
+    expect(stops.map((s) => s.place).sort()).toEqual(Object.keys(pack.fares).filter((p) => !journeys.has(p)).sort());
     expect(stops.map((s) => s.place)).toEqual(FARE_STOPS.map((s) => s.place));
     for (const s of stops) {
       expect(s.ic, s.place).toBe(pack.fares[s.place]);

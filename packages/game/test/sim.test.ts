@@ -233,3 +233,40 @@ describe('determinism', () => {
     expect(b.chDay).toEqual(a.chDay);
   });
 });
+
+// docs/GOEN.md "Earning": the Goen window. A steady player (the story's eight chapters over about eight weeks, all daily goals on 5 days of 7,
+// a speaking streak that breaks once a month) affords the Kyoto Journey (250) during the story and the season's premium track (150) within a few
+// weeks after it, from BALANCE.goen alone (Goen never comes from yen).
+describe('the Goen window (docs/GOEN.md)', () => {
+  const PRICE = { journey: 250, premium: 150 };
+  function steady(days: number): { balance: number; journeyDay: number | null } {
+    const G = BALANCE.goen;
+    let balance = 0;
+    let streak = 0;
+    let journeyDay: number | null = null;
+    for (let d = 1; d <= days; d++) {
+      if (d <= 56 && d % 7 === 0) balance += G.chapter; // a chapter a week through the story
+      if (d % 7 < 5) balance += G.daily;
+      streak = d % 30 === 0 ? 1 : streak + 1;
+      if (streak % G.streakEvery === 0) balance += G.streak;
+      if (d === 56) balance += G.capstone + G.letter;
+      if (journeyDay === null && balance >= PRICE.journey) {
+        journeyDay = d;
+        balance -= PRICE.journey;
+      }
+    }
+    return { balance, journeyDay };
+  }
+
+  it('the Kyoto Journey is affordable during the story; the premium track within a few weeks after it', () => {
+    const story = steady(56);
+    expect(story.journeyDay).not.toBeNull();
+    expect(story.journeyDay!).toBeLessThan(56);
+    const after = steady(56 + 21);
+    expect(after.balance).toBeGreaterThanOrEqual(PRICE.premium);
+    // about 400 Goen over the story and about 20 a week from streaks (the spec's headline)
+    const total = steady(56).balance + PRICE.journey;
+    expect(total).toBeGreaterThan(300);
+    expect(total).toBeLessThan(600);
+  });
+});

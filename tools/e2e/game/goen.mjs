@@ -653,6 +653,7 @@ await check('charm used');
 // 7. the sakura paint switch; a reload keeps everything
 // ---------------------------------------------------------------------------------------------------------------
 step('the sakura paint: bought, on the ride card, switched off and on');
+await addGoen(100);
 await openShrineFromBox();
 await ritual('ride_sakura');
 await page.evaluate(() => window.__lw.useStore.getState().go('wallet'));

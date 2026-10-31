@@ -37,7 +37,7 @@ export function ConversationHost() {
   const kyoto = convo.channel !== 'chat' ? kyotoStopOf(convo.scenarioId) : null;
   const tripHost = !kyoto && convo.channel !== 'chat' && isTripScenario(convo.scenarioId) ? characterById(convo.characterId) : undefined;
   return (
-    // the wish at the shrine keeps the ritual's view of the box (Hanako speaks from the sheet, not from her spot in the street)
+    // the wish at the shrine keeps the ritual's view of the box and of Hanako standing by it (the conversation camera framed the player's head)
     <WorldCtx.Provider value={panelRoom || kyoto || convo.scenarioId === 'shrine_wish' ? null : currentWorld()}>
       {tripHost && <TripBackdrop host={tripHost} />}
       {kyoto && <KyotoBackdrop place={kyoto.place} host={characterById(convo.characterId)} />}

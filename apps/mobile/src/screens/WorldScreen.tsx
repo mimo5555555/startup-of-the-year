@@ -19,7 +19,7 @@ import { DoorTip, HomeStage, type DoorTipStatus } from '../components/game/HomeS
 import { HomeOwn } from '../components/game/HomeOwn';
 import { TicketPanel } from './TicketPanel';
 import { VendingPanel } from './VendingPanel';
-import { WishRitual } from '../components/game/WishRitual';
+import { WISH_HOST, WishRitual } from '../components/game/WishRitual';
 import { KyotoPanel, beginKyoto } from '../components/game/KyotoPanel';
 import { useKyoto, useShrine } from '../game/goenStore';
 import { inKyoto } from '../game/goenLogic';
@@ -221,6 +221,11 @@ export function WorldScreen() {
     // the panel fallback covers the street: nothing behind it needs drawing
     world.setActive(screen === 'world' && !panelRoom && !kyoto);
   }, [world, screen, panelRoom, kyoto]);
+  // the wish ritual: the shrine priest stands by the shrine while it runs, so the shrine_wish talk happens there (world: setShrineGuest)
+  const ritualOn = !!ritual;
+  useEffect(() => {
+    (world as unknown as { setShrineGuest?: (id: string | null) => void } | null)?.setShrineGuest?.(ritualOn ? WISH_HOST : null);
+  }, [world, ritualOn]);
   useEffect(() => {
     world?.setDiscovered(discovered);
   }, [world, discovered]);

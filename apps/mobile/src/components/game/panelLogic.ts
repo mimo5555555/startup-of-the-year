@@ -274,9 +274,11 @@ export interface FareStop {
  */
 export function fareStops(pack: GamePack, game: GameState): FareStop[] {
   const known = new Set(FARE_STOPS.map((s) => s.place));
+  // a Goen Journey's trip (Kyoto) is ridden from its own station row by its owner, never from the ticket machine
+  const journeys = new Set((pack.goen?.journeys ?? []).map((j) => j.trip));
   const placed = FARE_STOPS.filter((s) => pack.fares[s.place] !== undefined);
   const extra = Object.keys(pack.fares)
-    .filter((p) => !known.has(p))
+    .filter((p) => !known.has(p) && !journeys.has(p))
     .map((place, i): { place: string; x: number; lane: 0 | 1 } => ({ place, x: 22 + 34 * (i % 3), lane: 1 }));
   return [...placed, ...extra].map((s) => ({ ...s, ic: fareFor(pack, game, s.place, 'ic'), paper: fareFor(pack, game, s.place, 'paper') }));
 }

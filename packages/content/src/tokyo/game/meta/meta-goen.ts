@@ -64,7 +64,7 @@ export const GOEN_META: ScenarioMeta[] = [
     shop: {
       shopId: 'kyoto_cafe',
       itemSlot: 'matcha',
-      extraSlots: ['kyotogift'],
+      extraSlots: ['giftItem'],
       payStep: 'pay',
       itemMap: { set: 'kyoto_cafe:set', usucha: 'kyoto_cafe:usucha', yatsuhashi: 'g_yatsuhashi' },
     },

@@ -271,7 +271,7 @@ export const KYOTO_TEMPLE: Scenario = {
 
 // ------------------------------------------------------------------------------------------------------------------------------------
 // kyoto_matcha: a matcha and wagashi café, Mori-san. Order (slot `matcha`: the matcha set with the season's sweet, or a bowl of matcha), say
-// something nice about it, ask what she recommends: Kyoto's yatsuhashi to bring home (slot `kyotogift`, the Journey's souvenir, optional),
+// something nice about it, ask what she recommends: Kyoto's yatsuhashi to bring home (the shared `giftItem` option `yatsuhashi`, the Journey's souvenir, optional),
 // then pay (cash or IC card). The bill is charged once at the end, the order and the souvenir together.
 // ------------------------------------------------------------------------------------------------------------------------------------
 
@@ -294,7 +294,8 @@ const askReco = (next: string, step?: string): IntentDef => ({
 });
 const buySouvenir: IntentDef = {
   id: 'buy_souvenir',
-  slot: 'kyotogift',
+  slot: 'giftItem',
+  slotOptions: ['yatsuhashi'],
   slotRequired: true,
   next: 'quote',
   request: true,
