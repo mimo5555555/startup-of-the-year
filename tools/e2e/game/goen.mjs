@@ -339,7 +339,7 @@ await check('start');
 
 // the daily trio: Kyoto, the shrine and its culture card do these by the end of the run; a goal that this run does not play is swapped
 const DOABLE = ['g_conv2', 'g_indep6', 'g_newphrase2', 'g_place', 'g_culture'];
-for (let tries = 0; tries < 6; tries++) {
+for (let tries = 0; tries < 40; tries++) {
   g = await liveGame(page);
   const bad = g.daily.goals.filter((x) => !DOABLE.includes(x.id));
   if (bad.length === 0) break;
