@@ -181,7 +181,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
       done();
       return;
     }
-    await tts.speak(text, { rate: sp.rate * (o.slow ? 0.58 : 1), pitch: sp.pitch, voice: sp.voice });
+    await tts.speak(text, { rate: sp.rate * (o.slow ? 0.58 : 1), pitch: sp.pitch, voice: sp.voice, who: characterId });
     if (tts.lastError()?.code === 'no-voice') setNoVoice(true); // checked after speaking: voices may only be reported by now
     done();
   };

@@ -70,6 +70,7 @@ import { useT } from '../hooks';
 import { tts } from '../services';
 import { useStore } from '../store';
 import { useUi } from '../ui';
+import { CUSTOMER } from '../voice/voices';
 
 const JOB_DEFAULT = 'job_konbini';
 
@@ -147,7 +148,7 @@ function ShiftJob({ job }: { job: JobDef }) {
   useEffect(() => {
     if (!play || stage !== 'order' || noVoice || play.cant) return;
     const c = play.plan.customers[play.i];
-    if (c) sayMarkup(c.line.ja);
+    if (c) sayMarkup(c.line.ja, false, CUSTOMER);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customerIdx, play ? 1 : 0]);
 
@@ -609,7 +610,7 @@ function ShiftJob({ job }: { job: JobDef }) {
           cant={p.cant}
           ordering={p.stage === 'order'}
           desk={isDesk(customer!)}
-          onListen={(slow) => sayMarkup(customer!.line.ja, slow)}
+          onListen={(slow) => sayMarkup(customer!.line.ja, slow, CUSTOMER)}
           onAssist={(kind) =>
             patch((q) => patchTrack(q, (tr) => (kind === 'text' ? { ...tr, assistText: true } : { ...tr, assistTrans: true })))
           }

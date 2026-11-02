@@ -51,9 +51,9 @@ export function JaTappable({ markup, size = 'md' }: { markup: string; size?: 'sm
   );
 }
 
-/** Reads a markup sentence aloud, slowly or at the normal pace. */
-export function sayMarkup(markup: string, slow = false): void {
-  void speakJa(speakableText(tokensOf(markup)), { rate: slow ? 0.55 : 0.9 });
+/** Reads a markup sentence aloud, slowly or at the normal pace; `who` picks a recorded voice (the customer). */
+export function sayMarkup(markup: string, slow = false, who?: string): void {
+  void speakJa(speakableText(tokensOf(markup)), { rate: slow ? 0.55 : 0.9, who });
 }
 
 // ---------------------------------------------------------------------------------------------------------------

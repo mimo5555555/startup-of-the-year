@@ -111,7 +111,7 @@ export function StoryBeat() {
   // the line is read aloud (a Japanese voice is optional: the text and the glosses carry everything)
   const say = (text: string) => {
     if (!who) return;
-    void tts.speak(text, { rate: who.speaking.rate, pitch: who.speaking.pitch, voice: who.speaking.voice });
+    void tts.speak(text, { rate: who.speaking.rate, pitch: who.speaking.pitch, voice: who.speaking.voice, who: who.id });
   };
   const spoken = view?.spoken;
   useEffect(() => {

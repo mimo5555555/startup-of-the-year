@@ -1,13 +1,20 @@
 import { WebSpeechStt, WebSpeechTts, collectAudioReport, requestMicrophone, speechNormalize, type SpeakOptions } from '@lw/engine';
 import { parseNumbers, setSpeechNormalizer } from '@lw/content';
+import { RecordedVoiceTts, withRecordedVoices } from './voice/RecordedVoiceTts';
 
 // One speech stack for the whole app. Native builds replace these with on-device engines.
-export const tts = new WebSpeechTts();
+// Japanese lines play from recorded files (public/voice) when there is one, else the device voice says them.
+export const tts = new RecordedVoiceTts(new WebSpeechTts(), { base: 'voice/' });
 export const stt = new WebSpeechStt();
+// the e2e scripts read how many lines found a recording
+if (typeof window !== 'undefined') Object.assign(window, { __lwVoice: tts.stats });
 
 /** Single facade for the audio self-check and test buttons; the UI maps issue ids and error codes to strings. */
 export const audio = {
-  report: () => collectAudioReport(),
+  report: async () => {
+    const [r] = await Promise.all([collectAudioReport(), tts.load()]);
+    return withRecordedVoices(r, tts.recorded());
+  },
   requestMic: () => requestMicrophone(),
   speakSample: () => tts.speakSample(),
   tts,

@@ -7,6 +7,7 @@ import type { UiLang } from '../i18n';
 import { dispatch, observeDay } from '../game/bridge';
 import { useDevMode } from '../game/hooks';
 import pkg from '../../package.json';
+import { VOICE_CREDITS } from '../voice/voices';
 
 /** Taps on the version line that switch the QA tools on or off (docs/GAME_DESIGN.md §15.1 rule 8). */
 const DEV_TAPS = 7;
@@ -130,6 +131,10 @@ export function Settings() {
           <p dir="auto">{t('st.about1')}</p>
           <p dir="auto">{t('st.about2')}</p>
           <p dir="auto">{t('st.about3')}</p>
+          <p dir="auto" data-voice-credits>
+            {t('st.voiceCredits', { names: '' })}
+            <bdi dir="ltr">{VOICE_CREDITS}</bdi>
+          </p>
           <p className="version" dir="ltr" onClick={tapVersion} style={{ minHeight: 44, display: 'flex', alignItems: 'center', opacity: 0.6, fontSize: 13 }}>
             v{pkg.version}
           </p>

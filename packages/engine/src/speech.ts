@@ -6,6 +6,8 @@ export interface SpeakOptions {
   rate?: number;
   pitch?: number;
   voice?: 'f' | 'm';
+  /** who is speaking (a character id): a recorded-voice engine picks that character's recording */
+  who?: string;
   onStart?: () => void;
   onEnd?: () => void;
 }

@@ -208,7 +208,8 @@ export const en = {
   'st.about': 'About this sample',
   'st.about1': 'Everything runs on your device. Nothing you type or say is sent anywhere.',
   'st.about2': 'The characters here follow written scripts and a phrasebook stands in for the translation model. The full app swaps both for on-device AI, so you can say anything.',
-  'st.about3': 'Japanese voices come from your device, if it has one installed.',
+  'st.about3': 'Japanese lines are recorded with VOICEVOX; anything without a recording uses your device’s Japanese voice, if it has one.',
+  'st.voiceCredits': 'Voices: {names}',
 
   'level.A1': 'A1',
   'level.A2': 'A2',
@@ -422,7 +423,8 @@ export const ar: Record<keyof typeof en, string> = {
   'st.about': 'عن هذه النسخة',
   'st.about1': 'كل شيء يعمل على جهازك. لا يُرسَل أي شيء تكتبه أو تقوله إلى أي مكان.',
   'st.about2': 'تتبع الشخصيات هنا نصوصًا مكتوبة، ويحل دليل عبارات محل نموذج الترجمة. في التطبيق الكامل يُستبدل الاثنان بذكاء اصطناعي يعمل على جهازك، لتتمكن من قول أي شيء.',
-  'st.about3': 'تأتي الأصوات اليابانية من جهازك إن كان لديه صوت مثبّت.',
+  'st.about3': 'الجمل اليابانية مسجّلة بـ VOICEVOX، وما ليس له تسجيل يُقرأ بالصوت الياباني في جهازك إن وُجد.',
+  'st.voiceCredits': 'الأصوات: {names}',
 
   'level.A1': 'A1',
   'level.A2': 'A2',

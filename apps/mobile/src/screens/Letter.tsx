@@ -72,7 +72,7 @@ export function Letter() {
   };
   const hanako = characterById('hanako');
   const readBack = () => {
-    const voice = hanako ? { rate: hanako.speaking.rate, pitch: hanako.speaking.pitch, voice: hanako.speaking.voice } : {};
+    const voice = hanako ? { rate: hanako.speaking.rate, pitch: hanako.speaking.pitch, voice: hanako.speaking.voice, who: hanako.id } : {};
     tts.cancel();
     void tts
       .speak(readBackText(card), voice)
