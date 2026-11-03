@@ -1,4 +1,4 @@
-# ご縁 Goen — the premium currency (stage 1: earned free, no payments)
+# ご縁 Goen — the premium currency (stage 1: earned free; stage 2: Goen packs with Stripe)
 
 In Japan people toss a 5-yen coin (五円, *go-en*) into the shrine box because *go-en* also means ご縁, "a connection".
 The game's second currency is **Goen**: you buy **connections** (new places, seasons, looks, charms), never fluency.
@@ -12,8 +12,8 @@ The game's second currency is **Goen**: you buy **connections** (new places, sea
 3. **No paid randomness.** No loot boxes or gacha; every Goen item shows exactly what it is and what it costs.
 4. **Kids and teens** (age profiles, D28): they earn and spend Goen like adults in stage 1 (it is free); stage 2's real-money
    purchases sit behind a parent gate and never show to them otherwise.
-5. **Stage 1 has no real money.** Goen is earned in play. The Shrine shows a small "Goen packs: coming later" line only in a dev
-   build flag (`GOEN_SHOP_PREVIEW`), never a dead buy button in production.
+5. **No dead buy button.** Goen is always earned in play. Packs show only when the server is set up (stage 2, below); otherwise the
+   Shrine says "Goen packs: coming soon".
 
 ## Earning (BALANCE.goen, `@lw/game`)
 
@@ -91,4 +91,38 @@ window the season shows "next season soon" and nothing is lost.
   (versioned through migrate; old saves get an empty Goen state and **no** retroactive grants except chapters already completed,
   which grant their +25 once on load so existing players are not penalised).
 * Every earn and spend is an idempotent ledger entry; balance = sum of the ledger (checksum like the yen wallet).
-* Stage 2 (not now): accounts, a server balance, Stripe Checkout packs, receipts, parent gate, refunds, store rules.
+
+## Stage 2: Goen packs (Stripe Checkout, no sign-in)
+
+**Packs** (set on the server, `api/goen.ts` `PACKS`; the client never sends a price): 120 Goen $0.99 · 650 Goen $4.99 (+50 bonus) ·
+1,400 Goen $9.99 (+200 bonus). Shown at the Shrine under the catalog ("Get more Goen") only when the server answers `enabled`.
+
+**Server** (`api/goen.ts`, one Vercel function, no database: Stripe is the record):
+
+* `GET /api/goen` → `{ enabled, test, packs }`.
+* `checkout` → a Stripe Checkout Session (`mode: payment`, inline `price_data`, metadata `lw/goen/pack`). A first purchase uses
+  `customer_creation: always`, so the account (a Stripe Customer) exists only once someone has paid.
+* `claim` (back from Stripe with `?goen_session=cs_…`) → only for a paid session: the **recovery code** and the wallet.
+* `wallet` (code) → paid checkouts (refunded or disputed ones listed apart), bought Goen spent, once-items to give back.
+* `spend` (code, reports) → counts each report once (hash ring in the customer's metadata); bought Goen beyond what was paid is refused.
+
+**Recovery code** = Crockford base32 of the customer id + 40 bits of HMAC (`GOEN_SECRET`, else derived from the Stripe key), in groups of
+four. It proves the account without a lookup; it is shown in Settings > Your purchases (copy button) and typed into "Restore purchases"
+on a new device. Anyone with the code can restore the purchases, as with a gift-card code; it cannot be revoked in this stage.
+
+**In the game** (`@lw/game` `paidEvent`, `GoenState.paid`): bought Goen joins the one balance (`goen:buy:<checkout>` entries). A spend
+uses **free Goen first**, then bought Goen; the bought part and the item are queued (`outbox`) and sent to the server. `goen_sync` is
+idempotent: new paid checkouts add Goen, refunds take it back once (never below 0), bought Goen spent on another device is taken once (by
+the running total), once-items bought there become owned here. The first account also queues the once-items already owned, so a restore
+gives them back. Free Goen and items bought before the first purchase stay on the device (local-first, like the rest of the save).
+
+**Younger players** (age profile under 18): a grown-up check (a multiplication) before Stripe's page. Bought Goen still never buys yen,
+lessons, stars, chapters, objectives, hearts or AP.
+
+**Setup**: in the Vercel project add `STRIPE_SECRET_KEY` (start with the `sk_test_…` key; test card 4242 4242 4242 4242) and redeploy;
+optionally `GOEN_SECRET` (16+ random characters). No webhook and no Stripe products are needed. Going live = the live key (test-mode
+codes do not open live accounts) + Stripe's own account activation. Refunds are made in the Stripe dashboard; the next sync takes the
+Goen back.
+
+**Not in this stage**: app-store payments (iOS/Android apps must use in-app purchase for digital goods), subscriptions, revoking a code,
+email receipts beyond Stripe's own.

@@ -1267,3 +1267,104 @@ html[dir='rtl'] .kyo-host {
   font-size: 12.5px;
   line-height: 1.4;
 }
+
+/* stage 2: Goen packs (the shrine) and purchases (Settings) */
+.gp-shop {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+.gp-packs {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.gp-pack {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+}
+.gp-coin {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #7a4b00;
+  background: radial-gradient(circle at 35% 30%, #ffe9a8, #e2a93b);
+}
+.gp-what {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.gp-bonus {
+  color: var(--gn-red, #c0392b);
+  font-weight: 600;
+}
+.gp-test {
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: #fff6db;
+  color: #6b5100;
+}
+.gp-gate-q {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 8px 0;
+}
+.gp-gate-q input,
+.gp-code-row input {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  border: 1px solid #ccd;
+  font-size: 16px;
+}
+.gp-code-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.gp-code {
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 15px;
+  letter-spacing: 0.04em;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(127, 127, 127, 0.12);
+  user-select: all;
+  word-break: break-all;
+}
+.gp-receipts {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 14px;
+}
+.gp-receipts li {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 4px 0;
+}
+.gp-restore summary {
+  cursor: pointer;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  font-weight: 600;
+}
+.warn-text {
+  color: #b3261e;
+}

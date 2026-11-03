@@ -4,6 +4,7 @@
 import { useEffect } from 'react';
 import { activeSeason } from '@lw/game';
 import { GoenCatalog } from '../components/game/GoenCatalog';
+import { GoenPacks } from '../components/game/GoenPacks';
 import { GoenPill } from '../components/game/GoenPill';
 import { Omikuji } from '../components/game/Omikuji';
 import { beginWish } from '../components/game/WishRitual';
@@ -14,9 +15,6 @@ import { PACK } from '../game/pack';
 import { useT } from '../hooks';
 import { useStore } from '../store';
 
-/** "Goen packs: coming later" shows only in a dev build with the flag on (docs/GOEN.md principle 5): never a buy button in production. */
-const ENV = (import.meta as unknown as { env?: Record<string, unknown> }).env ?? {};
-export const GOEN_SHOP_PREVIEW = ENV.DEV === true && ENV.VITE_GOEN_SHOP_PREVIEW === '1';
 
 export function Shrine() {
   const { t, dir, lang } = useT();
@@ -57,11 +55,7 @@ export function Shrine() {
         </button>
         <h2 className="h2">{t('gn.shrine.wishes')}</h2>
         <GoenCatalog onWish={beginWish} />
-        {GOEN_SHOP_PREVIEW && (
-          <p className="muted small center" data-goen-preview dir="auto">
-            {t('gn.shrine.preview')}
-          </p>
-        )}
+        <GoenPacks />
       </div>
     </div>
   );

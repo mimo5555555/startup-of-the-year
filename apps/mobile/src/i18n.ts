@@ -24,6 +24,7 @@ import * as letter from './strings/letter';
 import * as festival from './strings/festival';
 import * as goen from './strings/goen';
 import * as goenContent from './strings/goen-content';
+import * as goenPay from './strings/goen-pay';
 
 type Key =
   | keyof typeof core.en
@@ -47,10 +48,11 @@ type Key =
   | keyof typeof letter.en
   | keyof typeof festival.en
   | keyof typeof goen.en
-  | keyof typeof goenContent.en;
+  | keyof typeof goenContent.en
+  | keyof typeof goenPay.en;
 
 /** One module per key prefix (docs/GAME_DESIGN.md §7.6); each owner edits only its own file. */
-const MODULES = [core, wallet, quests, social, jobs, culture, audio, hud, debrief, prepare, phone, home, story, friendsVisit, homeOwn, trip, storyC1, storyC2, letter, festival, goen, goenContent];
+const MODULES = [core, wallet, quests, social, jobs, culture, audio, hud, debrief, prepare, phone, home, story, friendsVisit, homeOwn, trip, storyC1, storyC2, letter, festival, goen, goenContent, goenPay];
 const merge = (lang: UiLang) => Object.assign({}, ...MODULES.map((m) => m[lang])) as Record<Key, string>;
 export const STRINGS: Record<UiLang, Record<Key, string>> = { en: merge('en'), ar: merge('ar') };
 export type StringKey = Key;

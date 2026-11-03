@@ -79,10 +79,10 @@ export function dispatch(event: InputEvent): ReduceResult {
 
 /**
  * Goen earned (docs/GOEN.md): one toast with the amount and the reason ("+25 Goen: Chapter 3 completed"). When this event already showed a
- * toast of its own (a chapter's, a purchase's), the Goen one follows it instead of hiding it.
+ * toast of its own (a chapter's, a purchase's), the Goen one follows it instead of hiding it. Bought Goen has its own thank-you (goenPay.ts).
  */
 function announceGoen(derived: DerivedEvent[], toastBefore: number | undefined): void {
-  const earned = derived.filter((d): d is Extract<DerivedEvent, { t: 'goen_changed' }> => d.t === 'goen_changed' && d.delta > 0);
+  const earned = derived.filter((d): d is Extract<DerivedEvent, { t: 'goen_changed' }> => d.t === 'goen_changed' && d.delta > 0 && d.reason !== 'buy');
   if (earned.length === 0) return;
   const st = useStore.getState();
   const t = (k: StringKey, v?: Record<string, string | number>) => translate(st.uiLang, k, v);

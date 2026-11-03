@@ -10,5 +10,5 @@
       "@lw/world": ["packages/world/src/index.ts"]
     }
   },
-  "include": ["packages/*/src", "packages/*/test", "apps/*/src", "apps/*/vite.config.ts", "tools", "vitest.config.ts"]
+  "include": ["api", "packages/*/src", "packages/*/test", "apps/*/src", "apps/*/vite.config.ts", "tools", "vitest.config.ts"]
 }

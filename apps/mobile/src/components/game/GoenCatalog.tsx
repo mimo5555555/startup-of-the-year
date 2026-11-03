@@ -16,16 +16,18 @@ export interface GoenCardRow {
   state: GoenCardState;
   /** short: the Goen still missing; full / a charm: how many are held */
   n: number;
+  /** the charm row: how many are held (whatever the state) */
+  held: number;
 }
 
 /** The catalog rows as the cards show them (pure over the selector's rows). */
 export function goenCards(rows: readonly GoenCatalogRow[]): GoenCardRow[] {
   return rows.map((r) => {
-    if (r.owned) return { item: r.item, state: 'owned', n: 0 };
-    if (r.canBuy) return { item: r.item, state: 'wish', n: r.held };
-    if (r.reason === 'max') return { item: r.item, state: 'full', n: r.held };
-    if (r.reason === 'funds') return { item: r.item, state: 'short', n: r.short };
-    return { item: r.item, state: 'closed', n: 0 };
+    if (r.owned) return { item: r.item, state: 'owned', n: 0, held: r.held };
+    if (r.canBuy) return { item: r.item, state: 'wish', n: r.held, held: r.held };
+    if (r.reason === 'max') return { item: r.item, state: 'full', n: r.held, held: r.held };
+    if (r.reason === 'funds') return { item: r.item, state: 'short', n: r.short, held: r.held };
+    return { item: r.item, state: 'closed', n: 0, held: r.held };
   });
 }
 
@@ -38,7 +40,7 @@ export function GoenCatalog({ onWish }: { onWish: (itemId: string) => void }) {
   const cards = goenCards(goenCatalog(PACK, state, view, Date.now()));
   return (
     <ul className="gn-cards" data-goen-catalog>
-      {cards.map(({ item, state: st, n }) => (
+      {cards.map(({ item, state: st, n, held }) => (
         <li key={item.id} className={`gn-card card ${st}`} data-goen-item={item.id} data-state={st}>
           <span className={`gn-pic gn-pic-${item.id}`} aria-hidden="true">
             <Icon name={goenIcon(item.kind, item.id)} size={26} />
@@ -52,9 +54,9 @@ export function GoenCatalog({ onWish }: { onWish: (itemId: string) => void }) {
             <p className="gn-gives" dir="auto">
               {item.gives[lang]}
             </p>
-            {item.kind === 'charm' && st !== 'full' && n > 0 && (
+            {item.kind === 'charm' && st !== 'full' && held > 0 && (
               <small className="gn-held" dir="auto">
-                <Ltr text={t('gn.item.held', { n, max: CHARMS_MAX })} />
+                <Ltr text={t('gn.item.held', { n: held, max: CHARMS_MAX })} />
               </small>
             )}
           </div>

@@ -8,6 +8,7 @@ import { dispatch, observeDay } from '../game/bridge';
 import { useDevMode } from '../game/hooks';
 import pkg from '../../package.json';
 import { VOICE_CREDITS } from '../voice/voices';
+import { GoenPurchases } from '../components/game/GoenPurchases';
 
 /** Taps on the version line that switch the QA tools on or off (docs/GAME_DESIGN.md §15.1 rule 8). */
 const DEV_TAPS = 7;
@@ -125,6 +126,8 @@ export function Settings() {
             ))}
           </div>
         </section>
+
+        <GoenPurchases />
 
         <section className="group about">
           <h2 className="h2">{t('st.about')}</h2>

@@ -6,7 +6,7 @@ import { BALANCE } from './balance';
 import { updateDaily, swapDaily } from './daily';
 import { emptyFriend, emptyPay } from './defaults';
 import { availableDreams } from './dreams';
-import { drawOmikuji, emptyGoen, goenOwns, spendGoen, updateGoen, useCharm } from './goen';
+import { drawOmikuji, emptyGoen, goenOwns, paidEvent, spendGoen, updateGoen, useCharm } from './goen';
 import { applyGift, applyHeartEvent, applyTalk, contactOpen, queueThreads } from './friends';
 import { dedupe, localDateString, markActive, observeClock, payForDay } from './integrity';
 import { applyOutfit, arriveDeliveries, grantItem, hasFeature, placeItem } from './inventory';
@@ -105,6 +105,9 @@ export function needsFlush(ev: InputEvent): boolean {
     case 'goen_spend':
     case 'goen_charm_used':
     case 'omikuji_drawn':
+    case 'goen_account':
+    case 'goen_sync':
+    case 'goen_reported':
       return true;
     default:
       return false;
@@ -894,6 +897,14 @@ function apply(a: Acc, ev: InputEvent, ctx: ReduceCtx): void {
     }
     case 'goen_charm_used': {
       const r = useCharm(a.s, ev.day);
+      if (!r.ok) a.effective = false;
+      absorb(a, r);
+      break;
+    }
+    case 'goen_account':
+    case 'goen_sync':
+    case 'goen_reported': {
+      const r = paidEvent(a.s, pack, ev, ctx.now);
       if (!r.ok) a.effective = false;
       absorb(a, r);
       break;

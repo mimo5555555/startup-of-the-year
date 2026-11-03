@@ -1203,7 +1203,32 @@ export interface LetterSentence {
   assisted: boolean;
 }
 
-export type GoenReason = 'chapter' | 'daily' | 'streak' | 'capstone' | 'letter' | 'season' | 'journey' | 'spend';
+export type GoenReason = 'chapter' | 'daily' | 'streak' | 'capstone' | 'letter' | 'season' | 'journey' | 'spend' | 'buy' | 'refund' | 'sync';
+
+/** A Goen spend not yet told to the server (stage 2): `paid` is the bought Goen it used; `keep` = a once-item a restore gives back. */
+export interface GoenSpendReport {
+  id: string;
+  itemId: string;
+  paid: number;
+  keep: boolean;
+}
+
+/**
+ * Bought Goen (docs/GOEN.md stage 2). The server (Stripe) is the record of what was paid; this is what this device has applied of it. The
+ * balance stays one number: a spend takes the free Goen first and the bought Goen after, so `spent` only counts bought Goen.
+ */
+export interface GoenPaidState {
+  /** the account's recovery code (it is also the proof the server checks); null before the first purchase */
+  code: string | null;
+  /** checkout id -> Goen added on this device */
+  credits: Record<string, number>;
+  /** checkout ids refunded (their Goen taken back once) */
+  refunded: Record<string, true>;
+  /** bought Goen spent: this device's spends plus the ones another device reported */
+  spent: number;
+  /** spends the server has not confirmed yet (oldest first) */
+  outbox: GoenSpendReport[];
+}
 
 /** One Goen ledger entry: an earn (delta > 0) or a spend (delta < 0). Ids in `GOEN_IDS` (goen.ts). */
 export interface GoenEntry {
@@ -1260,6 +1285,8 @@ export interface GoenState {
   omikuji: { day: number; fortune: OmikujiFortune['id']; word: string | null } | null;
   season: GoenSeasonState;
   journeys: Record<string, GoenJourneyState>;
+  /** bought Goen (stage 2); absent until the first purchase or restore */
+  paid?: GoenPaidState;
 }
 
 export interface GameState {
@@ -1503,7 +1530,13 @@ export type InputEvent =
   /** the streak hook used a held omamori to bridge one missed day on local date `day` (YYYY-MM-DD) */
   | { t: 'goen_charm_used'; day: string }
   /** the free daily omikuji: `words` are vocabulary keys due for review (the app knows them); the reducer picks one and the wording, once a day */
-  | { t: 'omikuji_drawn'; words: string[] };
+  | { t: 'omikuji_drawn'; words: string[] }
+  /** stage 2: the account's recovery code after the first purchase or a restore */
+  | { t: 'goen_account'; code: string }
+  /** stage 2: what the server holds for the account (paid checkouts, refunds, bought Goen spent, once-items to give back); idempotent */
+  | { t: 'goen_sync'; credits: { id: string; goen: number }[]; refunded: string[]; spent: number; own: string[] }
+  /** stage 2: the server confirmed these spend reports */
+  | { t: 'goen_reported'; ids: string[] };
 
 export type PurchaseEvent = Extract<InputEvent, { t: 'purchase' }>;
 

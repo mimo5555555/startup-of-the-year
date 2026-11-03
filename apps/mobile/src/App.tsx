@@ -24,6 +24,7 @@ import { dirOf } from './i18n';
 import { watchFontsReady } from './fonts';
 import { unlockOnFirstGesture } from './services';
 import { init, observeDay } from './game/bridge';
+import { startPay } from './game/goenPay';
 import { BeatGate, ConversationHost } from './game/host';
 import { CultureCardHost } from './components/game/CultureCard';
 import { useGameReady } from './game/hooks';
@@ -47,6 +48,11 @@ export default function App() {
   useEffect(() => {
     if (ready && gameReady && playing) observeDay();
   }, [ready, gameReady, playing]);
+
+  // Goen stage 2: the shop, the way back from Stripe's payment page, the spend reports (docs/GOEN.md)
+  useEffect(() => {
+    if (ready && gameReady) startPay();
+  }, [ready, gameReady]);
 
   useEffect(() => {
     const html = document.documentElement;

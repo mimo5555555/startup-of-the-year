@@ -9,6 +9,7 @@ import { grantItem } from './inventory';
 import { dayKey } from './ledger';
 import { evalPred, predProgress } from './objectives';
 import type {
+  DayKey,
   DerivedEvent,
   GamePack,
   GameState,
@@ -16,7 +17,9 @@ import type {
   GoenEntry,
   GoenItemDef,
   GoenJourneyState,
+  GoenPaidState,
   GoenReason,
+  GoenSpendReport,
   GoenSeasonState,
   GoenState,
   InputEvent,
@@ -47,6 +50,10 @@ export const GOEN_IDS = {
   journey: (id: string) => `journey:${id}`,
   /** a once-item is `spend:<itemId>`; the repeatable charm adds the event id */
   spend: (itemId: string, id?: string) => (id === undefined ? `spend:${itemId}` : `spend:${itemId}:${id}`),
+  /** stage 2: a paid checkout, its refund, and Goen spent on another device (by the account's running total) */
+  buy: (checkoutId: string) => `buy:${checkoutId}`,
+  refund: (checkoutId: string) => `refund:${checkoutId}`,
+  sync: (spent: number) => `sync:${spent}`,
 } as const;
 
 export const goenEntryId = (reasonId: string): string => `goen:${reasonId}`;
@@ -180,6 +187,19 @@ export function goenCatalog(pack: GamePack, state: GameState, view: GameView | n
   });
 }
 
+/** A catalog item becomes the player's: cosmetics into `owned` (and the ordinary item), a Journey's progress, a charm. No Goen moves here. */
+function grantCatalogItem(state: GameState, pack: GamePack, goen: GoenState, item: GoenItemDef, day: DayKey): GameState {
+  let g = goen;
+  if (item.kind === CHARM_KIND) g = { ...g, charms: g.charms + 1 };
+  else g = { ...g, owned: { ...g.owned, [item.id]: day } };
+  if (item.kind === 'journey' && item.ref && !g.journeys[item.ref]) g = { ...g, journeys: { ...g.journeys, [item.ref]: { done: {}, complete: null } } };
+  let s: GameState = { ...state, goen: g };
+  // a look is an ordinary owned item from now on: the Wardrobe, the furniture placer and the ride card read `owned`
+  const grant = item.itemId ?? item.id;
+  if (item.kind === 'cosmetic' && pack.items.some((i) => i.id === grant)) s = grantItem(s, pack, grant, 1, day);
+  return s;
+}
+
 /** The coin toss: spends the price once and grants the item at once (cosmetics into `owned`, a Journey's progress, a charm). */
 export function spendGoen(state: GameState, pack: GamePack, ev: Extract<InputEvent, { t: 'goen_spend' }>, now: number): ReduceResult & { ok: boolean } {
   const none = { state, derived: [], effects: [], ok: false };
@@ -190,21 +210,20 @@ export function spendGoen(state: GameState, pack: GamePack, ev: Extract<InputEve
   const id = goenEntryId(GOEN_IDS.spend(item.id, item.kind === CHARM_KIND ? ev.id : undefined));
   if (entryHas(g, id)) return none;
   const day = dayKey(state.clock.dayIndex);
+  // stage 2: free Goen first, bought Goen after; the bought part is told to the server (with the item, so a restore gives it back)
+  const fromPaid = Math.max(0, item.price - (g.balance - paidLeft(g)));
   let goen: GoenState = {
     ...g,
     balance: g.balance - item.price,
     totals: { ...g.totals, spent: g.totals.spent + item.price },
     ledger: pushEntry(g, { id, at: now, delta: -item.price, kind: 'spend', ref: item.id }),
   };
-  if (item.kind === CHARM_KIND) goen = { ...goen, charms: goen.charms + 1 };
-  else goen = { ...goen, owned: { ...goen.owned, [item.id]: day } };
-  if (item.kind === 'journey' && item.ref && !goen.journeys[item.ref]) goen = { ...goen, journeys: { ...goen.journeys, [item.ref]: { done: {}, complete: null } } };
-  let s: GameState = { ...state, goen };
-  // a look is an ordinary owned item from now on: the Wardrobe, the furniture placer and the ride card read `owned`
-  const grant = item.itemId ?? item.id;
-  if (item.kind === 'cosmetic' && pack.items.some((i) => i.id === grant)) s = grantItem(s, pack, grant, 1, day);
+  if (g.paid) {
+    const report: GoenSpendReport = { id, itemId: item.id, paid: fromPaid, keep: item.kind !== CHARM_KIND };
+    goen = { ...goen, paid: { ...g.paid, spent: g.paid.spent + fromPaid, outbox: g.paid.code ? [...g.paid.outbox, report].slice(-BALANCE.goen.ledger) : g.paid.outbox } };
+  }
   return {
-    state: s,
+    state: grantCatalogItem(state, pack, goen, item, day),
     ok: true,
     derived: [
       { t: 'goen_changed', delta: -item.price, balance: goen.balance, reason: 'spend', ref: item.id },
@@ -212,6 +231,103 @@ export function spendGoen(state: GameState, pack: GamePack, ev: Extract<InputEve
     ],
     effects: [],
   };
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Stage 2: bought Goen (docs/GOEN.md). The server (Stripe) records what was paid and what bought Goen was spent; the device applies it.
+// ---------------------------------------------------------------------------------------------------------------
+
+export const emptyPaid = (): GoenPaidState => ({ code: null, credits: {}, refunded: {}, spent: 0, outbox: [] });
+
+/** Bought Goen not spent yet (never more than the balance): a spend uses it only after the free Goen. */
+export function paidLeft(g: GoenState): number {
+  const p = g.paid;
+  if (!p) return 0;
+  let granted = 0;
+  for (const [id, n] of Object.entries(p.credits)) if (!p.refunded[id]) granted += n;
+  return Math.max(0, Math.min(g.balance, granted - p.spent));
+}
+
+export const goenCode = (state: GameState): string | null => goenOf(state).paid?.code ?? null;
+export const goenOutbox = (state: GameState): GoenSpendReport[] => goenOf(state).paid?.outbox ?? [];
+
+const CODE_RE = /^[0-9A-Z-]{9,80}$/;
+const CHECKOUT_RE = /^[A-Za-z0-9_]{1,120}$/;
+
+/**
+ * The three stage-2 events. `goen_account` keeps the recovery code (the first one also queues the once-items already owned, so a restore gives
+ * them back too). `goen_sync` applies the server's record, idempotently: new paid checkouts add their Goen, refunds take it back once, bought
+ * Goen another device spent is taken once (by the running total), once-items bought there become owned here. `goen_reported` clears the queue.
+ */
+export function paidEvent(
+  state: GameState,
+  pack: GamePack,
+  ev: Extract<InputEvent, { t: 'goen_account' | 'goen_sync' | 'goen_reported' }>,
+  now: number,
+): ReduceResult & { ok: boolean } {
+  const none = { state, derived: [], effects: [], ok: false };
+  const g = goenOf(state);
+  const p = g.paid ?? emptyPaid();
+  if (ev.t === 'goen_account') {
+    if (typeof ev.code !== 'string' || !CODE_RE.test(ev.code) || ev.code === p.code) return none;
+    const queued = new Set(p.outbox.map((r) => r.itemId));
+    const owned: GoenSpendReport[] =
+      p.code === null
+        ? Object.keys(g.owned)
+            .filter((id) => !queued.has(id) && goenItem(pack, id))
+            .map((id) => ({ id: `own:${id}`, itemId: id, paid: 0, keep: true }))
+        : [];
+    return { state: { ...state, goen: { ...g, paid: { ...p, code: ev.code, outbox: [...p.outbox, ...owned] } } }, derived: [], effects: [], ok: true };
+  }
+  if (ev.t === 'goen_reported') {
+    if (!Array.isArray(ev.ids)) return none;
+    const done = new Set(ev.ids);
+    const outbox = p.outbox.filter((r) => !done.has(r.id));
+    if (outbox.length === p.outbox.length) return none;
+    return { state: { ...state, goen: { ...g, paid: { ...p, outbox } } }, derived: [], effects: [], ok: true };
+  }
+  if (!Array.isArray(ev.credits) || !Array.isArray(ev.refunded) || !Array.isArray(ev.own)) return none;
+  let goen: GoenState = g;
+  let paid: GoenPaidState = p;
+  const derived: DerivedEvent[] = [];
+  const move = (delta: number, kind: GoenReason, id: string, ref: string): void => {
+    if (delta === 0) return;
+    goen = {
+      ...goen,
+      balance: goen.balance + delta,
+      totals: delta > 0 ? { ...goen.totals, earned: goen.totals.earned + delta } : { ...goen.totals, spent: goen.totals.spent - delta },
+      ledger: pushEntry(goen, { id: goenEntryId(id), at: now, delta, kind, ref }),
+    };
+    derived.push({ t: 'goen_changed', delta, balance: goen.balance, reason: kind, ref });
+  };
+  for (const c of ev.credits.slice(0, 500)) {
+    const n = Math.trunc(Number(c?.goen));
+    if (typeof c?.id !== 'string' || !CHECKOUT_RE.test(c.id) || !(n > 0 && n <= 100_000) || paid.credits[c.id] !== undefined) continue;
+    paid = { ...paid, credits: { ...paid.credits, [c.id]: n } };
+    move(n, 'buy', GOEN_IDS.buy(c.id), c.id);
+  }
+  for (const id of ev.refunded.slice(0, 500)) {
+    if (typeof id !== 'string' || paid.credits[id] === undefined || paid.refunded[id]) continue;
+    paid = { ...paid, refunded: { ...paid.refunded, [id]: true } };
+    move(-Math.min(paid.credits[id]!, goen.balance), 'refund', GOEN_IDS.refund(id), id);
+  }
+  const spent = Math.trunc(Number(ev.spent));
+  if (Number.isFinite(spent) && spent > paid.spent && spent <= 10_000_000) {
+    const take = Math.min(spent - paid.spent, goen.balance);
+    paid = { ...paid, spent };
+    move(-take, 'sync', GOEN_IDS.sync(spent), String(spent));
+  }
+  let s: GameState = state;
+  const day = dayKey(state.clock.dayIndex);
+  for (const itemId of ev.own.slice(0, 100)) {
+    const item = typeof itemId === 'string' ? goenItem(pack, itemId) : undefined;
+    if (!item || item.kind === CHARM_KIND || goen.owned[item.id] !== undefined) continue;
+    s = grantCatalogItem(s, pack, goen, item, day);
+    goen = s.goen!;
+    derived.push({ t: 'goen_owned', itemId: item.id });
+  }
+  if (goen === g && paid === p) return none;
+  return { state: { ...s, goen: { ...goen, paid } }, derived, effects: [], ok: true };
 }
 
 /** The streak hook used a charm on local date `day`: one charm, once a day. */
@@ -599,7 +715,7 @@ const int = (v: unknown, def: number, min: number, max = Number.MAX_SAFE_INTEGER
   typeof v === 'number' && Number.isFinite(v) ? Math.min(max, Math.max(min, Math.trunc(v))) : def;
 const strMap = (v: unknown): Record<string, string> => Object.fromEntries(Object.entries(rec(v)).filter((e): e is [string, string] => typeof e[1] === 'string'));
 const strs = (v: unknown, max: number): string[] => (Array.isArray(v) ? v.filter((x): x is string => typeof x === 'string') : []).slice(-max);
-const REASONS: readonly GoenReason[] = ['chapter', 'daily', 'streak', 'capstone', 'letter', 'season', 'journey', 'spend'];
+const REASONS: readonly GoenReason[] = ['chapter', 'daily', 'streak', 'capstone', 'letter', 'season', 'journey', 'spend', 'buy', 'refund', 'sync'];
 const FORTUNES: readonly string[] = ['daikichi', 'kichi', 'shokichi'];
 
 /**
@@ -654,7 +770,22 @@ export function cleanGoen(v: unknown): GoenState {
       tiers: strMap(s.tiers),
     },
     journeys,
+    ...(isRec(v.paid) ? { paid: cleanPaid(v.paid) } : {}),
   };
+}
+
+/** The bought-Goen part of a save: well-formed or dropped (the server can always sync it back with the recovery code). */
+function cleanPaid(v: Record<string, unknown>): GoenPaidState {
+  const credits: Record<string, number> = {};
+  for (const [k, x] of Object.entries(rec(v.credits))) if (CHECKOUT_RE.test(k) && typeof x === 'number' && x > 0 && x <= 100_000) credits[k] = Math.trunc(x);
+  const refunded: Record<string, true> = {};
+  for (const [k, x] of Object.entries(rec(v.refunded))) if (x === true && credits[k] !== undefined) refunded[k] = true;
+  const outbox: GoenSpendReport[] = (Array.isArray(v.outbox) ? v.outbox : [])
+    .map(rec)
+    .filter((r) => typeof r.id === 'string' && typeof r.itemId === 'string')
+    .map((r) => ({ id: r.id as string, itemId: r.itemId as string, paid: int(r.paid, 0, 0), keep: r.keep === true }))
+    .slice(-BALANCE.goen.ledger);
+  return { code: typeof v.code === 'string' && CODE_RE.test(v.code) ? v.code : null, credits, refunded, spent: int(v.spent, 0, 0), outbox };
 }
 
 /**
