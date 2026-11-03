@@ -73,6 +73,8 @@ const FIREWORKS_LOOK_UP = 3.8;
 const FIREWORKS_CAM_DIST = 5.2;
 const WALK_SPEED = 4.1;
 const RUN_SPEED = 6.6;
+/** the longest single world step; a slower frame runs several */
+const MAX_FRAME_STEP = 0.05;
 /**
  * One movement sub-step never exceeds this (§6.4): colliders are 0.5 m thick, and a x2.5 ride with the 0.05 s frame
  * cap would otherwise move 0.8 m per frame and step through them. The world package is pure rendering with no
@@ -250,6 +252,8 @@ export class TokyoWorld {
   private auto: boolean;
   private frames = 0;
   private frameAcc = 0;
+  /** the previous frame's rAF time (the real frame time, for the auto quality) */
+  private lastRaw = 0;
   private width = 1;
   private height = 1;
   private fpsCap = 60;
@@ -415,13 +419,23 @@ export class TokyoWorld {
       this.raf = requestAnimationFrame(loop);
       const minDt = 1000 / this.fpsCap - 1;
       if (now - this.last < minDt) return;
-      const dt = Math.min(0.05, (now - this.last) / 1000);
+      // a slow frame still moves the world by the real time that passed, in steps of at most 0.05 s (collisions and animations stay
+      // stable), so walking keeps its speed on a slow phone; beyond 0.25 s (a tab switch, a long stall) the world just waits
+      const elapsed = Math.min(0.25, (now - this.last) / 1000);
       this.last = now;
       if (!this.active) return;
-      this.step(dt);
+      let left = elapsed;
+      do {
+        const h = Math.min(MAX_FRAME_STEP, left);
+        this.step(h);
+        left -= h;
+      } while (left > 1e-4);
       this.renderer.render(this.scene, this.camera);
-      this.watchPerformance(dt);
+      this.watchPerformance((now - this.lastRaw) / 1000);
+      this.lastRaw = now;
     };
+    this.lastRaw = performance.now();
+    this.warmUp();
     this.raf = requestAnimationFrame(loop);
     this.emit({ type: 'ready' });
   }
@@ -605,6 +619,7 @@ export class TokyoWorld {
       this.festivalScenery = buildFestival(this.city.materials);
       this.festivalScenery.group.visible = false;
       this.scene.add(this.festivalScenery.group);
+      if (this.running) this.warmUp(this.festivalScenery.group);
     }
     if (!on) {
       this.festivalScenery?.resetFireworks();
@@ -787,6 +802,8 @@ export class TokyoWorld {
     this.dist = clamp(cam.dist * (this.camera.aspect < 1 ? clamp(roomW / 3.7, 1, 1.45) : 1), cam.minDist, cam.maxDist);
     this.snapCamera();
     this.updateNearby();
+    // a room's materials (and the street's without the sun) compile now, behind the door, not on the first frames inside
+    if (this.running) this.warmUp();
     this.emit({ type: 'stage', phase: 'enter', id });
     return true;
   }
@@ -943,6 +960,8 @@ export class TokyoWorld {
     for (const w of this.walkers) w.avatar.setBlob(!high);
     this.applyLighting();
     this.renderer.setSize(this.width, this.height, false);
+    // shadows on or off change the shaders: compile the new set at once rather than over the next few spots
+    if (this.running) this.warmUp();
     if (!silent) this.emit({ type: 'quality', quality: q });
   }
   getQuality() {
@@ -1806,15 +1825,59 @@ export class TokyoWorld {
     this.applyViewOffset();
   }
 
+  /**
+   * 'auto' drops to light graphics when frames run slow for about two seconds (at 15 fps that is 30 frames, not the 8 s that 120 frames
+   * took). A single long frame (a stall, a tab coming back) is not slowness and is left out.
+   */
   private watchPerformance(dt: number) {
-    if (!this.auto || this.quality === 'low') return;
+    if (!this.auto || this.quality === 'low' || !(dt > 0) || dt > 0.25) return;
     this.frames++;
     this.frameAcc += dt;
-    if (this.frames >= 120) {
+    if (this.frameAcc >= 2 && this.frames >= 20) {
       const avg = this.frameAcc / this.frames;
       this.frames = 0;
       this.frameAcc = 0;
       if (avg > 0.034) this.setQuality('low');
+    }
+  }
+
+  /**
+   * Compiles the shaders of everything under `root` (the town, a room, the festival) and uploads its textures now, so the first look at a
+   * new spot does not stall a frame (a shader is otherwise compiled the first time its object comes into view: a visible hitch on a phone).
+   */
+  private warmUp(root: THREE.Object3D = this.scene) {
+    const was = root.visible;
+    root.visible = true;
+    try {
+      this.renderer.compile(root, this.camera, root === this.scene ? null : this.scene);
+      const seen = new Set<THREE.Texture>();
+      root.traverseVisible((o) => {
+        const m = (o as THREE.Mesh).material;
+        for (const mat of Array.isArray(m) ? m : m ? [m] : []) {
+          for (const v of Object.values(mat)) if (v instanceof THREE.Texture && !seen.has(v)) seen.add(v);
+        }
+      });
+      for (const tex of seen) this.renderer.initTexture(tex);
+      // one draw of everything with view culling off uploads every shape's buffers now (a shape is otherwise uploaded the first time it
+      // comes into view: the hitch at the far ends of the street and in the park)
+      const culled: THREE.Object3D[] = [];
+      root.traverse((o) => {
+        if (o.frustumCulled) {
+          o.frustumCulled = false;
+          culled.push(o);
+        }
+      });
+      // drawn to the screen itself (the next frame paints over it): the same shaders and draw states as play, so the driver's own
+      // first-use work for each state happens here too
+      try {
+        this.renderer.render(this.scene, this.camera);
+      } finally {
+        for (const o of culled) o.frustumCulled = true;
+      }
+    } catch {
+      /* a context without compile support: shaders compile on first use as before */
+    } finally {
+      root.visible = was;
     }
   }
 }
