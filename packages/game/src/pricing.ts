@@ -382,7 +382,7 @@ export function commitPurchase(state: GameState, ev: PurchaseEvent, ctx: ReduceC
     ...next,
     stats: {
       ...next.stats,
-      ...(shop?.surface === 'world' ? { purchases: next.stats.purchases + 1, spentOnPurchases: next.stats.spentOnPurchases + q.total } : {}),
+      ...(shop?.surface === 'world' || shop?.spoken === true ? { purchases: next.stats.purchases + 1, spentOnPurchases: next.stats.spentOnPurchases + q.total } : {}),
       perksUsed: [...next.stats.perksUsed, ...plan.oncePerks],
       perkBuys: Object.entries(plan.perkBuys).reduce((m, [k, n]) => ({ ...m, [k]: (m[k] ?? 0) + n }), { ...next.stats.perkBuys }),
     },

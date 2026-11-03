@@ -267,8 +267,9 @@ function bumpsFor(ev: InputEvent, derived: DerivedEvent[], pack: GamePack): Bump
       if (derived.some((d) => d.t === 'gift_reacted' && d.friendId === ev.friendId)) add('friend_contact');
       break;
     case 'purchase': {
-      // a completed charge in a conversation: the wallet moved, and not at a panel machine
-      const world = pack.shops.find((s) => s.id === ev.shopId)?.surface !== 'panel';
+      // a completed charge in a conversation: the wallet moved, and not at a panel machine (a spoken panel shop, Kyoto's, is a conversation)
+      const shop = pack.shops.find((s) => s.id === ev.shopId);
+      const world = shop?.surface !== 'panel' || shop.spoken === true;
       if (world && derived.some((d) => d.t === 'wallet_changed' && d.kind === 'purchase' && d.delta < 0)) add('purchase');
       break;
     }

@@ -189,6 +189,9 @@ export interface ShopDef {
   name: Gloss;
   openChapter: number;
   surface: 'world' | 'panel';
+  /** a panel shop where the player buys by talking (the Kyoto temple counter and matcha café), not a machine: its purchases count as
+   * conversation purchases (the daily "Buy something in Japanese", `stats.purchases`) like a world shop's */
+  spoken?: boolean;
   register: Register;
   /** pockets the shop takes (Hikari Denki: cash and card, no IC) */
   pay: PayMethod[];
@@ -841,6 +844,9 @@ export interface SeasonDef {
   tiers: SeasonTier[];
   /** the words `season_words` counts (lexicon surfaces) */
   words: string[];
+  /** hiragana readings of some `words`: a line typed in kana (くりきんとん) counts the word too. Only readings of 3+ kana are used, so a
+   * short one (あき, かき) never matches inside another word */
+  readings?: Record<string, string>;
 }
 
 /** A Journey (a content pack bought with Goen): its trip, its conversations, its objective set and its one completion reward. */
@@ -979,7 +985,7 @@ export interface RunRecord {
   steps: string[];
 }
 
-/** Single writers (never two): purchases / spentOnPurchases = commitPurchase (world-surface shops only: a panel purchase such as a vending drink is not a conversation purchase); gifts = applyGift; chats / hangouts = applyTalk; the rest = the reducer. */
+/** Single writers (never two): purchases / spentOnPurchases = commitPurchase (world-surface and `spoken` shops only: a panel purchase such as a vending drink is not a conversation purchase); gifts = applyGift; chats / hangouts = applyTalk; the rest = the reducer. */
 export interface StatsState {
   purchases: number;
   spentOnPurchases: number;

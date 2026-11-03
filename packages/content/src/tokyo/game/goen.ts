@@ -109,6 +109,8 @@ export const SEASON_AUTUMN: SeasonDef = {
   ],
   // lexicon surfaces a class-I turn may contain (the shrine's wishes, Aiko's chestnut sweet, the temple garden, the café's sweet)
   words: ['秋', '紅葉', '栗', '栗まんじゅう', '栗きんとん', '柿', 'お月見', '焼き芋', '涼しい', '落ち葉'],
+  // a learner who types in kana gets the word too (the short ones, あき くり かき, would match inside other words)
+  readings: { 紅葉: 'こうよう', 栗まんじゅう: 'くりまんじゅう', 栗きんとん: 'くりきんとん', お月見: 'おつきみ', 焼き芋: 'やきいも', 涼しい: 'すずしい', 落ち葉: 'おちば' },
 };
 
 export const SEASONS: SeasonDef[] = [SEASON_AUTUMN];

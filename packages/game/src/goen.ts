@@ -565,7 +565,11 @@ function seasonBumps(def: SeasonDef, ev: InputEvent, derived: DerivedEvent[], se
           if (settled && settled.settlement.stars >= (task.min ?? 2)) bump(task, 1);
         }
         if (task.counter === 'season_words') {
-          for (const t of own) if (!t.copied) for (const w of t.words ?? []) if (def.words.includes(w)) words = addUnique(words, w);
+          for (const t of own) {
+            if (t.copied) continue;
+            for (const w of t.words ?? []) if (def.words.includes(w)) words = addUnique(words, w);
+            for (const [w, r] of Object.entries(def.readings ?? {})) if (r.length >= 3 && def.words.includes(w) && t.norm?.includes(r)) words = addUnique(words, w);
+          }
           counts[task.id] = Math.min(task.target, words.length);
         }
         break;

@@ -33,7 +33,7 @@ export const KYOTO_PRICES = {
   yatsuhashi: 1000,
 } as const;
 
-/** The two panel shops of Kyoto: the temple's counter (cash only, as at most temples) and the matcha café (cash or IC). */
+/** The two panel shops of Kyoto: the temple's counter (cash only, as at most temples) and the matcha café (cash or IC); both are spoken. */
 export const KYOTO_SHOPS: ShopDef[] = [
   {
     id: 'kyoto_temple',
@@ -41,6 +41,7 @@ export const KYOTO_SHOPS: ShopDef[] = [
     name: { en: 'Temple counter (Kyoto)', ar: 'شبّاك المعبد (كيوتو)' },
     openChapter: 1,
     surface: 'panel',
+    spoken: true,
     register: 'keigo',
     pay: ['cash'],
     sells: ['kyoto_temple:kenko', 'kyoto_temple:gakugyo', 'kyoto_temple:kotsu', 'kyoto_temple:goshuin'],
@@ -51,6 +52,7 @@ export const KYOTO_SHOPS: ShopDef[] = [
     name: { en: 'Matcha café (Kyoto)', ar: 'مقهى الماتشا (كيوتو)' },
     openChapter: 1,
     surface: 'panel',
+    spoken: true,
     register: 'polite',
     pay: ['cash', 'ic'],
     sells: ['kyoto_cafe:set', 'kyoto_cafe:usucha', TRIP_KYOTO.souvenir],

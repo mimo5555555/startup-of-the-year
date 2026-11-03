@@ -82,6 +82,19 @@ describe('the catalog and the pack', () => {
     expect(validatePack(pack, { level: 4 }).filter((i) => i.severity === 'error')).toEqual([]);
   });
 
+  it('a purchase at a spoken Kyoto counter counts for the daily "Buy something in Japanese"; a vending machine does not', () => {
+    const s = fresh();
+    const day = s.clock.dayIndex;
+    const set = pack.menu.find((m) => m.id === 'kyoto_cafe:set')!;
+    const kyoto = run(s, { t: 'purchase', sessionId: 'k1', n: 1, shopId: 'kyoto_cafe', itemId: set.id, qty: 1, total: set.price, method: 'cash', lines: [] }).state;
+    expect(kyoto.wallet.cash).toBe(s.wallet.cash - set.price);
+    expect(kyoto.daily.counters[day]?.purchase).toBe(1);
+    expect(kyoto.stats.purchases).toBe(s.stats.purchases + 1);
+    const drink = pack.menu.find((m) => m.shop === 'vending')!;
+    const machine = run(s, { t: 'purchase', sessionId: 'v1', n: 1, shopId: 'vending', itemId: drink.id, qty: 1, total: drink.price, method: 'cash', lines: [] }).state;
+    expect(machine.daily.counters[day]?.purchase ?? 0).toBe(0);
+  });
+
   it('a Goen look cannot be bought for yen', () => {
     const s = fresh();
     const r = run(s, { t: 'purchase', sessionId: 'p1', n: 1, shopId: 'shrine', itemId: 'kimono_momiji', qty: 1, total: 0, method: 'cash', lines: [] });
@@ -227,6 +240,17 @@ describe('the autumn season', () => {
     s = run(s, { t: 'conversation_done', facts: facts('konbini', 3) }).state;
     expect(s.goen.season.counts.au_own).toBe(3);
     expect(s.goen.season.words).toEqual(['秋', '紅葉']);
+    // a line typed in kana counts its word by reading (3+ kana only: かき inside かきます is not 柿); a copied line counts nothing
+    const kana = facts('kyoto_matcha', 2, { sessionId: 's_kana' });
+    kana.turns = [
+      { ...kana.turns[0]!, norm: 'くりきんとんがおいしいです', words: ['おいしい'] },
+      { ...kana.turns[1]!, norm: 'てがみおかきます', words: [] },
+    ];
+    s = run(s, { t: 'conversation_done', facts: kana }).state;
+    expect(s.goen.season.words).toEqual(['秋', '紅葉', '栗きんとん']);
+    const copied = facts('kyoto_matcha', 1, { sessionId: 's_copy' });
+    copied.turns = [{ ...copied.turns[0]!, copied: true, norm: 'やきいもください', words: [] }];
+    expect(run(s, { t: 'conversation_done', facts: copied }).state.goen.season.words).toEqual(['秋', '紅葉', '栗きんとん']);
     // out of the window: "next season soon", nothing counts and the premium cannot be bought
     const w = fresh(WINTER);
     expect(seasonView(pack, w, WINTER)).toMatchObject({ active: false, nextFrom: '2027-10-15' });
