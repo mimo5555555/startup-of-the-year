@@ -54,7 +54,13 @@ describe('the recovery code', () => {
 describe('the server', () => {
   it('is off without a Stripe key (no packs, purchases refused)', async () => {
     const off = await handle('GET', null, {}, ORIGIN, fakeStripe().fetchFn);
-    expect(off.body).toEqual({ enabled: false, test: false, packs: [] });
+    expect(off.body).toEqual({ enabled: false, test: false, packs: [], problem: 'missing' });
+    const get = async (k: string) => (await handle('GET', null, { STRIPE_SECRET_KEY: k }, ORIGIN, fakeStripe().fetchFn)).body as Record<string, unknown>;
+    expect(await get('pk_test_abc')).toMatchObject({ enabled: false, problem: 'publishable_key' });
+    expect(await get('sk_test_ key')).toMatchObject({ enabled: false, problem: 'not_a_secret_key' });
+    expect(await get('"sk_test_abc"')).toMatchObject({ enabled: true });
+    expect(await get('STRIPE_SECRET_KEY=sk_test_abc')).toMatchObject({ enabled: true });
+    expect(JSON.stringify(await get('sk_live_ zzqx'))).not.toContain('zzqx');
     expect((await handle('POST', { a: 'checkout', pack: 'p120' }, {}, ORIGIN, fakeStripe().fetchFn)).status).toBe(503);
     const spaced = await handle('GET', null, { STRIPE_SECRET_KEY: ' sk_test_abc \n' }, ORIGIN, fakeStripe().fetchFn);
     expect(spaced.body).toMatchObject({ enabled: true, test: true });

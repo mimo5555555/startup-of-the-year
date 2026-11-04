@@ -93,9 +93,26 @@ export function customerOf(code: unknown, secret: string): string | null {
   return want.length === got.length && timingSafeEqual(want, got) ? customer : null;
 }
 
+/** The Stripe key as pasted, cleaned of what a copy often adds: spaces, a line break, quotes, a `STRIPE_SECRET_KEY=` in front. */
+export function stripeKeyOf(env: Record<string, string | undefined>): string {
+  let k = (env.STRIPE_SECRET_KEY ?? '').trim();
+  k = k.replace(/^STRIPE_SECRET_KEY\s*=\s*/, '').trim();
+  const q = k.match(/^(['"`])(.*)\1$/s);
+  if (q) k = q[2]!.trim();
+  return k;
+}
+
+/** Why the shop is off, without anything of the key itself: the owner's hint when it does not switch on. */
+export function keyProblem(key: string): 'missing' | 'publishable_key' | 'not_a_secret_key' | null {
+  if (!key) return 'missing';
+  if (/^(sk|rk)_(test|live)_[A-Za-z0-9]+$/.test(key)) return null;
+  if (/^pk_/.test(key)) return 'publishable_key';
+  return 'not_a_secret_key';
+}
+
 export function secretOf(env: Record<string, string | undefined>): string | null {
   if (env.GOEN_SECRET && env.GOEN_SECRET.trim().length >= 16) return env.GOEN_SECRET.trim();
-  const key = env.STRIPE_SECRET_KEY?.trim();
+  const key = stripeKeyOf(env);
   if (!key) return null;
   return createHmac('sha256', key).update('lw-goen-code-v1').digest('hex');
 }
@@ -281,14 +298,20 @@ export interface Reply {
 
 /** Everything but the HTTP plumbing (tested with a fake fetch). `origin` is where Checkout sends the player back. */
 export async function handle(method: string, body: unknown, env: Record<string, string | undefined>, origin: string, fetchFn: Fetch): Promise<Reply> {
-  // a key pasted with a space or a line break around it still works
-  const key = (env.STRIPE_SECRET_KEY ?? '').trim();
+  // a key pasted with spaces, a line break or quotes around it still works
+  const key = stripeKeyOf(env);
   const secret = secretOf(env);
-  const enabled = /^(sk|rk)_(test|live)_/.test(key) && secret !== null;
+  const problem = keyProblem(key);
+  const enabled = problem === null && secret !== null;
   if (method === 'GET') {
     return {
       status: 200,
-      body: { enabled, test: key.includes('_test_'), packs: enabled ? PACKS.map(({ id, goen, bonus, cents, currency }) => ({ id, goen, bonus, cents, currency })) : [] },
+      body: {
+        enabled,
+        test: key.includes('_test_'),
+        packs: enabled ? PACKS.map(({ id, goen, bonus, cents, currency }) => ({ id, goen, bonus, cents, currency })) : [],
+        ...(problem ? { problem } : {}),
+      },
     };
   }
   if (method !== 'POST') return { status: 405, body: { error: 'method' } };
