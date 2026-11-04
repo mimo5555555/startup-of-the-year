@@ -24,6 +24,12 @@ export const en = {
   'lf.setting': 'Listen first',
   'lf.settingSub': 'Hide what characters say until you tap: hear it before you read it',
   'lf.tap': 'Tap to show the words',
+  // manners (所作) in a conversation
+  'mn.row': 'Manners',
+  'mn.armed': '{name}: now say a line it goes with, such as 「{phrase}」',
+  'mn.good': 'Good manners! {name} with 「{line}」',
+  'mn.goodFriend': 'Good manners! {name} with 「{line}」 · {friend} liked that',
+  'mn.miss': '{name} goes with lines like 「{phrase}」',
 } as const;
 
 export const ar: Record<keyof typeof en, string> = {
@@ -48,4 +54,9 @@ export const ar: Record<keyof typeof en, string> = {
   'lf.setting': 'الاستماع أولًا',
   'lf.settingSub': 'إخفاء ما تقوله الشخصيات حتى تنقر: اسمعه قبل أن تقرأه',
   'lf.tap': 'انقر لإظهار الكلمات',
+  'mn.row': 'الآداب',
+  'mn.armed': '{name}: قل الآن جملة تناسبها، مثل 「{phrase}」',
+  'mn.good': 'آداب جميلة! {name} مع 「{line}」',
+  'mn.goodFriend': 'آداب جميلة! {name} مع 「{line}」 · أعجب ذلك {friend}',
+  'mn.miss': '{name} تناسب جملًا مثل 「{phrase}」',
 };

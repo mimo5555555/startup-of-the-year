@@ -172,7 +172,7 @@ function cleanFriend(v: unknown, day: number): FriendState {
     giftsLiked: int(f.giftsLiked, 0, 0),
     giftsLoved: int(f.giftsLoved, 0, 0),
   };
-  for (const k of ['talkDay', 'giftDay', 'hangoutDay', 'lastContactDay', 'chatDay'] as const) {
+  for (const k of ['talkDay', 'giftDay', 'hangoutDay', 'lastContactDay', 'chatDay', 'mannerDay'] as const) {
     const d = optDay(f[k]);
     if (d) out[k] = d.v;
   }

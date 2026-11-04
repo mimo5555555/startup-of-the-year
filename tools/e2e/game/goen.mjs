@@ -365,7 +365,7 @@ step('the shrine: the offering box opens the panel; the free omikuji teaches a w
 await openShrineFromBox();
 await check('shrine');
 assert.equal(await page.locator('[data-goen-pill]').first().getAttribute('data-goen'), '100', 'the panel shows the balance');
-assert.equal(await page.locator('[data-goen-item]').count(), 6, 'six catalog cards');
+assert.equal(await page.locator('[data-goen-item]').count(), 11, 'eleven catalog cards (six things and five manners)');
 assert.equal(await page.locator('[data-goen-item=journey_kyoto][data-state=short]').count(), 1, 'the Journey says how much more Goen it needs');
 assert.ok((await page.locator('[data-goen-item=journey_kyoto] [data-why=funds]').innerText()).length > 30, 'and how to earn it');
 assert.equal(await page.locator('[data-goen-preview]').count(), 0, 'no Goen packs line outside the dev flag');

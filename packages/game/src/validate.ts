@@ -931,7 +931,7 @@ function level5(pack: GamePack, out: Out, index?: ContentIndex): void {
 // Goen (docs/GOEN.md): the catalog, the seasons, the Journeys; the bot can finish a Journey and a season once owned
 // ---------------------------------------------------------------------------------------------------------------
 
-const GOEN_KINDS: readonly string[] = ['journey', 'season', 'cosmetic', 'charm'];
+const GOEN_KINDS: readonly string[] = ['journey', 'season', 'cosmetic', 'charm', 'manner'];
 const SEASON_COUNTERS: readonly string[] = ['conv_stars', 'season_words', 'buy', 'omikuji', 'gift', 'shift', 'real', 'own_lines', 'scenario'];
 const MMDD = /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
@@ -945,6 +945,7 @@ function goenChecks(pack: GamePack, out: Out, index?: ContentIndex): void {
   g.catalog.forEach((c, i) => {
     const path = `goen.catalog[${i}]`;
     if (!GOEN_KINDS.includes(c.kind)) add(out, 1, 'goen_kind', `${path}.kind`, `unknown kind "${c.kind}"`);
+    if (c.kind === 'manner' && !(c.manner?.pairs.length && c.manner.phrase?.ja)) add(out, 1, 'goen_manner', `${path}.manner`, `${c.id}: a manner names its gesture, the phrases it goes with and its model line`);
     if (!isInt(c.price) || c.price < 1) add(out, 1, 'goen_price', `${path}.price`, `${c.id}: a price is a whole number of Goen, at least 1`);
     gloss(out, 1, `${path}.name`, c.name);
     gloss(out, 1, `${path}.gives`, c.gives);

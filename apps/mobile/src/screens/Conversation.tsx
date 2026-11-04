@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useRef, useState } from 'react';
+import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
 import { LEXICON, resolveLine, scenarioById, segmentFree, speakableText, type Token } from '@lw/content';
 import { uid } from '@lw/core';
 import {
@@ -17,7 +17,7 @@ import {
   type Turn,
   type TranslationResult,
 } from '@lw/engine';
-import { BALANCE, hearts as heartsOf } from '@lw/game';
+import { BALANCE, hearts as heartsOf, mannerFits, ownedManners, type GoenItemDef } from '@lw/game';
 import { useT, useWorld } from '../hooks';
 import { useStore } from '../store';
 import { requestAudioCheckFocus } from '../components/AudioCheck';
@@ -37,7 +37,8 @@ import { showOutfit } from '../game/avatarFx';
 import { createConvoGame, leaveAction } from '../game/convoHooks';
 import { completeFriendFacts, giftEventOf, planFriendConvo } from '../game/friendsLogic';
 import { planAccepted, planChat, planFlagEvent } from '../game/phoneLogic';
-import { getGame } from '../game/gameStore';
+import { getGame, useGame } from '../game/gameStore';
+import { MannerRow } from '../components/game/MannerRow';
 import { PACK } from '../game/pack';
 import { gameView } from '../game/selectors';
 import { isOwnGuestScenario, shownScenario } from '../game/ownLogic';
@@ -130,6 +131,15 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
   const [showTr, setShowTr] = useState(settings.autoTranslate);
   const [shown, setShown] = useState<Set<number>>(new Set());
   const [unveiled, setUnveiled] = useState<Set<number>>(new Set());
+  // manners (所作): the one armed for the next line the player says (a ref too: afterSubmit runs later, from the engine's callback)
+  const [armed, setArmedState] = useState<string | null>(null);
+  const armedRef = useRef<string | null>(null);
+  const setArmed = (id: string | null) => {
+    armedRef.current = id;
+    setArmedState(id);
+  };
+  const owned = useGame((g) => g.goen?.owned);
+  const manners = useMemo(() => (chat ? [] : ownedManners(PACK, getGame())), [chat, owned]);
   const [hint, setHint] = useState<ResolvedSuggestion | null>(null);
   const [paused, setPaused] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
@@ -268,8 +278,31 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
     if (kind && amount !== undefined) quoted.current.set(turn.id, { amount, fare: kind === 'fare' });
   };
 
+  /** The armed manner, judged against the line the player just said: good manners (a friend counts it once a day) or a gentle hint. */
+  const judgeManner = (text: string) => {
+    const id = armedRef.current;
+    if (!id) return;
+    setArmed(null);
+    const item = PACK.goen?.catalog.find((c) => c.id === id);
+    if (!item?.manner) return;
+    const name = item.name.ja;
+    if (mannerFits(PACK, id, text)) {
+      const isFriend = PACK.friends.some((f) => f.id === characterId);
+      if (isFriend) dispatch({ t: 'manner_used', itemId: id, characterId, text });
+      say(t(isFriend ? 'mn.goodFriend' : 'mn.good', { name, line: text, friend: displayName(character, lang) }), 'good');
+    } else say(t('mn.miss', { name, phrase: item.manner.phrase.ja.replace(/\|/g, '') }), 'info');
+  };
+  const armManner = (m: GoenItemDef) => {
+    if (!m.manner) return;
+    world?.playerGesture(m.manner.gesture);
+    if (armedRef.current === m.id) return setArmed(null);
+    setArmed(m.id);
+    say(t('mn.armed', { name: m.name.ja, phrase: m.manner.phrase.ja.replace(/\|/g, '') }), 'info');
+  };
+
   const afterSubmit = (result: SubmitResult) => {
     submitting.current = true;
+    judgeManner(result.learner.line.plain);
     const idx = session.turns.indexOf(result.learner);
     setVisible(idx + 1);
     setHint(null);
@@ -793,6 +826,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
               )}
             </div>
             )}
+            <MannerRow manners={manners} armed={armed} onArm={armManner} disabled={busy} />
             <form
               className="inputbar"
               onSubmit={(e) => {

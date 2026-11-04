@@ -234,6 +234,29 @@ export function spendGoen(state: GameState, pack: GamePack, ev: Extract<InputEve
 }
 
 // ---------------------------------------------------------------------------------------------------------------
+// Manners (所作, docs/ROADMAP.md): a gesture the player owns, done with a line it goes with
+// ---------------------------------------------------------------------------------------------------------------
+
+/** Katakana to hiragana, punctuation and spacing out (the folding a turn gets). */
+const foldTurn = (text: string): string =>
+  text
+    .normalize('NFKC')
+    .replace(/[ァ-ヶ]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0x60))
+    .replace(/[\s|。、！？!?,.「」『』…・（）()~〜ー-]/g, '')
+    .toLowerCase();
+
+/** The manners of the catalog the player owns, in catalog order. */
+export const ownedManners = (pack: GamePack, state: GameState): GoenItemDef[] => (pack.goen?.catalog ?? []).filter((c) => c.kind === 'manner' && c.manner && goenOwns(state, c.id));
+
+/** Whether the line goes with the manner (it contains one of its phrases). */
+export function mannerFits(pack: GamePack, itemId: string, text: string): boolean {
+  const m = goenItem(pack, itemId)?.manner;
+  if (!m || typeof text !== 'string') return false;
+  const t = foldTurn(text);
+  return t.length > 0 && m.pairs.some((p) => t.includes(foldTurn(p)));
+}
+
+// ---------------------------------------------------------------------------------------------------------------
 // Stage 2: bought Goen (docs/GOEN.md). The server (Stripe) records what was paid and what bought Goen was spent; the device applies it.
 // ---------------------------------------------------------------------------------------------------------------
 

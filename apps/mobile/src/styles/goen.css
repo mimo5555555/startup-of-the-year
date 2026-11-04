@@ -1493,3 +1493,57 @@ html[dir='rtl'] .kyo-host {
 .ears .panel-head h1 small {
   margin-inline-start: 6px;
 }
+
+/* manners (所作) under the suggestions: the same chip look as the tools row */
+.manners {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 14px;
+  margin-block: -2px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.manners::-webkit-scrollbar {
+  display: none;
+}
+.manners-label {
+  flex: none;
+  color: var(--accent-text);
+}
+.manner {
+  position: relative;
+  flex: none;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 5px;
+  min-height: 35px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1.5px dashed var(--line);
+  background: var(--card);
+  color: var(--fg);
+  font: inherit;
+  font-weight: 700;
+  font-size: 13px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+.manner::after {
+  content: '';
+  position: absolute;
+  inset: -5px -2px;
+}
+.manner small {
+  font-weight: 500;
+  opacity: 0.7;
+}
+.manner.on {
+  border-style: solid;
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--accent-text);
+}
+.manner:disabled {
+  opacity: 0.45;
+}

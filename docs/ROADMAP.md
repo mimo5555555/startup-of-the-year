@@ -21,18 +21,20 @@ game, a bigger city with better conversations, and the same game for German, Dut
   * The figures are presents: the gift hand-over names them; Mio loves the white Cat Ninja, Tanaka the big robot, and both like `anime`.
   * Tests: content (prices = scenario, sale route), world layout, e2e `figures.mjs` (EN/AR: chips and typed, exact charge).
 
+* **Manners (所作, shosa)** — five Goen catalog items at the shrine, learned through the wish ritual: お辞儀 deep bow (40), 会釈 light
+  nod-bow (20), 手を振る goodbye wave (20), 両手で渡す give with both hands (40), 合掌 hands together for いただきます / ごちそうさま / 乾杯 (30).
+  In a conversation the owned ones sit in a row under the suggestions: tapping one makes the avatar do it and arms it for the next line.
+  A line that goes with it (a bow with ありがとうございます / すみません / よろしくお願いします, a wave with またね / じゃあね…) is good manners: with
+  a met friend +4 affinity (BALANCE.ap.manner), once per friend per day; a line that does not fit gets a gentle hint naming one that does.
+  Never required. Rules in `@lw/game` (`mannerFits`, `applyManner`, `manner_used`); tests: content/manners, e2e `manners.mjs` (EN/AR).
+
 ## Next (Tokyo)
 
-1. **Gestures and manners (所作, shosa)** — a new Goen catalog section ("Manners") and a small 3D emote set on the avatar:
-   お辞儀 (deep bow), 会釈 (light bow), 手を振る (wave), 両手で渡す (present a gift with both hands), 乾杯 (toast), いただきます (hands together).
-   Each one is learned with its phrase (a short practice like the wish ritual) and then offered in conversations where it fits (a gesture
-   chip next to the suggestions). Using the right gesture with the right line: +1 heart once per day with that friend; a wrong one gets a
-   gentle correction (the culture card). Never required to finish anything.
-2. **Figure shelf at home** — a placeable shelf (Fuku-Fuku's furniture) that shows the figures owned in the room; friends who visit comment
+1. **Figure shelf at home** — a placeable shelf (Fuku-Fuku's furniture) that shows the figures owned in the room; friends who visit comment
    on the collection (new home-visit lines).
-3. **City growth** — the south side of the new east block (a game centre / arcade with a crane game for yen, a karaoke box for a song
+2. **City growth** — the south side of the new east block (a game centre / arcade with a crane game for yen, a karaoke box for a song
    conversation with friends), and a side street with a sentō (public bath) for the manners set.
-4. **Better conversations** — a pass over every shop scenario: more ways to say each request (synonyms in intents), small talk the
+3. **Better conversations** — a pass over every shop scenario: more ways to say each request (synonyms in intents), small talk the
    clerk starts when you come back ("また来てくれたんですね"), remembered choices (Daichi asks how the red ninja is doing), and the
    recorded voice for the new lines (VOICEVOX run; Daichi needs a young male voice).
 

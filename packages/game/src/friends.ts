@@ -3,6 +3,7 @@ import { BALANCE } from './balance';
 import { emptyFriend } from './defaults';
 import { consumeItem, giftInfo, grantItem, hasFeature, traitValue } from './inventory';
 import { applyLedger, dayKey, LEDGER_IDS } from './ledger';
+import { goenOwns, mannerFits } from './goen';
 import { scaleAmount, walletLimits } from './money';
 import type {
   ApResult,
@@ -323,6 +324,20 @@ export function applyTalk(state: GameState, friendId: string, facts: Conversatio
  * A heart event played outside a conversation (the `heart_event_done` event: a ♥2 note, a ♥4 beat): files the level once and
  * awards BALANCE.ap.event. A level above the friend's hearts, or already played, changes nothing.
  */
+/**
+ * A manner that fits its line, done with a friend (docs/ROADMAP.md): a little AP, once per friend per day. The player must own the manner and
+ * the line must go with it (`mannerFits`); a stranger or a shop clerk gets the good manners but no AP.
+ */
+export function applyManner(state: GameState, itemId: string, friendId: string, text: string, ctx: ReduceCtx): ApResult {
+  const def = defOf(ctx.pack, friendId);
+  const f = friendNow(state, friendId);
+  const h = heartsForAp(f.ap);
+  const none = { state, derived: [], effects: [], ap: 0, parts: [], hearts: { from: h, to: h } };
+  const day = today(state);
+  if (!def || !f.met || f.mannerDay === day || !goenOwns(state, itemId) || !mannerFits(ctx.pack, itemId, text)) return none;
+  return finish(state, ctx, def, { ...f, mannerDay: day }, [{ source: 'manner', ap: BALANCE.ap.manner }]);
+}
+
 export function applyHeartEvent(state: GameState, friendId: string, level: number, ctx: ReduceCtx): ApResult {
   const def = defOf(ctx.pack, friendId);
   const f = friendNow(state, friendId);

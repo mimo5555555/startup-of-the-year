@@ -63,7 +63,7 @@ function facts(scenarioId: string, own: number, more: Partial<ConversationFacts>
 }
 
 describe('the catalog and the pack', () => {
-  it('has the six stage-1 rows at the spec prices; every look is a Goen-only item; the pack validates at level 4', () => {
+  it('has the six stage-1 rows and the five manners at the spec prices; every look is a Goen-only item; the pack validates at level 4', () => {
     expect(GOEN_CATALOG.map((c) => [c.id, c.kind, c.price])).toEqual([
       ['journey_kyoto', 'journey', 250],
       ['season_autumn_premium', 'season', 150],
@@ -71,6 +71,12 @@ describe('the catalog and the pack', () => {
       ['room_momiji', 'cosmetic', 60],
       ['ride_sakura', 'cosmetic', 50],
       ['omamori_streak', 'charm', 30],
+      // the manners (所作, docs/ROADMAP.md)
+      ['manner_ojigi', 'manner', 40],
+      ['manner_eshaku', 'manner', 20],
+      ['manner_wave', 'manner', 20],
+      ['manner_ryote', 'manner', 40],
+      ['manner_itadakimasu', 'manner', 30],
     ]);
     for (const c of GOEN_CATALOG) expect(c.wish.ja.replace(/\|/g, ''), c.id).toMatch(/ますように。$/);
     expect(SEASON_AUTUMN.tasks).toHaveLength(8);

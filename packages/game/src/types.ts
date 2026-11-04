@@ -767,7 +767,22 @@ export interface GamePack {
 // Goen (ご縁, docs/GOEN.md): the second currency, earned free in play (stage 1), spent at the shrine. Never yen, never learning progress.
 // ---------------------------------------------------------------------------------------------------------------
 
-export type GoenItemKind = 'journey' | 'season' | 'cosmetic' | 'charm';
+export type GoenItemKind = 'journey' | 'season' | 'cosmetic' | 'charm' | 'manner';
+
+/** The avatar's moves a manner teaches (the world animates them). */
+export type MannerGesture = 'bow' | 'nod' | 'wave' | 'both_hands' | 'gassho' | 'kanpai';
+
+/**
+ * A manner (所作, docs/ROADMAP.md): a Japanese social move the avatar learns at the shrine and then uses in conversations. Done with a line it
+ * goes with (a bow with ありがとうございます), it is good manners: a little friendship with a friend, once per friend per day.
+ */
+export interface MannerDef {
+  gesture: MannerGesture;
+  /** phrases the gesture goes with, folded like a turn (hiragana, no punctuation); a line containing one of them fits */
+  pairs: string[];
+  /** the model line it is taught with (shown on the button's hint) */
+  phrase: Line;
+}
 
 /** One row of the shrine catalog (`GOEN_CATALOG`): exactly what it is and what it costs (no paid randomness). */
 export interface GoenItemDef {
@@ -784,6 +799,8 @@ export interface GoenItemDef {
   itemId?: string;
   /** kind 'journey': the JourneyDef id; kind 'season': the SeasonDef id whose premium track it unlocks */
   ref?: string;
+  /** kind 'manner': the gesture and the lines it goes with */
+  manner?: MannerDef;
 }
 
 /** What a season task counts, from the season's start (docs/GOEN.md "season points from speaking tasks"). */
@@ -1110,6 +1127,8 @@ export interface FriendState {
   hangoutDay?: number;
   /** dayIndex of the last contact of any kind (talk, chat, gift) */
   lastContactDay?: number;
+  /** dayIndex of the last manner that fitted, with this friend (one a day counts) */
+  mannerDay?: number;
   /** dayIndex the AP / chat counters below belong to */
   apDay: number;
   /** AP earned from every source on `apDay` (cap BALANCE.ap.dailyCap) */
@@ -1553,6 +1572,8 @@ export type InputEvent =
   | { t: 'goen_sync'; credits: { id: string; goen: number }[]; refunded: string[]; spent: number; own: string[] }
   /** stage 2: the server confirmed these spend reports */
   | { t: 'goen_reported'; ids: string[] }
+  /** a manner (a Goen item the player owns) done in a conversation with `characterId`, with the learner line `text` that came with it */
+  | { t: 'manner_used'; itemId: string; characterId: string; text: string }
   /** 耳トレ: today's ear training finished, `right` of `total` recorded lines understood (once a day; ticks the daily `ears` counter) */
   | { t: 'ears_done'; right: number; total: number };
 
@@ -1785,7 +1806,7 @@ export interface ApResult extends ReduceResult {
   /** AP actually added after caps */
   ap: number;
   /** per source, before the daily cap, for the debrief friends strip */
-  parts: Array<{ source: 'met' | 'talk' | 'share' | 'callback' | 'chat' | 'hangout' | 'event' | 'quiz'; ap: number }>;
+  parts: Array<{ source: 'met' | 'talk' | 'share' | 'callback' | 'chat' | 'hangout' | 'event' | 'quiz' | 'manner'; ap: number }>;
   hearts: { from: number; to: number };
 }
 

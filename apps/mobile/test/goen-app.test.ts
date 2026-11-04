@@ -143,7 +143,7 @@ describe('the catalog cards', () => {
     const { goenCatalog } = await import('@lw/game');
     const view = gameView(useStore.getState());
     let cards = goenCards(goenCatalog(PACK, getGame(), view, Date.now()));
-    expect(cards.map((c) => c.item.id)).toEqual(['journey_kyoto', 'season_autumn_premium', 'kimono_momiji', 'room_momiji', 'ride_sakura', 'omamori_streak']);
+    expect(cards.map((c) => c.item.id)).toEqual(['journey_kyoto', 'season_autumn_premium', 'kimono_momiji', 'room_momiji', 'ride_sakura', 'omamori_streak', 'manner_ojigi', 'manner_eshaku', 'manner_wave', 'manner_ryote', 'manner_itadakimasu']);
     expect(cards.every((c) => c.state === 'short' || c.state === 'closed')).toBe(true);
     expect(cards.find((c) => c.item.id === 'room_momiji')).toMatchObject({ state: 'short', n: 60 });
     giveGoen(120);
@@ -302,14 +302,14 @@ describe('world picks at the shrine', () => {
 });
 
 describe('the Shrine and Season screens render in both directions', () => {
-  it('the Shrine: Goen pill, omikuji, the season link and six catalog cards', () => {
+  it('the Shrine: Goen pill, omikuji, the season link and eleven catalog cards (six things and five manners)', () => {
     for (const lang of ['en', 'ar'] as const) {
       setLang(lang);
       const out = html(createElement(Shrine));
       expect(out).toContain('data-goen-pill');
       expect(out).toContain('data-omikuji');
       expect(out).toContain('data-open="season"');
-      expect(out.match(/data-goen-item=/g)).toHaveLength(6);
+      expect(out.match(/data-goen-item=/g)).toHaveLength(11);
       expect(out).not.toContain('data-goen-preview');
     }
   });

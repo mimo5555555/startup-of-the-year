@@ -50,6 +50,7 @@ export const en = {
   'gn.kind.season': 'Season',
   'gn.kind.cosmetic': 'Look',
   'gn.kind.charm': 'Charm',
+  'gn.kind.manner': 'Manners',
   'gn.item.price': '{n} Goen',
   'gn.item.owned': 'Yours',
   'gn.item.wish': 'Make a wish',
@@ -94,6 +95,7 @@ export const en = {
   'gn.next.room': 'Place it in your room: Furnish.',
   'gn.next.ride': 'Your bicycle wears it now. Switch it in the Wallet.',
   'gn.next.charm': 'It works by itself when you miss a day.',
+  'gn.next.manner': 'In a conversation, tap it under the suggestions, then say a line it goes with.',
   'gn.next.open': 'Open',
 
   // the Season screen
@@ -182,6 +184,7 @@ export const ar: Record<keyof typeof en, string> = {
   'gn.kind.season': 'موسم',
   'gn.kind.cosmetic': 'مظهر',
   'gn.kind.charm': 'تميمة',
+  'gn.kind.manner': 'آداب',
   'gn.item.price': '{n} غوإن',
   'gn.item.owned': 'لك',
   'gn.item.wish': 'تمنَّ',
@@ -224,6 +227,7 @@ export const ar: Record<keyof typeof en, string> = {
   'gn.next.room': 'ضعه في غرفتك: التأثيث.',
   'gn.next.ride': 'دراجتك تلبسه الآن. بدّله من المحفظة.',
   'gn.next.charm': 'تعمل تلقائيًا عندما يفوتك يوم.',
+  'gn.next.manner': 'في المحادثة، انقر عليها تحت الاقتراحات، ثم قل جملة تناسبها.',
   'gn.next.open': 'افتح',
 
   'gn.season.title': 'الموسم',

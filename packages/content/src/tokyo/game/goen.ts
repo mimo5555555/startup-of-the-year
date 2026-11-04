@@ -68,6 +68,88 @@ export const GOEN_CATALOG: GoenItemDef[] = [
     },
     wish: L('毎日|話せます|ように。', 'I hope I can speak every day.', 'أتمنى أن أتحدّث كل يوم.'),
   },
+  // ---- Manners (所作, docs/ROADMAP.md): Japanese social moves the avatar learns here and then uses in conversations, each with the lines it
+  // goes with. Done with a fitting line with a friend: a little friendship, once per friend per day. Never needed to finish anything.
+  {
+    id: 'manner_ojigi',
+    kind: 'manner',
+    price: 40,
+    name: { ja: 'お辞儀', reading: 'おじぎ', en: 'A deep bow', ar: 'انحناءة عميقة' },
+    gives: {
+      en: 'Bow deeply when you thank someone, apologise or ask a favour (ありがとうございます, すみません, よろしくお願いします)',
+      ar: 'انحنِ بعمق عندما تشكر أحدًا أو تعتذر أو تطلب معروفًا (ありがとうございます، すみません، よろしくお願いします)',
+    },
+    wish: L('上手|に|お辞儀|が|できます|ように。', 'I hope I can bow well.', 'أتمنى أن أنحني جيدًا.'),
+    manner: {
+      gesture: 'bow',
+      pairs: ['ありがとうございます', 'ありがとう', 'すみません', 'もうしわけ', '申し訳', 'よろしくおねがいします', 'よろしくお願いします', 'はじめまして', 'しつれいします', '失礼します', 'ごめんなさい'],
+      phrase: L('ありがとうございます。', 'Thank you very much.', 'شكرًا جزيلًا.'),
+    },
+  },
+  {
+    id: 'manner_eshaku',
+    kind: 'manner',
+    price: 20,
+    name: { ja: '会釈', reading: 'えしゃく', en: 'A light nod-bow', ar: 'إيماءة انحناء خفيفة' },
+    gives: {
+      en: 'The small everyday bow for hellos with people you know (こんにちは, おはようございます, どうも)',
+      ar: 'الانحناءة اليومية الصغيرة للتحية مع من تعرفهم (こんにちは، おはようございます، どうも)',
+    },
+    wish: L('毎日|気持ち|よく|あいさつ|できます|ように。', 'I hope I can greet people warmly every day.', 'أتمنى أن أحيّي الناس بلطف كل يوم.'),
+    manner: {
+      gesture: 'nod',
+      pairs: ['こんにちは', 'おはよう', 'こんばんは', 'どうも', 'おひさしぶり', 'お久しぶり'],
+      phrase: L('こんにちは。', 'Hello.', 'مرحبًا.'),
+    },
+  },
+  {
+    id: 'manner_wave',
+    kind: 'manner',
+    price: 20,
+    name: { ja: '手を振る', reading: 'てをふる', en: 'A goodbye wave', ar: 'تلويحة الوداع' },
+    gives: {
+      en: 'Wave goodbye to friends (またね, じゃあね, また明日); with shop staff a bow is better',
+      ar: 'لوّح مودّعًا لأصدقائك (またね، じゃあね، また明日)؛ أمّا مع موظفي المتاجر فالانحناءة أفضل',
+    },
+    wish: L('友達|と|また|会えます|ように。', 'I hope I can see my friends again.', 'أتمنى أن أرى أصدقائي مرة أخرى.'),
+    manner: {
+      gesture: 'wave',
+      pairs: ['またね', 'じゃあね', 'じゃあまた', 'ばいばい', 'またあした', 'また明日', 'さようなら', 'またこんど', 'また今度'],
+      phrase: L('またね！', 'See you!', 'إلى اللقاء!'),
+    },
+  },
+  {
+    id: 'manner_ryote',
+    kind: 'manner',
+    price: 40,
+    name: { ja: '両手で渡す', reading: 'りょうてでわたす', en: 'Give with both hands', ar: 'الإعطاء باليدين' },
+    gives: {
+      en: 'Hand a present or a card over with both hands, saying どうぞ (or the modest つまらないものですが)',
+      ar: 'قدّم الهدية أو البطاقة بكلتا يديك وأنت تقول どうぞ (أو العبارة المتواضعة つまらないものですが)',
+    },
+    wish: L('気持ち|が|伝わります|ように。', 'I hope my feelings come across.', 'أتمنى أن تصل مشاعري.'),
+    manner: {
+      gesture: 'both_hands',
+      pairs: ['どうぞ', 'つまらないもの', 'ぷれぜんと', 'これをどうぞ', 'うけとって', '受け取って'],
+      phrase: L('これ、|どうぞ。', 'Here, this is for you.', 'تفضّل، هذا لك.'),
+    },
+  },
+  {
+    id: 'manner_itadakimasu',
+    kind: 'manner',
+    price: 30,
+    name: { ja: '合掌', reading: 'がっしょう', en: 'Hands together before eating', ar: 'ضمّ اليدين قبل الأكل' },
+    gives: {
+      en: 'Put your hands together for いただきます before a meal and ごちそうさまでした after it; 乾杯 raises the glass',
+      ar: 'ضمّ يديك عند قول いただきます قبل الوجبة وごちそうさまでした بعدها؛ و乾杯 لرفع الكأس',
+    },
+    wish: L('おいしい|ご飯|が|食べられます|ように。', 'I hope I can eat delicious food.', 'أتمنى أن آكل طعامًا لذيذًا.'),
+    manner: {
+      gesture: 'gassho',
+      pairs: ['いただきます', 'ごちそうさま', 'ご馳走様', 'かんぱい', '乾杯'],
+      phrase: L('いただきます。', 'Let us eat (thank you for the food).', 'لنأكل (شكرًا على الطعام).'),
+    },
+  },
 ];
 
 /** The free wish of `shrine_wish` (no item): two autumn model lines, so a visit to the shrine is speaking too. */

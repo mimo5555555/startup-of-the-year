@@ -25,6 +25,7 @@ export function nextStepOf(pack: GamePack, itemId: string): NextStep {
   if (itemId === KYOTO.item) return { key: 'gn.next.journey', open: 'station' };
   if (itemId === SEASON_PREMIUM) return { key: 'gn.next.season', open: 'season' };
   if (itemId === CHARM) return { key: 'gn.next.charm' };
+  if (pack.goen?.catalog.find((c) => c.id === itemId)?.kind === 'manner') return { key: 'gn.next.manner' };
   const item = pack.items.find((i) => i.id === itemId);
   if (item?.fx.some((f) => f.t === 'avatar')) return { key: 'gn.next.wear', open: 'wallet' };
   if (item?.fx.some((f) => f.t === 'home')) return { key: 'gn.next.room', open: 'room' };
@@ -36,6 +37,7 @@ export function goenIcon(kind: string, itemId: string): string {
   if (kind === 'journey') return 'train';
   if (kind === 'season') return 'star';
   if (kind === 'charm') return 'heart';
+  if (kind === 'manner') return 'sparkle';
   if (itemId.startsWith('kimono')) return 'shirt';
   if (itemId.startsWith('ride')) return 'bike';
   return 'home';

@@ -111,6 +111,8 @@ export const BALANCE = deepFreeze({
     hangout: { good: 25, low: 10, shareMin: 0.5, minHeart: 3, everyDays: 3 },
     chat: { ap: 4, dailyCap: 8, minSubstantive: 2, minHeart: 2, unreadMax: 3, missAp: 6, missDays: 5, threadsPerDay: 1 },
     event: 10,
+    /** a manner that fits its line (a bow with ありがとうございます), once per friend per day */
+    manner: 4,
     /** every source together, per friend per day */
     dailyCap: 60,
     /** a remembered-fact quiz answered correctly */

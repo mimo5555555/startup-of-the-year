@@ -35,4 +35,17 @@ export const GOEN_LEXICON: LexEntry[] = [
   w('焼き芋', 'やきいも', 'roasted sweet potato', 'بطاطا حلوة مشوية'),
   w('涼しい', 'すずしい', 'cool (weather)', 'منعش، بارد قليلًا (الطقس)'),
   w('落ち葉', 'おちば', 'fallen leaves', 'أوراق متساقطة'),
+  // ---- the manners (所作): their names and wishes ----
+  w('お辞儀', 'おじぎ', 'a bow', 'انحناءة'),
+  w('会釈', 'えしゃく', 'a light nod-bow', 'إيماءة انحناء خفيفة'),
+  w('合掌', 'がっしょう', 'putting your hands together', 'ضمّ اليدين'),
+  w('両手', 'りょうて', 'both hands', 'كلتا اليدين'),
+  w('渡す', 'わたす', 'to hand over', 'يسلّم، يعطي'),
+  w('手', 'て', 'a hand', 'يد'),
+  w('振る', 'ふる', 'to wave, to shake', 'يلوّح، يهزّ'),
+  w('気持ち', 'きもち', 'feelings', 'مشاعر'),
+  w('会えます', 'あえます', 'can meet', 'أستطيع أن ألتقي'),
+  w('伝わります', 'つたわります', 'comes across, is conveyed', 'يصل (المعنى أو الشعور)'),
+  w('食べられます', 'たべられます', 'can eat', 'أستطيع أن آكل'),
+  w('ご飯', 'ごはん', 'a meal, rice', 'وجبة، أرز'),
 ];

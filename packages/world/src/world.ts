@@ -591,6 +591,25 @@ export class TokyoWorld {
   }
 
   /**
+   * The player's avatar does a manner (所作, docs/ROADMAP.md): 'bow' a deep bow, 'nod' a light one, 'wave' a goodbye wave, 'both_hands' a small
+   * bow while handing something over, 'gassho' hands together, 'kanpai' a raised hand. Works in the street, in a room and during a
+   * conversation (the avatar stays where it is). False for an unknown gesture.
+   */
+  playerGesture(g: 'bow' | 'nod' | 'wave' | 'both_hands' | 'gassho' | 'kanpai'): boolean {
+    const p = this.player;
+    if (g === 'bow') p.bow(0.85);
+    else if (g === 'nod') p.bow(0.3);
+    else if (g === 'wave') p.wave();
+    else if (g === 'both_hands') {
+      p.bow(0.35);
+      p.ropeShake();
+    } else if (g === 'gassho') p.clap();
+    else if (g === 'kanpai') p.toss();
+    else return false;
+    return true;
+  }
+
+  /**
    * Puts a character (Hanako, who hears the shrine wish) beside the shrine at `SHRINE.guest`, facing the box, so the wish's
    * conversation happens there and not at their usual place; null sends them home. Moved like a festival guest (talk radius 2.4,
    * never behind a shutter); a character who is a festival guest stays at the festival.
