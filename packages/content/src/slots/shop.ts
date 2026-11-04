@@ -46,6 +46,13 @@ const GIFT: SlotOption[] = [
   raw('tenugui', '手ぬぐい', 'tenugui hand towel', 'منشفة تينوغوي', { ja: ['てぬぐい', '手拭い'], en: ['tenugui', 'hand towel', 'a tenugui', 'a hand towel'], ar: ['تينوغوي', 'منشفة تينوغوي', 'منشفة يد'] }),
   // the Kyoto Journey's souvenir (Goen stage 1), sold at the matcha café (kyoto_matcha)
   raw('yatsuhashi', '八ツ橋', 'yatsuhashi', 'ياتسوهاشي', { ja: ['やつはし', '八つ橋', 'ヤツハシ'], en: ['yatsuhashi', 'some yatsuhashi', 'the yatsuhashi', 'a box of yatsuhashi'], ar: ['ياتسوهاشي', 'علبة ياتسوهاشي'] }),
+  // ほしぞらホビー's figures (hobby_figures): the option ids are the shop's item map keys; in a hand-over only the full names count (a colour alone does not)
+  raw('nekoRed', '赤い|ねこ忍者', 'red Cat Ninja figure', 'مجسّم القط النينجا الأحمر', { ja: ['あかいねこにんじゃ', '赤いねこ忍者のフィギュア'], en: ['red cat ninja', 'the red cat ninja', 'a red cat ninja figure', 'red ninja figure'], ar: ['القط النينجا الأحمر', 'مجسّم القط النينجا الأحمر'] }),
+  raw('nekoBlue', '青い|ねこ忍者', 'blue Cat Ninja figure', 'مجسّم القط النينجا الأزرق', { ja: ['あおいねこにんじゃ', '青いねこ忍者のフィギュア'], en: ['blue cat ninja', 'the blue cat ninja', 'a blue cat ninja figure', 'blue ninja figure'], ar: ['القط النينجا الأزرق', 'مجسّم القط النينجا الأزرق'] }),
+  raw('nekoWhite', '白い|ねこ忍者', 'white Cat Ninja figure', 'مجسّم القط النينجا الأبيض', { ja: ['しろいねこにんじゃ', '白いねこ忍者のフィギュア'], en: ['white cat ninja', 'the white cat ninja', 'a white cat ninja figure', 'white ninja figure'], ar: ['القط النينجا الأبيض', 'مجسّم القط النينجا الأبيض'] }),
+  raw('roboBig', '大きい|ロボット', 'big robot figure', 'مجسّم الروبوت الكبير', { ja: ['おおきいろぼっと', '大きいロボットのフィギュア'], en: ['big robot', 'the big robot', 'a big robot figure', 'big robot figure'], ar: ['الروبوت الكبير', 'مجسّم الروبوت الكبير'] }),
+  raw('roboSmall', '小さい|ロボット', 'small robot figure', 'مجسّم الروبوت الصغير', { ja: ['ちいさいろぼっと', '小さいロボットのフィギュア'], en: ['small robot', 'the small robot', 'a small robot figure', 'small robot figure'], ar: ['الروبوت الصغير', 'مجسّم الروبوت الصغير'] }),
+  raw('kitsune', 'きつね侍', 'Fox Samurai figure', 'مجسّم الثعلب الساموراي', { ja: ['きつねざむらい', 'きつね侍のフィギュア'], en: ['fox samurai', 'the fox samurai', 'a fox samurai figure', 'fox samurai figure'], ar: ['الثعلب الساموراي', 'مجسّم الثعلب الساموراي'] }),
   // Aiko's autumn sweet (Goen stage 1: the season task au_kuri)
   raw('kuri', '栗まんじゅう', 'chestnut manjū', 'مانجو الكستناء', { ja: ['くりまんじゅう', '栗饅頭'], en: ['chestnut manju', 'kuri manju', 'a chestnut manju', 'the chestnut sweet', 'a chestnut sweet', 'the autumn sweet'], ar: ['مانجو الكستناء', 'حلوى الكستناء', 'كوري مانجو', 'حلوى الخريف'] }),
   raw('lantern', '灯籠', 'lantern', 'فانوس', { ja: ['とうろう', '灯ろう'], en: ['lantern', 'a lantern', 'lantern fund'], ar: ['فانوس', 'فانوس ورقي'] }),

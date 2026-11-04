@@ -74,7 +74,10 @@ export const CHAPTERS: ChapterDef[] = [
     opens: [
       o('shop', 'fukufuku'),
       o('shop', 'aiko'),
+      o('shop', 'hobby'),
       o('place', 'fukufuku'),
+      o('place', 'hobby'),
+      o('interaction', 'daichi_shop'),
       o('place', 'ono'),
       o('job', 'job_konbini'),
       o('interaction', 'tanaka_shift'),

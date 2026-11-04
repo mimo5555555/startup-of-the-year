@@ -68,6 +68,18 @@ export const SHOPS: ShopDef[] = [
     points: true,
     sells: itemsOf('fukufuku'),
   },
+  // ほしぞらホビー (Hoshizora Hobby), the figure shop at the east end of the street, opens with Chapter 2: cash and card, no points. Daichi sells
+  // the original figure line (six figures) through `hobby_figures`; the figures are presents a friend may love.
+  {
+    id: 'hobby',
+    placeId: 'hobby',
+    name: { en: 'Hoshizora Hobby', ar: 'هوشيزورا هوبي' },
+    openChapter: 2,
+    surface: 'world',
+    register: 'polite',
+    pay: ['cash', 'card'],
+    sells: itemsOf('hobby'),
+  },
   // Ono Tea House (Aiko's street stall) opens with Chapter 2 (§4.5): cash only (a small stall), no Sakura Points. It sells the four presents of
   // `aiko_tea`, and the room at Ono-sō (`aiko_contract`, wave B2: ¥60,000 in cash, 18+); the lantern fund is not in this release.
   {

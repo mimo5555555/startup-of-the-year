@@ -123,8 +123,8 @@ describe('layout: spawns and counters', () => {
 });
 
 describe('layout: bounds and the east extension', () => {
-  it('extends the bounds to x 90 and the ground covers them', () => {
-    expect(BOUNDS).toEqual({ x0: -46, x1: 90, z0: -8.3, z1: 37.5 });
+  it('extends the bounds to x 106 (the figure shop) and the ground covers them', () => {
+    expect(BOUNDS).toEqual({ x0: -46, x1: 106, z0: -8.3, z1: 37.5 });
     expect(GROUND_X.x0).toBeLessThanOrEqual(BOUNDS.x0);
     expect(GROUND_X.x1).toBeGreaterThanOrEqual(BOUNDS.x1);
   });
@@ -192,8 +192,19 @@ describe('layout: bounds and the east extension', () => {
     }
   });
 
+  it('fits ほしぞらホビー (the figure shop) past Nakamura Motors, with its clerk behind the counter and the east end spot beyond it', () => {
+    const hobby = shopRect(shopOf('hobby'));
+    expect(hobby.x0).toBeCloseTo(85.5, 6);
+    expect(hobby.x1).toBeCloseTo(98.5, 6);
+    expect(hobby.x0).toBeGreaterThan(shopRect(shopOf('motors')).x1);
+    expect(hobby.x1).toBeLessThan(BOUNDS.x1);
+    const spot = SPOTS.find((s) => s.id === 'spot:east_end')!;
+    expect(spot.x + spot.r).toBeLessThanOrEqual(BOUNDS.x1);
+    expect(spot.x - spot.r).toBeGreaterThan(hobby.x1);
+  });
+
   it('finds the spot a point is in', () => {
-    expect(spotsAt(88, 0).map((s) => s.id)).toEqual(['spot:east_end']);
+    expect(spotsAt(103, 0).map((s) => s.id)).toEqual(['spot:east_end']);
     expect(spotsAt(-44, 1).map((s) => s.id)).toEqual(['spot:west_end']);
     expect(spotsAt(40, -6).map((s) => s.id)).toEqual(['spot:station_plaza']);
     expect(spotsAt(0, 0)).toEqual([]);
@@ -282,7 +293,7 @@ describe('layout: moves and fixes', () => {
   });
 
   it('wraps traffic outside the walkable area and keeps the east skyline past the new edge', () => {
-    expect(TRAFFIC.wrapX).toBe(130);
+    expect(TRAFFIC.wrapX).toBe(140);
     expect(TRAFFIC.wrapX).toBeGreaterThan(BOUNDS.x1 + 30); // cars are never seen popping at the edge of the district
     expect(-TRAFFIC.wrapX).toBeLessThan(BOUNDS.x0 - 30);
     expect(TRAFFIC.wrapX).toBeLessThan(GROUND_X.x1); // still on the road surface
@@ -318,7 +329,7 @@ describe('layout: walkers', () => {
   });
 
   it('sends one walker to the east end', () => {
-    expect(Math.max(...WALKERS.flatMap((w) => w.route.points.map(([x]) => x)))).toBe(86);
+    expect(Math.max(...WALKERS.flatMap((w) => w.route.points.map(([x]) => x)))).toBe(102);
   });
 });
 

@@ -20,6 +20,7 @@ import { TRIP_LEXICON } from './trip';
 import { MATSURI_LEXICON } from './matsuri';
 import { GOEN_LEXICON } from './goen';
 import { KYOTO_LEXICON } from './kyoto';
+import { HOBBY_LEXICON } from './hobby';
 
 export { w, g } from './helpers';
 
@@ -45,6 +46,7 @@ const PARTS: LexEntry[][] = [
   MATSURI_LEXICON,
   GOEN_LEXICON,
   KYOTO_LEXICON,
+  HOBBY_LEXICON,
 ];
 
 /** Every module's entries. A surface that appears in several modules keeps its first entry; clashing
@@ -84,6 +86,7 @@ export const LEXICON_PARTS: Record<string, LexEntry[]> = {
   matsuri: MATSURI_LEXICON,
   goen: GOEN_LEXICON,
   kyoto: KYOTO_LEXICON,
+  hobby: HOBBY_LEXICON,
 };
 
 export const LEXICON = new Lexicon(LEXICON_ENTRIES);

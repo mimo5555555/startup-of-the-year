@@ -8,6 +8,7 @@ import { buildCafe } from './cafe';
 import { buildDenki } from './denki';
 import { buildDoors } from './doors';
 import { buildFukufuku } from './fukufuku';
+import { buildHobby } from './hobby';
 import { buildKonbini } from './konbini';
 import { buildMotors } from './motors';
 import { buildProps } from './props';
@@ -32,6 +33,7 @@ export const SHOP_BUILDERS: Record<ShopDef['id'], BuildingBuilder> = {
   fukufuku: buildFukufuku,
   denki: buildDenki,
   motors: buildMotors,
+  hobby: buildHobby,
 };
 
 /** Shops, then the door facades and street props. Shops run in `district.shops` order (the original five keep their indices). */

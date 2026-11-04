@@ -295,6 +295,14 @@ export const ITEMS: ItemDef[] = [
   // (also the station desk's bonus for a perfect shift, `job_station`: a gift the hand-over can name, since it has a sale route)
   gift('g_souvenir', 'お土産', 'おみやげ', 'Souvenir (omiyage)', 'هدية تذكارية (أوميياغي)', 1000, 'kato', 5, ['travel', 'sweet']),
 
+  // ---- ほしぞらホビー, the figure shop (Daichi, `hobby_figures`): an original line made for the game, bought by asking, a present a friend may love ----
+  gift('fig_neko_red', '赤いねこ忍者', 'あかいねこにんじゃ', 'Cat Ninja figure (red)', 'مجسّم القط النينجا (أحمر)', 1800, 'hobby', 2, ['figure', 'anime', 'cute']),
+  gift('fig_neko_blue', '青いねこ忍者', 'あおいねこにんじゃ', 'Cat Ninja figure (blue)', 'مجسّم القط النينجا (أزرق)', 1800, 'hobby', 2, ['figure', 'anime', 'cute']),
+  gift('fig_neko_white', '白いねこ忍者', 'しろいねこにんじゃ', 'Cat Ninja figure (white)', 'مجسّم القط النينجا (أبيض)', 1800, 'hobby', 2, ['figure', 'anime', 'cute']),
+  gift('fig_robo_big', '大きいロボット', 'おおきいロボット', 'Robot figure (big)', 'مجسّم روبوت (كبير)', 3600, 'hobby', 2, ['figure', 'anime', 'tech']),
+  gift('fig_robo_small', '小さいロボット', 'ちいさいロボット', 'Robot figure (small)', 'مجسّم روبوت (صغير)', 1200, 'hobby', 2, ['figure', 'anime', 'tech']),
+  gift('fig_kitsune', 'きつね侍', 'きつねざむらい', 'Fox Samurai figure (limited)', 'مجسّم الثعلب الساموراي (محدود)', 4800, 'hobby', 2, ['figure', 'anime', 'tradition']),
+
   // ---- Goen stage 1 (docs/GOEN.md) ----
   // Aiko's autumn sweet (the season task au_kuri), sold by aiko_tea from Chapter 2 with her other presents
   gift('g_kuri_manju', '栗まんじゅう', 'くりまんじゅう', 'Chestnut manjū (autumn sweet)', 'مانجو الكستناء (حلوى الخريف)', 600, 'aiko', 2, ['sweet', 'tradition', 'autumn']),

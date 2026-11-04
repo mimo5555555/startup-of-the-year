@@ -32,6 +32,8 @@ const hasAr = (s: string) => /[؀-ۿ]/.test(s);
 /** The catalog this release sells: the design's §5.2 rows for the phone shop and the garage, the IC card, and the presents of §5.3. */
 const RELEASED_ITEMS = [
   'ic_card',
+  // ほしぞらホビー, the figure shop
+  'fig_neko_red', 'fig_neko_blue', 'fig_neko_white', 'fig_robo_big', 'fig_robo_small', 'fig_kitsune',
   'phone_used', 'phone_case', 'phone_pro', 'tv_small', 'g_music_cd',
   'bike_mamachari', 'bike_helmet', 'ebike', 'car_kei_used', 'car_kei_good', 'g_carfresh',
   'g_choco', 'g_manga', 'g_game_card',
@@ -89,6 +91,12 @@ describe('the released catalog (§5.2, §5.3)', () => {
       // Goen stage 1: the autumn sweet and the Kyoto souvenir; the Goen looks have no yen price
       g_kuri_manju: 600,
       g_yatsuhashi: 1_000,
+      fig_neko_red: 1_800,
+      fig_neko_blue: 1_800,
+      fig_neko_white: 1_800,
+      fig_robo_big: 3_600,
+      fig_robo_small: 1_200,
+      fig_kitsune: 4_800,
       kimono_momiji: 0,
       room_momiji: 0,
       ride_sakura: 0,
@@ -114,8 +122,8 @@ describe('the released catalog (§5.2, §5.3)', () => {
     });
     const goen = goenGrantedItems(JP_PACK);
     for (const i of JP_PACK.items) expect(goen.has(i.id) ? i.price === 0 : Number.isInteger(i.price) && i.price >= 1, i.id).toBe(true);
-    // the total of the released rows is a constant the design can be checked against (Goen stage 1 adds the autumn sweet and the Kyoto souvenir)
-    expect(JP_PACK.items.reduce((sum, i) => sum + i.price, 0)).toBe(1_216_190 + 8_900 + 600 + 1_000);
+    // the total of the released rows is a constant the design can be checked against (Goen stage 1 adds the autumn sweet and the Kyoto souvenir; the figure shop adds its six figures)
+    expect(JP_PACK.items.reduce((sum, i) => sum + i.price, 0)).toBe(1_216_190 + 8_900 + 600 + 1_000 + 15_000);
   });
 
   it('every item has an English, Japanese and Arabic name, with a reading for kanji', () => {
@@ -162,7 +170,7 @@ describe('the released catalog (§5.2, §5.3)', () => {
 
   it('presents are giftable: category gift, a gift effect carrying the tags, the same tags on the item', () => {
     const gifts = JP_PACK.items.filter((i) => i.cat === 'gift');
-    expect(gifts.map((i) => i.id).sort()).toEqual(['g_carfresh', 'g_choco', 'g_flower', 'g_game_card', 'g_guitar_pick', 'g_manga', 'g_music_cd', 'g_plush', 'g_souvenir', 'g_tea_set', 'g_tenugui', 'g_wagashi', 'g_kuri_manju', 'g_yatsuhashi'].sort());
+    expect(gifts.map((i) => i.id).sort()).toEqual(['g_carfresh', 'g_choco', 'g_flower', 'g_game_card', 'g_guitar_pick', 'g_manga', 'g_music_cd', 'g_plush', 'g_souvenir', 'g_tea_set', 'g_tenugui', 'g_wagashi', 'g_kuri_manju', 'g_yatsuhashi', 'fig_neko_red', 'fig_neko_blue', 'fig_neko_white', 'fig_robo_big', 'fig_robo_small', 'fig_kitsune'].sort());
     for (const g of gifts) {
       const fx = g.fx.find((f) => f.t === 'gift');
       expect(fx, g.id).toBeTruthy();
@@ -286,5 +294,14 @@ describe('sale routes (§5.6)', () => {
     const catalog = ['item_shop', 'not_sold', 'sells_unknown', 'shop_after_item', 'age_rule', 'needs_unknown', 'needs_cycle', 'no_sale_route', 'itemmap_unknown', 'itemmap_wrong_shop', 'meta_shop', 'item_fx', 'price', 'gate_range', 'tax_class', 'release_gate', 'id_mismatch', 'items_empty', 'shops_empty'];
     const bad: ValidationIssue[] = validatePack(JP_PACK, { level: 3, index: index() }).filter((i) => catalog.includes(i.code));
     expect(bad.map((i) => `${i.code} ${i.path} ${i.message}`)).toEqual([]);
+  });
+});
+
+describe('ほしぞらホビー, the figure shop', () => {
+  it('sells the six figures at the scenario prices; each figure is an option of the figure slot; Mio and Tanaka love one', async () => {
+    const { HOBBY_PRICES } = await import('../src/tokyo/scenarios-hobby');
+    const meta = JP_PACK.scenarioMeta.find((m) => m.id === 'hobby_figures')!;
+    for (const [opt, id] of Object.entries(meta.shop!.itemMap)) expect(JP_PACK.items.find((i) => i.id === id)?.price, id).toBe(HOBBY_PRICES[opt]);
+    expect(JP_PACK.shops.find((s) => s.id === 'hobby')?.sells.sort()).toEqual(Object.values(meta.shop!.itemMap).sort());
   });
 });

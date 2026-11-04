@@ -30,12 +30,12 @@ export interface Taste {
 export const TASTES: Record<string, Taste> = {
   // design: loves g_manga, cake, g_souvenir | likes sweet, cute, media, music | dislikes coffee
   // (the souvenir is sold on the Hikarigaoka trip from Release 2 wave C1; Aiko's wagashi stays as the present she can get without the trip)
-  mio: { loves: ['g_manga', 'cake', 'g_souvenir', 'g_wagashi'], likes: ['sweet', 'cute', 'media', 'music'], dislikes: ['coffee'] },
+  mio: { loves: ['g_manga', 'cake', 'g_souvenir', 'g_wagashi', 'fig_neko_white'], likes: ['sweet', 'cute', 'media', 'music', 'anime'], dislikes: ['coffee'] },
   // design: loves g_guitar_pick, g_tea_set, cake | likes sweet, music, flower | dislikes coffee, g_game_card
   yuki: { loves: ['g_guitar_pick', 'cake', 'g_tea_set'], likes: ['sweet', 'music', 'flower'], dislikes: ['coffee', 'g_game_card'] },
   // design: loves g_game_card, coffee, g_manga | likes game, tech, sweet | dislikes onigiri, bento
   // (the wagashi is an Aiko present the sweet-toothed Tanaka loves; the design has no Aiko love for him)
-  tanaka: { loves: ['g_game_card', 'coffee', 'g_manga', 'g_wagashi'], likes: ['game', 'tech', 'sweet'], dislikes: ['onigiri', 'bento'] },
+  tanaka: { loves: ['g_game_card', 'coffee', 'g_manga', 'g_wagashi', 'fig_robo_big'], likes: ['game', 'tech', 'sweet', 'anime'], dislikes: ['onigiri', 'bento'] },
   // design: loves g_tea_set, g_wagashi, g_souvenir (the souvenir is sold on the trip from wave C1; green tea stays for before it) | likes travel, tea, tradition | dislikes g_choco, g_game_card
   sato: { loves: ['g_tea_set', 'g_wagashi', 'g_souvenir', 'greenTea'], likes: ['travel', 'tea', 'tradition'], dislikes: ['g_choco', 'g_game_card'] },
   // design: loves g_tenugui, greenTea, coffee | likes sports, food, drink | dislikes g_flower, g_plush

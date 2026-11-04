@@ -17,16 +17,16 @@ export interface Occluder extends Rect {
   minD?: number;
 }
 
-/** East edge is 90 so Nakamura Motors (x 68.5..82.5) and the east end spot fit; the ground, sidewalks and curbs already reach x 170. */
-export const BOUNDS: Rect = { x0: -46, x1: 90, z0: -8.3, z1: 37.5 };
-/** x extent of the ground, sidewalks and curbs that city.ts lays down (traffic wraps inside it). */
-export const GROUND_X = { x0: -130, x1: 170 };
+/** East edge is 106 so ほしぞらホビー (x 85.5..98.5, past Nakamura Motors at 68.5..82.5) and the east end spot fit; the ground, sidewalks and curbs reach x 170. */
+export const BOUNDS: Rect = { x0: -46, x1: 106, z0: -8.3, z1: 37.5 };
+/** x extent of the ground, sidewalks and curbs that city.ts lays down (traffic wraps inside it, at +-140). */
+export const GROUND_X = { x0: -150, x1: 170 };
 
 /** A box centred on (cx, cz). */
 export const boxRect = (cx: number, cz: number, w: number, d: number): Rect => ({ x0: cx - w / 2, x1: cx + w / 2, z0: cz - d / 2, z1: cz + d / 2 });
 
 export interface ShopDef {
-  id: 'konbini' | 'cafe' | 'school' | 'ramen' | 'station' | 'fukufuku' | 'denki' | 'motors';
+  id: 'konbini' | 'cafe' | 'school' | 'ramen' | 'station' | 'fukufuku' | 'denki' | 'motors' | 'hobby';
   cx: number;
   w: number;
   d: number;
@@ -43,6 +43,7 @@ export const SHOPS: ShopDef[] = [
   { id: 'fukufuku', cx: -40.4, w: 11, d: 9.5, h: 5.6 }, // x -45.9..-34.9, 0.9 m from the konbini
   { id: 'denki', cx: 57.5, w: 12, d: 10, h: 6.2 }, // x 51.5..63.5, 1.5 m from the station
   { id: 'motors', cx: 75.5, w: 14, d: 10, h: 5.6 }, // x 68.5..82.5, the east extension
+  { id: 'hobby', cx: 92, w: 13, d: 10, h: 6.4 }, // x 85.5..98.5: ほしぞらホビー, the figure shop (the second east extension)
 ];
 
 export const shopRect = (s: ShopDef): Rect => ({ x0: s.cx - s.w / 2, x1: s.cx + s.w / 2, z0: FRONT_Z - s.d, z1: FRONT_Z });
@@ -74,6 +75,7 @@ export const NPC_SPAWNS: NpcSpawn[] = [
   { id: 'rin', x: -40.4, z: -12.4, face: 0, radius: 5.4, kind: 'scenario', y: 0.28, site: 'fukufuku' },
   { id: 'aoi', x: 57.5, z: -12.5, face: 0, radius: 5.4, kind: 'scenario', y: 0.28, site: 'denki' },
   { id: 'nakamura', x: 71.0, z: -12.4, face: 0, radius: 5.4, kind: 'scenario', y: 0.28, site: 'motors' },
+  { id: 'daichi', x: 92, z: -12.4, face: 0, radius: 5.4, kind: 'scenario', y: 0.28, site: 'hobby' },
   // on the sidewalk in front of the stall wall (z 9.7), behind her counter, facing the street
   { id: 'aiko', x: 35.3, z: 9.15, face: Math.PI, radius: 5.0, kind: 'scenario', site: 'aiko_stall' },
 ];
@@ -97,8 +99,8 @@ export interface WalkerDef {
 
 export const WALKERS: WalkerDef[] = [
   { spec: 0, route: { points: [[-42, -7], [58, -7]], speed: 1.3, loop: false } },
-  // starts at the new east end (x 86) so the extension has foot traffic
-  { spec: 1, route: { points: [[86, 7.2], [-30, 7.2]], speed: 1.15, loop: false } },
+  // starts at the east end (x 102) so the extension has foot traffic
+  { spec: 1, route: { points: [[102, 7.2], [-30, 7.2]], speed: 1.15, loop: false } },
   { spec: 2, route: { points: [[30, -7], [30, 7.4], [30, -7]], speed: 1.25, loop: true } },
   { spec: 3, route: { points: [[-12, 15], [-12, 22], [-26, 22], [-26, 30], [-12, 30], [-12, 22]], speed: 1.0, loop: true } },
   // keeps to the south sidewalk: the old leg along z = 12 ran through the solid shop fronts (z 9.7..18.7)
@@ -120,6 +122,7 @@ export const SHOP_COUNTERS: Partial<Record<ShopDef['id'], Rect>> = {
   fukufuku: boxRect(-40.4, -10.8, 4.4, 0.9),
   denki: boxRect(57.5, -10.8, 5.0, 0.9),
   motors: boxRect(71.0, -10.8, 2.6, 0.9),
+  hobby: boxRect(92, -10.8, 5.0, 0.9),
 };
 
 /** Two kei cars inside Nakamura Motors: 3.4 x 1.5 m, lying along x, 0.2 m apart. */
@@ -213,7 +216,7 @@ export interface SpotDef {
 export const SPOTS: SpotDef[] = [
   { id: 'spot:torii', x: -12, z: 10.5, r: 3 },
   { id: 'spot:pond', x: -23, z: 28.5, r: 4 },
-  { id: 'spot:east_end', x: 88, z: 0, r: 3 },
+  { id: 'spot:east_end', x: 103, z: 0, r: 3 },
   { id: 'spot:west_end', x: -44, z: 0, r: 3 },
   { id: 'spot:station_plaza', x: 40, z: -6, r: 4 },
 ];
@@ -268,23 +271,23 @@ export const VENDING: VendingDef[] = [
 ];
 export const VENDING_SIZE = { w: 1.1, d: 0.9 };
 
-/** Street lamps: x positions along the north (z -6) and south (z 6) sidewalks; 70 and 84 light the east extension. */
+/** Street lamps: x positions along the north (z -6) and south (z 6) sidewalks; 70, 84 and 100 light the east extensions. */
 export const LAMPS = {
   northZ: -6,
   southZ: 6,
-  northX: [-44, -34, -20, -4, 12, 28, 52, 62, 70],
-  southX: [-38, -24, -9.5, 2, 16, 34, 46, 60, 84],
+  northX: [-44, -34, -20, -4, 12, 28, 52, 62, 70, 84, 100],
+  southX: [-38, -24, -9.5, 2, 16, 34, 46, 60, 84, 100],
   size: 0.3,
 };
 
 /** Utility poles on the south sidewalk. The pole at x 32 stood inside Aiko's stall footprint (x 31.8..38.8), so it moved to 30.5; 80 is new. */
 export const POLES = { z: 8.4, x: [-40, -16, 8, 30.5, 56, 80], size: 0.5 };
 
-/** Cars wrap at +-130 (inside the ground, which reaches x 170) so they never pop in or out at the new east edge. */
-export const TRAFFIC = { wrapX: 130 };
+/** Cars wrap at +-140 (inside the ground, which reaches x 170) so they never pop in or out at the east edge (106). */
+export const TRAFFIC = { wrapX: 140 };
 
-/** Skyline bands. The east band stood at x 100-114, past the new edge (90); it now starts at 110 (towers are at most 16 wide). */
-export const SKYLINE = { eastX0: 110, eastSpan: 14, maxTowerW: 16 };
+/** Skyline bands. The east band starts at 124, past the east edge (106) with room to spare (towers are at most 16 wide). */
+export const SKYLINE = { eastX0: 124, eastSpan: 14, maxTowerW: 16 };
 
 /** Every collider this module has data for, keyed for tests and for 1H-b (shop footprints stand in for whole buildings). */
 export function layoutColliders(): Array<{ id: string; rect: Rect }> {

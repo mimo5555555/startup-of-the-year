@@ -483,7 +483,7 @@ export class TokyoWorld {
   /**
    * Open or close a shop's shutter. Closed: the 準備中 shutter shows, its NPC and label are hidden, the badge turns into
    * a padlock, the NPC cannot be talked to or tapped and `snapshot()` leaves it out (no minimap dot inside a closed
-   * shop). Shops start open. Ids are shop ids (konbini, cafe, school, ramen, station, fukufuku, denki, motors) and
+   * shop). Shops start open. Ids are shop ids (konbini, cafe, school, ramen, station, fukufuku, denki, motors, hobby) and
    * 'aiko'; a close while the learner is mid-conversation with that NPC takes effect when the conversation ends.
    */
   setShopOpen(shopId: string, open: boolean) {

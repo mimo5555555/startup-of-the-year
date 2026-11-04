@@ -4,6 +4,30 @@ import type { Character } from '../types';
  * scenario; scenarios that do not exist yet are authored by later slices (the world skips a spawn whose scenario is missing). */
 export const EXTRA_CHARACTERS: Character[] = [
   {
+    id: 'daichi',
+    name: { ja: '星野 大地', reading: 'ほしの だいち', en: 'Daichi Hoshino', ar: 'دايتشي هوشينو' },
+    age: 27,
+    job: { en: 'Clerk at Hoshizora Hobby, the figure shop', ar: 'موظف في هوشيزورا هوبي، متجر المجسّمات' },
+    bio: {
+      en: 'A cheerful collector who knows every figure on his shelves by heart. Polite shop Japanese, but he cannot hide how much he loves them.',
+      ar: 'جامع مرح يعرف كل مجسّم على رفوفه عن ظهر قلب. يتحدث يابانية المتاجر المهذبة لكنه لا يستطيع إخفاء حبه لها.',
+    },
+    personality: { en: 'Enthusiastic, friendly', ar: 'متحمّس وودود' },
+    interests: ['gaming', 'art', 'tech'],
+    speaking: { rate: 1.05, pitch: 1.05, voice: 'm' },
+    avatar: {
+      skin: '#f1c9a5',
+      hair: { style: 'spiky', color: '#3b2f6b' },
+      top: '#ff5d8f',
+      bottom: '#2b2d42',
+      shoes: '#ffd166',
+      accent: '#7bdff2',
+      accessories: ['glasses', 'headband'],
+    },
+    locationId: 'hobby',
+    scenarioId: 'hobby_figures',
+  },
+  {
     id: 'aiko',
     name: { ja: '小野 愛子', reading: 'おの あいこ', en: 'Aiko Ono', ar: 'أيكو أونو' },
     age: 68,
