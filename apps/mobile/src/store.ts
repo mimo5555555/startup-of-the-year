@@ -45,7 +45,9 @@ export type Screen =
   | 'beat'
   /** Goen stage 1 (docs/GOEN.md): the Shrine panel and the Season screen */
   | 'shrine'
-  | 'season';
+  | 'season'
+  /** 耳トレ, the daily ear training (from the Quests screen) */
+  | 'ears';
 
 export interface Profile {
   name: string;
@@ -90,6 +92,8 @@ export interface Settings {
   romaji: boolean;
   autoSpeak: boolean;
   autoTranslate: boolean;
+  /** hide the characters' lines until tapped: hear first, read after */
+  listenFirst: boolean;
   graphics: 'auto' | 'high' | 'low';
   seenTutorial: boolean;
 }
@@ -160,6 +164,7 @@ const DEFAULT_SETTINGS: Settings = {
   romaji: false,
   autoSpeak: true,
   autoTranslate: false,
+  listenFirst: false,
   graphics: 'auto',
   seenTutorial: false,
 };

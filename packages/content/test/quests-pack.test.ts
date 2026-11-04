@@ -152,10 +152,10 @@ describe('dreams (§7.3)', () => {
 });
 
 describe('daily goals (§7.4)', () => {
-  it('are the 10 templates with one counter each', () => {
-    expect(DAILY.map((d) => d.id)).toEqual(['g_conv2', 'g_indep6', 'g_newphrase2', 'g_buy', 'g_shift', 'g_friend', 'g_place', 'g_review8', 'g_lesson', 'g_culture']);
-    expect(new Set(DAILY.map((d) => d.counter)).size).toBe(10);
-    expect(Object.fromEntries(DAILY.map((d) => [d.id, d.target]))).toEqual({ g_conv2: 2, g_indep6: 6, g_newphrase2: 2, g_buy: 1, g_shift: 1, g_friend: 1, g_place: 2, g_review8: 8, g_lesson: 1, g_culture: 1 });
+  it('are the 11 templates with one counter each (耳トレ, the ear training, is the 11th)', () => {
+    expect(DAILY.map((d) => d.id)).toEqual(['g_conv2', 'g_indep6', 'g_newphrase2', 'g_buy', 'g_shift', 'g_friend', 'g_place', 'g_review8', 'g_lesson', 'g_culture', 'g_ears']);
+    expect(new Set(DAILY.map((d) => d.counter)).size).toBe(11);
+    expect(Object.fromEntries(DAILY.map((d) => [d.id, d.target]))).toEqual({ g_conv2: 2, g_indep6: 6, g_newphrase2: 2, g_buy: 1, g_shift: 1, g_friend: 1, g_place: 2, g_review8: 8, g_lesson: 1, g_culture: 1, g_ears: 1 });
     for (const slot of ['speak', 'do', 'review'] as const) expect(DAILY.filter((d) => d.slot === slot).length, slot).toBeGreaterThanOrEqual(3);
     for (const d of DAILY) expect(d.text.en.trim() && hasAr(d.text.ar), d.id).toBeTruthy();
   });

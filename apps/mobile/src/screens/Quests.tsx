@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { objectiveRows } from '@lw/game';
 import { ChapterCard, ChapterTeaser } from '../components/game/ChapterCard';
 import { DailyList } from '../components/game/DailyList';
+import { EarsCard } from './Ears';
 import { DreamPanel, DreamPicker } from '../components/game/DreamPicker';
 import { ObjectiveRow } from '../components/game/ObjectiveRow';
 import { JourneyCard } from '../components/game/KyotoPanel';
@@ -87,6 +88,8 @@ export function Quests() {
       <div className="panel-body qst-body">
         {here === 'story' && <StoryTab />}
         {here === 'today' && <DailyList state={game} streakDays={view.streakDays} onSwap={(goalId) => dispatch({ t: 'daily_swap', goalId })} />}
+        {/* 耳トレ is open from the start: on the Story tab until the Today tab (the daily goals) is unlocked */}
+        {(here === 'today' || (here === 'story' && !disc.dailyGoals)) && <EarsCard />}
         {here === 'dream' &&
           (dream && !changing ? (
             <DreamPanel progress={dream} stickers={game.stickers} onChange={() => setChanging(true)} />

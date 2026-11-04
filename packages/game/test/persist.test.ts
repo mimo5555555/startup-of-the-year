@@ -41,12 +41,13 @@ describe('migrate: frozen v1 fixtures', () => {
 
   it('typical: a played save comes back unchanged and validates', () => {
     const raw = saved('v1-typical') as GameState;
-    const { goen, ...s } = migrate(raw, 1, pack);
+    const { goen, ears, ...s } = migrate(raw, 1, pack);
     expect(s).toEqual(raw);
-    // a save from before Goen gains the empty Goen state (this pack has no Goen, so nothing is granted)
+    // a save from before Goen gains the empty Goen state (this pack has no Goen, so nothing is granted), and one from before 耳トレ none done
     expect(goen).toEqual({ ...emptyGoen(), streak: { last: -1, paid: 0 } });
-    expect(validateState({ ...s, goen }, pack)).toEqual([]);
-    expect(reconcile({ ...s, goen }, 3000).ok).toBe(true);
+    expect(ears).toEqual({ day: -1, days: 0, heard: 0, right: 0 });
+    expect(validateState({ ...s, goen, ears }, pack)).toEqual([]);
+    expect(reconcile({ ...s, goen, ears }, 3000).ok).toBe(true);
   });
 
   it('heavy: full rings, a long game, a rich wallet: unchanged and valid', () => {
@@ -54,8 +55,8 @@ describe('migrate: frozen v1 fixtures', () => {
     expect(raw.ledger).toHaveLength(BALANCE.ledger.entries);
     expect(raw.seen).toHaveLength(BALANCE.ledger.seen);
     const m = migrate(raw, 1, pack);
-    const { goen: _goen, ...s } = m;
-    void _goen;
+    const { goen: _goen, ears: _ears, ...s } = m;
+    void _goen, _ears;
     expect(s).toEqual(raw);
     expect(validateState(m, pack)).toEqual([]);
   });

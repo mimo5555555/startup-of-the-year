@@ -77,6 +77,7 @@ export function createGameState(pack: GamePack, now: number): GameState {
     flags: {},
     seeded: false,
     goen: emptyGoen(),
+    ears: { day: -1, days: 0, heard: 0, right: 0 },
   };
 }
 
@@ -108,6 +109,7 @@ export function needsFlush(ev: InputEvent): boolean {
     case 'goen_account':
     case 'goen_sync':
     case 'goen_reported':
+    case 'ears_done':
       return true;
     default:
       return false;
@@ -899,6 +901,18 @@ function apply(a: Acc, ev: InputEvent, ctx: ReduceCtx): void {
       const r = useCharm(a.s, ev.day);
       if (!r.ok) a.effective = false;
       absorb(a, r);
+      break;
+    }
+    case 'ears_done': {
+      // once a day: a second session the same day is practice and records nothing
+      const e = a.s.ears ?? { day: -1, days: 0, heard: 0, right: 0 };
+      const total = Math.trunc(Number(ev.total));
+      const right = Math.trunc(Number(ev.right));
+      if (e.day === a.s.clock.dayIndex || !(total >= 1 && total <= 20) || !(right >= 0 && right <= total)) {
+        a.effective = false;
+        break;
+      }
+      a.s = { ...a.s, ears: { day: a.s.clock.dayIndex, days: e.days + 1, heard: e.heard + total, right: e.right + right } };
       break;
     }
     case 'goen_account':

@@ -1,6 +1,6 @@
 import type { DailyTemplate } from '@lw/game';
 
-// The 10 daily goal templates (docs/GAME_DESIGN.md §7.4, D19). One counter each (`DailyCounter`), read from the goal's own creation day.
+// The 11 daily goal templates (docs/GAME_DESIGN.md §7.4, D19). One counter each (`DailyCounter`), read from the goal's own creation day.
 // `requires` keeps a template away from a player who cannot do it yet: nothing here names a place, shop or friend that is still locked,
 // and `kids: false` is not used (every template is fine for a child). The rules that pick a template (the priority overrides of
 // `daily.generate`) name `g_review8`, `g_shift`, `g_friend`, `g_conv2` and `g_newphrase2`, so those ids must stay as they are.
@@ -20,4 +20,5 @@ export const DAILY: DailyTemplate[] = [
   { id: 'g_review8', slot: 'review', counter: 'review_checked', target: 8, requires: { vocabCards: true }, text: { en: 'Review 8 words that are due', ar: 'راجع 8 كلمات مستحقة' } },
   { id: 'g_lesson', slot: 'review', counter: 'lesson', target: 1, text: { en: 'Finish a lesson', ar: 'أنهِ درسًا' } },
   { id: 'g_culture', slot: 'review', counter: 'culture_new', target: 1, requires: { unseenCulture: true }, text: { en: 'Learn one new thing about Japan', ar: 'تعلّم شيئًا جديدًا عن اليابان' } },
+  { id: 'g_ears', slot: 'review', counter: 'ears', target: 1, text: { en: 'Do today’s ear training (耳トレ)', ar: 'أدِّ تدريب الأذن اليوم (耳トレ)' } },
 ];

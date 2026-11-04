@@ -2,6 +2,7 @@ import { BALANCE, dailyGoalProgress, scaleAmount, type DailyGoalState, type Dail
 import { useT } from '../../hooks';
 import { PACK } from '../../game/pack';
 import { Icon } from '../Icon';
+import { useStore } from '../../store';
 import { Ltr } from './WalletPill';
 
 const money = (base: number): number => scaleAmount(base, PACK.economy, PACK.currency);
@@ -29,6 +30,11 @@ function Goal({ goal, state, swap }: { goal: DailyGoalState; state: GameState; s
           </span>
         )}
       </div>
+      {goal.id === 'g_ears' && !goal.done && (
+        <button className="btn soft sm" data-start="ears" onClick={() => useStore.getState().go('ears')}>
+          {t('ears.start')}
+        </button>
+      )}
       {swap && (
         <button className="icon-btn qst-swap" data-swap={goal.id} onClick={swap} aria-label={t('quests.swap')} title={t('quests.swap')}>
           <Icon name="replay" size={20} />

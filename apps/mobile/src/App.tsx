@@ -18,6 +18,7 @@ import { Culture } from './screens/Culture';
 import { StoryBeat } from './screens/StoryBeat';
 import { Shrine } from './screens/Shrine';
 import { Season } from './screens/Season';
+import { Ears } from './screens/Ears';
 import { WordSheet } from './components/WordSheet';
 import { Toasts } from './components/Toasts';
 import { dirOf } from './i18n';
@@ -82,6 +83,7 @@ export default function App() {
       {screen === 'beat' && <StoryBeat />}
       {screen === 'shrine' && <Shrine />}
       {screen === 'season' && <Season />}
+      {screen === 'ears' && <Ears />}
       <ConversationHost />
       <BeatGate />
       <CultureCardHost />

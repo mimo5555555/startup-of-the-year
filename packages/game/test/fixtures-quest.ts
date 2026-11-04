@@ -362,6 +362,7 @@ export function mkState(over: { cash?: number; chapter?: number; dayIndex?: numb
     flags: {},
     seeded: true,
     goen: emptyGoen(),
+    ears: { day: -1, days: 0, heard: 0, right: 0 },
   };
 }
 

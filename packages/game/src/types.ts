@@ -485,7 +485,8 @@ export type DailyCounter =
   | 'places_distinct'
   | 'review_checked'
   | 'lesson'
-  | 'culture_new';
+  | 'culture_new'
+  | 'ears';
 
 export interface DailyTemplate {
   id: string;
@@ -1295,6 +1296,13 @@ export interface GoenState {
   paid?: GoenPaidState;
 }
 
+export interface EarsState {
+  day: number;
+  days: number;
+  heard: number;
+  right: number;
+}
+
 export interface GameState {
   v: 1;
   packId: string;
@@ -1346,6 +1354,8 @@ export interface GameState {
   seeded: boolean;
   /** the second currency (docs/GOEN.md); `migrate` fills it for an older save */
   goen: GoenState;
+  /** 耳トレ, the daily ear training: the last dayIndex done (-1 never), days done, lines heard and understood in all */
+  ears: EarsState;
   /** unknown ids and fields are kept here, never dropped (§14.7) */
   _extra?: Record<string, unknown>;
 }
@@ -1542,7 +1552,9 @@ export type InputEvent =
   /** stage 2: what the server holds for the account (paid checkouts, refunds, bought Goen spent, once-items to give back); idempotent */
   | { t: 'goen_sync'; credits: { id: string; goen: number }[]; refunded: string[]; spent: number; own: string[] }
   /** stage 2: the server confirmed these spend reports */
-  | { t: 'goen_reported'; ids: string[] };
+  | { t: 'goen_reported'; ids: string[] }
+  /** 耳トレ: today's ear training finished, `right` of `total` recorded lines understood (once a day; ticks the daily `ears` counter) */
+  | { t: 'ears_done'; right: number; total: number };
 
 export type PurchaseEvent = Extract<InputEvent, { t: 'purchase' }>;
 

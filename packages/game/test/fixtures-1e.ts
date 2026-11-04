@@ -303,6 +303,7 @@ export function makeState(dayIndex = 10): GameState {
     flags: {},
     seeded: true,
     goen: emptyGoen(),
+    ears: { day: -1, days: 0, heard: 0, right: 0 },
   };
 }
 

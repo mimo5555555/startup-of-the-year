@@ -1368,3 +1368,128 @@ html[dir='rtl'] .kyo-host {
 .warn-text {
   color: #b3261e;
 }
+
+/* listening: 耳トレ (Ears.tsx) and Listen first (Conversation) */
+.ears-body {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.ears-count {
+  font-weight: 700;
+  min-width: 44px;
+  text-align: end;
+}
+.ears-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 12px;
+  text-align: center;
+}
+.ears-who {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.ears-play {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.ears-btn.on {
+  box-shadow: 0 0 0 4px rgba(233, 118, 95, 0.25);
+}
+.ears-hidden {
+  font-size: 28px;
+  letter-spacing: 0.2em;
+  margin: 0;
+}
+.ears-reveal p {
+  margin: 6px 0 0;
+}
+.ears-options {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.ears-opt {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 14px;
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+}
+.ears-opt.right {
+  border-color: #2e9e6b;
+  background: #e8f6ee;
+}
+.ears-opt.wrong {
+  border-color: #c0392b;
+  background: #fbeceb;
+}
+.ears-opt.dim {
+  opacity: 0.55;
+}
+.ears-done {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 20px 14px;
+}
+.ears-score {
+  font-size: 40px;
+  font-weight: 800;
+}
+.ears-card {
+  display: grid;
+  grid-template-columns: 40px minmax(0, 1fr) 20px;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px;
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+}
+.ears-card span:nth-child(2) {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.ears-card-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  background: linear-gradient(160deg, #6aa3e0, #3a6fb0);
+}
+.ears-card[data-done='1'] .ears-card-icon {
+  background: linear-gradient(160deg, #5cc08f, #2e9e6b);
+}
+.lf-veil {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 40px;
+  padding: 6px 12px;
+  border: 1px dashed currentColor;
+  border-radius: 12px;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  opacity: 0.8;
+  cursor: pointer;
+}
+.ears .panel-head h1 small {
+  margin-inline-start: 6px;
+}

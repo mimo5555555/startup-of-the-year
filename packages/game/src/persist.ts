@@ -65,7 +65,7 @@ const intMap = (v: unknown, min = 0): Record<string, number> =>
 
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
 const LEDGER_KINDS: readonly string[] = ['loop', 'shift', 'goal', 'streak', 'chapter', 'star', 'phrase', 'echo', 'purchase', 'fare', 'topup', 'refund', 'gift', 'perk'];
-const COUNTERS: readonly string[] = ['conv_distinct', 'indep_lines', 'new_intents', 'purchase', 'shift_good', 'friend_contact', 'places_distinct', 'review_checked', 'lesson', 'culture_new'];
+const COUNTERS: readonly string[] = ['conv_distinct', 'indep_lines', 'new_intents', 'purchase', 'shift_good', 'friend_contact', 'places_distinct', 'review_checked', 'lesson', 'culture_new', 'ears'];
 const SLOTS: readonly string[] = ['speak', 'do', 'review'];
 
 /** A view with nothing in it: the cache `chapter.completed` is judged from state alone (its only view-dependent input is a start gate that needs vocabulary). */
@@ -498,6 +498,10 @@ export function migrate(persisted: unknown, from: number, pack: GamePack): GameS
     },
     seeded: bool(src.seeded),
     goen: cleanGoen(src.goen),
+    ears: (() => {
+      const e = isRec(src.ears) ? src.ears : {};
+      return { day: int(e.day, -1, -1), days: int(e.days, 0, 0), heard: int(e.heard, 0, 0), right: Math.min(int(e.right, 0, 0), int(e.heard, 0, 0)) };
+    })(),
   };
 
   // what the pack does not know is parked, not dropped

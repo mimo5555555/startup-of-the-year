@@ -113,6 +113,7 @@ export function Settings() {
         <section className="group" id={AUDIO_CHECK_ID} ref={audioRef}>
           <h2 className="h2">{t('st.speech')}</h2>
           <Switch on={settings.autoSpeak} onChange={(v) => update({ autoSpeak: v })} label={t('st.autoSpeak')} />
+          <Switch on={settings.listenFirst} onChange={(v) => update({ listenFirst: v })} label={t('lf.setting')} sub={t('lf.settingSub')} />
           <AudioCheck />
         </section>
 

@@ -8,7 +8,7 @@ import { deriveCompleted, openChapter, prerequisiteIssues } from './objectives';
 import type { BeatEffect, ContentIndex, DreamDef, GamePack, GameState, GameView, Gloss, Pred, ValidationIssue, ValidationLevel } from './types';
 
 const ID_RE = /^[A-Za-z0-9_][A-Za-z0-9_:.\-]*$/;
-const COUNTERS: readonly string[] = ['conv_distinct', 'indep_lines', 'new_intents', 'purchase', 'shift_good', 'friend_contact', 'places_distinct', 'review_checked', 'lesson', 'culture_new'];
+const COUNTERS: readonly string[] = ['conv_distinct', 'indep_lines', 'new_intents', 'purchase', 'shift_good', 'friend_contact', 'places_distinct', 'review_checked', 'lesson', 'culture_new', 'ears'];
 const SLOTS: readonly string[] = ['speak', 'do', 'review'];
 const CULTURE_ON: readonly string[] = ['shop_start', 'talk_start', 'scenario_done', 'payment', 'served', 'machine', 'purchase', 'intent', 'gift_given', 'casual_switch', 'visit', 'ride', 'festival', 'perfect_shift'];
 const AGES = ['kids', 'teens', 'adults', 'seniors'] as const;
@@ -289,7 +289,7 @@ function level2(pack: GamePack, out: Out): void {
   pack.daily.forEach((t, i) => {
     gloss(out, 2, `daily[${i}].text`, t.text);
     if (!SLOTS.includes(t.slot)) add(out, 2, 'daily_slot', `daily[${i}].slot`, `slot "${t.slot}" is speak, do or review`);
-    if (!COUNTERS.includes(t.counter)) add(out, 2, 'daily_counter', `daily[${i}].counter`, `counter "${t.counter}" is not one of the ten day counters`);
+    if (!COUNTERS.includes(t.counter)) add(out, 2, 'daily_counter', `daily[${i}].counter`, `counter "${t.counter}" is not one of the day counters`);
     if (!isInt(t.target) || t.target < 1) add(out, 2, 'daily_target', `daily[${i}].target`, 'target is a whole number of at least 1');
   });
   for (const slot of SLOTS) if (pack.daily.length > 0 && !pack.daily.some((t) => t.slot === slot)) add(out, 2, 'daily_slot', 'daily', `no template for the "${slot}" slot`);

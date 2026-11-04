@@ -129,6 +129,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
   const [assist, setAssist] = useState<Assist | null>(null);
   const [showTr, setShowTr] = useState(settings.autoTranslate);
   const [shown, setShown] = useState<Set<number>>(new Set());
+  const [unveiled, setUnveiled] = useState<Set<number>>(new Set());
   const [hint, setHint] = useState<ResolvedSuggestion | null>(null);
   const [paused, setPaused] = useState(false);
   const [confirmLeave, setConfirmLeave] = useState(false);
@@ -566,7 +567,9 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
           )}
           {shownTurns.map((turn) => {
             const isChar = turn.speaker === 'character';
-            const trOpen = showTr || shown.has(turn.id);
+            // Listen first: a character's words stay hidden (and untranslated) until tapped
+            const veiled = isChar && settings.listenFirst && !unveiled.has(turn.id);
+            const trOpen = !veiled && (showTr || shown.has(turn.id));
             return (
               <div key={turn.id} className={`msg ${isChar ? 'char' : 'me'} ${turn.kind === 'fallback' ? 'fb' : ''}`}>
                 {isChar && (
@@ -575,8 +578,16 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
                   </span>
                 )}
                 <div className="bubble">
-                  <JaText tokens={turn.line.tokens} furigana={settings.furigana} romaji={settings.romaji} size="lg" onTap={(tk) => tapWord(tk)} />
-                  {turn.followUp && <JaText tokens={turn.followUp.tokens} furigana={settings.furigana} romaji={settings.romaji} size="lg" onTap={(tk) => tapWord(tk)} className="follow" />}
+                  {veiled ? (
+                    <button type="button" className="lf-veil" data-veil={turn.id} onClick={() => setUnveiled((u) => new Set(u).add(turn.id))}>
+                      <Icon name="volume" size={16} /> {t('lf.tap')}
+                    </button>
+                  ) : (
+                    <>
+                      <JaText tokens={turn.line.tokens} furigana={settings.furigana} romaji={settings.romaji} size="lg" onTap={(tk) => tapWord(tk)} />
+                      {turn.followUp && <JaText tokens={turn.followUp.tokens} furigana={settings.furigana} romaji={settings.romaji} size="lg" onTap={(tk) => tapWord(tk)} className="follow" />}
+                    </>
+                  )}
                   {isChar && trOpen && (
                     <div className="tr" dir="auto">
                       {turnTranslation(turn)}
@@ -597,6 +608,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
                         </button>
                         <button
                           className={`mini ${trOpen ? 'on' : ''}`}
+                          disabled={veiled}
                           onClick={() => setShown((s) => { const n = new Set(s); n.has(turn.id) ? n.delete(turn.id) : n.add(turn.id); return n; })}
                           aria-label={t('c.translate')}
                           aria-pressed={trOpen}

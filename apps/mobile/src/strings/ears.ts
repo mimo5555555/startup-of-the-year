@@ -1,0 +1,51 @@
+// UI strings for listening practice: 耳トレ (the daily ear training) and "Listen first" in conversations. Keys 'ears.' and 'lf.'; English and
+// Arabic for every key.
+
+export const en = {
+  'ears.title': 'Ear training',
+  'ears.loading': 'Getting the voices ready…',
+  'ears.empty': 'Have a few conversations in town first: the ear training uses lines you have heard.',
+  'ears.intro': 'Listen. The words stay hidden: what did they say? Play it again or slower as often as you like.',
+  'ears.listen': 'Listen, then choose what it means.',
+  'ears.again': 'Play again',
+  'ears.slower': 'Slower',
+  'ears.q': 'What did they say?',
+  'ears.next': 'Next line',
+  'ears.finish': 'See how you did',
+  'ears.perfect': 'Every line understood. Your ears are getting Japanese!',
+  'ears.good': 'Good listening. The ones you missed will feel easier next time.',
+  'ears.keep': 'Listening is the hardest part at first. Play the lines again in your next conversation.',
+  'ears.counted': 'Today’s ear training is done (it counts for the daily goal).',
+  'ears.practice': 'Extra practice: today’s session was already counted.',
+  'ears.cardSub': '{n} lines from your conversations, by ear',
+  'ears.cardDone': 'Done today ✓ · {n} days in all',
+  'ears.start': 'Start',
+  // Listen first (Settings, Conversation)
+  'lf.setting': 'Listen first',
+  'lf.settingSub': 'Hide what characters say until you tap: hear it before you read it',
+  'lf.tap': 'Tap to show the words',
+} as const;
+
+export const ar: Record<keyof typeof en, string> = {
+  'ears.title': 'تدريب الأذن',
+  'ears.loading': 'جارٍ تجهيز الأصوات…',
+  'ears.empty': 'أجرِ بعض المحادثات في المدينة أولًا: تدريب الأذن يستخدم جملًا سمعتها.',
+  'ears.intro': 'استمع. الكلمات تبقى مخفية: ماذا قالوا؟ أعِد التشغيل أو أبطئه كلما شئت.',
+  'ears.listen': 'استمع، ثم اختر المعنى.',
+  'ears.again': 'شغّل مرة أخرى',
+  'ears.slower': 'أبطأ',
+  'ears.q': 'ماذا قالوا؟',
+  'ears.next': 'الجملة التالية',
+  'ears.finish': 'شاهد نتيجتك',
+  'ears.perfect': 'فهمت كل الجمل. أذناك تعتادان اليابانية!',
+  'ears.good': 'استماع جيد. الجمل التي فاتتك ستبدو أسهل في المرة القادمة.',
+  'ears.keep': 'الاستماع هو الأصعب في البداية. أعِد تشغيل الجمل في محادثتك القادمة.',
+  'ears.counted': 'انتهى تدريب الأذن لليوم (يُحتسب للهدف اليومي).',
+  'ears.practice': 'تدريب إضافي: جلسة اليوم احتُسبت من قبل.',
+  'ears.cardSub': '{n} جمل من محادثاتك، بالأذن',
+  'ears.cardDone': 'أُنجز اليوم ✓ · {n} أيام في المجموع',
+  'ears.start': 'ابدأ',
+  'lf.setting': 'الاستماع أولًا',
+  'lf.settingSub': 'إخفاء ما تقوله الشخصيات حتى تنقر: اسمعه قبل أن تقرأه',
+  'lf.tap': 'انقر لإظهار الكلمات',
+};

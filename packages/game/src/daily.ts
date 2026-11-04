@@ -273,6 +273,9 @@ function bumpsFor(ev: InputEvent, derived: DerivedEvent[], pack: GamePack): Bump
       if (world && derived.some((d) => d.t === 'wallet_changed' && d.kind === 'purchase' && d.delta < 0)) add('purchase');
       break;
     }
+    case 'ears_done':
+      add('ears');
+      break;
     case 'lesson_done':
       add('lesson');
       break;
