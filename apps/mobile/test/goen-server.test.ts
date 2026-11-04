@@ -56,6 +56,8 @@ describe('the server', () => {
     const off = await handle('GET', null, {}, ORIGIN, fakeStripe().fetchFn);
     expect(off.body).toEqual({ enabled: false, test: false, packs: [] });
     expect((await handle('POST', { a: 'checkout', pack: 'p120' }, {}, ORIGIN, fakeStripe().fetchFn)).status).toBe(503);
+    const spaced = await handle('GET', null, { STRIPE_SECRET_KEY: ' sk_test_abc \n' }, ORIGIN, fakeStripe().fetchFn);
+    expect(spaced.body).toMatchObject({ enabled: true, test: true });
     const on = await handle('GET', null, ENV, ORIGIN, fakeStripe().fetchFn);
     expect(on.body).toMatchObject({ enabled: true, test: true });
     expect((on.body as { packs: unknown[] }).packs).toHaveLength(3);

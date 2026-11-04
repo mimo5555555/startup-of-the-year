@@ -94,9 +94,10 @@ export function customerOf(code: unknown, secret: string): string | null {
 }
 
 export function secretOf(env: Record<string, string | undefined>): string | null {
-  if (env.GOEN_SECRET && env.GOEN_SECRET.length >= 16) return env.GOEN_SECRET;
-  if (!env.STRIPE_SECRET_KEY) return null;
-  return createHmac('sha256', env.STRIPE_SECRET_KEY).update('lw-goen-code-v1').digest('hex');
+  if (env.GOEN_SECRET && env.GOEN_SECRET.trim().length >= 16) return env.GOEN_SECRET.trim();
+  const key = env.STRIPE_SECRET_KEY?.trim();
+  if (!key) return null;
+  return createHmac('sha256', key).update('lw-goen-code-v1').digest('hex');
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -280,7 +281,8 @@ export interface Reply {
 
 /** Everything but the HTTP plumbing (tested with a fake fetch). `origin` is where Checkout sends the player back. */
 export async function handle(method: string, body: unknown, env: Record<string, string | undefined>, origin: string, fetchFn: Fetch): Promise<Reply> {
-  const key = env.STRIPE_SECRET_KEY ?? '';
+  // a key pasted with a space or a line break around it still works
+  const key = (env.STRIPE_SECRET_KEY ?? '').trim();
   const secret = secretOf(env);
   const enabled = /^(sk|rk)_(test|live)_/.test(key) && secret !== null;
   if (method === 'GET') {
