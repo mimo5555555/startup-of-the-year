@@ -171,6 +171,8 @@ export const FURNITURE: Record<string, { slot: string; word: string }> = {
   // Goen stage 1 (docs/GOEN.md): the shrine's autumn decor and the season's premium plant stand in the plant slot of the dorm and the flat
   room_momiji: { slot: 'plant', word: '紅葉' },
   plant_momiji: { slot: 'plant', word: '紅葉' },
+  // ほしぞらホビー's display case: the figures owned stand in it
+  case_figures: { slot: 'shelf', word: 'フィギュアケース' },
 };
 
 /**

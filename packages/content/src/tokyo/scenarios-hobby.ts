@@ -15,6 +15,7 @@ export const HOBBY_PRICES: Record<string, number> = {
   roboBig: 3600,
   roboSmall: 1200,
   kitsune: 4800,
+  figCase: 3500,
 };
 
 const KANJI_DIGITS = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九'];
@@ -43,6 +44,7 @@ const quoteLines = (live: Line, build: (yenJa: string, yenEn: string, yenAr: str
 
 const NEKO = ['nekoRed', 'nekoBlue', 'nekoWhite'];
 const ROBO = ['roboBig', 'roboSmall'];
+const FIGURES = [...NEKO, ...ROBO, 'kitsune'];
 
 const CARD_S = S('カード|で|お願いします。', 'By card, please.', 'بالبطاقة من فضلك.');
 const CASH_S = S('現金|で|お願いします。', 'Cash, please.', 'نقدًا من فضلك.');
@@ -61,6 +63,20 @@ const askReco: IntentDef = { id: 'ask_reco', any: ['おすすめ', 'にんき', 
 const showNeko: IntentDef = { id: 'show_neko', any: ['ねこ', 'にんじゃ', '忍者', 'neko'], next: 'neko' };
 const showRobo: IntentDef = { id: 'show_robo', any: ['ろぼっと', 'ロボ', 'ろぼ'], next: 'robo' };
 const askLimited: IntentDef = { id: 'ask_limited', any: ['げんてい', '限定', 'きつね', 'さむらい', '侍'], next: 'limited' };
+/** the display case (furniture for the room): no wrapping question, straight to the price */
+const pickCase: IntentDef = {
+  id: 'pick_case',
+  slot: 'figure',
+  slotOptions: ['figCase'],
+  slotRequired: true,
+  next: 'quote',
+  step: 'choose',
+  request: true,
+  ideal: L('フィギュアケース|を|ください。', 'The display case, please.', 'خزانة العرض من فضلك.'),
+  econ: 'in_stock',
+  nextIfNo: 'not_yet',
+};
+const askCase: IntentDef = { id: 'ask_case', any: ['けーす', 'ケース', 'かざる', '飾る', 'へや', '部屋'], next: 'case' };
 const payIntents = (next: string): IntentDef[] => [
   { id: 'pay_card', slot: 'payMethod', slotOptions: ['card'], slotRequired: true, next },
   { id: 'pay_cash', slot: 'payMethod', slotOptions: ['cash'], slotRequired: true, next },
@@ -71,10 +87,10 @@ const payIntents = (next: string): IntentDef[] => [
  * Asking for a figure (by its look or its name), wherever the learner is: the sale goes on to the wrapping question. `only` keeps a node to
  * the figures it shows (a colour in the cat ninja node, a size in the robot node). A figure that cannot be sold yet goes to `not_yet`.
  */
-const pickFigure = (only?: string[]): IntentDef => ({
+const pickFigure = (only: string[] = FIGURES): IntentDef => ({
   id: 'pick_figure',
   slot: 'figure',
-  ...(only ? { slotOptions: only } : {}),
+  slotOptions: only,
   slotRequired: true,
   next: 'wrap',
   step: 'choose',
@@ -120,7 +136,9 @@ export const HOBBY_FIGURES: Scenario = {
         showNeko,
         showRobo,
         askLimited,
+        pickCase,
         pickFigure(),
+        askCase,
         justLooking,
         { id: 'hello', any: ['こんにちは', 'すみません'], stay: true, reply: L('こんにちは！|フィギュア|を|お探し|です|か？', 'Hello! Are you looking for a figure?', 'مرحبًا! هل تبحث عن مجسّم؟') },
         later(),
@@ -130,14 +148,14 @@ export const HOBBY_FIGURES: Scenario = {
     node({
       id: 'series',
       step: 'look',
-      say: [say(L('今、|ねこ忍者|シリーズ|と|ロボット|シリーズ|が|あります。|限定|の|きつね侍|も|あります|よ！', 'Right now we have the Cat Ninja series and the Robot series. There is also the limited Fox Samurai!', 'لدينا الآن سلسلة القط النينجا وسلسلة الروبوت. ولدينا أيضًا الثعلب الساموراي المحدود!'))],
+      say: [say(L('今、|ねこ忍者|シリーズ|と|ロボット|シリーズ|が|あります。|限定|の|きつね侍|も|あります|よ！|部屋|に|飾る|フィギュアケース|も|あります。', 'Right now we have the Cat Ninja series and the Robot series. There is also the limited Fox Samurai! And a display case to show them in your room.', 'لدينا الآن سلسلة القط النينجا وسلسلة الروبوت. ولدينا أيضًا الثعلب الساموراي المحدود! وخزانة عرض لعرضها في غرفتك.'))],
       suggestions: [
         S('ねこ忍者|を|見せて|ください。', 'Please show me the Cat Ninjas.', 'أرني القطط النينجا من فضلك.'),
         S('ロボット|を|見せて|ください。', 'Please show me the robots.', 'أرني الروبوتات من فضلك.'),
+        S('フィギュアケース|を|ください。', 'The display case, please.', 'خزانة العرض من فضلك.'),
         S('限定|の|は|何|です|か？', 'What is the limited one?', 'ما الإصدار المحدود؟'),
-        REPEAT_S,
       ],
-      intents: [showNeko, showRobo, askLimited, askReco, pickFigure(), justLooking, later()],
+      intents: [pickCase, showNeko, showRobo, askLimited, askReco, pickFigure(), askCase, justLooking, later()],
     }),
     // the cat ninjas: three colours (teaches 赤い / 青い / 白い and 「〜のをください」)
     node({
@@ -189,6 +207,13 @@ export const HOBBY_FIGURES: Scenario = {
         showRobo,
         later(),
       ],
+    }),
+    // the display case for the room: what it holds, the price
+    node({
+      id: 'case',
+      say: [say(L('フィギュアケース|は|三|千|五|百|円|です。|部屋|の|棚|に|置けます|よ。|集めた|フィギュア|を|飾れます！', 'The display case is 3,500 yen. It goes on the shelf spot in your room. You can display the figures you collected!', 'خزانة العرض بـ 3,500 ين. توضع مكان الرف في غرفتك. يمكنك عرض المجسّمات التي جمعتها!'))],
+      suggestions: [S('フィギュアケース|を|ください。', 'The display case, please.', 'خزانة العرض من فضلك.'), S('ねこ忍者|を|見せて|ください。', 'Please show me the Cat Ninjas.', 'أرني القطط النينجا من فضلك.'), THINK_S],
+      intents: [pickCase, showNeko, showRobo, later()],
     }),
     // a recommendation: the newest cat ninja, arrived yesterday
     node({

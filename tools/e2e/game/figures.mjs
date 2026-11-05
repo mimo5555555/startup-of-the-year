@@ -143,7 +143,37 @@ await finish();
 await check('after the second figure');
 step('typed: the robots, 「小さいのをください」, no wrapping, cash: the small robot, ¥1,200');
 
-// 3) the figures are presents the gift hand-over can name
+// 3) the display case: asked for by name, no wrapping question, carried home; placed in the dorm's shelf spot, it shows the two figures
+await dev('cash', 10000); // two figures spent the starting money
+const g2 = await liveGame(page);
+await talkToDaichi();
+await drive([/フィギュア|探して/, /フィギュアケース/, /カード/]);
+g = await liveGame(page);
+assert.equal(g.owned.case_figures?.qty, 1, 'the display case is owned');
+assert.equal(g2.wallet.cash + g2.wallet.ic - (g.wallet.cash + g.wallet.ic) + (g.totals.earned - g2.totals.earned), 3500, 'exactly ¥3,500');
+await finish();
+await go('world');
+await t.sleep(300);
+await page.evaluate(() => window.__world.simulatePick('door:dorm'));
+await page.waitForSelector('[data-own-phase=inside], [data-own-phase=genkan]', { timeout: 30000 });
+await t.sleep(700);
+await page.locator('[data-own=furnish-open]').click();
+await page.waitForSelector('[data-own=furnish]', { timeout: 5000 });
+await page.locator('[data-piece=case_figures][data-state=ready]').click();
+await page.locator('[data-slot=shelf]').click();
+await page.waitForFunction(() => document.querySelector('[data-slot=shelf]')?.getAttribute('data-slot-piece') === 'case_figures', null, { timeout: 5000 });
+await page.locator('[data-own=furnish-done]').click();
+await t.sleep(800);
+g = await liveGame(page);
+assert.equal(g.home.placed.shelf, 'case_figures', 'placed in the shelf spot');
+// (headless browsers run on light graphics, where the room is the 2D panel; the 3D case is checked by packages/world/test)
+await t.shot('case-in-dorm');
+await check('the display case in the dorm');
+await page.locator('[data-home=leave]').click();
+await t.sleep(800);
+step('the display case: bought by name (¥3,500), placed in the dorm, the figures stand in it');
+
+// 4) the figures are presents the gift hand-over can name
 const names = await page.evaluate(() => {
   const g = window.__lw.getGame();
   return Object.keys(g.owned).filter((k) => k.startsWith('fig_'));

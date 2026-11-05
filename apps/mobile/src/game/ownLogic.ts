@@ -30,7 +30,28 @@ export function worldPlaced(state: GameState): Record<string, string> {
   const room = ownRoomOf(state);
   const out: Record<string, string> = {};
   for (const [slot, id] of Object.entries(state.home.placed)) if (room.slots.includes(slot) && ownedQty(state, id) > 0) out[slot] = id;
+  // the figure display case shows the figures owned (the world's COLLECTION_KEY, not a slot)
+  if (Object.values(out).includes(FIGURE_CASE)) {
+    const figures = figuresOwned(state);
+    if (figures.length) out.collection = figures.join(',');
+  }
   return out;
+}
+
+/** ほしぞらホビー's display case (furniture for the shelf slot) */
+export const FIGURE_CASE = 'case_figures';
+
+/** The figures the player owns (item ids starting fig_), in the order the catalog lists them. */
+export function figuresOwned(state: GameState): string[] {
+  return Object.keys(state.owned)
+    .filter((id) => id.startsWith('fig_') && ownedQty(state, id) > 0)
+    .sort();
+}
+
+/** Whether the room shows a collection a guest can notice: the case placed in this room, and at least one figure in it. */
+export function collectionShown(state: GameState): boolean {
+  const room = ownRoomOf(state);
+  return room.slots.some((slot) => state.home.placed[slot] === FIGURE_CASE) && ownedQty(state, FIGURE_CASE) > 0 && figuresOwned(state).length > 0;
 }
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -155,7 +176,12 @@ export function inviteStatus(pack: GamePack, state: GameState, friendId: string)
  */
 export function ownRoomFlags(pack: GamePack, state: GameState, age: keyof GamePack['ageProfiles'], scenarioId: string, characterId: string | undefined): Record<string, boolean> {
   if (scenarioId === 'aiko_viewing' && (pack.ageProfiles[age]?.ageFloor ?? 0) < 18) return { minor: true };
-  if (scenarioId === OWN_GUEST.scenarioId && characterId && isCasual(pack, state, characterId)) return { casual: true };
+  if (scenarioId === OWN_GUEST.scenarioId) {
+    // the guest speaks plain form (`casual`) and/or notices the figure collection (`figures`); the content reads one flag per variant
+    const casual = !!characterId && isCasual(pack, state, characterId);
+    const figures = collectionShown(state);
+    return { ...(casual ? { casual: true } : {}), ...(figures ? { figures: true } : {}), ...(casual && figures ? { figures_casual: true } : {}) };
+  }
   return {};
 }
 

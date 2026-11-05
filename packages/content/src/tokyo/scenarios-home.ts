@@ -334,12 +334,32 @@ export const HOME_OWN_GUEST: Scenario = {
       suggestions: [S('はい。|スリッパ|を|どうぞ。', 'Yes. Here are slippers.', 'نعم. تفضّل هذا الخفّ.'), S('はい、|ここ|で|脱いで|ください。|スリッパ|も|どうぞ。', 'Yes, please take them off here. Here are slippers too.', 'نعم، اخلعه هنا من فضلك. وهذا خفّ البيت أيضًا.'), REPEAT_S],
       intents: [{ id: 'slippers', any: ['すりっぱ', 'ぬいで', 'はい', 'ここで'], next: 'compliment', step: 'slippers', request: true, ideal: L('スリッパ|を|どうぞ。', 'Here are slippers.', 'تفضّل هذا الخفّ.') }],
     }),
+    // the compliment; a room with the figure display case (flag `figures`, set by the app: the case placed with figures in it) gets the
+    // guest's delight at the collection, and the host can say where it comes from (ほしぞらホビーで買いました / 集めています)
     node({
       id: 'compliment',
       emotion: 'happy',
-      say: reg(L('わあ、|いい|部屋|だ|ね！|広くて|きれい。', 'Wow, what a nice room! It is spacious and clean.', 'يا للروعة، غرفة جميلة! واسعة ونظيفة.'), L('わあ、|いい|部屋|です|ね！|広くて|きれい|です。', 'Wow, what a nice room! It is spacious and clean.', 'يا للروعة، غرفة جميلة! واسعة ونظيفة.')),
-      suggestions: [S('ありがとう|ございます。', 'Thank you very much.', 'شكرًا جزيلًا.'), S('ありがとう。|まだ|何|も|ない|です|けど。', 'Thank you. I do not have much yet, though.', 'شكرًا. ليس عندي الكثير بعد، لكن.'), S('いえいえ。', 'Not at all.', 'لا شكر على واجب.')],
-      intents: [{ id: 'thanks', any: ['ありがとう', 'いえいえ', 'そんな', 'まだ', 'うれしい'], next: 'tea', step: 'compliment', ideal: L('ありがとう|ございます。', 'Thank you very much.', 'شكرًا جزيلًا.') }],
+      say: [
+        say(L('わあ、|いい|部屋|だ|ね！|あ、|フィギュア|が|ある！|ねこ忍者、|かわいい！|どこ|で|買った|の？', 'Wow, what a nice room! Oh, figures! The Cat Ninja is so cute! Where did you buy them?', 'يا للروعة، غرفة جميلة! آه، مجسّمات! القط النينجا لطيف جدًا! من أين اشتريتها؟'), { flag: 'figures_casual' }),
+        say(L('わあ、|いい|部屋|です|ね！|あ、|フィギュア|が|あります|ね！|かわいい|です。|どこ|で|買いました|か？', 'Wow, what a nice room! Oh, you have figures! They are cute. Where did you buy them?', 'يا للروعة، غرفة جميلة! آه، لديك مجسّمات! إنها لطيفة. من أين اشتريتها؟'), { flag: 'figures' }),
+        ...reg(L('わあ、|いい|部屋|だ|ね！|広くて|きれい。', 'Wow, what a nice room! It is spacious and clean.', 'يا للروعة، غرفة جميلة! واسعة ونظيفة.'), L('わあ、|いい|部屋|です|ね！|広くて|きれい|です。', 'Wow, what a nice room! It is spacious and clean.', 'يا للروعة، غرفة جميلة! واسعة ونظيفة.')),
+      ],
+      suggestions: [S('ありがとう|ございます。', 'Thank you very much.', 'شكرًا جزيلًا.'), S('ほしぞらホビー|で|買いました。', 'I bought them at Hoshizora Hobby.', 'اشتريتها من هوشيزورا هوبي.'), S('ありがとう。|まだ|何|も|ない|です|けど。', 'Thank you. I do not have much yet, though.', 'شكرًا. ليس عندي الكثير بعد، لكن.')],
+      intents: [
+        { id: 'collection', any: ['ほしぞら', 'ほびー', 'ホビー', 'かいました', '買いました', 'あつめて', '集めて', 'すき', '好き'], next: 'collection', step: 'compliment', ideal: L('ほしぞらホビー|で|買いました。', 'I bought them at Hoshizora Hobby.', 'اشتريتها من هوشيزورا هوبي.') },
+        { id: 'thanks', any: ['ありがとう', 'いえいえ', 'そんな', 'まだ', 'うれしい'], next: 'tea', step: 'compliment', ideal: L('ありがとう|ございます。', 'Thank you very much.', 'شكرًا جزيلًا.') },
+      ],
+    }),
+    // the host talked about the collection: the guest wants to go and see the shop
+    node({
+      id: 'collection',
+      emotion: 'happy',
+      say: reg(L('いい|な！|今度|一緒に|行こう|よ。', 'Nice! Let us go there together next time.', 'رائع! لنذهب معًا في المرة القادمة.'), L('いい|です|ね！|今度|一緒に|行きましょう。', 'How nice! Let us go together next time.', 'جميل! لنذهب معًا في المرة القادمة.')),
+      suggestions: [S('うん、|ぜひ！', 'Yes, definitely!', 'نعم، بالتأكيد!'), S('はい、|行きましょう。', 'Yes, let us go.', 'نعم، لنذهب.'), S('お茶|は|いかが|です|か？', 'Would you like some tea?', 'هل تريد بعض الشاي؟')],
+      intents: [
+        { id: 'tea', any: ['おちゃ', 'お茶', 'いかが'], next: 'drink', step: 'tea', request: true, ideal: L('お茶|は|いかが|です|か？', 'Would you like some tea?', 'هل تريد بعض الشاي؟') },
+        { id: 'yes', any: ['ぜひ', 'いきましょう', '行きましょう', 'うん', 'はい', 'いいね', 'いこう'], next: 'tea' },
+      ],
     }),
     node({
       id: 'tea',

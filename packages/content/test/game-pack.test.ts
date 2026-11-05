@@ -33,7 +33,7 @@ const hasAr = (s: string) => /[؀-ۿ]/.test(s);
 const RELEASED_ITEMS = [
   'ic_card',
   // ほしぞらホビー, the figure shop
-  'fig_neko_red', 'fig_neko_blue', 'fig_neko_white', 'fig_robo_big', 'fig_robo_small', 'fig_kitsune',
+  'fig_neko_red', 'fig_neko_blue', 'fig_neko_white', 'fig_robo_big', 'fig_robo_small', 'fig_kitsune', 'case_figures',
   'phone_used', 'phone_case', 'phone_pro', 'tv_small', 'g_music_cd',
   'bike_mamachari', 'bike_helmet', 'ebike', 'car_kei_used', 'car_kei_good', 'g_carfresh',
   'g_choco', 'g_manga', 'g_game_card',
@@ -97,6 +97,7 @@ describe('the released catalog (§5.2, §5.3)', () => {
       fig_robo_big: 3_600,
       fig_robo_small: 1_200,
       fig_kitsune: 4_800,
+      case_figures: 3_500,
       kimono_momiji: 0,
       room_momiji: 0,
       ride_sakura: 0,
@@ -122,8 +123,8 @@ describe('the released catalog (§5.2, §5.3)', () => {
     });
     const goen = goenGrantedItems(JP_PACK);
     for (const i of JP_PACK.items) expect(goen.has(i.id) ? i.price === 0 : Number.isInteger(i.price) && i.price >= 1, i.id).toBe(true);
-    // the total of the released rows is a constant the design can be checked against (Goen stage 1 adds the autumn sweet and the Kyoto souvenir; the figure shop adds its six figures)
-    expect(JP_PACK.items.reduce((sum, i) => sum + i.price, 0)).toBe(1_216_190 + 8_900 + 600 + 1_000 + 15_000);
+    // the total of the released rows is a constant the design can be checked against (Goen stage 1 adds the autumn sweet and the Kyoto souvenir; the figure shop adds its six figures and the display case)
+    expect(JP_PACK.items.reduce((sum, i) => sum + i.price, 0)).toBe(1_216_190 + 8_900 + 600 + 1_000 + 15_000 + 3_500);
   });
 
   it('every item has an English, Japanese and Arabic name, with a reading for kanji', () => {

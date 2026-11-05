@@ -28,13 +28,16 @@ game, a bigger city with better conversations, and the same game for German, Dut
   a met friend +4 affinity (BALANCE.ap.manner), once per friend per day; a line that does not fit gets a gentle hint naming one that does.
   Never required. Rules in `@lw/game` (`mannerFits`, `applyManner`, `manner_used`); tests: content/manners, e2e `manners.mjs` (EN/AR).
 
+* **Figure display case** — フィギュアケース (¥3,500 at ほしぞらホビー, asked for by name, carried home) for the shelf spot of the dorm or the
+  flat. The 3D case draws every figure owned on three lit shelves (the room's `placed` map carries them under `collection`). At the
+  housewarming, a guest who sees figures in it says so (「あ、フィギュアがある！どこで買ったの？」, plain or polite form) and the host can answer
+  「ほしぞらホビーで買いました」; the guest suggests going together next time. Tests: app home-own, world stages-own, e2e figures.mjs.
+
 ## Next (Tokyo)
 
-1. **Figure shelf at home** — a placeable shelf (Fuku-Fuku's furniture) that shows the figures owned in the room; friends who visit comment
-   on the collection (new home-visit lines).
-2. **City growth** — the south side of the new east block (a game centre / arcade with a crane game for yen, a karaoke box for a song
+1. **City growth** — the south side of the new east block (a game centre / arcade with a crane game for yen, a karaoke box for a song
    conversation with friends), and a side street with a sentō (public bath) for the manners set.
-3. **Better conversations** — a pass over every shop scenario: more ways to say each request (synonyms in intents), small talk the
+2. **Better conversations** — a pass over every shop scenario: more ways to say each request (synonyms in intents), small talk the
    clerk starts when you come back ("また来てくれたんですね"), remembered choices (Daichi asks how the red ninja is doing), and the
    recorded voice for the new lines (VOICEVOX run; Daichi needs a young male voice).
 

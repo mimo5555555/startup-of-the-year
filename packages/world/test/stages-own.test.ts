@@ -11,7 +11,7 @@ vi.mock('three', async (importOriginal) => ({ ...(await importOriginal<typeof im
 
 import { DOOR_RETURN } from '../src/layout';
 import { PLAYER_R, STEP } from '../src/stages/room';
-import { FURNITURE_IDS, FURNITURE_SLOT, furnitureColliders, parseSlotPick, slotPickId, slotSize } from '../src/stages/furniture';
+import { COLLECTION_KEY, FURNITURE_IDS, FURNITURE_SLOT, furnitureColliders, parseSlotPick, slotPickId, slotSize } from '../src/stages/furniture';
 import { DORM, DORM_SLOTS } from '../src/stages/dorm';
 import { ONO_FLAT, ONO_SLOTS } from '../src/stages/ono_flat';
 import { OWN_STAGES, STAGES, STAGE_EXIT_PICK } from '../src/stages';
@@ -99,6 +99,18 @@ describe('the player\'s own rooms: shape', () => {
     expect(FURNITURE_IDS).toHaveLength(8);
     expect([...new Set(Object.values(FURNITURE_SLOT))].sort()).toEqual(ONO_SLOTS.map((s) => s.name).sort());
     expect(DORM_SLOTS.every((s) => Object.values(FURNITURE_SLOT).includes(s.name))).toBe(true);
+  });
+
+  it('the figure display case (ほしぞらホビー) stands in the shelf slot and draws the figures owned (the COLLECTION_KEY of placed)', () => {
+    const empty = DORM.build(ctxOf({ shelf: 'case_figures' }));
+    const two = DORM.build(ctxOf({ shelf: 'case_figures', [COLLECTION_KEY]: 'fig_neko_red,fig_robo_small' }));
+    const all = DORM.build(ctxOf({ shelf: 'case_figures', [COLLECTION_KEY]: 'fig_neko_red,fig_neko_blue,fig_neko_white,fig_robo_big,fig_robo_small,fig_kitsune' }));
+    expect(furnitureTris(two)).toBeGreaterThan(furnitureTris(empty));
+    expect(furnitureTris(all)).toBeGreaterThan(furnitureTris(two));
+    // still two furniture meshes (merged), and the collection key is not a slot: nothing else is drawn or blocked
+    expect(furnitureMeshes(all)).toHaveLength(2);
+    expect(furnitureColliders(DORM_SLOTS, { shelf: 'case_figures', [COLLECTION_KEY]: 'x' })).toHaveLength(furnitureColliders(DORM_SLOTS, { shelf: 'case_figures' }).length);
+    for (const h of [empty, two, all]) h.dispose();
   });
 
   it('slot pick ids round-trip', () => {

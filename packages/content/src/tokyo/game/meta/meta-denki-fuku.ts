@@ -17,7 +17,7 @@ export const DENKI_FUKU_META: ScenarioMeta[] = [
       shopId: 'hobby',
       itemSlot: 'figure',
       payStep: 'pay',
-      itemMap: { nekoRed: 'fig_neko_red', nekoBlue: 'fig_neko_blue', nekoWhite: 'fig_neko_white', roboBig: 'fig_robo_big', roboSmall: 'fig_robo_small', kitsune: 'fig_kitsune' },
+      itemMap: { nekoRed: 'fig_neko_red', nekoBlue: 'fig_neko_blue', nekoWhite: 'fig_neko_white', roboBig: 'fig_robo_big', roboSmall: 'fig_robo_small', kitsune: 'fig_kitsune', figCase: 'case_figures' },
     },
   },
   {

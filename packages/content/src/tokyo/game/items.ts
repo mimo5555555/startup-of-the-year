@@ -302,6 +302,8 @@ export const ITEMS: ItemDef[] = [
   gift('fig_robo_big', '大きいロボット', 'おおきいロボット', 'Robot figure (big)', 'مجسّم روبوت (كبير)', 3600, 'hobby', 2, ['figure', 'anime', 'tech']),
   gift('fig_robo_small', '小さいロボット', 'ちいさいロボット', 'Robot figure (small)', 'مجسّم روبوت (صغير)', 1200, 'hobby', 2, ['figure', 'anime', 'tech']),
   gift('fig_kitsune', 'きつね侍', 'きつねざむらい', 'Fox Samurai figure (limited)', 'مجسّم الثعلب الساموراي (محدود)', 4800, 'hobby', 2, ['figure', 'anime', 'tradition']),
+  // the display case: furniture for the shelf slot of the dorm or the flat, carried home; the room shows every figure owned in it
+  { ...furniture('case_figures', 'フィギュアケース', '', 'Figure display case', 'خزانة عرض المجسّمات', 3500, 2, 'shelf', 1), shop: 'hobby' },
 
   // ---- Goen stage 1 (docs/GOEN.md) ----
   // Aiko's autumn sweet (the season task au_kuri), sold by aiko_tea from Chapter 2 with her other presents

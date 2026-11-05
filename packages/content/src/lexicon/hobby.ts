@@ -29,4 +29,10 @@ export const HOBBY_LEXICON: LexEntry[] = [
   w('かっこいい', '', 'cool, good-looking', 'رائع، أنيق'),
   w('集めています', 'あつめています', 'am collecting', 'أجمع (أقتني)'),
   w('飾ります', 'かざります', 'will display, will decorate with', 'سأعرض، سأزيّن بـ'),
+  w('フィギュアケース', '', 'a figure display case', 'خزانة عرض المجسّمات'),
+  w('集めた', 'あつめた', 'collected', 'جمعتُ'),
+  w('置けます', 'おけます', 'can put (it) there', 'يمكن وضعه'),
+  w('飾れます', 'かざれます', 'can display', 'يمكن عرضه'),
+  w('飾る', 'かざる', 'to display, to decorate', 'يعرض، يزيّن'),
+  w('棚', 'たな', 'a shelf', 'رف'),
 ];

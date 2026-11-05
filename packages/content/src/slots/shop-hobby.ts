@@ -40,6 +40,12 @@ export const SHOP_HOBBY_SLOTS: Record<string, SlotOption[]> = {
       en: ['small', 'the small one', 'small one', 'small robot', 'the small robot', 'the smaller one', 'little'],
       ar: ['الصغير', 'الصغير من فضلك', 'الروبوت الصغير', 'الأصغر'],
     }),
+    // the display case for the room (furniture, the shelf slot): asked for by name, never by a colour or a size
+    fig('figCase', 'フィギュアケース', 'the figure display case', 'خزانة عرض المجسّمات', {
+      ja: ['ふぃぎゅあけーす', 'ケース', 'けーす', 'ショーケース', 'ディスプレイケース', 'たな', '棚'],
+      en: ['display case', 'the display case', 'case', 'a case', 'figure case', 'the case', 'a display case', 'shelf'],
+      ar: ['خزانة عرض', 'الخزانة', 'خزانة', 'خزانة العرض', 'رف'],
+    }),
     fig('kitsune', 'きつね侍', 'the Fox Samurai', 'الثعلب الساموراي', {
       ja: ['きつねざむらい', 'きつね', '狐', '限定', 'げんてい', '侍', 'さむらい'],
       en: ['fox samurai', 'the fox samurai', 'fox', 'the fox', 'the limited one', 'limited', 'samurai'],

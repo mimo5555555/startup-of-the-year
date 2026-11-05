@@ -26,6 +26,12 @@ export const FURNITURE_SLOT: Readonly<Record<string, string>> = {
 };
 export const FURNITURE_IDS = Object.keys(FURNITURE_SLOT);
 
+/**
+ * A key of the `placed` map that is not a slot: the figures the player owns, comma-separated item ids (`fig_neko_red,fig_robo_small`). The
+ * figure display case (`case_figures`) draws them on its shelves; nothing else reads it.
+ */
+export const COLLECTION_KEY = 'collection';
+
 export const slotPickId = (slot: string) => `slot:${slot}`;
 /** `slot:bed` -> `bed`; null for any other id */
 export const parseSlotPick = (id: string): string | null => /^slot:([a-z0-9_]+)$/.exec(id)?.[1] ?? null;
@@ -91,6 +97,8 @@ interface Frame {
   w: number;
   d: number;
   rnd: () => number;
+  /** the figures owned (item ids), for the display case */
+  collection: readonly string[];
 }
 
 type Model = (f: Frame) => void;
@@ -372,6 +380,63 @@ const momijiPlant: Model = ({ s, w, d }) => {
   for (const [x, y, z, rr, c] of crown) s.ball(x, y, z, rr, c, { sy: 0.8, ws: 7, hs: 5 });
 };
 
+/** One figure of ほしぞらホビー's line, small enough for a shelf (about 0.2 m), standing at (x, y, z) of the frame. */
+function miniFigure(f: Frame, id: string, x: number, y: number, z: number): void {
+  const { s } = f;
+  const neko = ({ fig_neko_red: '#e5453d', fig_neko_blue: '#3b6fe0', fig_neko_white: '#f7f7fb' } as Record<string, string>)[id];
+  if (neko) {
+    s.cyl(x, y, z, 0.03, 0.04, 0.08, neko, 8);
+    s.ball(x, y + 0.12, z, 0.05, neko, { ws: 8, hs: 6 });
+    s.box(x - 0.03, y + 0.155, z, 0.02, 0.035, 0.02, neko);
+    s.box(x + 0.03, y + 0.155, z, 0.02, 0.035, 0.02, neko);
+    s.box(x, y + 0.125, z + 0.003, 0.105, 0.02, 0.1, '#1b1638');
+    return;
+  }
+  if (id === 'fig_robo_big' || id === 'fig_robo_small') {
+    const k = id === 'fig_robo_big' ? 1.35 : 0.85;
+    s.box(x, y, z, 0.08 * k, 0.08 * k, 0.06 * k, '#3b6fe0');
+    s.box(x, y + 0.085 * k, z, 0.065 * k, 0.055 * k, 0.055 * k, '#d9dde8');
+    s.box(x, y + 0.11 * k, z + 0.028 * k, 0.045 * k, 0.012 * k, 0.005, '#7bdff2');
+    s.ball(x, y + 0.175 * k, z, 0.012 * k, '#ff5d8f', { ws: 5, hs: 4 });
+    return;
+  }
+  if (id === 'fig_kitsune') {
+    s.cyl(x, y, z, 0.035, 0.045, 0.09, '#c62f3a', 8);
+    s.ball(x, y + 0.135, z, 0.05, '#ff8a3d', { ws: 8, hs: 6 });
+    s.ball(x, y + 0.125, z + 0.032, 0.027, '#fff4e6', { ws: 6, hs: 5 });
+    s.box(x - 0.028, y + 0.175, z, 0.02, 0.05, 0.02, '#ff8a3d');
+    s.box(x + 0.028, y + 0.175, z, 0.02, 0.05, 0.02, '#ff8a3d');
+  }
+}
+
+/** `case_figures`: a glass display case with three lit shelves; the figures the player owns stand on them, in the order they were bought */
+const figureCase: Model = (f) => {
+  const { s, g, w, d } = f;
+  const H = 1.6;
+  const cw = Math.min(w, 1.1);
+  const cd = Math.min(d, 0.42);
+  s.box(0, 0, 0, cw, 0.12, cd, '#2d2352'); // plinth
+  s.box(0, H - 0.05, 0, cw, 0.05, cd, '#2d2352'); // top
+  for (const sx of [-1, 1]) s.box(sx * (cw / 2 - 0.02), 0.12, 0, 0.04, H - 0.17, cd, '#3a2f68'); // posts
+  s.box(0, 0.12, -cd / 2 + 0.01, cw - 0.04, H - 0.17, 0.02, '#3a2f68'); // back
+  const levels = [0.14, 0.62, 1.1];
+  for (const y of levels) {
+    s.box(0, y - 0.015, 0, cw - 0.06, 0.015, cd - 0.04, '#bfe8ff');
+    g.box(0, y + 0.38, -cd / 2 + 0.03, cw - 0.12, 0.01, 0.02, '#fff6d8'); // shelf light
+  }
+  g.box(0, H - 0.2, cd / 2 - 0.005, cw * 0.5, 0.06, 0.005, '#ff5d8f'); // pink neon plate
+  // up to four figures a shelf, front row, bottom shelf first
+  const perShelf = 4;
+  f.collection.slice(0, levels.length * perShelf).forEach((id, i) => {
+    const level = levels[Math.floor(i / perShelf)]!;
+    const col = i % perShelf;
+    const x = -cw / 2 + 0.12 + col * ((cw - 0.24) / (perShelf - 1));
+    miniFigure(f, id, x, level, 0.02);
+  });
+  // an empty case says so: a little "coming soon" card on the middle shelf
+  if (f.collection.length === 0) s.box(0, levels[1]! + 0.06, 0, 0.18, 0.12, 0.01, '#fff6d8');
+};
+
 /**
  * Goen's decor pieces (drawn like furniture, in the slot their item names): `room_momiji` (the catalog's decor set) fits any slot,
  * `plant_momiji` (the season's plant) is made for the `plant` slot.
@@ -379,6 +444,7 @@ const momijiPlant: Model = ({ s, w, d }) => {
 export const DECOR_IDS = ['room_momiji', 'plant_momiji'] as const;
 
 const MODELS: Readonly<Record<string, Model>> = {
+  case_figures: figureCase,
   room_momiji: momiji,
   plant_momiji: momijiPlant,
   futon_set: futon,
@@ -409,12 +475,12 @@ export interface FurnitureOpts {
   basics?: Readonly<Record<string, Model>>;
 }
 
-const frameOf = (slot: StageSlot, solid: Batch, glow: Batch, rnd: () => number): Frame => {
+const frameOf = (slot: StageSlot, solid: Batch, glow: Batch, rnd: () => number, collection: readonly string[] = []): Frame => {
   const { w, d } = slotSize(slot);
   const cx = (slot.rect.x0 + slot.rect.x1) / 2;
   const cz = (slot.rect.z0 + slot.rect.z1) / 2;
   const yaw = yawOf(slot.face);
-  return { s: new Pen(solid, cx, cz, yaw, slot.y0), g: new Pen(glow, cx, cz, yaw, slot.y0), w, d, rnd };
+  return { s: new Pen(solid, cx, cz, yaw, slot.y0), g: new Pen(glow, cx, cz, yaw, slot.y0), w, d, rnd, collection };
 };
 
 /** The footprints that block the player: the filled slots and the dorm's plain pieces. */
@@ -488,7 +554,8 @@ export function withFurniture(base: StageHandle, ctx: StageBuildCtx, opts: Furni
       const id = placed[slot.name];
       const model = id ? (MODELS[id] ?? parcel) : opts.basics?.[slot.name];
       if (!model) continue;
-      model(frameOf(slot, solid, glow, rng(0x5107 + slot.name.length * 131 + slot.name.charCodeAt(0))));
+      const collection = (placed[COLLECTION_KEY] ?? '').split(',').filter(Boolean);
+      model(frameOf(slot, solid, glow, rng(0x5107 + slot.name.length * 131 + slot.name.charCodeAt(0)), collection));
     }
     const a = solid.build(ctx.toon, { cast: false, receive: false, name: 'stage-furniture-solid' });
     const b = glow.build(ctx.glow, { cast: false, receive: false, name: 'stage-furniture-glow' });

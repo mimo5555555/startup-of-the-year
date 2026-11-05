@@ -342,3 +342,24 @@ describe('the conversation host (regression)', () => {
     expect(src).toMatch(/useOwn\(/);
   });
 });
+
+describe('the figure display case (ほしぞらホビー)', () => {
+  it('stands in the shelf slot and shows the figures owned; the housewarming guest notices them only when there are some', () => {
+    let s = own(free(), 'case_figures');
+    s = place(s, 'shelf', 'case_figures');
+    expect(FURNITURE.case_figures).toEqual({ slot: 'shelf', word: 'フィギュアケース' });
+    // an empty case: placed, no collection to draw, nothing for the guest to say
+    expect(worldPlaced(s)).toEqual({ shelf: 'case_figures' });
+    expect(ownRoomFlags(JP_PACK, s, 'adults', OWN_GUEST.scenarioId, 'aiko')).toEqual({});
+    s = own(s, 'fig_neko_red', 'fig_robo_small');
+    expect(worldPlaced(s)).toEqual({ shelf: 'case_figures', collection: 'fig_neko_red,fig_robo_small' });
+    expect(ownRoomFlags(JP_PACK, s, 'adults', OWN_GUEST.scenarioId, 'aiko')).toEqual({ figures: true });
+    // a guest who speaks plain form gets the casual line of the collection
+    const mio = withFriend(s, 'mio', AP.h2);
+    expect(ownRoomFlags(JP_PACK, mio, 'adults', OWN_GUEST.scenarioId, 'mio')).toEqual({ casual: true, figures: true, figures_casual: true });
+    // the guest's line names the collection, and the host can answer where it comes from
+    const sc = scenarioById(OWN_GUEST.scenarioId)!;
+    expect(sc.nodes.compliment!.say.map((v) => (v.when && 'flag' in v.when ? v.when.flag : null))).toEqual(['figures_casual', 'figures', 'casual', null]);
+    expect(sc.nodes.compliment!.intents.map((i) => i.id)).toContain('collection');
+  });
+});
