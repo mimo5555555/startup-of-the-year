@@ -4,6 +4,7 @@
 import type { BuildCtx } from '../buildctx';
 import { SOUTH_FRONTS, type DoorDef, type ShopDef } from '../layout';
 import { buildAiko } from './aiko';
+import { buildArcade } from './arcade';
 import { buildCafe } from './cafe';
 import { buildDenki } from './denki';
 import { buildDoors } from './doors';
@@ -93,4 +94,6 @@ export type FrontOverride = (ctx: BuildCtx, front: FrontInfo) => boolean | void;
 /** Aiko's tea stall restyles the florist front (slice 3B fills `buildAiko`). */
 export const FRONT_OVERRIDES: Partial<Record<SouthFrontId, FrontOverride>> = {
   hanaya: buildAiko,
+  // ゲームセンター「ピコピコ」: the crane machines and Shota (the game centre, docs/ROADMAP.md)
+  game: buildArcade,
 };

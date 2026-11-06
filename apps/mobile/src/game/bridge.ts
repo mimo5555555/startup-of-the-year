@@ -74,6 +74,10 @@ export function dispatch(event: InputEvent): ReduceResult {
   queueHeartBeats(result.derived);
   announceDeliveries(result.derived);
   announceGoen(result.derived, toastBefore);
+  // goes bought at the game centre: the toast says where to play them (a tap on a crane machine)
+  const playsBefore = before.arcade?.plays ?? 0;
+  const playsNow = result.state.arcade?.plays ?? 0;
+  if (event.t === 'purchase' && playsNow > playsBefore) useStore.getState().say(translate(useStore.getState().uiLang, 'cr.bought', { n: playsNow }), 'good');
   return result;
 }
 

@@ -76,6 +76,7 @@ export const INTERACTIONS: Record<string, Interaction[]> = {
   mio: [scenario('mio_meet', 'park', 'Talk in the park', 'تحدّث في الحديقة'), talk('mio'), gift('mio'), hang('mio', 'hang_mio_photo'), home('mio')],
   aoi: [scenario('aoi_shop', 'denki_phone', 'Look for a phone', 'ابحث عن هاتف'), peek('aoi', 'denki')],
   daichi: [scenario('daichi_shop', 'hobby_figures', 'Look at figures', 'تفرّج على المجسّمات')],
+  shota: [scenario('shota_crane', 'arcade_crane', 'Buy goes at the crane game', 'اشترِ محاولات في لعبة الرافعة')],
   rin: [
     scenario('rin_shop', 'fuku_clothes', 'Shop for clothes', 'تسوّق للملابس'),
     scenario('rin_home', 'fuku_home', 'Second-hand furniture', 'أثاث مستعمل', { ch: 5 }),

@@ -69,7 +69,8 @@ describe('layout: spawns and counters', () => {
         // wall thickness 0.3 + the inner lining; the character must be inside the room, not in a wall
         expect(contains({ x0: r.x0 + 0.35, x1: r.x1 - 0.35, z0: r.z0 + 0.35, z1: r.z1 }, boxRect(n.x, n.z, 2 * NPC_RADIUS, 2 * NPC_RADIUS)), `${n.id} in ${home.id}`).toBe(true);
       }
-      if (n.site && n.site !== 'aiko_stall') expect(home?.id, `${n.id} stands in its own shop`).toBe(n.site);
+      // the south side's sites (Aiko's stall, the game centre) are fronts, not north-side shops
+      if (n.site && n.site !== 'aiko_stall' && n.site !== 'arcade') expect(home?.id, `${n.id} stands in its own shop`).toBe(n.site);
       expect(inBounds(n.x, n.z) || home !== undefined, `${n.id} placed in the district`).toBe(true);
     }
   });

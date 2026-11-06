@@ -30,6 +30,7 @@ import { dispatch, openScreen } from '../game/bridge';
 import { useHome } from '../game/homeStore';
 import { beginOwn, useOwn } from '../game/ownStore';
 import { useDisclosure, useGameState, useGameView, useTracker } from '../game/hooks';
+import { getGame } from '../game/gameStore';
 import { PACK, shopById } from '../game/pack';
 import { festivalLineOf } from '../game/festivalSync';
 import {
@@ -172,6 +173,10 @@ export function WorldScreen() {
       // the offering box opens the Shrine panel; the water basin shows the shrine manners card (wash, bow, clap, bow)
       if (route.what === 'box') go('shrine');
       else if (PACK.culture.some((c) => c.id === 'cc_sanpai')) useUi.getState().showCulture('cc_sanpai');
+    } else if (route.t === 'crane') {
+      // the crane game: goes are bought from Shota first (in Japanese); the machine says so when there are none
+      if ((getGame().arcade?.plays ?? 0) > 0) go('crane');
+      else say(t('cr.noPlays'));
     } else if (route.t === 'festival') {
       // a festival stall (Kenji's row) or the stage (the speech, through its rehearsal); nothing while the row is not open. The goldfish
       // scoop sells no food: a line of its own

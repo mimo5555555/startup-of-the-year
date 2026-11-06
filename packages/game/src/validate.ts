@@ -935,6 +935,15 @@ const GOEN_KINDS: readonly string[] = ['journey', 'season', 'cosmetic', 'charm',
 const SEASON_COUNTERS: readonly string[] = ['conv_stars', 'season_words', 'buy', 'omikuji', 'gift', 'shift', 'real', 'own_lines', 'scenario'];
 const MMDD = /^(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])$/;
 
+/** The crane game (docs/ROADMAP.md): one play is a menu item, every prize is an item of the catalog. */
+function arcadeChecks(pack: GamePack, out: Out): void {
+  const a = pack.arcade;
+  if (!a) return;
+  if (!pack.menu.some((m) => m.id === a.playItem)) add(out, 1, 'arcade', 'arcade.playItem', `${a.playItem} is not a menu id`);
+  if (!a.prizes.length) add(out, 1, 'arcade', 'arcade.prizes', 'the crane game has no prizes');
+  for (const id of a.prizes) if (!pack.items.some((i) => i.id === id)) add(out, 1, 'arcade', 'arcade.prizes', `${id} is not an item`);
+}
+
 function goenChecks(pack: GamePack, out: Out, index?: ContentIndex): void {
   const g = pack.goen;
   if (!g) return;
@@ -1042,6 +1051,7 @@ export function validatePack(pack: GamePack, opts: { level: ValidationLevel; ind
   level4(pack, out);
   level5(pack, out, opts.index);
   goenChecks(pack, out, opts.index);
+  arcadeChecks(pack, out);
   releaseChecks(pack, out);
   // unresolved ids and predicate requirements are only reported once their level is asked for
   return out.filter((i) => i.level <= opts.level);

@@ -497,6 +497,8 @@ export type PickRoute =
   | { t: 'festival'; pick: FestivalPick }
   /** the shrine (Goen): the offering box opens the Shrine panel, the water basin shows the manners card */
   | { t: 'shrine'; what: 'box' | 'chozuya' }
+  /** a crane machine at the game centre */
+  | { t: 'crane' }
   | null;
 
 /** World pick ids are routed game first (§7.6): panels, doors and shop fronts here; every other id keeps the sign word card. */
@@ -510,6 +512,7 @@ export function routePick(id: string): PickRoute {
   if (id.startsWith('shop:')) return { t: 'shop', shopId: id.slice(5) };
   if (id === 'shrine:box') return { t: 'shrine', what: 'box' };
   if (id === 'shrine:chozuya') return { t: 'shrine', what: 'chozuya' };
+  if (id === 'arcade:crane') return { t: 'crane' };
   const fest = festivalPickOf(id);
   if (fest) return { t: 'festival', pick: fest };
   return null;

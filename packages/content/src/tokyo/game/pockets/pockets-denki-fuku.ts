@@ -9,6 +9,10 @@ export const DENKI_FUKU_POCKETS: Record<string, PocketLine> = Object.fromEntries
   P('p_denki_2', L('どちら|が|安い|です|か？', 'Which one is cheaper?', 'أيّهما أرخص؟')),
   P('p_denki_3', L('これ|を|ください。', 'I will take this one.', 'سآخذ هذا.')),
   P('p_denki_4', L('カード|で|お願いします。', 'By card, please.', 'بالبطاقة من فضلك.'), true),
+  // the game centre (arcade_crane)
+  P('p_arcade_1', L('両替|お願いします。', 'Change, please.', 'صرف النقود من فضلك.'), true),
+  P('p_arcade_2', L('三回|お願いします。', 'Three goes, please.', 'ثلاث محاولات من فضلك.'), true),
+  P('p_arcade_3', L('すみません、|取りやすく|して|もらえますか？', 'Excuse me, could you make it easier to get?', 'عذرًا، هل يمكنك جعلها أسهل في الإمساك؟')),
   // ほしぞらホビー (hobby_figures)
   P('p_hobby_1', L('フィギュア|を|探しています。', 'I am looking for a figure.', 'أبحث عن مجسّم.'), true),
   P('p_hobby_2', L('赤い|の|を|ください。', 'The red one, please.', 'الأحمر من فضلك.'), true),

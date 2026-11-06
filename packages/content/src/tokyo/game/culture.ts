@@ -84,6 +84,16 @@ export const CULTURE: CultureCard[] = [
     say: true,
   }),
   c({
+    id: 'cc_crane',
+    trigger: { on: 'intent', ids: ['arcade_crane:ask_assist'] },
+    phrase: { ja: '取りやすく|して|もらえますか', en: 'Could you make it easier to get?', ar: 'هل يمكنك جعلها أسهل في الإمساك؟' },
+    text: {
+      en: 'At a Japanese game centre you can ask the staff to help with the crane game: they open the machine and move the prize closer to the chute. It is normal and polite to ask, and nobody thinks it is cheating.',
+      ar: 'في صالات الألعاب اليابانية يمكنك أن تطلب من الموظفين المساعدة في لعبة الرافعة: يفتحون الآلة ويقرّبون الجائزة من فتحة الخروج. الطلب أمر عادي ومهذب، ولا أحد يعدّه غشًّا.',
+    },
+    say: true,
+  }),
+  c({
     id: 'cc_hanami',
     trigger: { on: 'visit', ids: ['park'], ch: 4 },
     phrase: { ja: 'お花見', en: 'flower viewing', ar: 'مشاهدة الأزهار' },

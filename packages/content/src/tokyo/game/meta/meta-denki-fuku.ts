@@ -2,6 +2,20 @@ import type { ScenarioMeta } from '@lw/game';
 
 /** Game wiring for denki_phone, fuku_clothes, fuku_home (3C): pay, pocket, gate, shop, steps. The Denki entry (3C-lite) and the Fuku-Fuku clothes entry (A2); `fuku_home` (furniture) is not in this release. */
 export const DENKI_FUKU_META: ScenarioMeta[] = [
+  // the game centre: goes at the crane game (the game counts the plays: GameState.arcade), cash only
+  {
+    id: 'arcade_crane',
+    kind: 'shop',
+    band: 'A1',
+    register: 'polite',
+    pay: 'full',
+    real: true,
+    place: 'arcade',
+    pocket: ['p_arcade_1', 'p_arcade_2', 'p_arcade_3'],
+    culture: ['cc_crane'],
+    // the number of goes names the item too (一回 / 二回 / 三回 are always goes at the crane game), so 「三回お願いします」 alone is a full order
+    shop: { shopId: 'arcade', itemSlot: 'plays', qtySlot: 'plays', payStep: 'pay', itemMap: { one: 'arcade:play', two: 'arcade:play', three: 'arcade:play' } },
+  },
   // ほしぞらホビー: the figures by colour or size, gift wrapping (free), cash or card
   {
     id: 'hobby_figures',

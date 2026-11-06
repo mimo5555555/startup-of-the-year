@@ -78,6 +78,7 @@ export function createGameState(pack: GamePack, now: number): GameState {
     seeded: false,
     goen: emptyGoen(),
     ears: { day: -1, days: 0, heard: 0, right: 0 },
+    arcade: { plays: 0, tries: 0, won: 0 },
   };
 }
 
@@ -111,6 +112,7 @@ export function needsFlush(ev: InputEvent): boolean {
     case 'goen_reported':
     case 'ears_done':
     case 'manner_used':
+    case 'crane_play':
       return true;
     default:
       return false;
@@ -629,6 +631,11 @@ function onPurchase(a: Acc, ev: Extract<InputEvent, { t: 'purchase' }>, ctx: Red
   }
   absorb(a, r);
   const shop = pack.shops.find((s) => s.id === ev.shopId);
+  // crane plays bought from the game centre's staff are counted, not kept as things in the bag
+  if (pack.arcade && ev.itemId === pack.arcade.playItem) {
+    const arc = a.s.arcade ?? { plays: 0, tries: 0, won: 0 };
+    a.s = { ...a.s, arcade: { ...arc, plays: arc.plays + Math.max(1, Math.trunc(ev.qty) || 1) } };
+  }
   if (pack.items.some((i) => i.id === ev.itemId)) a.catalogSpent += a.s.totals.spent - before.totals.spent;
 
   // an owned item switches a feature on: Messages and Map pins for the phone, tap-to-pay for the IC card
@@ -902,6 +909,20 @@ function apply(a: Acc, ev: InputEvent, ctx: ReduceCtx): void {
       const r = useCharm(a.s, ev.day);
       if (!r.ok) a.effective = false;
       absorb(a, r);
+      break;
+    }
+    case 'crane_play': {
+      // one play used; a win grants the prize once (the event id is kept, so a replay of the same try changes nothing)
+      const arc = a.s.arcade ?? { plays: 0, tries: 0, won: 0 };
+      const d = typeof ev.id === 'string' && ev.id.length <= 64 ? dedupe(a.s, `crane:${ev.id}`) : null;
+      if (!d?.fresh || arc.plays < 1) {
+        a.effective = false;
+        break;
+      }
+      const prize = ev.won && typeof ev.prizeId === 'string' && pack.arcade?.prizes.includes(ev.prizeId) && pack.items.some((i) => i.id === ev.prizeId) ? ev.prizeId : null;
+      a.s = { ...d.state, arcade: { plays: arc.plays - 1, tries: arc.tries + 1, won: arc.won + (prize ? 1 : 0) } };
+      if (prize) a.s = grantItem(a.s, pack, prize, 1, dayKey(a.s.clock.dayIndex));
+      a.active = true;
       break;
     }
     case 'manner_used': {

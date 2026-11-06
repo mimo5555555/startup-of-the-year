@@ -39,6 +39,7 @@ import { completeFriendFacts, giftEventOf, planFriendConvo } from '../game/frien
 import { planAccepted, planChat, planFlagEvent } from '../game/phoneLogic';
 import { getGame, useGame } from '../game/gameStore';
 import { MannerRow } from '../components/game/MannerRow';
+import { useCrane } from '../game/craneLogic';
 import { PACK } from '../game/pack';
 import { gameView } from '../game/selectors';
 import { isOwnGuestScenario, shownScenario } from '../game/ownLogic';
@@ -303,6 +304,8 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
   const afterSubmit = (result: SubmitResult) => {
     submitting.current = true;
     judgeManner(result.learner.line.plain);
+    // the game centre: Shota moves the prize closer, so this visit's goes get a kinder claw
+    if (scenario.id === 'arcade_crane' && result.learner.intentId === 'ask_assist') useCrane.getState().setAssisted(true);
     const idx = session.turns.indexOf(result.learner);
     setVisible(idx + 1);
     setHint(null);

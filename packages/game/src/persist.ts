@@ -498,6 +498,10 @@ export function migrate(persisted: unknown, from: number, pack: GamePack): GameS
     },
     seeded: bool(src.seeded),
     goen: cleanGoen(src.goen),
+    arcade: (() => {
+      const e = isRec(src.arcade) ? src.arcade : {};
+      return { plays: int(e.plays, 0, 0, 999), tries: int(e.tries, 0, 0), won: Math.min(int(e.won, 0, 0), int(e.tries, 0, 0)) };
+    })(),
     ears: (() => {
       const e = isRec(src.ears) ? src.ears : {};
       return { day: int(e.day, -1, -1), days: int(e.days, 0, 0), heard: int(e.heard, 0, 0), right: Math.min(int(e.right, 0, 0), int(e.heard, 0, 0)) };

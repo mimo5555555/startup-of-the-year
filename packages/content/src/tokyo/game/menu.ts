@@ -78,4 +78,6 @@ export const MENU: MenuItem[] = [
   ...rows('ramen', 'ramenExtra', 'standard', {}, RAMEN_EXTRAS),
   ...rows('vending', 'vending', 'food', {}, VENDING),
   ...rows('matsuri', 'yatai', 'food', {}, MATSURI),
+  // the game centre: one go at the crane game, ¥100 (plays are counted by the game, not kept in the bag)
+  ...rows('arcade', 'crane', 'standard', {}, [{ option: 'play', ja: 'クレーンゲーム', en: 'Crane game (one play)', ar: 'لعبة الرافعة (محاولة واحدة)', price: 100, tags: ['game'] }]),
 ];

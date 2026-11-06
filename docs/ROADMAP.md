@@ -33,10 +33,18 @@ game, a bigger city with better conversations, and the same game for German, Dut
   housewarming, a guest who sees figures in it says so (「あ、フィギュアがある！どこで買ったの？」, plain or polite form) and the host can answer
   「ほしぞらホビーで買いました」; the guest suggests going together next time. Tests: app home-own, world stages-own, e2e figures.mjs.
 
+* **ゲームセンター「ピコピコ」, the game centre** — the south side's game front is now a lit arcade with two crane machines on the
+  sidewalk and Shota (佐々木翔太) at the door. His conversation (`arcade_crane`) teaches 両替お願いします (change: a 1,000-yen note into ten
+  百円玉, 十枚), 一回いくらですか, 三回お願いします, and the arcade custom 「取りやすくしてもらえますか」 (the staff move the prize closer; culture
+  card `cc_crane`). Goes are ¥100 (menu `arcade:play`), counted by the game (`GameState.arcade`), not kept in the bag. Tapping a machine
+  opens the crane game: ◀ 左 / 右 ▶ and つかむ！; a prize under the claw may be caught (wider reach and firmer grip after asking Shota);
+  prizes are the plush toy and the three Cat Ninja figures (presents, and they stand in the display case). Rules: `crane_play` uses one go
+  once per try. Tests: app crane, e2e `arcade.mjs` (EN/AR).
+
 ## Next (Tokyo)
 
-1. **City growth** — the south side of the new east block (a game centre / arcade with a crane game for yen, a karaoke box for a song
-   conversation with friends), and a side street with a sentō (public bath) for the manners set.
+1. **City growth (more)** — a karaoke box (a song conversation with friends) and a side street with a sentō (public bath) for the
+   manners set.
 2. **Better conversations** — a pass over every shop scenario: more ways to say each request (synonyms in intents), small talk the
    clerk starts when you come back ("また来てくれたんですね"), remembered choices (Daichi asks how the red ninja is doing), and the
    recorded voice for the new lines (VOICEVOX run; Daichi needs a young male voice).

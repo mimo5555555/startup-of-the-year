@@ -50,7 +50,7 @@ import { STORY_BEATS } from '../src/tokyo/game/beats/beats-story';
 const VAR = /\{(\w+)\}/g;
 
 /** Place ids (docs/GAME_DESIGN.md §14.9): `Character.locationId`, `Scenario.locationId`. */
-const PLACE_IDS = new Set(['konbini', 'cafe', 'school', 'ramen', 'station', 'park', 'fukufuku', 'denki', 'motors', 'hobby', 'ono', 'hikarigaoka', 'kyoto', 'home_mio', 'home_aiko', 'home_kenji', 'dorm', 'flat']);
+const PLACE_IDS = new Set(['konbini', 'cafe', 'school', 'ramen', 'station', 'park', 'fukufuku', 'denki', 'motors', 'hobby', 'arcade', 'ono', 'hikarigaoka', 'kyoto', 'home_mio', 'home_aiko', 'home_kenji', 'dorm', 'flat']);
 
 /** Scenario ids that later slices build (docs/GAME_DESIGN.md §15.2). Until they are registered a character or a ScenarioMeta may name them
  * (the world skips the spawn; `validatePack` is tolerant until its level); once registered they are checked like any other scenario. */
@@ -365,7 +365,7 @@ describe('content modules', () => {
   });
   it('registers every lexicon module of docs/GAME_DESIGN.md §15.2', () => {
     expect(Object.keys(LEXICON_PARTS).sort()).toEqual(
-      ['core', 'numbers', 'shop', 'station', 'quests', 'shop-denki', 'shop-fuku', 'shop-aiko', 'shop-motors', 'social', 'social-chat', 'social-friends', 'social-hearts', 'jobs', 'culture', 'home', 'trip', 'matsuri', 'goen', 'kyoto', 'hobby'].sort(),
+      ['core', 'numbers', 'shop', 'station', 'quests', 'shop-denki', 'shop-fuku', 'shop-aiko', 'shop-motors', 'social', 'social-chat', 'social-friends', 'social-hearts', 'jobs', 'culture', 'home', 'trip', 'matsuri', 'goen', 'kyoto', 'hobby', 'arcade'].sort(),
     );
   });
   it('scenario and character ids are unique', () => {

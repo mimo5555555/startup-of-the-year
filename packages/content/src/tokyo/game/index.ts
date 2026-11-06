@@ -71,4 +71,6 @@ export const JP_PACK: GamePack = {
   // the closing of the last played chapter: Chapter 8's own ending (Hanako reads the Letter back) now that the whole story is released
   release: { lastChapter: RELEASE_LAST_CHAPTER, epilogue: RELEASE_CLOSING },
   goen: GOEN,
+  // the crane game: a play is the menu id arcade:play; the prizes are the plush toy and the three cat ninja figures
+  arcade: { playItem: 'arcade:play', prizes: ['g_plush', 'fig_neko_red', 'fig_neko_blue', 'fig_neko_white'] },
 };

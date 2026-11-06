@@ -17,6 +17,7 @@ import { HOME_SLOTS } from './home';
 import { MATSURI_SLOTS } from './matsuri';
 import { KYOTO_SLOTS } from './kyoto';
 import { SHOP_HOBBY_SLOTS } from './shop-hobby';
+import { ARCADE_SLOTS } from './arcade';
 
 export { opt } from './helpers';
 
@@ -39,6 +40,7 @@ const MODULES: Array<[string, Record<string, SlotOption[]>]> = [
   ['matsuri', MATSURI_SLOTS],
   ['kyoto', KYOTO_SLOTS],
   ['shop-hobby', SHOP_HOBBY_SLOTS],
+  ['arcade', ARCADE_SLOTS],
 ];
 
 export const SLOTS: Record<string, SlotOption[]> = {};

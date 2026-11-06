@@ -4,6 +4,7 @@ import { SHOPS_SCENARIOS } from './scenarios-shops';
 import { DENKI_SCENARIOS } from './scenarios-denki';
 import { FUKU_SCENARIOS } from './scenarios-fuku';
 import { HOBBY_SCENARIOS } from './scenarios-hobby';
+import { ARCADE_SCENARIOS } from './scenarios-arcade';
 import { FUKU_HOME_SCENARIOS } from './scenarios-fuku-home';
 import { HOME_SCENARIOS } from './scenarios-home';
 import { AIKO_SCENARIOS } from './scenarios-aiko';
@@ -23,6 +24,7 @@ export const SCENARIOS: Scenario[] = [
   ...DENKI_SCENARIOS,
   ...FUKU_SCENARIOS,
   ...HOBBY_SCENARIOS,
+  ...ARCADE_SCENARIOS,
   ...FUKU_HOME_SCENARIOS,
   ...HOME_SCENARIOS,
   ...AIKO_SCENARIOS,

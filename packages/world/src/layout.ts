@@ -49,7 +49,7 @@ export const SHOPS: ShopDef[] = [
 export const shopRect = (s: ShopDef): Rect => ({ x0: s.cx - s.w / 2, x1: s.cx + s.w / 2, z0: FRONT_Z - s.d, z1: FRONT_Z });
 
 /** Something a spawn can stand inside of: a shop diorama, or Aiko's street stall (the restyled florist front). */
-export type SpawnSite = ShopDef['id'] | 'aiko_stall';
+export type SpawnSite = ShopDef['id'] | 'aiko_stall' | 'arcade';
 
 export interface NpcSpawn {
   id: string;
@@ -78,6 +78,8 @@ export const NPC_SPAWNS: NpcSpawn[] = [
   { id: 'daichi', x: 92, z: -12.4, face: 0, radius: 5.4, kind: 'scenario', y: 0.28, site: 'hobby' },
   // on the sidewalk in front of the stall wall (z 9.7), behind her counter, facing the street
   { id: 'aiko', x: 35.3, z: 9.15, face: Math.PI, radius: 5.0, kind: 'scenario', site: 'aiko_stall' },
+  // the game centre's door, between the two crane machines, facing the street
+  { id: 'shota', x: 63, z: 9.2, face: Math.PI, radius: 4.6, kind: 'scenario', site: 'arcade' },
 ];
 
 export const PLAYER_START = { x: 3.2, z: -6.7, heading: Math.PI };
@@ -166,6 +168,18 @@ export const AIKO_STALL = {
   awningY: 2.8,
   /** flower pots kept at the two sides of the counter (the florist's six pots shrink to three) */
   pots: [{ x: 32.4, z: 8.8 }, { x: 38.0, z: 8.8 }, { x: 38.5, z: 8.8 }],
+};
+
+/**
+ * ゲームセンター「ピコピコ」: the game front (x 59..67) with its door open between two crane machines on the sidewalk, against the wall.
+ * The machines are colliders; tapping one (`arcade:crane`) opens the crane game. Shota (NPC_SPAWNS) stands in the doorway.
+ */
+export const ARCADE = {
+  front: 'game' as const,
+  sign: { text: 'ゲームセンター', sub: 'piko piko' },
+  cranes: [boxRect(60.6, 9.05, 1.3, 1.0), boxRect(65.4, 9.05, 1.3, 1.0)],
+  craneH: 2.1,
+  pick: 'arcade:crane',
 };
 
 export type DoorId = 'door:dorm' | 'door:mio' | 'door:kenji' | 'door:aiko' | 'door:flat';
@@ -294,6 +308,7 @@ export function layoutColliders(): Array<{ id: string; rect: Rect }> {
   const out: Array<{ id: string; rect: Rect }> = [];
   for (const s of SHOPS) out.push({ id: `shop:${s.id}`, rect: shopRect(s) });
   for (const [id, rect] of Object.entries(SHOP_COUNTERS)) out.push({ id: `counter:${id}`, rect: rect! });
+  ARCADE.cranes.forEach((rect, i) => out.push({ id: `arcade:crane${i}`, rect }));
   for (const f of SOUTH_FRONTS) out.push({ id: `front:${f.id}`, rect: f.rect });
   out.push({ id: 'alley', rect: ALLEY });
   out.push({ id: 'counter:aiko', rect: AIKO_STALL.counter });

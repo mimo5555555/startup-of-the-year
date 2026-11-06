@@ -4,6 +4,30 @@ import type { Character } from '../types';
  * scenario; scenarios that do not exist yet are authored by later slices (the world skips a spawn whose scenario is missing). */
 export const EXTRA_CHARACTERS: Character[] = [
   {
+    id: 'shota',
+    name: { ja: '佐々木 翔太', reading: 'ささき しょうた', en: 'Shota Sasaki', ar: 'شوتا ساساكي' },
+    age: 22,
+    job: { en: 'Staff at the Piko Piko game centre', ar: 'موظف في صالة ألعاب بيكو بيكو' },
+    bio: {
+      en: 'A university student who works evenings at the game centre. Cheerful, quick, and always happy to move a prize closer for you.',
+      ar: 'طالب جامعي يعمل مساءً في صالة الألعاب. مرح وسريع، ويسعده دائمًا تقريب الجائزة لك.',
+    },
+    personality: { en: 'Cheerful, helpful', ar: 'مرح ومتعاون' },
+    interests: ['gaming', 'music', 'sports'],
+    speaking: { rate: 1.08, pitch: 1.0, voice: 'm' },
+    avatar: {
+      skin: '#eec3a0',
+      hair: { style: 'short', color: '#5a3b2a' },
+      top: '#d8433f',
+      bottom: '#2b2d42',
+      shoes: '#f5f5f5',
+      accent: '#ffd166',
+      accessories: ['cap'],
+    },
+    locationId: 'arcade',
+    scenarioId: 'arcade_crane',
+  },
+  {
     id: 'daichi',
     name: { ja: '星野 大地', reading: 'ほしの だいち', en: 'Daichi Hoshino', ar: 'دايتشي هوشينو' },
     age: 27,

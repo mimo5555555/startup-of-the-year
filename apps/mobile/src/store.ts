@@ -47,7 +47,9 @@ export type Screen =
   | 'shrine'
   | 'season'
   /** 耳トレ, the daily ear training (from the Quests screen) */
-  | 'ears';
+  | 'ears'
+  /** the crane game at the game centre (a tap on a crane machine) */
+  | 'crane';
 
 export interface Profile {
   name: string;

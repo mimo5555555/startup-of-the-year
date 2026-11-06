@@ -753,6 +753,8 @@ export interface GamePack {
   ageProfiles: Record<AgeGroup, AgeProfile>;
   /** renamed ids (old -> new), §14.7 */
   idAliases?: Record<string, string>;
+  /** the game centre's crane game (docs/ROADMAP.md): the menu id of one play (bought by talking to the staff) and the prizes it can win */
+  arcade?: { playItem: string; prizes: string[] };
   /** job rank names, index = rank (見習い trainee ... 店長代理 acting manager, §9.2) */
   ranks?: NameGloss[];
   /** keepsake id -> name (heart-5 gifts, home visits, dream finales); the ids owned are in `GameState.keepsakes` */
@@ -1315,6 +1317,13 @@ export interface GoenState {
   paid?: GoenPaidState;
 }
 
+/** The crane game: plays bought and not used yet, and what was tried and won. */
+export interface ArcadeState {
+  plays: number;
+  tries: number;
+  won: number;
+}
+
 export interface EarsState {
   day: number;
   days: number;
@@ -1375,6 +1384,8 @@ export interface GameState {
   goen: GoenState;
   /** 耳トレ, the daily ear training: the last dayIndex done (-1 never), days done, lines heard and understood in all */
   ears: EarsState;
+  /** the crane game at the game centre */
+  arcade: ArcadeState;
   /** unknown ids and fields are kept here, never dropped (§14.7) */
   _extra?: Record<string, unknown>;
 }
@@ -1574,6 +1585,8 @@ export type InputEvent =
   | { t: 'goen_reported'; ids: string[] }
   /** a manner (a Goen item the player owns) done in a conversation with `characterId`, with the learner line `text` that came with it */
   | { t: 'manner_used'; itemId: string; characterId: string; text: string }
+  /** one try at the crane game (uses one play bought from the staff); a win (the app's claw caught `prizeId`) grants that prize once */
+  | { t: 'crane_play'; id: string; won: boolean; prizeId?: string }
   /** 耳トレ: today's ear training finished, `right` of `total` recorded lines understood (once a day; ticks the daily `ears` counter) */
   | { t: 'ears_done'; right: number; total: number };
 

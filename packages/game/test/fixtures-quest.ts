@@ -363,6 +363,7 @@ export function mkState(over: { cash?: number; chapter?: number; dayIndex?: numb
     seeded: true,
     goen: emptyGoen(),
     ears: { day: -1, days: 0, heard: 0, right: 0 },
+    arcade: { plays: 0, tries: 0, won: 0 },
   };
 }
 

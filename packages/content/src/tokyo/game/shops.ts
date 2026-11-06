@@ -68,6 +68,17 @@ export const SHOPS: ShopDef[] = [
     points: true,
     sells: itemsOf('fukufuku'),
   },
+  // ゲームセンター「ピコピコ」 (the south side's game centre) opens with Chapter 2: the crane game, ¥100 a go, bought from Shota in cash
+  {
+    id: 'arcade',
+    placeId: 'arcade',
+    name: { en: 'Piko Piko game centre', ar: 'صالة ألعاب بيكو بيكو' },
+    openChapter: 2,
+    surface: 'world',
+    register: 'polite',
+    pay: ['cash'],
+    sells: menuOf('arcade'),
+  },
   // ほしぞらホビー (Hoshizora Hobby), the figure shop at the east end of the street, opens with Chapter 2: cash and card, no points. Daichi sells
   // the original figure line (six figures) through `hobby_figures`; the figures are presents a friend may love.
   {
