@@ -74,7 +74,7 @@ describe('HUD disclosure (§2.5)', () => {
   });
 
   it('the menu lists Friends only from Chapter 3 and Phone only when owned; the original three keep their order', () => {
-    expect(menuIds({ friends: false, phoneIcon: false })).toEqual({ play: ['quests', 'wallet', 'lessons'], study: ['vocab', 'stats', 'settings'] });
+    expect(menuIds({ friends: false, phoneIcon: false })).toEqual({ play: ['quests', 'wallet', 'lessons'], study: ['vocab', 'theatre', 'stats', 'settings'] });
     expect(menuIds({ friends: true, phoneIcon: true }).play).toEqual(['quests', 'friends', 'phone', 'wallet', 'lessons']);
   });
 });

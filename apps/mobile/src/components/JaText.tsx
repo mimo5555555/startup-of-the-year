@@ -14,10 +14,12 @@ interface Props {
   onTap?: (t: Token) => void;
   marks?: Mark[];
   className?: string;
+  /** karaoke subtitles (the Mini-theatre): the first `lit` tokens are lit, the one being said is `lit - 1` */
+  lit?: number;
 }
 
 /** Japanese text with optional furigana (above) and romaji (below). Words with a meaning are tappable. */
-export function JaText({ tokens, furigana, romaji, size = 'md', onTap, marks, className = '' }: Props) {
+export function JaText({ tokens, furigana, romaji, size = 'md', onTap, marks, className = '', lit }: Props) {
   const anyRuby = furigana && tokens.some((t) => t.r);
   let offset = 0;
   return (
@@ -34,7 +36,8 @@ export function JaText({ tokens, furigana, romaji, size = 'md', onTap, marks, cl
             {romaji && !t.punct && <span className="rm">{t.rom}</span>}
           </>
         );
-        const cls = `tok${t.punct ? ' punct' : ''}${t.raw ? ' raw' : ''}${t.grammar ? ' gram' : ''}${mark ? ` mk mk-${mark.kind}` : ''}`;
+        const karaoke = lit === undefined ? '' : i < lit - 1 ? ' lit' : i === lit - 1 ? ' lit now' : ' unlit';
+        const cls = `tok${t.punct ? ' punct' : ''}${t.raw ? ' raw' : ''}${t.grammar ? ' gram' : ''}${mark ? ` mk mk-${mark.kind}` : ''}${karaoke}`;
         return tappable ? (
           <button key={i} type="button" className={`${cls} tap`} onClick={() => onTap!(t)}>
             {body}

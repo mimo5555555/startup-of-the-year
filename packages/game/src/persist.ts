@@ -498,6 +498,11 @@ export function migrate(persisted: unknown, from: number, pack: GamePack): GameS
     },
     seeded: bool(src.seeded),
     goen: cleanGoen(src.goen),
+    media: (() => {
+      const out: Record<string, number> = {};
+      for (const [k, v] of Object.entries(isRec(src.media) ? src.media : {})) if (/^(ep|song)_[a-z0-9_]{1,40}$/.test(k)) out[k] = int(v, 0, 0, 10);
+      return out;
+    })(),
     karaoke: (() => {
       const e = isRec(src.karaoke) ? src.karaoke : {};
       return { booked: int(e.booked, -1, -1), sung: int(e.sung, 0, 0) };

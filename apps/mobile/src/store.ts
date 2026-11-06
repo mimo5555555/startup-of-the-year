@@ -49,7 +49,9 @@ export type Screen =
   /** 耳トレ, the daily ear training (from the Quests screen) */
   | 'ears'
   /** the crane game at the game centre (a tap on a crane machine) */
-  | 'crane';
+  | 'crane'
+  /** the Mini-theatre: episodes with timed subtitles and the town's song (the menu) */
+  | 'theatre';
 
 export interface Profile {
   name: string;

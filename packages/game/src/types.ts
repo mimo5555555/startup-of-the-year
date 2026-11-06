@@ -1390,6 +1390,8 @@ export interface GameState {
   arcade: ArcadeState;
   /** the karaoke box: the dayIndex a room was paid for and not sung in yet (-1: none), and the rooms sung in */
   karaoke: { booked: number; sung: number };
+  /** the Mini-theatre: episode or song id -> the best number of questions answered right (a song: 1 once sung along) */
+  media: Record<string, number>;
   /** unknown ids and fields are kept here, never dropped (§14.7) */
   _extra?: Record<string, unknown>;
 }
@@ -1589,6 +1591,8 @@ export type InputEvent =
   | { t: 'goen_reported'; ids: string[] }
   /** a manner (a Goen item the player owns) done in a conversation with `characterId`, with the learner line `text` that came with it */
   | { t: 'manner_used'; itemId: string; characterId: string; text: string }
+  /** the Mini-theatre: an episode watched to the end with `right` of `total` questions answered (a song sung along: total 0); ticks the daily `ears` counter */
+  | { t: 'media_done'; id: string; right: number; total: number }
   /** one try at the crane game (uses one play bought from the staff); a win (the app's claw caught `prizeId`) grants that prize once */
   | { t: 'crane_play'; id: string; won: boolean; prizeId?: string }
   /** 耳トレ: today's ear training finished, `right` of `total` recorded lines understood (once a day; ticks the daily `ears` counter) */

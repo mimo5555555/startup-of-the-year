@@ -274,6 +274,7 @@ function bumpsFor(ev: InputEvent, derived: DerivedEvent[], pack: GamePack): Bump
       break;
     }
     case 'ears_done':
+    case 'media_done':
       add('ears');
       break;
     case 'lesson_done':

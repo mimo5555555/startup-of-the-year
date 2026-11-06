@@ -90,9 +90,9 @@ describe('menu', () => {
       setLang(lang);
       const out = html(createElement(GameMenu, { showLevel: false, onClose: () => {}, onLessons: () => {} }));
       const order = [...out.matchAll(/data-menu="(\w+)"/g)].map((m) => m[1]);
-      expect(order).toEqual(['quests', 'wallet', 'lessons', 'vocab', 'stats', 'settings']);
+      expect(order).toEqual(['quests', 'wallet', 'lessons', 'vocab', 'theatre', 'stats', 'settings']);
       const legacy = out.slice(out.indexOf('class="menu glass-card"'));
-      expect([...legacy.matchAll(/data-menu="(\w+)"/g)].map((m) => m[1])).toEqual(['vocab', 'stats', 'settings']);
+      expect([...legacy.matchAll(/data-menu="(\w+)"/g)].map((m) => m[1])).toEqual(['vocab', 'theatre', 'stats', 'settings']);
     }
   });
 });

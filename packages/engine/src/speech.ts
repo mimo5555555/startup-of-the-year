@@ -10,6 +10,8 @@ export interface SpeakOptions {
   who?: string;
   onStart?: () => void;
   onEnd?: () => void;
+  /** a recorded line knows its length when it starts: seconds of playback at the rate asked (the subtitles of the Mini-theatre time to it) */
+  onDuration?: (seconds: number) => void;
 }
 
 /** Why the last speak() was not (fully) audible. The UI maps codes to strings; the engine never carries prose. */

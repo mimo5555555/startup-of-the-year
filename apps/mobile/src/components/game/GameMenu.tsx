@@ -6,7 +6,7 @@ import { menuIds, type MenuId } from '../../game/worldSync';
 import { dueCount, useStore } from '../../store';
 import { Icon, type IconName } from '../Icon';
 
-const ICON: Record<MenuId, IconName> = { quests: 'target', friends: 'heart', phone: 'phone', wallet: 'wallet', lessons: 'book', vocab: 'book', stats: 'chart', settings: 'sliders' };
+const ICON: Record<MenuId, IconName> = { quests: 'target', friends: 'heart', phone: 'phone', wallet: 'wallet', lessons: 'book', vocab: 'book', theatre: 'play', stats: 'chart', settings: 'sliders' };
 
 /**
  * The world menu (§7.5). Two groups: the game's entries, then the three the app always had (Words, Progress, Settings), which keep
@@ -33,6 +33,7 @@ export function GameMenu({ showLevel, onClose, onLessons }: { showLevel: boolean
     wallet: t('hud.wallet'),
     lessons: t('hud.lessons'),
     vocab: t('w.words'),
+    theatre: t('th.title'),
     stats: t('w.progress'),
     settings: t('w.settings'),
   };

@@ -53,18 +53,18 @@ export function hudElements(d: Pick<Disclosure, 'dreamChip' | 'phoneIcon'>): Hud
   return out;
 }
 
-export type MenuId = 'quests' | 'friends' | 'phone' | 'wallet' | 'lessons' | 'vocab' | 'stats' | 'settings';
+export type MenuId = 'quests' | 'friends' | 'phone' | 'wallet' | 'lessons' | 'vocab' | 'theatre' | 'stats' | 'settings';
 
 /**
  * The menu entries (§7.5): the game group first (Quests; Friends from Chapter 3; Phone once owned; Wallet; Lessons), then the study
- * group the app always had (Words, Progress, Settings). They are two lists so the original three keep their positions.
+ * group (Words, the Mini-theatre, Progress, Settings). They are two lists so the game group keeps its positions.
  */
 export function menuIds(d: Pick<Disclosure, 'friends' | 'phoneIcon'>): { play: MenuId[]; study: MenuId[] } {
   const play: MenuId[] = ['quests'];
   if (d.friends) play.push('friends');
   if (d.phoneIcon) play.push('phone');
   play.push('wallet', 'lessons');
-  return { play, study: ['vocab', 'stats', 'settings'] };
+  return { play, study: ['vocab', 'theatre', 'stats', 'settings'] };
 }
 
 // ---------------------------------------------------------------------------------------------------------------

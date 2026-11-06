@@ -23,3 +23,4 @@ export { CLOTHES_COLOURS, DENIM_COLOURS } from './tokyo/game/items';
 export { JP_LANGUAGE, parseNumbers, parseJaNumber, setSpeechNormalizer, yenToJa } from './tokyo/game/jp-language';
 
 export const CITY_ID = 'tokyo';
+export * from './tokyo/media/theatre';

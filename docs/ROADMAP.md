@@ -50,6 +50,17 @@ game, a bigger city with better conversations, and the same game for German, Dut
   answer 上手だね, また来ましょう. Plain or polite by the friend's register; a counted talk for the friend. Opens with Chapter 3, once a
   friend has a heart. Tests: app crane (booking), e2e `karaoke.mjs` (EN/AR).
 
+* **ミニシアター (Mini-theatre)**, learning by watching and singing (menu → Study). All content is written for the game (no clips from
+  real shows or songs).
+  * **Episodes**: short scenes with the town's cast, each line spoken in the character's recorded voice while the subtitle lights up
+    word by word with the audio (timed from the recording's length, `SpeakOptions.onDuration`, or estimated by morae for the device
+    voice). Pause, replay, 0.75×, furigana / romaji / translation toggles, any word tapped for its card, three questions after. はじめての
+    コンビニ (Chapter 1), ラーメンの秘密 (Chapter 2), 公園でお花見 (Chapter 3).
+  * **Song**: 「桜通り」 (the karaoke room's song) as an instrumental made in the browser (Web Audio chords and a guide melody that can be
+    switched off mid-song); each mora has its note, so the kana light up exactly with the music.
+  * Results are filed (`media_done`, the best score per episode, `GameState.media`) and an episode or song counts for the day's
+    listening goal. Tests: content theatre (lexicon, quiz, morae = reading), app theatre (timing), e2e `theatre.mjs` (EN/AR).
+
 ## Next (Tokyo)
 
 1. **City growth (more)** — a side street with a sentō (public bath) for the manners set.

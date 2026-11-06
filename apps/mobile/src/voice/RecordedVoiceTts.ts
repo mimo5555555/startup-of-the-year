@@ -9,6 +9,8 @@ export interface AudioLike {
   src: string;
   playbackRate: number;
   preservesPitch?: boolean;
+  /** seconds, once the file's metadata is known (NaN before) */
+  duration?: number;
   play(): Promise<void> | void;
   pause(): void;
   addEventListener(type: string, fn: () => void): void;
@@ -205,6 +207,8 @@ export class RecordedVoiceTts implements TtsPort {
         if (started) return;
         started = true;
         o.onStart?.();
+        const d = a.duration;
+        if (o.onDuration && typeof d === 'number' && Number.isFinite(d) && d > 0) o.onDuration(d / Math.max(0.5, a.playbackRate || 1));
       };
       const onEnded = () => finish('played');
       const onError = () => finish(started ? 'played' : 'failed');

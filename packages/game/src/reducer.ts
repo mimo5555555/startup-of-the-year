@@ -80,6 +80,7 @@ export function createGameState(pack: GamePack, now: number): GameState {
     ears: { day: -1, days: 0, heard: 0, right: 0 },
     arcade: { plays: 0, tries: 0, won: 0 },
     karaoke: { booked: -1, sung: 0 },
+    media: {},
   };
 }
 
@@ -114,6 +115,7 @@ export function needsFlush(ev: InputEvent): boolean {
     case 'ears_done':
     case 'manner_used':
     case 'crane_play':
+    case 'media_done':
       return true;
     default:
       return false;
@@ -916,6 +918,20 @@ function apply(a: Acc, ev: InputEvent, ctx: ReduceCtx): void {
       const r = useCharm(a.s, ev.day);
       if (!r.ok) a.effective = false;
       absorb(a, r);
+      break;
+    }
+    case 'media_done': {
+      // the best score is kept; every watch counts for the day's listening (the daily `ears` counter, in daily.ts)
+      const total = Math.trunc(Number(ev.total));
+      const right = Math.trunc(Number(ev.right));
+      if (typeof ev.id !== 'string' || !/^(ep|song)_[a-z0-9_]{1,40}$/.test(ev.id) || !(total >= 0 && total <= 10) || !(right >= 0 && right <= total)) {
+        a.effective = false;
+        break;
+      }
+      const media = a.s.media ?? {};
+      const best = Math.max(media[ev.id] ?? -1, total === 0 ? 1 : right);
+      a.s = { ...a.s, media: { ...media, [ev.id]: best } };
+      a.active = true;
       break;
     }
     case 'crane_play': {
