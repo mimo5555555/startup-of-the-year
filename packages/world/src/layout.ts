@@ -49,7 +49,7 @@ export const SHOPS: ShopDef[] = [
 export const shopRect = (s: ShopDef): Rect => ({ x0: s.cx - s.w / 2, x1: s.cx + s.w / 2, z0: FRONT_Z - s.d, z1: FRONT_Z });
 
 /** Something a spawn can stand inside of: a shop diorama, or Aiko's street stall (the restyled florist front). */
-export type SpawnSite = ShopDef['id'] | 'aiko_stall' | 'arcade';
+export type SpawnSite = ShopDef['id'] | 'aiko_stall' | 'arcade' | 'karaoke';
 
 export interface NpcSpawn {
   id: string;
@@ -80,6 +80,8 @@ export const NPC_SPAWNS: NpcSpawn[] = [
   { id: 'aiko', x: 35.3, z: 9.15, face: Math.PI, radius: 5.0, kind: 'scenario', site: 'aiko_stall' },
   // the game centre's door, between the two crane machines, facing the street
   { id: 'shota', x: 63, z: 9.2, face: Math.PI, radius: 4.6, kind: 'scenario', site: 'arcade' },
+  // the karaoke box's door (the hotel front restyled), beside its price board
+  { id: 'nanami', x: 52.2, z: 9.2, face: Math.PI, radius: 4.6, kind: 'scenario', site: 'karaoke' },
 ];
 
 export const PLAYER_START = { x: 3.2, z: -6.7, heading: Math.PI };
@@ -180,6 +182,19 @@ export const ARCADE = {
   cranes: [boxRect(60.6, 9.05, 1.3, 1.0), boxRect(65.4, 9.05, 1.3, 1.0)],
   craneH: 2.1,
   pick: 'arcade:crane',
+};
+
+/**
+ * カラオケ「うたひろば」: the hotel front (x 47.6..58.6) restyled as a karaoke box: a lit door with Nanami at the desk inside it, a price board
+ * on the sidewalk (a collider), and a pick on the door (`karaoke:room`) that takes a booked room up with a friend.
+ */
+export const KARAOKE = {
+  front: 'hotel' as const,
+  sign: { text: 'カラオケ', sub: 'uta hiroba' },
+  board: boxRect(55.6, 9.1, 1.0, 0.5),
+  pick: 'karaoke:room',
+  /** where the friend the player sings with stands while the room's conversation runs: beside the door, facing the street */
+  guest: { x: 50.4, z: 9.0, face: Math.PI },
 };
 
 export type DoorId = 'door:dorm' | 'door:mio' | 'door:kenji' | 'door:aiko' | 'door:flat';
@@ -309,6 +324,7 @@ export function layoutColliders(): Array<{ id: string; rect: Rect }> {
   for (const s of SHOPS) out.push({ id: `shop:${s.id}`, rect: shopRect(s) });
   for (const [id, rect] of Object.entries(SHOP_COUNTERS)) out.push({ id: `counter:${id}`, rect: rect! });
   ARCADE.cranes.forEach((rect, i) => out.push({ id: `arcade:crane${i}`, rect }));
+  out.push({ id: 'karaoke:board', rect: KARAOKE.board });
   for (const f of SOUTH_FRONTS) out.push({ id: `front:${f.id}`, rect: f.rect });
   out.push({ id: 'alley', rect: ALLEY });
   out.push({ id: 'counter:aiko', rect: AIKO_STALL.counter });

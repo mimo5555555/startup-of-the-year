@@ -499,6 +499,8 @@ export type PickRoute =
   | { t: 'shrine'; what: 'box' | 'chozuya' }
   /** a crane machine at the game centre */
   | { t: 'crane' }
+  /** the karaoke box's door: a room booked today, with a friend */
+  | { t: 'karaoke' }
   | null;
 
 /** World pick ids are routed game first (§7.6): panels, doors and shop fronts here; every other id keeps the sign word card. */
@@ -513,6 +515,7 @@ export function routePick(id: string): PickRoute {
   if (id === 'shrine:box') return { t: 'shrine', what: 'box' };
   if (id === 'shrine:chozuya') return { t: 'shrine', what: 'chozuya' };
   if (id === 'arcade:crane') return { t: 'crane' };
+  if (id === 'karaoke:room') return { t: 'karaoke' };
   const fest = festivalPickOf(id);
   if (fest) return { t: 'festival', pick: fest };
   return null;

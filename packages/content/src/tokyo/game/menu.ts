@@ -80,4 +80,9 @@ export const MENU: MenuItem[] = [
   ...rows('matsuri', 'yatai', 'food', {}, MATSURI),
   // the game centre: one go at the crane game, ¥100 (plays are counted by the game, not kept in the bag)
   ...rows('arcade', 'crane', 'standard', {}, [{ option: 'play', ja: 'クレーンゲーム', en: 'Crane game (one play)', ar: 'لعبة الرافعة (محاولة واحدة)', price: 100, tags: ['game'] }]),
+  // the karaoke box: a room for two (the drink bar comes with it), paid at the desk before singing
+  ...rows('karaoke', 'hours', 'standard', {}, [
+    { option: 'h1', ja: 'カラオケ（一時間）', en: 'Karaoke room, one hour (two people)', ar: 'غرفة كاريوكي، ساعة واحدة (شخصان)', price: 1000, tags: ['music'] },
+    { option: 'h2', ja: 'カラオケ（二時間）', en: 'Karaoke room, two hours (two people)', ar: 'غرفة كاريوكي، ساعتان (شخصان)', price: 1800, tags: ['music'] },
+  ]),
 ];

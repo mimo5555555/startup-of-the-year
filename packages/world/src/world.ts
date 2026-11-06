@@ -20,7 +20,7 @@ import {
   newLighting,
   type FestivalPark,
 } from './festival';
-import { DOOR_RETURN, PLAYER_START, SHRINE, SHRINE_PICKS, shopRect, spotsAt, type NpcSpawn, type Rect, type ShopDef, type SpotId } from './layout';
+import { DOOR_RETURN, KARAOKE, PLAYER_START, SHRINE, SHRINE_PICKS, shopRect, spotsAt, type NpcSpawn, type Rect, type ShopDef, type SpotId } from './layout';
 import { COLORS } from './palette';
 import type { Stage, StageHandle, StageId, StagePick, StageState } from './stage';
 import { STAGES } from './stages';
@@ -197,6 +197,8 @@ export class TokyoWorld {
   private ritualBlend = 0;
   /** the character standing by the shrine for the wish (`setShrineGuest`), or null */
   private shrineGuest: string | null = null;
+  /** the friend who sings with the player stands at the karaoke box while the room's conversation runs */
+  private karaokeGuest: string | null = null;
   private festivalTarget = 0;
   private festivalBlend = 0;
   private festivalScenery: FestivalPark | null = null;
@@ -616,6 +618,16 @@ export class TokyoWorld {
    */
   setShrineGuest(id: string | null) {
     this.shrineGuest = id;
+    this.syncFestival();
+  }
+
+  /**
+   * Puts the friend the player sings with at the karaoke box's door (`KARAOKE.guest`) while the room's conversation runs, so it is framed
+   * there and not at their usual place; null sends them home. Moved like a festival guest.
+   */
+  setKaraokeGuest(id: string | null) {
+    if (this.karaokeGuest === id) return;
+    this.karaokeGuest = id;
     this.syncFestival();
   }
 
@@ -1539,6 +1551,7 @@ export class TokyoWorld {
     }
     // the friend who walks the player through the shrine's wish stands by the shrine (festival or not)
     if (this.shrineGuest && !want.has(this.shrineGuest)) want.set(this.shrineGuest, SHRINE.guest);
+    if (this.karaokeGuest && !want.has(this.karaokeGuest)) want.set(this.karaokeGuest, KARAOKE.guest);
     for (const n of this.npcs) {
       const spot = want.get(n.id);
       const saved = this.festivalMoved.get(n.id);

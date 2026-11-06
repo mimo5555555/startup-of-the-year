@@ -84,6 +84,15 @@ export const CULTURE: CultureCard[] = [
     say: true,
   }),
   c({
+    id: 'cc_karaoke',
+    trigger: { on: 'payment', ids: ['karaoke'] },
+    phrase: { ja: 'カラオケ', en: 'karaoke', ar: 'كاريوكي' },
+    text: {
+      en: 'Karaoke was invented in Japan, and a karaoke box is a building of small private rooms: you pay at the desk first, by the hour, and sing only for your friends. Drinks are ordered from the room phone.',
+      ar: 'اختُرع الكاريوكي في اليابان، وصالة الكاريوكي مبنى من غرف خاصة صغيرة: تدفع عند المكتب أولًا بحسب الساعة، وتغنّي لأصدقائك فقط. وتُطلب المشروبات من هاتف الغرفة.',
+    },
+  }),
+  c({
     id: 'cc_crane',
     trigger: { on: 'intent', ids: ['arcade_crane:ask_assist'] },
     phrase: { ja: '取りやすく|して|もらえますか', en: 'Could you make it easier to get?', ar: 'هل يمكنك جعلها أسهل في الإمساك؟' },

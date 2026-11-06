@@ -126,7 +126,7 @@ export const CHAPTERS: ChapterDef[] = [
     reward: 3000,
     rewardTitle: 't_friend',
     rewardCulture: ['cc_gift', 'cc_name', 'cc_hanami'],
-    opens: [o('feature', 'friends'), o('feature', 'gift'), o('feature', 'smalltalk'), o('job', 'job_cafe'), o('interaction', 'yuki_shift')],
+    opens: [o('feature', 'friends'), o('feature', 'gift'), o('feature', 'smalltalk'), o('job', 'job_cafe'), o('interaction', 'yuki_shift'), o('shop', 'karaoke'), o('place', 'karaoke'), o('interaction', 'nanami_desk')],
     beats: { open: 'b_ch3_open', close: 'b_ch3_close' },
     objectives: [
       {

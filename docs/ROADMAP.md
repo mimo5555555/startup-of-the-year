@@ -41,10 +41,18 @@ game, a bigger city with better conversations, and the same game for German, Dut
   prizes are the plush toy and the three Cat Ninja figures (presents, and they stand in the display case). Rules: `crane_play` uses one go
   once per try. Tests: app crane, e2e `arcade.mjs` (EN/AR).
 
+* **カラオケ「うたひろば」, the karaoke box** — the south side's hotel front is now a karaoke box (neon sign and microphone, lit room
+  windows with singers, a price board) with Nanami (小林七海) at the door. `karaoke_desk` teaches 何名様ですか / 二人です, 一時間 / 二時間,
+  paying first (先にお願いします), 三番のお部屋 (¥1,000 an hour or ¥1,800 for two, for two people: menu `karaoke:h1` / `karaoke:h2`;
+  culture card `cc_karaoke`). The room is booked for the day (`GameState.karaoke`); the invite sheet lists the friends met and starts
+  `karaoke_room` with the one chosen (who stands at the karaoke door for it): choose the song, order a drink from the room phone, 乾杯
+  (the hands-together manner fits it), sing the chorus of the town's song 「桜通り」 by saying the lines (the friend sings the middle one),
+  answer 上手だね, また来ましょう. Plain or polite by the friend's register; a counted talk for the friend. Opens with Chapter 3, once a
+  friend has a heart. Tests: app crane (booking), e2e `karaoke.mjs` (EN/AR).
+
 ## Next (Tokyo)
 
-1. **City growth (more)** — a karaoke box (a song conversation with friends) and a side street with a sentō (public bath) for the
-   manners set.
+1. **City growth (more)** — a side street with a sentō (public bath) for the manners set.
 2. **Better conversations** — a pass over every shop scenario: more ways to say each request (synonyms in intents), small talk the
    clerk starts when you come back ("また来てくれたんですね"), remembered choices (Daichi asks how the red ninja is doing), and the
    recorded voice for the new lines (VOICEVOX run; Daichi needs a young male voice).

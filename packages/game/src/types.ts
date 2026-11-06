@@ -755,6 +755,8 @@ export interface GamePack {
   idAliases?: Record<string, string>;
   /** the game centre's crane game (docs/ROADMAP.md): the menu id of one play (bought by talking to the staff) and the prizes it can win */
   arcade?: { playItem: string; prizes: string[] };
+  /** the karaoke box: the menu ids of a room (paid at the desk) and the room's scenario with a friend (it uses the booking) */
+  karaoke?: { rooms: string[]; roomScenario: string };
   /** job rank names, index = rank (見習い trainee ... 店長代理 acting manager, §9.2) */
   ranks?: NameGloss[];
   /** keepsake id -> name (heart-5 gifts, home visits, dream finales); the ids owned are in `GameState.keepsakes` */
@@ -1386,6 +1388,8 @@ export interface GameState {
   ears: EarsState;
   /** the crane game at the game centre */
   arcade: ArcadeState;
+  /** the karaoke box: the dayIndex a room was paid for and not sung in yet (-1: none), and the rooms sung in */
+  karaoke: { booked: number; sung: number };
   /** unknown ids and fields are kept here, never dropped (§14.7) */
   _extra?: Record<string, unknown>;
 }

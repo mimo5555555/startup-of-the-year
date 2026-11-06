@@ -68,6 +68,17 @@ export const SHOPS: ShopDef[] = [
     points: true,
     sells: itemsOf('fukufuku'),
   },
+  // カラオケ「うたひろば」 (the south side's karaoke box) opens with Chapter 3 (friends): a room for two, paid first at Nanami's desk
+  {
+    id: 'karaoke',
+    placeId: 'karaoke',
+    name: { en: 'Uta Hiroba karaoke', ar: 'كاريوكي أوتا هيروبا' },
+    openChapter: 3,
+    surface: 'world',
+    register: 'polite',
+    pay: ['cash', 'card'],
+    sells: menuOf('karaoke'),
+  },
   // ゲームセンター「ピコピコ」 (the south side's game centre) opens with Chapter 2: the crane game, ¥100 a go, bought from Shota in cash
   {
     id: 'arcade',

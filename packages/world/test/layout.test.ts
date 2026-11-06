@@ -70,7 +70,7 @@ describe('layout: spawns and counters', () => {
         expect(contains({ x0: r.x0 + 0.35, x1: r.x1 - 0.35, z0: r.z0 + 0.35, z1: r.z1 }, boxRect(n.x, n.z, 2 * NPC_RADIUS, 2 * NPC_RADIUS)), `${n.id} in ${home.id}`).toBe(true);
       }
       // the south side's sites (Aiko's stall, the game centre) are fronts, not north-side shops
-      if (n.site && n.site !== 'aiko_stall' && n.site !== 'arcade') expect(home?.id, `${n.id} stands in its own shop`).toBe(n.site);
+      if (n.site && !['aiko_stall', 'arcade', 'karaoke'].includes(n.site)) expect(home?.id, `${n.id} stands in its own shop`).toBe(n.site);
       expect(inBounds(n.x, n.z) || home !== undefined, `${n.id} placed in the district`).toBe(true);
     }
   });

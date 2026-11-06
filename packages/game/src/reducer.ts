@@ -79,6 +79,7 @@ export function createGameState(pack: GamePack, now: number): GameState {
     goen: emptyGoen(),
     ears: { day: -1, days: 0, heard: 0, right: 0 },
     arcade: { plays: 0, tries: 0, won: 0 },
+    karaoke: { booked: -1, sung: 0 },
   };
 }
 
@@ -363,6 +364,10 @@ function onConversation(a: Acc, facts: ConversationFacts, ctx: ReduceCtx): void 
     void _used;
     a.s = { ...a.s, tickets: rest };
   }
+  // the karaoke room was sung in: the booking is used
+  if (pack.karaoke && facts.scenarioId === pack.karaoke.roomScenario && !facts.abandoned && (a.s.karaoke?.booked ?? -1) >= 0) {
+    a.s = { ...a.s, karaoke: { booked: -1, sung: (a.s.karaoke?.sung ?? 0) + 1 } };
+  }
   // only a visit to the friend's own home is `visit home:<friend>`: a friend who comes to the player's room (home_own_guest) is a guest, not a visit
   if (meta?.kind === 'home' && !facts.abandoned && facts.goalDone > 0 && friendId && heartOk && facts.scenarioId === `home_${friendId}`) {
     const key = `home:${friendId}`;
@@ -631,6 +636,8 @@ function onPurchase(a: Acc, ev: Extract<InputEvent, { t: 'purchase' }>, ctx: Red
   }
   absorb(a, r);
   const shop = pack.shops.find((s) => s.id === ev.shopId);
+  // a karaoke room paid at the desk is booked for today: the room's scenario with a friend uses it
+  if (pack.karaoke?.rooms.includes(ev.itemId)) a.s = { ...a.s, karaoke: { ...(a.s.karaoke ?? { booked: -1, sung: 0 }), booked: a.s.clock.dayIndex } };
   // crane plays bought from the game centre's staff are counted, not kept as things in the bag
   if (pack.arcade && ev.itemId === pack.arcade.playItem) {
     const arc = a.s.arcade ?? { plays: 0, tries: 0, won: 0 };

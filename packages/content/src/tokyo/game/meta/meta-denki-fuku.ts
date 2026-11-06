@@ -2,6 +2,29 @@ import type { ScenarioMeta } from '@lw/game';
 
 /** Game wiring for denki_phone, fuku_clothes, fuku_home (3C): pay, pocket, gate, shop, steps. The Denki entry (3C-lite) and the Fuku-Fuku clothes entry (A2); `fuku_home` (furniture) is not in this release. */
 export const DENKI_FUKU_META: ScenarioMeta[] = [
+  // the karaoke box: Nanami's desk (a room for two, paid first) and the room with the friend the player invites
+  {
+    id: 'karaoke_desk',
+    kind: 'shop',
+    band: 'A1',
+    register: 'polite',
+    pay: 'full',
+    real: true,
+    place: 'karaoke',
+    pocket: ['p_karaoke_1', 'p_karaoke_2'],
+    culture: ['cc_karaoke'],
+    shop: { shopId: 'karaoke', itemSlot: 'hours', payStep: 'pay', itemMap: { h1: 'karaoke:h1', h2: 'karaoke:h2' } },
+  },
+  {
+    id: 'karaoke_room',
+    kind: 'friend',
+    band: 'A1',
+    register: 'casual',
+    pay: 'none',
+    real: true,
+    place: 'karaoke',
+    pocket: ['p_karaoke_3', 'p_karaoke_4'],
+  },
   // the game centre: goes at the crane game (the game counts the plays: GameState.arcade), cash only
   {
     id: 'arcade_crane',

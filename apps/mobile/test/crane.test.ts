@@ -53,3 +53,34 @@ describe('goes and prizes', () => {
     expect(validateState(odd, JP_PACK)).toEqual([]);
   });
 });
+
+describe('the karaoke box', () => {
+  const facts = (scenarioId: string, characterId: string, abandoned = false) => ({
+    sessionId: `s_${scenarioId}_${characterId}`,
+    scenarioId,
+    characterId,
+    mode: 'guided' as const,
+    abandoned,
+    durationSec: 120,
+    goalDone: 5,
+    goalTotal: 5,
+    turns: [{ id: 0, cls: 'I' as const, credit: 1, substantive: true, contentTokens: 3, stepIds: [], norm: 'かんぱい', newWords: [] }],
+    fallbacks: 0,
+    hintUses: 0,
+    accuracy: 100,
+    requestsPolite: true,
+    prepared: false,
+    remembered: {},
+  });
+  it('a room paid at the desk is booked for today; singing in it with a friend uses the booking; an abandoned room keeps it', () => {
+    let s = fresh();
+    s = { ...s, chapter: { ...s.chapter, n: 3, completed: [1, 2] } };
+    const room = JP_PACK.menu.find((m) => m.id === 'karaoke:h1')!;
+    s = run(s, { t: 'purchase', sessionId: 'k1', n: 1, shopId: 'karaoke', itemId: room.id, qty: 1, total: room.price, method: 'cash', lines: [] }).state;
+    expect(s.karaoke).toEqual({ booked: s.clock.dayIndex, sung: 0 });
+    expect(s.wallet.cash).toBe(3000 - 1000);
+    expect(run(s, { t: 'conversation_done', facts: facts('karaoke_room', 'mio', true) } as InputEvent).state.karaoke.booked).toBe(s.clock.dayIndex);
+    s = run(s, { t: 'conversation_done', facts: facts('karaoke_room', 'mio') } as InputEvent).state;
+    expect(s.karaoke).toEqual({ booked: -1, sung: 1 });
+  });
+});

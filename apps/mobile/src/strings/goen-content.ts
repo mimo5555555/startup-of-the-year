@@ -18,6 +18,7 @@ export const en = {
   'culture.hint.goen': 'Visit the little shrine at the park torii.',
   'culture.hint.sanpai': 'Make a wish at the shrine, or look at its water basin.',
   'culture.hint.crane': 'At the game centre, ask the staff to make a crane prize easier to get.',
+  'culture.hint.karaoke': 'Book a room at the karaoke box and pay at the desk.',
 } as const;
 
 export const ar: Record<keyof typeof en, string> = {
@@ -37,4 +38,5 @@ export const ar: Record<keyof typeof en, string> = {
   'culture.hint.goen': 'زر المعبد الصغير عند بوابة الحديقة.',
   'culture.hint.sanpai': 'تمنَّ أمنية في المعبد أو انظر إلى حوض الماء فيه.',
   'culture.hint.crane': 'في صالة الألعاب، اطلب من الموظف أن يجعل جائزة الرافعة أسهل في الإمساك.',
+  'culture.hint.karaoke': 'احجز غرفة في صالة الكاريوكي وادفع عند المكتب.',
 };

@@ -5,6 +5,7 @@ import type { BuildCtx } from '../buildctx';
 import { SOUTH_FRONTS, type DoorDef, type ShopDef } from '../layout';
 import { buildAiko } from './aiko';
 import { buildArcade } from './arcade';
+import { buildKaraoke } from './karaoke';
 import { buildCafe } from './cafe';
 import { buildDenki } from './denki';
 import { buildDoors } from './doors';
@@ -96,4 +97,6 @@ export const FRONT_OVERRIDES: Partial<Record<SouthFrontId, FrontOverride>> = {
   hanaya: buildAiko,
   // ゲームセンター「ピコピコ」: the crane machines and Shota (the game centre, docs/ROADMAP.md)
   game: buildArcade,
+  // カラオケ「うたひろば」: the karaoke box and Nanami (docs/ROADMAP.md)
+  hotel: buildKaraoke,
 };

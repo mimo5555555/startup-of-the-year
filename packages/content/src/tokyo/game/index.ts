@@ -73,4 +73,6 @@ export const JP_PACK: GamePack = {
   goen: GOEN,
   // the crane game: a play is the menu id arcade:play; the prizes are the plush toy and the three cat ninja figures
   arcade: { playItem: 'arcade:play', prizes: ['g_plush', 'fig_neko_red', 'fig_neko_blue', 'fig_neko_white'] },
+  // the karaoke box: a room for one or two hours, and the room's conversation with the friend the player invites
+  karaoke: { rooms: ['karaoke:h1', 'karaoke:h2'], roomScenario: 'karaoke_room' },
 };

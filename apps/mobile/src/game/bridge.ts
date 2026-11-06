@@ -18,6 +18,7 @@ import { LEXICON, entryToToken, festivalReturned, plainText, romajiText, scenari
 import { STRINGS, translate, type StringKey } from '../i18n';
 import { blip, haptic } from '../services';
 import { setLoopFactsHook, setStreakCharmHook, flushNow, useStore, type VocabItem } from '../store';
+import { useKaraoke } from './karaokeStore';
 import { useUi, type ConvoRequest, type ScreenArgs } from '../ui';
 import { PACK, beatById, friendById } from './pack';
 import { heartEventOfBeat, pendingHeartBeats } from './friendsLogic';
@@ -78,6 +79,8 @@ export function dispatch(event: InputEvent): ReduceResult {
   const playsBefore = before.arcade?.plays ?? 0;
   const playsNow = result.state.arcade?.plays ?? 0;
   if (event.t === 'purchase' && playsNow > playsBefore) useStore.getState().say(translate(useStore.getState().uiLang, 'cr.bought', { n: playsNow }), 'good');
+  // a karaoke room just paid for: the invite sheet comes up on the street (after the conversation and its debrief)
+  if (event.t === 'purchase' && (result.state.karaoke?.booked ?? -1) === result.state.clock.dayIndex && (before.karaoke?.booked ?? -1) !== before.clock.dayIndex) useKaraoke.getState().setOpen(true);
   return result;
 }
 

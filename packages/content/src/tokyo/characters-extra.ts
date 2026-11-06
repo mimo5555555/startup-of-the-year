@@ -4,6 +4,30 @@ import type { Character } from '../types';
  * scenario; scenarios that do not exist yet are authored by later slices (the world skips a spawn whose scenario is missing). */
 export const EXTRA_CHARACTERS: Character[] = [
   {
+    id: 'nanami',
+    name: { ja: '小林 七海', reading: 'こばやし ななみ', en: 'Nanami Kobayashi', ar: 'نانامي كوباياشي' },
+    age: 25,
+    job: { en: 'At the desk of the Uta Hiroba karaoke box', ar: 'عند مكتب صالة الكاريوكي أوتا هيروبا' },
+    bio: {
+      en: 'Runs the karaoke desk with a big smile and secretly knows every song in the machine. Quick, clear shop Japanese.',
+      ar: 'تدير مكتب الكاريوكي بابتسامة كبيرة وتعرف سرًّا كل أغنية في الجهاز. يابانية متاجر سريعة وواضحة.',
+    },
+    personality: { en: 'Bubbly, efficient', ar: 'مرحة وعملية' },
+    interests: ['music', 'social', 'food'],
+    speaking: { rate: 1.08, pitch: 1.15, voice: 'f' },
+    avatar: {
+      skin: '#f3cdb0',
+      hair: { style: 'bob', color: '#7a3b5a' },
+      top: '#7b5cff',
+      bottom: '#2b2d42',
+      shoes: '#ffffff',
+      accent: '#ffd166',
+      accessories: ['headband'],
+    },
+    locationId: 'karaoke',
+    scenarioId: 'karaoke_desk',
+  },
+  {
     id: 'shota',
     name: { ja: '佐々木 翔太', reading: 'ささき しょうた', en: 'Shota Sasaki', ar: 'شوتا ساساكي' },
     age: 22,

@@ -12,6 +12,8 @@ const IDS = [
   'cc_goen', 'cc_sanpai',
   // the game centre: asking the staff to move a crane prize
   'cc_crane',
+  // the karaoke box: pay first, by the hour, private rooms
+  'cc_karaoke',
 ];
 const SAY = ['cc_bow', 'cc_itadakimasu', 'cc_gift', 'cc_keigo', 'cc_ic', 'cc_trainmanner', 'cc_refuse', 'cc_shoesoff', 'cc_crane'];
 const hasAr = (s: string) => /[؀-ۿ]/.test(s);

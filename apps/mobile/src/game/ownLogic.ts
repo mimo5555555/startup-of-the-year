@@ -176,6 +176,8 @@ export function inviteStatus(pack: GamePack, state: GameState, friendId: string)
  */
 export function ownRoomFlags(pack: GamePack, state: GameState, age: keyof GamePack['ageProfiles'], scenarioId: string, characterId: string | undefined): Record<string, boolean> {
   if (scenarioId === 'aiko_viewing' && (pack.ageProfiles[age]?.ageFloor ?? 0) < 18) return { minor: true };
+  // the karaoke room with a friend: plain form for a friend who speaks it
+  if (scenarioId === 'karaoke_room') return characterId && isCasual(pack, state, characterId) ? { casual: true } : {};
   if (scenarioId === OWN_GUEST.scenarioId) {
     // the guest speaks plain form (`casual`) and/or notices the figure collection (`figures`); the content reads one flag per variant
     const casual = !!characterId && isCasual(pack, state, characterId);

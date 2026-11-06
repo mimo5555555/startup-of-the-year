@@ -133,6 +133,9 @@ describe('FRONT_OVERRIDES', () => {
     FRONT_OVERRIDES.hanaya = saved;
   });
 
+  /** signs the other overrides add besides their own sign: the karaoke box's price board on the sidewalk */
+  const EXTRA_SIGNS = 1;
+
   it('styles every south front, in the order of layout.SOUTH_FRONTS', () => {
     expect(SOUTH_FRONTS.map((f) => f.id)).toEqual(['izakaya', 'yakkyoku', 'hanaya', 'honya', 'hotel', 'game']);
     for (const f of SOUTH_FRONTS) expect(FRONT_STYLES[f.id], f.id).toBeDefined();
@@ -140,7 +143,7 @@ describe('FRONT_OVERRIDES', () => {
 
   it("the florist (hanaya) is the registered override slot: Aiko's stall replaces the florist's sign with its own sign, the noren plate and a hidden shutter plate", () => {
     expect(typeof FRONT_OVERRIDES.hanaya).toBe('function');
-    expect(signCount(buildCity())).toBe(SOUTH_FRONTS.length - 1 + 3);
+    expect(signCount(buildCity())).toBe(SOUTH_FRONTS.length - 1 + 3 + EXTRA_SIGNS);
   });
 
   it('an override that returns true replaces the default sign and pots, and can mark its site built', () => {
@@ -153,14 +156,14 @@ describe('FRONT_OVERRIDES', () => {
     const city = buildCity();
     expect(seen).toEqual([`hanaya@${SOUTH_FRONTS[2].cx}`]);
     expect(city.built.has('aiko_stall')).toBe(true);
-    expect(signCount(city)).toBe(SOUTH_FRONTS.length - 1);
+    expect(signCount(city)).toBe(SOUTH_FRONTS.length - 1 + EXTRA_SIGNS);
     // the box itself is still the solid front (collider unchanged)
     expect(has(city.colliders, SOUTH_FRONTS[2].rect)).toBe(true);
   });
 
   it('an override that returns nothing falls back to the default dressing', () => {
     FRONT_OVERRIDES.hanaya = () => {};
-    expect(signCount(buildCity())).toBe(SOUTH_FRONTS.length);
+    expect(signCount(buildCity())).toBe(SOUTH_FRONTS.length + EXTRA_SIGNS);
   });
 });
 

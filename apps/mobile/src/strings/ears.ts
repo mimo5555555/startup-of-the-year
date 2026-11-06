@@ -46,6 +46,12 @@ export const en = {
   'cr.tally': 'Prizes won: {n}',
   'cr.bought': '{n} goes at the crane game: tap a crane machine to play.',
   'cr.noPlays': 'Buy goes from Shota first (¥100 a go): talk to him at the door.',
+  // the karaoke box (カラオケ「うたひろば」)
+  'kr.title': 'Karaoke: who sings with you?',
+  'kr.choose': 'Room 3 is yours today. Choose a friend to invite:',
+  'kr.noFriends': 'You have not met a friend yet. Talk to Mio in the park first, then come back: the room is yours until tonight.',
+  'kr.notBooked': 'No room booked today. Book one with Nanami at the desk (¥1,000 an hour for two).',
+  'kr.later': 'Later',
 } as const;
 
 export const ar: Record<keyof typeof en, string> = {
@@ -90,4 +96,9 @@ export const ar: Record<keyof typeof en, string> = {
   'cr.tally': 'الجوائز التي ربحتها: {n}',
   'cr.bought': '{n} محاولات في لعبة الرافعة: انقر على آلة رافعة لتلعب.',
   'cr.noPlays': 'اشترِ محاولات من شوتا أولًا (100 ين للمحاولة): كلّمه عند الباب.',
+  'kr.title': 'كاريوكي: من سيغنّي معك؟',
+  'kr.choose': 'الغرفة رقم 3 لك اليوم. اختر صديقًا لتدعوه:',
+  'kr.noFriends': 'لم تتعرّف إلى صديق بعد. كلّم ميو في الحديقة أولًا ثم عُد: الغرفة لك حتى الليلة.',
+  'kr.notBooked': 'لا غرفة محجوزة اليوم. احجز واحدة لدى نانامي عند المكتب (1,000 ين للساعة لشخصين).',
+  'kr.later': 'لاحقًا',
 };
