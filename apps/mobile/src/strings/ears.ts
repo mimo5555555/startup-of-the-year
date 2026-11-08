@@ -69,6 +69,13 @@ export const en = {
   'th.sing': 'Sing',
   'th.stop': 'Stop',
   'th.guide': 'Guide melody',
+  // the public bath (銭湯「桜の湯」): the bath sheet after paying at the bandai
+  'sb.title': 'In the bath',
+  'sb.intro': 'Put the bath manners in order: tap the steps from first to last.',
+  'sb.wrong': 'Not yet: something comes before that one.',
+  'sb.done': 'You are refreshed! Now tell Genzō how it was: 「いいお湯でした」, and have the after-bath milk.',
+  'sb.after': 'Talk to Genzō',
+  'sb.later': 'Later',
 } as const;
 
 export const ar: Record<keyof typeof en, string> = {
@@ -134,4 +141,10 @@ export const ar: Record<keyof typeof en, string> = {
   'th.sing': 'غنِّ',
   'th.stop': 'إيقاف',
   'th.guide': 'اللحن المرشد',
+  'sb.title': 'في الحمّام',
+  'sb.intro': 'رتّب آداب الحمّام: انقر على الخطوات من الأولى إلى الأخيرة.',
+  'sb.wrong': 'ليس بعد: هناك خطوة تأتي قبل هذه.',
+  'sb.done': 'انتعشت! الآن أخبر غينزو كيف كان: 「いいお湯でした」، واشرب حليب ما بعد الحمّام.',
+  'sb.after': 'تحدّث إلى غينزو',
+  'sb.later': 'لاحقًا',
 };

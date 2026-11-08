@@ -6,6 +6,7 @@ import { SOUTH_FRONTS, type DoorDef, type ShopDef } from '../layout';
 import { buildAiko } from './aiko';
 import { buildArcade } from './arcade';
 import { buildKaraoke } from './karaoke';
+import { buildSento } from './sento';
 import { buildCafe } from './cafe';
 import { buildDenki } from './denki';
 import { buildDoors } from './doors';
@@ -73,6 +74,7 @@ export const FRONT_STYLES: Record<SouthFrontId, FrontStyle> = {
   honya: { h: 8, wall: '#dfe4f0', trim: '#3f4a86', text: '本屋', bg: '#3f4a86', fg: '#ffffff', sub: 'honya' },
   hotel: { h: 12, wall: '#f0ece4', trim: '#9a8f7c', text: 'ホテル', bg: '#6b5b95', fg: '#ffffff', sub: 'hotel' },
   game: { h: 6.6, wall: '#f6e6c7', trim: '#d8433f', text: 'ゲーム', bg: '#d8433f', fg: '#fff', sub: 'geemu' },
+  sento: { h: 6.4, wall: '#efe4cf', trim: '#5b4130', text: '銭湯', bg: '#24467a', fg: '#fff', sub: 'sentō' },
 };
 
 export interface FrontInfo {
@@ -99,4 +101,6 @@ export const FRONT_OVERRIDES: Partial<Record<SouthFrontId, FrontOverride>> = {
   game: buildArcade,
   // カラオケ「うたひろば」: the karaoke box and Nanami (docs/ROADMAP.md)
   hotel: buildKaraoke,
+  // 銭湯「桜の湯」: the public bath and Genzō (docs/ROADMAP.md)
+  sento: buildSento,
 };

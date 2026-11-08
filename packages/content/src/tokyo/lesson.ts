@@ -44,4 +44,8 @@ export const SIGNS: SignDef[] = [
   { id: 'post', lex: 'ポスト' },
   { id: 'ticket', lex: '券売機' },
   { id: 'bin', lex: 'ごみ箱' },
+  // the public bath: its board, its chimney and its curtains
+  { id: 'sento', lex: '銭湯' },
+  { id: 'chimney', lex: '煙突' },
+  { id: 'noren', lex: 'のれん' },
 ];

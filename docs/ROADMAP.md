@@ -61,12 +61,26 @@ game, a bigger city with better conversations, and the same game for German, Dut
   * Results are filed (`media_done`, the best score per episode, `GameState.media`) and an episode or song counts for the day's
     listening goal. Tests: content theatre (lexicon, quiz, morae = reading), app theatre (timing), e2e `theatre.mjs` (EN/AR).
 
+* **銭湯「桜の湯」 (Sakura-no-yu), the public bath** — the south row extended east past the game centre (x 67.4..80.4): a one-storey bath
+  under a brick chimney with ゆ (steam from its top), a curved karahafu gable over the door, the 男 (indigo) and 女 (crimson) noren, wooden
+  lattice, paper lanterns, the shoe lockers and a bench with bottles of coffee milk. Genzō (松田源三, 74, the old owner, voice ちび式じい)
+  stands in the doorway. Opens with Chapter 2.
+  * `sento_desk` teaches 大人一人お願いします, renting a towel (タオルを借りたいです / 持っています), the bath manners (かけ湯 first, the towel
+    out of the water; かけ湯って何ですか is answered) and paying: ¥550 for the bath, ¥100 for the towel (menu sento:adult / sento:rent, one
+    payment), **cash only** (カードは使えますか → うちは現金だけなんです; nothing is charged).
+  * After paying, the bath sheet comes up on the street: a painted Mount Fuji over the bath, steam, and the four steps (SENTO_STEPS:
+    かけ湯をする, 体を洗う, お湯につかる, 体をふいてから出る) to put in order; each one placed is spoken and explained. さっぱり！ then starts
+    `sento_after`: 「いいお湯でした」 and the after-bath bottle (コーヒー牛乳 / フルーツ牛乳 / 牛乳, ¥150), drunk with a hand on the hip.
+  * Culture cards `cc_sento` (the manners, cash only) and `cc_yuagari` (いいお湯でした, a say-it card). Tapping the board teaches 銭湯, the
+    chimney 煙突, the curtains のれん. Tests: engine sento (every chip, typed route, cash only, one charge), content sento (the steps), world
+    buildings-sento (colliders, gaps, picks, chimney), e2e `sento.mjs` (EN/AR).
+
 ## Next (Tokyo)
 
-1. **City growth (more)** — a side street with a sentō (public bath) for the manners set.
-2. **Better conversations** — a pass over every shop scenario: more ways to say each request (synonyms in intents), small talk the
+1. **Better conversations** — a pass over every shop scenario: more ways to say each request (synonyms in intents), small talk the
    clerk starts when you come back ("また来てくれたんですね"), remembered choices (Daichi asks how the red ninja is doing), and the
-   recorded voice for the new lines (VOICEVOX run; Daichi needs a young male voice).
+   recorded voice for the new lines (VOICEVOX run).
+2. **More for the Mini-theatre** — more episodes (one per new place: the bath, the figure shop, the game centre) and a second song.
 
 ## Other languages (German in Berlin first)
 

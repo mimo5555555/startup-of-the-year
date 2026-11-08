@@ -4,6 +4,30 @@ import type { Character } from '../types';
  * scenario; scenarios that do not exist yet are authored by later slices (the world skips a spawn whose scenario is missing). */
 export const EXTRA_CHARACTERS: Character[] = [
   {
+    id: 'genzo',
+    name: { ja: '松田 源三', reading: 'まつだ げんぞう', en: 'Genzō Matsuda', ar: 'غينزو ماتسودا' },
+    age: 74,
+    job: { en: 'Owner of Sakura-no-yu, the public bath (at the bandai)', ar: 'صاحب ساكورا نو يو، الحمّام العام (عند مكتب الاستقبال)' },
+    bio: {
+      en: 'The third owner of the neighbourhood bath, at the bandai every afternoon for fifty years. Kind, a little gruff, and very particular about bath manners.',
+      ar: 'ثالث صاحب لحمّام الحي، يجلس عند مكتب الاستقبال كل ظهيرة منذ خمسين عامًا. طيب وفظّ قليلًا، ويهتم كثيرًا بآداب الحمّام.',
+    },
+    personality: { en: 'Kind, old-fashioned', ar: 'طيب، تقليدي' },
+    interests: ['nature', 'food', 'history'],
+    speaking: { rate: 0.92, pitch: 0.85, voice: 'm' },
+    avatar: {
+      skin: '#e9c3a4',
+      hair: { style: 'bald', color: '#d6d6dc' },
+      top: '#2f4f7f',
+      bottom: '#3a3f55',
+      shoes: '#5a4335',
+      accent: '#ffffff',
+      accessories: ['headband', 'glasses'],
+    },
+    locationId: 'sento',
+    scenarioId: 'sento_desk',
+  },
+  {
     id: 'nanami',
     name: { ja: '小林 七海', reading: 'こばやし ななみ', en: 'Nanami Kobayashi', ar: 'نانامي كوباياشي' },
     age: 25,

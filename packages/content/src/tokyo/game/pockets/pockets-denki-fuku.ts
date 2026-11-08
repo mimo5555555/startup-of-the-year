@@ -23,6 +23,11 @@ export const DENKI_FUKU_POCKETS: Record<string, PocketLine> = Object.fromEntries
   P('p_hobby_2', L('赤い|の|を|ください。', 'The red one, please.', 'الأحمر من فضلك.'), true),
   P('p_hobby_3', L('どちら|が|人気|です|か？', 'Which one is more popular?', 'أيّهما أكثر رواجًا؟')),
   P('p_hobby_4', L('ラッピング|を|お願いします。', 'Gift wrapping, please.', 'التغليف من فضلك.')),
+  // 銭湯「桜の湯」 (sento_desk, sento_after)
+  P('p_sento_1', L('大人|一人|お願いします。', 'One adult, please.', 'شخص بالغ واحد من فضلك.'), true),
+  P('p_sento_2', L('タオル|を|借りたい|です。', 'I would like to rent a towel.', 'أريد أن أستأجر منشفة.')),
+  P('p_sento_3', L('いい|お湯|でした！', 'It was a lovely bath!', 'كان حمّامًا رائعًا!'), true),
+  P('p_sento_4', L('コーヒー牛乳|を|ください。', 'A coffee milk, please.', 'حليب بالقهوة من فضلك.')),
   // Fuku-Fuku (fuku_clothes)
   P('p_fuku_1', L('Tシャツ|を|探しています。', 'I am looking for a T-shirt.', 'أبحث عن قميص تي شيرت.'), true),
   P('p_fuku_2', L('試着|して|も|いい|です|か？', 'May I try it on?', 'هل يمكنني تجربته؟')),

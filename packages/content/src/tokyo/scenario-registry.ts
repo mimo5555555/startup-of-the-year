@@ -6,6 +6,7 @@ import { FUKU_SCENARIOS } from './scenarios-fuku';
 import { HOBBY_SCENARIOS } from './scenarios-hobby';
 import { ARCADE_SCENARIOS } from './scenarios-arcade';
 import { KARAOKE_SCENARIOS } from './scenarios-karaoke';
+import { SENTO_SCENARIOS } from './scenarios-sento';
 import { FUKU_HOME_SCENARIOS } from './scenarios-fuku-home';
 import { HOME_SCENARIOS } from './scenarios-home';
 import { AIKO_SCENARIOS } from './scenarios-aiko';
@@ -27,6 +28,7 @@ export const SCENARIOS: Scenario[] = [
   ...HOBBY_SCENARIOS,
   ...ARCADE_SCENARIOS,
   ...KARAOKE_SCENARIOS,
+  ...SENTO_SCENARIOS,
   ...FUKU_HOME_SCENARIOS,
   ...HOME_SCENARIOS,
   ...AIKO_SCENARIOS,

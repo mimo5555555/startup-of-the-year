@@ -19,6 +19,7 @@ import { STRINGS, translate, type StringKey } from '../i18n';
 import { blip, haptic } from '../services';
 import { setLoopFactsHook, setStreakCharmHook, flushNow, useStore, type VocabItem } from '../store';
 import { useKaraoke } from './karaokeStore';
+import { SENTO_BATH_ITEM, useSento } from './sentoStore';
 import { useUi, type ConvoRequest, type ScreenArgs } from '../ui';
 import { PACK, beatById, friendById } from './pack';
 import { heartEventOfBeat, pendingHeartBeats } from './friendsLogic';
@@ -81,6 +82,8 @@ export function dispatch(event: InputEvent): ReduceResult {
   if (event.t === 'purchase' && playsNow > playsBefore) useStore.getState().say(translate(useStore.getState().uiLang, 'cr.bought', { n: playsNow }), 'good');
   // a karaoke room just paid for: the invite sheet comes up on the street (after the conversation and its debrief)
   if (event.t === 'purchase' && (result.state.karaoke?.booked ?? -1) === result.state.clock.dayIndex && (before.karaoke?.booked ?? -1) !== before.clock.dayIndex) useKaraoke.getState().setOpen(true);
+  // the bath just paid for at Genzō's bandai: the bath sheet comes up on the street (after the conversation and its debrief)
+  if (event.t === 'purchase' && event.itemId === SENTO_BATH_ITEM && result.state.totals.spent > before.totals.spent) useSento.getState().setOpen(true);
   return result;
 }
 

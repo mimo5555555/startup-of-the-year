@@ -268,4 +268,23 @@ export const CULTURE: CultureCard[] = [
       ar: 'آداب المعبد: اغسل يديك وفمك عند حوض الماء (手水舎، تشوزويا)، وارمِ قطعة نقدية، واقرع الجرس، ثم انحنِ مرتين وصفّق مرتين وتمنَّ بصمت وانحنِ مرة أخرى. لا أحد يمانع خطأً صغيرًا.',
     },
   }),
+  c({
+    id: 'cc_sento',
+    trigger: { on: 'payment', ids: ['sento'] },
+    phrase: { ja: 'かけ湯', en: 'kakeyu (rinsing before the bath)', ar: 'كاكيو (الاغتسال قبل الحوض)' },
+    text: {
+      en: 'A sentō is a neighbourhood public bath: you pay at the bandai, leave your shoes in a locker and undress in the changing room. Pour hot water over yourself (かけ湯) and wash at the taps BEFORE you get in, keep your small towel out of the water (on your head is fine), and dry off before you go back to the changing room. Many sentō take cash only.',
+      ar: 'السنتو حمّام عام في الحي: تدفع عند مكتب الاستقبال، وتترك حذاءك في خزانة وتخلع ملابسك في غرفة التبديل. اسكب الماء الساخن على جسمك (كاكيو) واغتسل عند الصنابير قبل أن تدخل الحوض، وأبقِ منشفتك الصغيرة خارج الماء (على رأسك لا بأس)، وجفّف جسمك قبل العودة إلى غرفة التبديل. كثير من الحمّامات تقبل النقد فقط.',
+    },
+  }),
+  c({
+    id: 'cc_yuagari',
+    trigger: { on: 'intent', ids: ['sento_after:good_bath'] },
+    phrase: { ja: 'いい|お湯|でした', en: 'It was a lovely bath', ar: 'كان حمّامًا رائعًا' },
+    text: {
+      en: 'After a bath people say 「いいお湯でした」 ("the water was lovely"), to the bath owner or to a host whose bath they used. Then comes the after-bath treat: a cold bottle of coffee milk (or fruit milk) from the fridge by the bandai, drunk in one go with a hand on the hip.',
+      ar: 'بعد الحمّام يقول الناس 「いいお湯でした」 ("كان الماء رائعًا") لصاحب الحمّام أو للمضيف الذي استخدموا حمّامه. ثم تأتي متعة ما بعد الحمّام: زجاجة باردة من الحليب بالقهوة (أو بالفواكه) من الثلاجة بجانب المكتب، تُشرب دفعة واحدة واليد على الخصر.',
+    },
+    say: true,
+  }),
 ];

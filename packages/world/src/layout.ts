@@ -49,7 +49,7 @@ export const SHOPS: ShopDef[] = [
 export const shopRect = (s: ShopDef): Rect => ({ x0: s.cx - s.w / 2, x1: s.cx + s.w / 2, z0: FRONT_Z - s.d, z1: FRONT_Z });
 
 /** Something a spawn can stand inside of: a shop diorama, or Aiko's street stall (the restyled florist front). */
-export type SpawnSite = ShopDef['id'] | 'aiko_stall' | 'arcade' | 'karaoke';
+export type SpawnSite = ShopDef['id'] | 'aiko_stall' | 'arcade' | 'karaoke' | 'sento';
 
 export interface NpcSpawn {
   id: string;
@@ -82,6 +82,8 @@ export const NPC_SPAWNS: NpcSpawn[] = [
   { id: 'shota', x: 63, z: 9.2, face: Math.PI, radius: 4.6, kind: 'scenario', site: 'arcade' },
   // the karaoke box's door (the hotel front restyled), beside its price board
   { id: 'nanami', x: 52.2, z: 9.2, face: Math.PI, radius: 4.6, kind: 'scenario', site: 'karaoke' },
+  // the public bath's doorway, between the men's and the women's curtains (the bandai is just inside)
+  { id: 'genzo', x: 73.9, z: 9.2, face: Math.PI, radius: 4.6, kind: 'scenario', site: 'sento' },
 ];
 
 export const PLAYER_START = { x: 3.2, z: -6.7, heading: Math.PI };
@@ -148,8 +150,9 @@ export const bikeRect = (b: { x: number; z: number; ry: number }): Rect => {
 
 /** South-side decorative fronts: solid boxes at front plane z = 9.7, depth 9 (an NPC cannot stand inside them). */
 export const SOUTH_FRONT = { z0: 9.7, d: 9, gap: 0.4, x0: 15 };
-export const SOUTH_FRONTS: Array<{ id: 'izakaya' | 'yakkyoku' | 'hanaya' | 'honya' | 'hotel' | 'game'; w: number; cx: number; rect: Rect }> = (() => {
-  const defs = [['izakaya', 8], ['yakkyoku', 8], ['hanaya', 7], ['honya', 8], ['hotel', 11], ['game', 8]] as const;
+export const SOUTH_FRONTS: Array<{ id: 'izakaya' | 'yakkyoku' | 'hanaya' | 'honya' | 'hotel' | 'game' | 'sento'; w: number; cx: number; rect: Rect }> = (() => {
+  // the public bath (sento, x 67.4..80.4) extends the row east past the game centre
+  const defs = [['izakaya', 8], ['yakkyoku', 8], ['hanaya', 7], ['honya', 8], ['hotel', 11], ['game', 8], ['sento', 13]] as const;
   let x = SOUTH_FRONT.x0;
   return defs.map(([id, w]) => {
     const cx = x + w / 2;
@@ -195,6 +198,21 @@ export const KARAOKE = {
   pick: 'karaoke:room',
   /** where the friend the player sings with stands while the room's conversation runs: beside the door, facing the street */
   guest: { x: 50.4, z: 9.0, face: Math.PI },
+};
+
+/**
+ * 銭湯「桜の湯」 (Sakura-no-yu): the public bath front (x 67.4..80.4), one storey under a tall chimney. Genzō (NPC_SPAWNS) stands in the
+ * doorway between the 男 and 女 curtains under a curved gable; a wooden bench (west) and the shoe lockers (east) stand flush against the wall,
+ * the only colliders it adds. The sign teaches 銭湯, the chimney 煙突, the curtains のれん (picks of the SIGNS table).
+ */
+export const SENTO = {
+  front: 'sento' as const,
+  sign: { text: '桜の湯', sub: 'sakura no yu' },
+  bench: boxRect(69.6, 9.4, 1.7, 0.6),
+  lockers: boxRect(77.4, 9.4, 1.6, 0.6),
+  lockersH: 1.5,
+  /** the chimney on the roof, behind the front's face (inside the front's own collider) */
+  chimney: { x: 78.5, z: 16.2, r: 0.62, top: 19.4 },
 };
 
 export type DoorId = 'door:dorm' | 'door:mio' | 'door:kenji' | 'door:aiko' | 'door:flat';
@@ -325,6 +343,8 @@ export function layoutColliders(): Array<{ id: string; rect: Rect }> {
   for (const [id, rect] of Object.entries(SHOP_COUNTERS)) out.push({ id: `counter:${id}`, rect: rect! });
   ARCADE.cranes.forEach((rect, i) => out.push({ id: `arcade:crane${i}`, rect }));
   out.push({ id: 'karaoke:board', rect: KARAOKE.board });
+  out.push({ id: 'sento:bench', rect: SENTO.bench });
+  out.push({ id: 'sento:lockers', rect: SENTO.lockers });
   for (const f of SOUTH_FRONTS) out.push({ id: `front:${f.id}`, rect: f.rect });
   out.push({ id: 'alley', rect: ALLEY });
   out.push({ id: 'counter:aiko', rect: AIKO_STALL.counter });

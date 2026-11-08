@@ -27,6 +27,7 @@ export const VOICE_SPEAKERS: Record<string, { id: number; name: string }> = {
   daichi: { id: 67, name: '栗田まろん' }, // 27, the figure shop's enthusiastic collector
   shota: { id: 57, name: '猫使アル' }, // 22, cheerful game-centre staff (うきうき)
   nanami: { id: 24, name: 'WhiteCUL' }, // 25, the karaoke box's bubbly desk (たのしい)
+  genzo: { id: 42, name: 'ちび式じい' }, // 74, the old owner of the public bath
   [CUSTOMER]: { id: 107, name: '東北ずん子' },
   [NARRATOR]: { id: 29, name: 'No.7' },
 };

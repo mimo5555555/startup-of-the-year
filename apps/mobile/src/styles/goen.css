@@ -1934,3 +1934,168 @@ html[dir='rtl'] .kyo-host {
   background: var(--accent);
   color: #fff;
 }
+
+/* the public bath (銭湯「桜の湯」): the bath sheet */
+.sb-sheet {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.sb-mural {
+  position: relative;
+  height: 118px;
+  border-radius: 14px;
+  overflow: hidden;
+  background: linear-gradient(180deg, #8cc8ef 0%, #c4e4f6 62%, #e9f4fa 62%);
+}
+.sb-fuji {
+  position: absolute;
+  left: 50%;
+  bottom: 38%;
+  width: 230px;
+  height: 92px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #4f74a8, #2f5585);
+  clip-path: polygon(0 100%, 40% 8%, 60% 8%, 100% 100%);
+}
+.sb-snow {
+  position: absolute;
+  left: 50%;
+  bottom: calc(38% + 58px);
+  width: 82px;
+  height: 34px;
+  transform: translateX(-50%);
+  background: #fff;
+  clip-path: polygon(0 100%, 22% 0, 78% 0, 100% 100%, 80% 70%, 62% 100%, 44% 72%, 28% 100%);
+}
+.sb-water {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 38%;
+  background: repeating-linear-gradient(90deg, #e9eef2 0 22px, #d3dde4 22px 24px), #e9eef2;
+}
+.sb-water::after {
+  content: '';
+  position: absolute;
+  left: 8%;
+  right: 8%;
+  top: 30%;
+  bottom: 0;
+  border-radius: 10px 10px 0 0;
+  background: linear-gradient(180deg, rgba(120, 190, 230, 0.85), rgba(80, 160, 210, 0.9));
+}
+.sb-steam {
+  position: absolute;
+  bottom: 30%;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.55);
+  filter: blur(8px);
+  animation: sb-rise 4.5s ease-in infinite;
+}
+.sb-steam.s1 {
+  left: 22%;
+}
+.sb-steam.s2 {
+  left: 48%;
+  animation-delay: 1.5s;
+}
+.sb-steam.s3 {
+  left: 72%;
+  animation-delay: 3s;
+}
+@keyframes sb-rise {
+  0% {
+    transform: translateY(0) scale(0.6);
+    opacity: 0;
+  }
+  30% {
+    opacity: 0.9;
+  }
+  100% {
+    transform: translateY(-70px) scale(1.4);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .sb-steam {
+    animation: none;
+    opacity: 0.4;
+  }
+}
+.sb-sappari {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font-size: 28px;
+  font-weight: 800;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(36, 70, 122, 0.6);
+}
+.sb-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sb-step {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 10px;
+  text-align: start;
+  font: inherit;
+  cursor: pointer;
+}
+.sb-step .sb-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.sb-num {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  font-weight: 800;
+  background: rgba(127, 127, 127, 0.12);
+  color: var(--fg-2);
+}
+.sb-step.placed {
+  border-color: #24467a;
+  background: rgba(36, 70, 122, 0.08);
+}
+.sb-step.placed .sb-num {
+  background: #24467a;
+  color: #fff;
+}
+.sb-tip {
+  color: var(--fg-2);
+}
+.sb-step.wrong {
+  animation: sb-shake 0.35s ease;
+  border-color: #b0303a;
+}
+@keyframes sb-shake {
+  25% {
+    transform: translateX(-5px);
+  }
+  75% {
+    transform: translateX(5px);
+  }
+}
+.sb-done {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}

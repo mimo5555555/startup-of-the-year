@@ -14,8 +14,10 @@ const IDS = [
   'cc_crane',
   // the karaoke box: pay first, by the hour, private rooms
   'cc_karaoke',
+  // the public bath: the bath manners (かけ湯), and いいお湯でした with the after-bath milk
+  'cc_sento', 'cc_yuagari',
 ];
-const SAY = ['cc_bow', 'cc_itadakimasu', 'cc_gift', 'cc_keigo', 'cc_ic', 'cc_trainmanner', 'cc_refuse', 'cc_shoesoff', 'cc_crane'];
+const SAY = ['cc_bow', 'cc_itadakimasu', 'cc_gift', 'cc_keigo', 'cc_ic', 'cc_trainmanner', 'cc_refuse', 'cc_shoesoff', 'cc_crane', 'cc_yuagari'];
 const hasAr = (s: string) => /[؀-ۿ]/.test(s);
 const slots = (s: string) => [...s.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join();
 const parts = (ja: string) => ja.split(/\s+[/／]\s+/);

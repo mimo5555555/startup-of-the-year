@@ -32,6 +32,7 @@ import { beginOwn, useOwn } from '../game/ownStore';
 import { useDisclosure, useGameState, useGameView, useTracker } from '../game/hooks';
 import { getGame } from '../game/gameStore';
 import { KaraokeInvite } from '../components/game/KaraokeInvite';
+import { SentoBath } from '../components/game/SentoBath';
 import { useKaraoke } from '../game/karaokeStore';
 import { PACK, shopById } from '../game/pack';
 import { festivalLineOf } from '../game/festivalSync';
@@ -472,6 +473,7 @@ export function WorldScreen() {
         )}
         {goods && screen === 'world' && <GoodsSheet shopId={goods.shopId} window={goods.window} onClose={() => setGoods(null)} />}
         {screen === 'world' && <KaraokeInvite />}
+        {screen === 'world' && <SentoBath />}
         {panel?.t === 'vending' && screen === 'world' && <VendingPanel onClose={() => setPanel(null)} />}
         {panel?.t === 'ticket' && screen === 'world' && <TicketPanel kind={panel.kind} onClose={() => setPanel(null)} />}
         {ritual && !kyoto && screen === 'world' && !inConvo && <WishRitual />}

@@ -90,6 +90,18 @@ export const SHOPS: ShopDef[] = [
     pay: ['cash'],
     sells: menuOf('arcade'),
   },
+  // 銭湯「桜の湯」 (the south side's public bath, east of the game centre) opens with Chapter 2: the bath, a rental towel and the after-bath milk,
+  // cash only like many sentō (Genzō says so when you ask for the card)
+  {
+    id: 'sento',
+    placeId: 'sento',
+    name: { en: 'Sakura-no-yu public bath', ar: 'حمّام ساكورا نو يو العام' },
+    openChapter: 2,
+    surface: 'world',
+    register: 'polite',
+    pay: ['cash'],
+    sells: menuOf('sento'),
+  },
   // ほしぞらホビー (Hoshizora Hobby), the figure shop at the east end of the street, opens with Chapter 2: cash and card, no points. Daichi sells
   // the original figure line (six figures) through `hobby_figures`; the figures are presents a friend may love.
   {
