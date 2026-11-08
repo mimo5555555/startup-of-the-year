@@ -24,6 +24,9 @@ export const VOICE_SPEAKERS: Record<string, { id: number; name: string }> = {
   fujiwara: { id: 109, name: '東北イタコ' }, // 58, refined Kyoto okami
   ishida: { id: 12, name: '白上虎太郎' }, // 34, soft-spoken temple attendant
   mori: { id: 16, name: '九州そら' }, // 41, matcha café owner
+  daichi: { id: 67, name: '栗田まろん' }, // 27, the figure shop's enthusiastic collector
+  shota: { id: 57, name: '猫使アル' }, // 22, cheerful game-centre staff (うきうき)
+  nanami: { id: 24, name: 'WhiteCUL' }, // 25, the karaoke box's bubbly desk (たのしい)
   [CUSTOMER]: { id: 107, name: '東北ずん子' },
   [NARRATOR]: { id: 29, name: 'No.7' },
 };
