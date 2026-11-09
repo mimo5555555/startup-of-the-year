@@ -119,7 +119,7 @@ export const CAFE: Scenario = {
       ],
       intents: [
         { id: 'wifi', any: ['wifi', 'わいふぁい', 'ぱすわど', 'ワイファイ'], next: 'wifi_answer', step: 'wifi', ideal: L('Wi-Fi|の|パスワード|を|教えてください。', 'Could you tell me the Wi‑Fi password?', 'هل يمكنك إخباري بكلمة مرور الواي فاي؟') },
-        { id: 'no_more', any: ['だいじょうぶ', '大丈夫', 'いいえ', 'けっこう', 'ありません', 'だけ'], next: 'price' },
+        { id: 'no_more', any: ['だいじょうぶ', '大丈夫', 'いいえ', 'けっこう', '結構', 'ありません', 'だけ', 'いじょう', '以上', 'ぜんぶ', '全部'], next: 'price' },
         // asking the price goes straight to the total
         { id: 'ask_price', any: ['いくら'], next: 'price' },
       ],
@@ -174,9 +174,10 @@ export const CAFE: Scenario = {
 // ---------- 2. Konbini ----------
 const KONBINI_ITEMS = ['onigiri', 'water', 'sandwich', 'bento', 'juice', 'milk', 'greenTea', 'cake', 'coffee'];
 const KONBINI_GIFTS = ['choco', 'manga', 'gameCard'];
-const BUY_WORDS = ['ください', 'おねがい', 'かいます'];
+// 「〜をください」 and the other ways people ask for something: 〜がほしいです, 〜にします, 〜をもらえますか / いただけますか
+const BUY_WORDS = ['ください', 'おねがい', 'かいます', '買います', 'ほしい', '欲しい', 'にします', 'もらえ', 'いただけ'];
 const konbiniBuy: IntentDef[] = [
-  { id: 'this_please', all: [['これ']], any: BUY_WORDS, alsoSlots: ['qty'], next: 'register', request: true, ideal: L('これ|を|ください。', 'This one, please.', 'هذا من فضلك.') },
+  { id: 'this_please', all: [['これ', 'それ', 'あれ']], any: BUY_WORDS, alsoSlots: ['qty'], next: 'register', request: true, ideal: L('これ|を|ください。', 'This one, please.', 'هذا من فضلك.') },
   { id: 'buy_item', slot: 'item', slotOptions: KONBINI_ITEMS, slotRequired: true, alsoSlots: ['qty'], any: BUY_WORDS, next: 'register', request: true, ideal: L('{item}|を|ください。', '{item}, please.', '{item} من فضلك.') },
   // 「ふたつください」 after the item is known; at most three of a thing (the qty slot offers three)
   { id: 'qty_please', slot: 'qty', slotRequired: true, any: BUY_WORDS, next: 'register', request: true, ideal: L('{qty}|ください。', '{qty}, please.', '{qty} من فضلك.') },
@@ -272,8 +273,9 @@ export const KONBINI: Scenario = {
         REPEAT_S,
       ],
       intents: [
-        { id: 'bag_no', any: ['だいじょうぶ', '大丈夫', 'いりません', 'いらない', 'いいえ', 'けっこう'], next: 'payment_a', step: 'bag' },
-        { id: 'bag_yes', any: ['はい', 'おねがい', 'ください', 'ほしい'], next: 'payment_b', step: 'bag' },
+        { id: 'bag_no', any: ['だいじょうぶ', '大丈夫', 'いりません', 'いらない', '要りません', '要らない', 'いいえ', 'けっこう', '結構', 'なしで', '無しで'], next: 'payment_a', step: 'bag' },
+        // 「袋なしでお願いします」 asks for no bag: お願い alone is not a yes
+        { id: 'bag_yes', any: ['はい', 'おねがい', 'ください', 'ほしい'], none: ['なしで', '無しで', 'いりません', 'いらない', '要りません', '要らない', 'けっこう', '結構'], next: 'payment_b', step: 'bag' },
         ...heatAnswers,
         later(),
       ],
@@ -435,8 +437,8 @@ const ramenBill: IntentDef[] = [
 const itadakimasu: IntentDef = { id: 'itadakimasu', any: ['いただきます', 'itadakimasu'], next: 'tasting' };
 const delicious: IntentDef = { id: 'delicious', any: ['おいしい', 'うまい', '美味しい', 'おいしー'], next: 'bill_prompt', step: 'tasty' };
 const spicyIntents = (hot: string, mild: string): IntentDef[] => [
-  { id: 'not_spicy', any: ['からくない', 'からくなく', 'からいのはちょっと', 'まいるど'], next: mild, step: 'spice' },
-  { id: 'spicy_ok', any: ['だいじょうぶ', '大丈夫', 'はい', 'だいすき', 'すき', 'からくてもいい'], none: ['からくない'], next: hot, step: 'spice' },
+  { id: 'not_spicy', any: ['からくない', 'からくなく', 'からいのはちょっと', 'まいるど', 'にがて', '苦手'], next: mild, step: 'spice' },
+  { id: 'spicy_ok', any: ['だいじょうぶ', '大丈夫', 'はい', 'だいすき', 'すき', 'からくてもいい'], none: ['からくない', 'にがて', '苦手'], next: hot, step: 'spice' },
 ];
 
 export const RAMEN: Scenario = {

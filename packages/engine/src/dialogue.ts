@@ -320,10 +320,18 @@ export class ConversationSession {
   }
 
   /** The node's best intent for the utterance; a speech turn with alternatives tries every one and keeps the best hit (§12.4). */
+  /** The node as it can be answered now: an intent gated on a flag (`IntentDef.when`) only while that flag is on. */
+  private get liveNode(): SceneNode {
+    const node = this.node;
+    if (!node.intents.some((i) => i.when)) return node;
+    return { ...node, intents: node.intents.filter((i) => !i.when || !!this.flags[i.when.flag]) };
+  }
+
   private matchNode(input: SubmitInput, text: string): IntentHit | null {
-    if (!this.hasAlternatives(input)) return matchNodeIntent(this.node, text);
+    const node = this.liveNode;
+    if (!this.hasAlternatives(input)) return matchNodeIntent(node, text);
     const alts = alternativesOf({ text: input.text, confidence: input.confidence ?? 1, alternatives: input.alternatives });
-    return pickBestAlternative(alts, (t) => matchNodeIntent(this.node, t), (h) => h.score)?.hit ?? null;
+    return pickBestAlternative(alts, (t) => matchNodeIntent(node, t), (h) => h.score)?.hit ?? null;
   }
 
   private matchManagement(input: SubmitInput, text: string): GlobalIntent | null {
@@ -386,6 +394,7 @@ export class ConversationSession {
       for (const a of hit.also ?? []) this.setSlot(a.slot, a.option);
       if (hit.rawName) this.baseVars.name = { ja: input.kana ? toKatakana(hit.rawName) : hit.rawName, raw: true };
       if (it.remember) this.remember(it.remember, hit);
+      if (it.unflag) this.flags[it.unflag] = false;
       if (it.ideal) learner.ideal = this.resolve(it.ideal);
       this.refreshVars();
 
@@ -498,7 +507,8 @@ export class ConversationSession {
   peekSuggestions(): ResolvedSuggestion[] {
     const node = this.node;
     if (node.end) return [];
-    const base = node.suggestionsByL1?.[this.opts.l1] ?? node.suggestions ?? [];
+    // a chip gated on a flag (`Suggestion.when`) shows only while the flag is on
+    const base = (node.suggestionsByL1?.[this.opts.l1] ?? node.suggestions ?? []).filter((s) => !s.when || !!this.flags[s.when.flag]);
     let list = base;
     if (node.topicSuggestions) {
       const topical: Suggestion[] = [];

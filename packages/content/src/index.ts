@@ -25,3 +25,4 @@ export { JP_LANGUAGE, parseNumbers, parseJaNumber, setSpeechNormalizer, yenToJa 
 export const CITY_ID = 'tokyo';
 export * from './tokyo/media/theatre';
 export { SENTO_STEPS, type BathStep } from './tokyo/scenarios-sento';
+export { REGULARS, withRegulars } from './tokyo/regulars';

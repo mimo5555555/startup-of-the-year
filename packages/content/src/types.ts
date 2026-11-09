@@ -93,6 +93,8 @@ export interface Suggestion {
   en: string;
   ar: string;
   tts?: string;
+  /** shown only while this flag is on (a shopkeeper who remembers what you bought: the chips that answer him) */
+  when?: { flag: string };
 }
 
 /** What an intent asks of the game's economy hooks (`SessionGameHooks.intent`, docs/GAME_DESIGN.md §6.2). */
@@ -132,6 +134,10 @@ export interface IntentDef {
   nextIfNo?: string;
   /** keeps what the learner said as a fact the friend remembers: the slot option id, the captured text or a literal */
   remember?: { fact: string; from: 'slot' | 'capture' | 'literal'; value?: string };
+  /** matched only while this flag is on (an answer to a question that is only asked then) */
+  when?: { flag: string };
+  /** turns this flag off when matched (the question is answered: its chips and its answer intent go away) */
+  unflag?: string;
 }
 
 export interface SayVariant {

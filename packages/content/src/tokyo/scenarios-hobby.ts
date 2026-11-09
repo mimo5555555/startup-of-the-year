@@ -58,7 +58,7 @@ const SOLD_OUT_LINE = L('すみません、|それ|は|品切れ|です。', 'So
 const NOT_YET_LINE = L('すみません、|それ|は|まだ|入荷|して|いません。', 'Sorry, that one has not come in yet.', 'آسف، هذا لم يصل بعد.');
 
 const later = (): IntentDef => ({ id: 'later', any: ['またきます', 'かんがえます', 'やめます'], next: 'leave' });
-const justLooking: IntentDef = { id: 'just_looking', any: ['みているだけ', '見ているだけ'], stay: true, reply: L('ごゆっくり|どうぞ！', 'Take your time!', 'خذ وقتك!') };
+const justLooking: IntentDef = { id: 'just_looking', any: ['みているだけ', '見ているだけ', 'みるだけ', '見るだけ', 'みても', '見ても'], stay: true, reply: L('ごゆっくり|どうぞ！', 'Take your time!', 'خذ وقتك!') };
 const askReco: IntentDef = { id: 'ask_reco', any: ['おすすめ', 'にんき', '人気'], next: 'reco' };
 const showNeko: IntentDef = { id: 'show_neko', any: ['ねこ', 'にんじゃ', '忍者', 'neko'], next: 'neko' };
 const showRobo: IntentDef = { id: 'show_robo', any: ['ろぼっと', 'ロボ', 'ろぼ'], next: 'robo' };
@@ -240,8 +240,9 @@ export const HOBBY_FIGURES: Scenario = {
         S('いいえ、|大丈夫|です。', 'No, that is fine.', 'لا، لا بأس.'),
       ],
       intents: [
-        { id: 'wrap_yes', any: ['ぷれぜんとよう', 'プレゼント用', 'らっぴんぐ', 'ラッピング', 'つつんで', '包んで', 'はい'], none: ['いいえ'], next: 'quote_wrap', step: 'wrap', request: true, ideal: L('ラッピング|を|お願いします。', 'Gift wrapping, please.', 'التغليف من فضلك.') },
-        { id: 'wrap_no', any: ['いいえ', 'だいじょうぶ', '大丈夫', 'けっこう', 'いらない'], next: 'quote', step: 'wrap' },
+        // 「ラッピングはいりません」 names the wrapping to refuse it: a no, never a yes
+        { id: 'wrap_yes', any: ['ぷれぜんとよう', 'プレゼント用', 'らっぴんぐ', 'ラッピング', 'つつんで', '包んで', 'はい'], none: ['いいえ', 'いりません', '要りません', 'いらない', '要らない', 'けっこう', '結構', 'じぶんよう', '自分用', 'なしで'], next: 'quote_wrap', step: 'wrap', request: true, ideal: L('ラッピング|を|お願いします。', 'Gift wrapping, please.', 'التغليف من فضلك.') },
+        { id: 'wrap_no', any: ['いいえ', 'だいじょうぶ', '大丈夫', 'けっこう', '結構', 'いらない', 'いりません', '要りません', '要らない', 'じぶんよう', '自分用', 'なしで'], next: 'quote', step: 'wrap' },
         later(),
       ],
     }),

@@ -28,6 +28,7 @@ import { visitFlags, type FriendPlan } from './friendsLogic';
 import { pieceColours, tryOnSpec } from './avatarFx';
 import { IC_SCENARIO, icHooks } from './icHooks';
 import { ownRoomFlags } from './ownLogic';
+import { lastBought, lastVar, regularFlags } from './regulars';
 
 /** Slot option ids of `qty` (slots/shop.ts) and of `payMethod`. */
 const QTY: Record<string, number> = { one: 1, two: 2, three: 3 };
@@ -238,10 +239,12 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
     if (st.owned[itemId]) commit({ t: 'outfit_changed', equipped: st.outfit.equipped, colours: { ...st.outfit.colours, [itemId]: hex } });
   };
 
+  // what the shopkeeper remembers you bought last time (the `remembers` greeting reads {last})
+  const remembered = lastVar(lastBought(deps.state(), meta));
   const shopHooks: SessionGameHooks = {
     vars(slots) {
       lastSlots = { ...slots };
-      const v: Vars = {};
+      const v: Vars = remembered ? { last: remembered } : {};
       const b = basketOf(slots);
       if (b) {
         let qs = quoteAll(b, methodOf(slots));
@@ -380,6 +383,8 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
     }
   }
   if (meta?.twist && twistFor(state.clock.dayIndex, scenarioId, plays)) flags.twist = true;
+  // a returning customer: the regular's greeting, and on every other visit the shopkeeper asks about the last thing you bought
+  Object.assign(flags, regularFlags(pack, state, meta));
   if (deps.friend) Object.assign(flags, deps.friend.flags);
   // a hang-out or a home visit: the friend's plain speech (the scenarios read no other flag)
   Object.assign(flags, visitFlags(pack, state, meta));

@@ -75,11 +75,24 @@ game, a bigger city with better conversations, and the same game for German, Dut
     chimney 煙突, the curtains のれん. Tests: engine sento (every chip, typed route, cash only, one charge), content sento (the steps), world
     buildings-sento (colliders, gaps, picks, chimney), e2e `sento.mjs` (EN/AR).
 
+* **Shopkeepers who know you** (better conversations, part 1). A shop conversation played before starts with the flag `regular`: the
+  shopkeeper greets a regular in their own voice (Tanaka 「いつもありがとうございます」, Kenji 「おっ、また来てくれたね！」, Sato 「また
+  お会いしましたね」…) and understands 「また来ました」. On every other return visit (the 2nd, 4th…), when you bought something there, the
+  flag `remembers` and the var {last} (that item, found in the ledger, as its slot option) make them ask about it: 「前回のおにぎり、どうでした
+  か？」, Daichi 「前回の赤いねこ忍者、元気にしていますか？」, Aiko 「…喜んでもらえましたか？」, Nakamura 「…調子はどうですか？」. Two answer
+  chips (good / so-so) show only then; an answer in your own words works too; the reply comes before you order and the chips go.
+  * Engine: `Suggestion.when` and `IntentDef.when` (shown / matched only while a flag is on), `IntentDef.unflag`. Content:
+    `tokyo/regulars.ts` adds all of it to the opening node of 17 shop conversations (`withRegulars`); `game/regulars.ts` finds the
+    last purchase and sets the flags. The voices are recorded once per item ({last}).
+  * **More ways to say each request**: an engine table of natural alternatives at the key steps (konbini, café, ramen, station, figure
+    shop, bath) found and fixed: 〜がほしいです / 〜にします / 〜をもらえますか as an order, それをください, 袋なしでお願いします (was a yes),
+    要りません, 以上です / これで全部です, 辛いのは苦手です, ラッピングはいりません (was a yes), 自分用です, 見てもいいですか, タオルは大丈夫です
+    (rented a towel). Tests: engine regulars + phrasing, app regulars, e2e `regulars.mjs` (EN/AR).
+
 ## Next (Tokyo)
 
-1. **Better conversations** — a pass over every shop scenario: more ways to say each request (synonyms in intents), small talk the
-   clerk starts when you come back ("また来てくれたんですね"), remembered choices (Daichi asks how the red ninja is doing), and the
-   recorded voice for the new lines (VOICEVOX run).
+1. **Better conversations, part 2** — small talk a shopkeeper starts about the season or the weather, and more phrasing cases for the
+   other shops (Hikari Denki, Fuku-Fuku, Nakamura Motors, Aiko's stall, the karaoke desk, the game centre).
 2. **More for the Mini-theatre** — more episodes (one per new place: the bath, the figure shop, the game centre) and a second song.
 
 ## Other languages (German in Berlin first)

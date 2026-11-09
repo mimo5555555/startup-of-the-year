@@ -35,18 +35,25 @@ function addLine(voice: string, l: { ja: string; tts?: string; reading?: string;
 /** most recordings one slot line may add (every combination of its slots' options) */
 const SLOT_CAP = 40;
 
-/** A line with slot variables: one recording per combination of options, resolved as the dialogue resolves it. */
-function addSlotLine(voice: string, l: Line) {
-  const slots = [...new Set([...l.ja.matchAll(/\{(\w+)\}/g)].map((m) => m[1]))];
-  if (!slots.length || l.tts || !slots.every((k) => SLOTS[k]?.length)) return;
-  if (slots.reduce((n, k) => n * SLOTS[k].length, 1) > SLOT_CAP) return;
-  const combos = slots.reduce<Vars[]>((acc, k) => acc.flatMap((v) => SLOTS[k].map((o) => ({ ...v, [k]: { ja: o.ja, gloss: o.gloss } }))), [{}]);
+/**
+ * A line with slot variables: one recording per combination of options, resolved as the dialogue resolves it. `as` names the slot a
+ * variable that is not a slot reads its options from ({last}, the shopkeeper's remembered purchase, is an option of the shop's item slot).
+ */
+function addSlotLine(voice: string, l: Line, as: Record<string, string> = {}) {
+  const vars = [...new Set([...l.ja.matchAll(/\{(\w+)\}/g)].map((m) => m[1]))];
+  const of = (k: string) => SLOTS[as[k] ?? k] ?? [];
+  if (!vars.length || l.tts || !vars.every((k) => of(k).length)) return;
+  if (vars.reduce((n, k) => n * of(k).length, 1) > SLOT_CAP) return;
+  const combos = vars.reduce<Vars[]>((acc, k) => acc.flatMap((v) => of(k).map((o) => ({ ...v, [k]: { ja: o.ja, gloss: o.gloss } }))), [{}]);
   for (const vars of combos) add(voice, resolveLine(l, LEXICON, vars).plain);
 }
 
 function addScenario(s: Scenario) {
   const who = VOICE_SPEAKERS[s.characterId] ? s.characterId : NARRATOR;
-  const line = (voice: string, l: Line) => (/[{}]/.test(l.ja) ? addSlotLine(voice, l) : addLine(voice, l));
+  // {last}: what the shopkeeper remembers you bought (tokyo/regulars.ts), an option of this conversation's item slot
+  const itemSlot = C.JP_PACK.scenarioMeta.find((m) => m.id === s.id)?.shop?.itemSlot;
+  const as: Record<string, string> = itemSlot ? { last: itemSlot } : {};
+  const line = (voice: string, l: Line) => (/[{}]/.test(l.ja) ? addSlotLine(voice, l, as) : addLine(voice, l));
   for (const node of Object.values(s.nodes)) {
     for (const v of node.say) line(who, v.line);
     for (const sg of node.suggestions ?? []) line(NARRATOR, sg);

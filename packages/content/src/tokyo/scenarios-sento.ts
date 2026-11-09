@@ -74,18 +74,25 @@ export const SENTO_DESK: Scenario = {
       say: [say(L('タオル|は|持って|います|か？|貸しタオル|は|百|円|です。', 'Do you have a towel? A rental towel is 100 yen.', 'هل معك منشفة؟ المنشفة المستأجرة بـ 100 ين.'))],
       suggestions: [S('タオル|を|借りたい|です。', 'I would like to rent a towel.', 'أريد أن أستأجر منشفة.'), S('持って|います。', 'I have one.', 'معي واحدة.'), S('タオル|を|お願いします。', 'A towel, please.', 'منشفة من فضلك.')],
       intents: [
-        { id: 'have_towel', any: ['もってい', '持ってい', 'あります', 'だいじょうぶ', '大丈夫'], none: ['ません', 'ない'], next: 'manners', step: 'towel' },
+        // 「持っています」, or a no-thanks (「タオルは大丈夫です」 / 「いりません」): Genzō takes it that you have your own
+        {
+          id: 'have_towel',
+          any: ['もってい', '持ってい', 'あります', 'だいじょうぶ', '大丈夫', 'いりません', '要りません', 'いらない', '要らない', 'けっこう', '結構'],
+          none: ['もっていません', '持っていません', 'もってない', '持ってない', 'ありません', 'ないです'],
+          next: 'manners',
+          step: 'towel',
+        },
         {
           id: 'rent_towel',
           slot: 'towel',
           slotRequired: true,
-          none: ['もってい', '持ってい'],
+          none: ['もってい', '持ってい', 'だいじょうぶ', '大丈夫', 'いりません', '要りません', 'いらない', '要らない', 'けっこう', '結構'],
           next: 'manners',
           step: 'towel',
           request: true,
           ideal: L('タオル|を|借りたい|です。', 'I would like to rent a towel.', 'أريد أن أستأجر منشفة.'),
         },
-        { id: 'no_towel', any: ['ません', 'ないです'], stay: true, reply: L('じゃあ、|貸しタオル|は|どう|です|か？|百|円|です。', 'Then how about a rental towel? It is 100 yen.', 'إذن ما رأيك بمنشفة مستأجرة؟ إنها بـ 100 ين.') },
+        { id: 'no_towel', any: ['ません', 'ないです'], none: ['いりません', '要りません'], stay: true, reply: L('じゃあ、|貸しタオル|は|どう|です|か？|百|円|です。', 'Then how about a rental towel? It is 100 yen.', 'إذن ما رأيك بمنشفة مستأجرة؟ إنها بـ 100 ين.') },
         later(),
       ],
     }),
