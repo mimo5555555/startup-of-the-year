@@ -134,9 +134,9 @@ export function withRegulars(sc: Scenario): Scenario {
   if (!r || !start) return sc;
   const intents: IntentDef[] = [];
   if (r.remembers && r.good) {
-    intents.push({ id: 'last_good', when: { flag: 'remembers' }, unflag: 'remembers', any: GOOD_KEYS, none: ['いいえ', ...MEH_KEYS], stay: true, reply: r.good });
+    intents.push({ id: 'last_good', when: { flag: 'remembers' }, unflag: 'remembers', boost: 3, any: GOOD_KEYS, none: ['いいえ', ...MEH_KEYS], stay: true, reply: r.good });
   }
-  if (r.remembers && r.meh) intents.push({ id: 'last_meh', when: { flag: 'remembers' }, unflag: 'remembers', any: MEH_KEYS, stay: true, reply: r.meh });
+  if (r.remembers && r.meh) intents.push({ id: 'last_meh', when: { flag: 'remembers' }, unflag: 'remembers', boost: 3, any: MEH_KEYS, stay: true, reply: r.meh });
   intents.push({ id: 'back_again', when: { flag: 'regular' }, any: AGAIN_KEYS, stay: true, reply: r.back ?? BACK });
   const chips: Suggestion[] = r.remembers && r.chips ? r.chips.map((c) => ({ ...c, when: { flag: 'remembers' } })) : [];
   return {

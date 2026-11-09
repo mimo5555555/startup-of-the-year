@@ -148,6 +148,7 @@ function evalIntent(it: IntentDef, norm: MatchForms, raw: string): IntentHit | n
     if (n) rawName = n;
   }
   if (!matchedSomething && !rawCountry) return null;
+  score += it.boost ?? 0;
   const hit: IntentHit = { intent: it, score, option, rawCountry, rawName };
   if (it.alsoSlots) {
     const also: NonNullable<IntentHit['also']> = [];

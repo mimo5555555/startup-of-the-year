@@ -89,6 +89,45 @@ const CASES: Case[] = [
   { id: 'sento_desk', path: ['大人一人お願いします。', '持っています。'], say: '了解です。', want: 'understood' },
   { id: 'sento_after', path: ['いいお湯でした！'], say: 'コーヒー牛乳を一本ください。', want: 'milk' },
   { id: 'sento_after', path: ['いいお湯でした！'], say: 'いいえ、大丈夫です。', want: 'no_thanks' },
+  // the karaoke desk: people, hours, paying
+  { id: 'karaoke_desk', path: [], say: '友達と二人です。', want: 'people' },
+  { id: 'karaoke_desk', path: [], say: '二人で二時間お願いします。', want: 'people_hours' },
+  { id: 'karaoke_desk', path: ['二人です。'], say: 'とりあえず一時間でお願いします。', want: 'pick_hours' },
+  { id: 'karaoke_desk', path: ['二人です。', '一時間お願いします。'], say: 'カードで払えますか？', want: 'pay_card' },
+  // the game centre: change, the price (asking is not buying), goes, help
+  { id: 'arcade_crane', path: [], say: '千円を両替してください。', want: 'ask_change' },
+  { id: 'arcade_crane', path: [], say: '百円玉にしてもらえますか？', want: 'ask_change' },
+  { id: 'arcade_crane', path: [], say: '一回いくらですか？', want: 'ask_price' },
+  { id: 'arcade_crane', path: [], say: '三回やります。', want: 'pick_plays' },
+  { id: 'arcade_crane', path: ['三回お願いします。'], say: '取りやすくしてください。', want: 'ask_assist' },
+  // Aiko's stall: a present, for whom, the wrapping
+  { id: 'aiko_tea', path: [], say: 'プレゼントを探しています。', want: 'want_present' },
+  { id: 'aiko_tea', path: [], say: '何がおすすめですか？', want: 'want_present' },
+  { id: 'aiko_tea', path: ['和菓子をください。'], say: '友達のミオさんにあげます。', want: 'name_friend' },
+  { id: 'aiko_tea', path: ['和菓子をください。'], say: '自分用です。', want: 'for_me' },
+  { id: 'aiko_tea', path: ['和菓子をください。', '自分用です。'], say: '包まなくていいです。', want: 'no_wrap' },
+  { id: 'aiko_tea', path: ['和菓子をください。', '自分用です。'], say: 'リボンは赤でお願いします。', want: 'pick_ribbon' },
+  // Hikari Denki: a phone, the cheaper one, the colour, buying, too expensive
+  { id: 'denki_phone', path: [], say: 'スマホがほしいです。', want: 'want_phone' },
+  { id: 'denki_phone', path: [], say: '新しい携帯を探しています。', want: 'want_phone' },
+  { id: 'denki_phone', path: ['スマホがほしいです。'], say: 'どちらが安いですか？', want: 'ask_cheaper' },
+  { id: 'denki_phone', path: ['スマホがほしいです。'], say: '中古のスマホはいくらですか？', want: 'ask_price_used' },
+  { id: 'denki_phone', path: ['スマホがほしいです。', '中古スマホをください。'], say: '黒がいいです。', want: 'pick_colour' },
+  { id: 'denki_phone', path: ['スマホがほしいです。', '中古スマホをください。', '黒でお願いします。'], say: 'これにします。', want: 'buy' },
+  { id: 'denki_phone', path: ['スマホがほしいです。', '中古スマホをください。', '黒でお願いします。'], say: 'ちょっと高いですね。', want: 'too_dear' },
+  // Fuku-Fuku: a piece, the size, trying it on
+  { id: 'fuku_clothes', path: [], say: 'Tシャツを探しています。', want: 'choose_clothes' },
+  { id: 'fuku_clothes', path: [], say: 'パーカーはありますか？', want: 'choose_clothes' },
+  { id: 'fuku_clothes', path: ['Tシャツをください。'], say: 'Mサイズでお願いします。', want: 'size_pick' },
+  { id: 'fuku_clothes', path: ['Tシャツをください。'], say: 'Lサイズがいいです。', want: 'size_pick' },
+  { id: 'fuku_clothes', path: ['Tシャツをください。', 'Mサイズでお願いします。', 'はい、いいです。'], say: '試着してもいいですか？', want: 'ask_try' },
+  // Nakamura Motors: a bicycle, what for, buying, haggling
+  { id: 'motors_bike', path: [], say: '自転車がほしいです。', want: 'want_bike' },
+  { id: 'motors_bike', path: [], say: '自転車を探しています。', want: 'want_bike' },
+  { id: 'motors_bike', path: ['自転車がほしいです。'], say: '買い物に使います。', want: 'pick_purpose' },
+  { id: 'motors_bike', path: ['自転車がほしいです。', '買い物に使います。'], say: 'ママチャリはいくらですか？', want: 'ask_price_bike' },
+  { id: 'motors_bike', path: ['自転車がほしいです。', '買い物に使います。', 'ママチャリをください。'], say: 'もう少し安くなりませんか？', want: 'too_dear' },
+  { id: 'motors_bike', path: ['自転車がほしいです。', '買い物に使います。', 'ママチャリをください。'], say: 'これにします。', want: 'buy' },
 ];
 
 function at(id: string, path: string[]): ConversationSession {

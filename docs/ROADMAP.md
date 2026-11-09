@@ -89,11 +89,24 @@ game, a bigger city with better conversations, and the same game for German, Dut
     要りません, 以上です / これで全部です, 辛いのは苦手です, ラッピングはいりません (was a yes), 自分用です, 見てもいいですか, タオルは大丈夫です
     (rented a towel). Tests: engine regulars + phrasing, app regulars, e2e `regulars.mjs` (EN/AR).
 
+* **Small talk about the season** (better conversations, part 2). The return visits now take turns: the shopkeeper remembers your last
+  purchase (2nd, 5th… visit), makes small talk (3rd, 6th…; also the 2nd when there is nothing to remember), or simply greets a regular
+  (4th, 7th…). The small talk follows the season in Tokyo on the real date (`seasonAt`: spring, the June rainy season 梅雨, summer,
+  autumn, winter): the shopkeeper's hello, a remark and 「〜は好きですか？」 (「涼しくなりましたね。秋は好きですか？」; Kenji and Genzō in plain
+  form), a yes chip that names the season (「はい、秋が好きです！」) and a no chip (「夏の方が好きです」, 「寒いのは苦手です」), both understood
+  in your own words; a warm reply (いいですね！ / わかります。風邪をひかないでくださいね) that leads back to the shop's own question. 14 shops
+  (`tokyo/smalltalk.ts`, `withSmallTalk`). Engine: `IntentDef.boost`, so the answer to the question just asked wins a close call over the
+  shop's own intents (Daichi's 「好き」) while a real order still wins.
+  * **Phrasing, the other shops**: the table grew to 94 cases (karaoke, the game centre, Aiko's stall, Hikari Denki, Fuku-Fuku, Nakamura
+    Motors); fixed 「一回いくらですか？」 (it bought a go instead of asking the price) and 「包まなくていいです」.
+  * Tests: engine smalltalk (every shop × every season, EN/AR), app regulars (the visit rotation, the season on the real date in Tokyo),
+    e2e `regulars.mjs` (four visits, EN/AR).
+
 ## Next (Tokyo)
 
-1. **Better conversations, part 2** — small talk a shopkeeper starts about the season or the weather, and more phrasing cases for the
-   other shops (Hikari Denki, Fuku-Fuku, Nakamura Motors, Aiko's stall, the karaoke desk, the game centre).
-2. **More for the Mini-theatre** — more episodes (one per new place: the bath, the figure shop, the game centre) and a second song.
+1. **More for the Mini-theatre** — more episodes (one per new place: the bath, the figure shop, the game centre) and a second song.
+2. **Small talk, more topics** — the weekend, the festival, the news of the town (a new shop opened), and shopkeepers who remember your
+   name.
 
 ## Other languages (German in Berlin first)
 

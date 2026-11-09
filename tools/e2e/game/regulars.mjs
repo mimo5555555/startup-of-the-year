@@ -1,8 +1,9 @@
 // Shopkeepers who know you, in the REAL UI at 360 px, English or Arabic (--ar):
 //   a fresh profile -> the konbini, first visit: the usual 「いらっしゃいませ。」, typed おにぎりをください / 大丈夫です / 現金で -> the second visit:
 //   Tanaka remembers (「前回のおにぎり、どうでしたか？」) with the two answer chips on top; the good chip is answered (「よかったです！…」) and the
-//   chips go; typed お茶をください … -> the third visit: the regular's greeting (いつもありがとうございます), no answer chips. Typed 「また来ました」
-//   is understood. After every step: no horizontal scroll, no console error, the wallet = its ledger.
+//   chips go; typed お茶をください … -> the third visit: small talk about the season (「涼しくなりましたね。秋は好きですか？」 in autumn), the
+//   yes chip, a warm reply back to the shop -> the fourth visit: the regular's greeting (いつもありがとうございます), no answer chips; typed
+//   「また来ました」 is understood. After every step: no horizontal scroll, no console error, the wallet = its ledger.
 // Usage: BASE=http://127.0.0.1:5173/ node tools/e2e/game/regulars.mjs [--ar]
 import assert from 'node:assert/strict';
 import { assertNoConsoleErrors, assertNoHScroll, liveGame, onboard, start } from './_common.mjs';
@@ -128,17 +129,37 @@ await finish();
 await check('after the second visit');
 step(`second visit: 「${first}」 → おいしかったです → 「${reply}」; bought green tea`);
 
-// the third visit: a regular, nothing asked
+// the third visit: small talk about the season (whatever the real date's season in Tokyo is)
 first = await visit();
-assert.ok(first.includes('いつも'), `third visit: the regular's greeting (${first})`);
-assert.ok(!first.includes('前回'), 'nothing asked this time');
-assert.ok(!(await chips()).some((c) => c.includes('おいしかった')), 'no answer chips');
+assert.ok(/好きですか|見ましたか/.test(first), `third visit: Tanaka makes small talk about the season (${first})`);
+cs = await chips();
+assert.ok(cs[0].startsWith('はい、'), `the yes chip is on top (${cs.join(' | ')})`);
+const yesChip = cs[0];
+await t.shot('smalltalk');
+const m = await page.locator('.msg.char').count();
+await page.locator('.sg').first().click();
+await lineAfter(m);
+const talkReply = await lastLine();
+assert.ok(talkReply.includes('いいですね') && talkReply.includes('ごゆっくり'), `a warm reply, then back to the shop (${talkReply})`);
+assert.ok(!(await chips()).includes(yesChip), 'answered: the small talk chips are gone');
+await type('水をください。');
+await type('大丈夫です。');
+await type('現金でお願いします。');
+await finish();
+await check('after the third visit');
+step(`third visit: 「${first}」 → ${yesChip} → 「${talkReply}」; bought water`);
+
+// the fourth visit: a regular, nothing asked
+first = await visit();
+assert.ok(first.includes('いつも'), `fourth visit: the regular's greeting (${first})`);
+assert.ok(!first.includes('前回') && !/好きですか|見ましたか/.test(first), 'nothing asked this time');
+assert.ok(!(await chips()).some((c) => c.includes('おいしかった') || c.startsWith('はい、')), 'no answer chips');
 await type('また来ました！');
 const back = await lastLine();
 assert.ok(back.includes('ありがとう'), `「また来ました」 is understood (${back})`);
 await t.shot('regular');
-await check('the third visit');
-step(`third visit: 「${first}」; また来ました → 「${back}」`);
+await check('the fourth visit');
+step(`fourth visit: 「${first}」; また来ました → 「${back}」`);
 
 await t.browser.close();
 console.log(`regulars e2e passed (${AR ? 'ar' : 'en'}) in ${Math.round((Date.now() - T0) / 1000)}s`);

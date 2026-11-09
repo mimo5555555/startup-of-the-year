@@ -138,6 +138,9 @@ export interface IntentDef {
   when?: { flag: string };
   /** turns this flag off when matched (the question is answered: its chips and its answer intent go away) */
   unflag?: string;
+  /** added to the match score: the answer to a question just asked wins a close call over the node's other intents (a real order,
+   * which also names its item, still outscores it) */
+  boost?: number;
 }
 
 export interface SayVariant {

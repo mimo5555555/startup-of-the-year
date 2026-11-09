@@ -1,6 +1,6 @@
 // Shopkeepers who know you (game/regulars.ts): the last thing bought from a conversation's menu is found in the ledger (the newest, never
 // the points lines), named by its slot option; a shop conversation played before starts with `regular`, and on every other return visit
-// with a purchase also with `remembers`. A first visit, a conversation that is not a shop, and goes at the crane game (three options, one
+// with a purchase also with `remembers`, the next with the season's small talk. A first visit, a conversation that is not a shop, and goes at the crane game (three options, one
 // item) remember nothing.
 import { describe, expect, it } from 'vitest';
 import { JP_PACK } from '@lw/content';
@@ -47,15 +47,30 @@ describe('what the shopkeeper remembers', () => {
 });
 
 describe('the flags a shop conversation starts with', () => {
-  it('none on the first visit; regular from the second; remembers on every other return visit with a purchase', () => {
+  it('none on the first visit; then in turn: the remembered purchase, the season small talk, the regular greeting alone', () => {
     let s = buy(fresh(), 'a', 'konbini', 'konbini:onigiri');
-    expect(regularFlags(JP_PACK, played(s, 'konbini', 0), meta('konbini'))).toEqual({});
-    expect(regularFlags(JP_PACK, played(s, 'konbini', 1), meta('konbini'))).toEqual({ regular: true, remembers: true });
-    expect(regularFlags(JP_PACK, played(s, 'konbini', 2), meta('konbini'))).toEqual({ regular: true });
-    expect(regularFlags(JP_PACK, played(s, 'konbini', 3), meta('konbini'))).toEqual({ regular: true, remembers: true });
-    // nothing bought there: a regular, but nothing to ask about
+    const at = (n: number) => regularFlags(JP_PACK, played(s, 'konbini', n), meta('konbini'), NOW);
+    expect(at(0)).toEqual({});
+    expect(at(1)).toEqual({ regular: true, remembers: true });
+    expect(at(2)).toEqual({ regular: true, talk_winter: true });
+    expect(at(3)).toEqual({ regular: true });
+    expect(at(4)).toEqual({ regular: true, remembers: true });
+    expect(at(5)).toEqual({ regular: true, talk_winter: true });
+    // nothing bought there: small talk instead of the question
     s = fresh();
-    expect(regularFlags(JP_PACK, played(s, 'cafe', 1), meta('cafe'))).toEqual({ regular: true });
+    expect(regularFlags(JP_PACK, played(s, 'cafe', 1), meta('cafe'), NOW)).toEqual({ regular: true, talk_winter: true });
+  });
+
+  it('the small talk follows the season in Tokyo on the real date', () => {
+    const s = played(fresh(), 'cafe', 2);
+    const on = (iso: string) => Object.keys(regularFlags(JP_PACK, s, meta('cafe'), Date.parse(iso))).find((k) => k.startsWith('talk_'));
+    expect(on('2030-04-05T12:00:00Z')).toBe('talk_spring');
+    expect(on('2030-06-20T12:00:00Z')).toBe('talk_rainy');
+    expect(on('2030-08-01T12:00:00Z')).toBe('talk_summer');
+    expect(on('2030-11-09T12:00:00Z')).toBe('talk_autumn');
+    expect(on('2030-12-24T12:00:00Z')).toBe('talk_winter');
+    // the last evening of February in Tokyo is already March: spring
+    expect(on('2030-02-28T16:00:00Z')).toBe('talk_spring');
   });
 
   it('a conversation that is not a shop gets neither', () => {

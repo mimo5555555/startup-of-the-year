@@ -161,7 +161,7 @@ export const AIKO_TEA: Scenario = {
       suggestions: [S('赤|を|お願いします。', 'Red, please.', 'الأحمر من فضلك.'), S('ピンク|が|いい|です。', 'I would like pink.', 'أريد الوردي.'), S('ラッピング|は|いりません。', 'No wrapping, thank you.', 'بدون تغليف، شكرًا.'), REPEAT_S],
       intents: [
         { id: 'pick_ribbon', slot: 'wrapColour', slotRequired: true, next: 'quote', step: 'wrap', request: true, ideal: L('{wrapColour}|を|お願いします。', '{wrapColour}, please.', '{wrapColour} من فضلك.') },
-        { id: 'no_wrap', any: ['いりません', 'いらない', 'けっこうです', 'なしで'], next: 'quote', step: 'wrap' },
+        { id: 'no_wrap', any: ['いりません', 'いらない', '要りません', 'けっこうです', '結構です', 'なしで', 'つつまなくて', '包まなくて', 'じぶんよう', '自分用'], next: 'quote', step: 'wrap' },
         askPrice,
         later(),
       ],

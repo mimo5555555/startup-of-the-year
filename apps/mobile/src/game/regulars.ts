@@ -1,8 +1,9 @@
 // Shopkeepers who know you (docs/ROADMAP.md, "better conversations"): a shop conversation played before opens with the regular's greeting
-// (flag `regular`), and on every other return visit (the 2nd, 4th, ...) the shopkeeper remembers what you bought last time and asks about
-// it (flag `remembers`, var {last}: the slot option of that item, so it reads 「前回のメロンパン、どうでしたか？」). The last purchase is
-// found in the ledger: the newest purchase of anything this conversation sells.
-import { SLOTS, type Vars } from '@lw/content';
+// (flag `regular`). The return visits take turns: the 2nd, 5th, 8th… the shopkeeper remembers what you bought last time and asks about it
+// (flag `remembers`, var {last}: the slot option of that item, so it reads 「前回のメロンパン、どうでしたか？」); the 3rd, 6th… they make
+// small talk about the season in Tokyo now (flag `talk_<season>`, tokyo/smalltalk.ts; also the 2nd when there is nothing to remember);
+// the 4th, 7th… just the regular's greeting. The last purchase is found in the ledger: the newest purchase of anything this conversation sells.
+import { SLOTS, seasonAt, type Vars } from '@lw/content';
 import type { GamePack, GameState, ScenarioMeta } from '@lw/game';
 
 export interface LastBought {
@@ -34,12 +35,18 @@ export function lastVar(last: LastBought | null): Vars[string] | null {
   return opt ? { ja: opt.ja, gloss: opt.gloss } : null;
 }
 
-/** The flags a shop conversation starts with: `regular` from the second visit, `remembers` on every other return visit with a purchase. */
-export function regularFlags(_pack: GamePack, state: GameState, meta: ScenarioMeta | undefined): Record<string, boolean> {
+/**
+ * The flags a shop conversation starts with: `regular` from the second visit; then, in turn, `remembers` (when something was bought),
+ * the season's small talk (`talk_<season>`, the real date in Tokyo), or nothing more.
+ */
+export function regularFlags(_pack: GamePack, state: GameState, meta: ScenarioMeta | undefined, nowMs = Date.now()): Record<string, boolean> {
   if (!meta || meta.kind !== 'shop') return {};
   const plays = state.runs[meta.id]?.count ?? 0;
   if (plays < 1) return {};
   const flags: Record<string, boolean> = { regular: true };
-  if (plays % 2 === 1 && lastVar(lastBought(state, meta))) flags.remembers = true;
+  const turn = plays % 3;
+  const canRemember = !!lastVar(lastBought(state, meta));
+  if (turn === 1 && canRemember) flags.remembers = true;
+  else if (turn === 1 || turn === 2) flags[`talk_${seasonAt(nowMs)}`] = true;
   return flags;
 }

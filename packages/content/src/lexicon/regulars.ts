@@ -22,4 +22,18 @@ export const REGULARS_LEXICON: LexEntry[] = [
   w('まあ', '', 'oh my, well (surprise, delight)', 'يا إلهي، حسنًا (دهشة، سرور)'),
   w('あれば', '', 'if there is (anything)', 'إن كان هناك (شيء)'),
   w('あったら', '', 'if (something) happens, if there is', 'إن حدث (شيء)، إن كان هناك'),
+  // small talk about the season (tokyo/smalltalk.ts)
+  w('暖かく', 'あたたかく', 'warm (暖かくなりました = it has got warm)', 'دافئ (暖かくなりました = صار الجو دافئًا)'),
+  w('涼しく', 'すずしく', 'cool (涼しくなりました = it has got cooler)', 'منعش (涼しくなりました = صار الجو أبرد)'),
+  w('なった', '', 'became (plain)', 'صار (عامية)'),
+  w('見た', 'みた', 'saw, have seen (plain)', 'رأيتَ (عامية)'),
+  w('雨', 'あめ', 'rain', 'مطر'),
+  w('梅雨', 'つゆ', 'the rainy season (June)', 'موسم الأمطار (يونيو)'),
+  w('夏', 'なつ', 'summer', 'الصيف'),
+  w('冬', 'ふゆ', 'winter', 'الشتاء'),
+  w('暑い', 'あつい', 'hot (weather)', 'حار (الطقس)'),
+  w('苦手', 'にがて', 'not good with, not a fan of', 'لا أتحمّل، لا أحب كثيرًا'),
+  w('わかります', '', 'I understand', 'أفهم'),
+  w('風邪', 'かぜ', 'a cold', 'زكام'),
+  w('ひかないで', '', "don't catch (a cold)", 'لا تُصب (بالزكام)'),
 ];

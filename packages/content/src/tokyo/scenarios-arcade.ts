@@ -25,6 +25,8 @@ const pickPlays: IntentDef = {
   id: 'pick_plays',
   slot: 'plays',
   slotRequired: true,
+  // 「一回いくらですか？」 asks the price of a go: it buys nothing
+  none: ['いくら', 'ねだん', '値段'],
   next: 'quote',
   step: 'plays',
   request: true,
