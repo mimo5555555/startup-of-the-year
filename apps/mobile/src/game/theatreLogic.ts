@@ -47,11 +47,23 @@ export interface SongNote {
   midi: number;
 }
 
+/** A chord of the accompaniment: when, for how long, its root (MIDI) and whether it is minor. */
+export interface SongChord {
+  at: number;
+  dur: number;
+  root: number;
+  minor: boolean;
+}
+
+/** The pitch class a song's minor chords are built on when it names none: A (the Am of C major, the first song's key). */
+const DEFAULT_MINOR = [9];
+
 /** The song as a timeline: one note per mora, the lines one after another with a two-beat breath between them, and the chords. */
-export function songTimeline(song: Song): { notes: SongNote[]; chords: Array<{ at: number; dur: number; root: number }>; seconds: number } {
+export function songTimeline(song: Song): { notes: SongNote[]; chords: SongChord[]; seconds: number } {
   const beat = 60 / song.bpm;
   const notes: SongNote[] = [];
-  const chords: Array<{ at: number; dur: number; root: number }> = [];
+  const chords: SongChord[] = [];
+  const minor = (root: number) => (song.minor ?? DEFAULT_MINOR).includes(((root % 12) + 12) % 12);
   let t = beat * 2; // a two-beat count-in
   song.lines.forEach((l, li) => {
     const lineStart = t;
@@ -62,7 +74,10 @@ export function songTimeline(song: Song): { notes: SongNote[]; chords: Array<{ a
       notes.push({ line: li, mora: mi, at: t, dur: beats * beat, midi });
       t += beats * beat;
     });
-    chords.push({ at: lineStart, dur: halfAt - lineStart, root: l.chords[0] }, { at: halfAt, dur: t - halfAt + beat * 2, root: l.chords[1] });
+    chords.push(
+      { at: lineStart, dur: halfAt - lineStart, root: l.chords[0], minor: minor(l.chords[0]) },
+      { at: halfAt, dur: t - halfAt + beat * 2, root: l.chords[1], minor: minor(l.chords[1]) },
+    );
     t += beat * 2;
   });
   return { notes, chords, seconds: t + beat };

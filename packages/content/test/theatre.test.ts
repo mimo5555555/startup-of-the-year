@@ -8,7 +8,9 @@ const hasAr = (s: string) => /[؀-ۿ]/.test(s);
 
 describe('the Mini-theatre', () => {
   it('episodes: known characters, lexicon words, both languages, three answerable questions', () => {
-    expect(EPISODES.map((e) => e.id)).toEqual(['ep_konbini', 'ep_ramen', 'ep_hanami']);
+    expect(EPISODES.map((e) => e.id)).toEqual(['ep_konbini', 'ep_ramen', 'ep_crane', 'ep_hanami', 'ep_sento', 'ep_figure']);
+    // listed in the order they open
+    expect(EPISODES.map((e) => e.unlock)).toEqual([...EPISODES.map((e) => e.unlock)].sort((a, b) => a - b));
     for (const e of EPISODES) {
       for (const id of e.cast) expect(CHARACTERS.some((c) => c.id === id), `${e.id} cast ${id}`).toBe(true);
       for (const l of e.lines) {
@@ -25,8 +27,10 @@ describe('the Mini-theatre', () => {
     }
   });
 
-  it('the song: lexicon words, one note per mora, and the morae spell each line', () => {
+  it('the songs: lexicon words, one note per mora, and the morae spell each line', () => {
+    expect(SONGS.map((x) => x.id)).toEqual(['song_sakura', 'song_seasons']);
     for (const s of SONGS) {
+      for (const pc of s.minor ?? []) expect(pc >= 0 && pc <= 11, `${s.id}: minor pitch class ${pc}`).toBe(true);
       for (const l of s.lines) {
         expect(missing(l.line.ja), l.line.ja).toEqual([]);
         expect(l.notes, l.line.ja).toHaveLength(l.morae.length);

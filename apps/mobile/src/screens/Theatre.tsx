@@ -416,9 +416,9 @@ function SongPlayer({ song }: { song: Song }) {
         o.start(at);
         o.stop(at + dur + 0.05);
       };
-      // the chords: root and fifth in the bass, a soft major / minor triad above (minor on A, the only minor root here)
+      // the chords: root and fifth in the bass, a soft major / minor triad above (the song says which roots are minor)
       for (const c of timeline.chords) {
-        const third = c.root % 12 === 9 ? 3 : 4;
+        const third = c.minor ? 3 : 4;
         voice(hz(c.root), t0 + c.at, c.dur, 'sine', 0.55);
         voice(hz(c.root + 7), t0 + c.at, c.dur, 'sine', 0.25);
         for (const step of [12, 12 + third, 19]) voice(hz(c.root + step), t0 + c.at, c.dur, 'triangle', 0.12);

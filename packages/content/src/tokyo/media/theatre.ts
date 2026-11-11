@@ -19,7 +19,7 @@ export interface QuizItem {
   answer: number;
 }
 
-export type TheatreSetting = 'konbini' | 'ramen' | 'park';
+export type TheatreSetting = 'konbini' | 'ramen' | 'park' | 'arcade' | 'sento' | 'hobby';
 
 export interface Episode {
   id: string;
@@ -50,6 +50,8 @@ export interface Song {
   title: Gloss & { ja: string };
   bpm: number;
   unlock: number;
+  /** pitch classes (0 = C … 11 = B) of the chord roots that are minor; absent = A only (the Am of C major) */
+  minor?: number[];
   lines: SongLine[];
 }
 
@@ -99,6 +101,27 @@ export const EPISODES: Episode[] = [
     ],
   },
   {
+    id: 'ep_crane',
+    title: { ja: 'クレーンゲーム', en: 'The crane game', ar: 'لعبة الرافعة' },
+    setting: 'arcade',
+    cast: ['yuki', 'shota'],
+    unlock: 2,
+    lines: [
+      { who: 'shota', line: L('いらっしゃいませ！|クレーンゲーム、|やります|か？', 'Welcome! Will you play the crane game?', 'أهلًا بك! هل ستلعبين لعبة الرافعة؟') },
+      { who: 'yuki', line: L('はい！|あの|ぬいぐるみ|が|ほしい|です。', 'Yes! I want that plush toy.', 'نعم! أريد تلك الدمية المحشوة.') },
+      { who: 'shota', line: L('一回|百|円|です。|がんばって|ください！', 'One go is 100 yen. Good luck!', 'المحاولة الواحدة بـ 100 ين. بالتوفيق!') },
+      { who: 'yuki', line: L('あっ、|落ちました…。|もう一回！', 'Ah, it fell... One more go!', 'آه، سقطت... محاولة أخرى!') },
+      { who: 'yuki', line: L('すみません、|取りやすく|して|もらえますか？', 'Excuse me, could you make it easier to get?', 'عذرًا، هل يمكنك جعلها أسهل في الإمساك؟') },
+      { who: 'shota', line: L('いい|です|よ。|少し|動かします|ね。', 'Sure. I will move it a little.', 'بالتأكيد. سأحرّكها قليلًا.') },
+      { who: 'yuki', line: L('やった！|取れました！|ありがとう|ございます！', 'Yes! I got it! Thank you!', 'رائع! أمسكتها! شكرًا جزيلًا!') },
+    ],
+    quiz: [
+      { q: G('What does Yuki want?', 'ماذا تريد يوكي؟'), options: [G('A figure', 'مجسّمًا'), G('A plush toy', 'دمية محشوة'), G('A snack', 'وجبة خفيفة')], answer: 1 },
+      { q: G('How much is one go?', 'كم سعر المحاولة الواحدة؟'), options: [G('100 yen', '100 ين'), G('200 yen', '200 ين'), G('500 yen', '500 ين')], answer: 0 },
+      { q: G('How does Shota help?', 'كيف يساعدها شوتا؟'), options: [G('He gives her a free go', 'يعطيها محاولة مجانية'), G('He plays for her', 'يلعب بدلًا منها'), G('He moves the prize closer', 'يقرّب الجائزة')], answer: 2 },
+    ],
+  },
+  {
     id: 'ep_hanami',
     title: { ja: '公園でお花見', en: 'Cherry blossoms in the park', ar: 'أزهار الكرز في الحديقة' },
     setting: 'park',
@@ -117,6 +140,48 @@ export const EPISODES: Episode[] = [
       { q: G('What did Hanako bring?', 'ماذا أحضرت هاناكو؟'), options: [G('A bento', 'علبة غداء'), G('Tea', 'شايًا'), G('Flowers', 'زهورًا')], answer: 0 },
       { q: G('What is ohanami?', 'ما هو الأوهانامي؟'), options: [G('A spring festival dance', 'رقصة مهرجان الربيع'), G('Eating under the cherry blossoms', 'الأكل تحت أزهار الكرز'), G('A kind of sweet', 'نوع من الحلوى')], answer: 1 },
       { q: G("What is Mio's favourite season?", 'ما الفصل المفضّل لدى ميو؟'), options: [G('Autumn', 'الخريف'), G('Winter', 'الشتاء'), G('Spring', 'الربيع')], answer: 2 },
+    ],
+  },
+  {
+    id: 'ep_sento',
+    title: { ja: 'はじめての銭湯', en: 'The first public bath', ar: 'أول حمّام عام' },
+    setting: 'sento',
+    cast: ['rin', 'genzo'],
+    unlock: 3,
+    lines: [
+      { who: 'genzo', line: L('いらっしゃい！|銭湯|は|はじめて|です|か？', 'Welcome! Is this your first time at a public bath?', 'أهلًا! هل هذه أول مرة لك في حمّام عام؟') },
+      { who: 'rin', line: L('はい、|はじめて|です。|大人|一人|お願いします。', 'Yes, it is my first time. One adult, please.', 'نعم، إنها أول مرة. شخص بالغ واحد من فضلك.') },
+      { who: 'genzo', line: L('五|百|五|十|円|です。|入る|前|に、|かけ湯|を|して|ください|ね。', 'That is 550 yen. Before you get in, please pour hot water over yourself.', 'المبلغ 550 ينًا. قبل أن تدخلي، اسكبي الماء الساخن على جسمك.') },
+      { who: 'rin', line: L('かけ湯|って|何|です|か？', 'What is kakeyu?', 'ما هو الكاكيو؟') },
+      { who: 'genzo', line: L('お湯|を|体|に|かける|こと|です。|タオル|は|お湯|に|入れないで|ください。', 'It means pouring hot water over your body. Please keep the towel out of the bath.', 'يعني أن تسكبي الماء الساخن على جسمك. ولا تُدخلي المنشفة في ماء الحوض.') },
+      { who: 'rin', line: L('はい、|わかりました！|…ああ、|いい|お湯|でした！', 'Yes, I understand! ...Ahh, that was a lovely bath!', 'نعم، فهمت! ...آه، كان حمّامًا رائعًا!') },
+      { who: 'genzo', line: L('はは、|よかった。|お風呂|の|後|は、|コーヒー牛乳|が|一番|です|よ。', 'Ha ha, good. After a bath, coffee milk is the best.', 'ها ها، جيد. بعد الحمّام، الحليب بالقهوة هو الأفضل.') },
+    ],
+    quiz: [
+      { q: G('Has Rin been to a public bath before?', 'هل ذهبت رين إلى حمّام عام من قبل؟'), options: [G('Yes, often', 'نعم، كثيرًا'), G('Once', 'مرة واحدة'), G('No, it is her first time', 'لا، إنها أول مرة')], answer: 2 },
+      { q: G('How much is the bath?', 'كم سعر الحمّام؟'), options: [G('550 yen', '550 ينًا'), G('150 yen', '150 ينًا'), G('1,000 yen', '1,000 ين')], answer: 0 },
+      { q: G('What must stay out of the water?', 'ما الذي يجب أن يبقى خارج الماء؟'), options: [G('Your hair', 'شعرك'), G('The towel', 'المنشفة'), G('Your hands', 'يداك')], answer: 1 },
+    ],
+  },
+  {
+    id: 'ep_figure',
+    title: { ja: '田中さんのロボット', en: "Tanaka's robot", ar: 'روبوت تاناكا' },
+    setting: 'hobby',
+    cast: ['tanaka', 'daichi'],
+    unlock: 4,
+    lines: [
+      { who: 'daichi', line: L('いらっしゃいませ！|ほしぞらホビー|へ|ようこそ。', 'Welcome! Welcome to Hoshizora Hobby.', 'أهلًا بك! مرحبًا بك في هوشيزورا هوبي.') },
+      { who: 'tanaka', line: L('こんにちは。|ロボット|の|フィギュア|は|あります|か？', 'Hello. Do you have robot figures?', 'مرحبًا. هل عندكم مجسّمات روبوت؟') },
+      { who: 'daichi', line: L('はい！|大きい|の|と|小さい|の|が|あります。|どちら|が|いい|です|か？', 'Yes! There is a big one and a small one. Which would you like?', 'نعم! يوجد كبير وصغير. أيّهما تفضّل؟') },
+      { who: 'tanaka', line: L('大きい|の|は|いくら|です|か？', 'How much is the big one?', 'كم سعر الكبير؟') },
+      { who: 'daichi', line: L('三千|六|百|円|です。|とても|人気|です|よ！', 'It is 3,600 yen. It is very popular!', 'إنه بـ 3,600 ين. إنه رائج جدًا!') },
+      { who: 'tanaka', line: L('じゃあ、|大きい|の|を|ください。|ロボット|が|大好き|です！', 'Then the big one, please. I love robots!', 'إذن الكبير من فضلك. أحب الروبوتات كثيرًا!') },
+      { who: 'daichi', line: L('ありがとう|ございます！|大事|に|して|ください|ね。', 'Thank you very much! Take good care of it.', 'شكرًا جزيلًا! اعتنِ به جيدًا.') },
+    ],
+    quiz: [
+      { q: G('What is Tanaka looking for?', 'عمّ يبحث تاناكا؟'), options: [G('A robot figure', 'مجسّم روبوت'), G('A cat ninja', 'قط نينجا'), G('A display case', 'خزانة عرض')], answer: 0 },
+      { q: G('How much is the big one?', 'كم سعر الكبير؟'), options: [G('1,200 yen', '1,200 ين'), G('3,600 yen', '3,600 ين'), G('4,800 yen', '4,800 ين')], answer: 1 },
+      { q: G('Which one does he buy?', 'أيّهما يشتري؟'), options: [G('The small one', 'الصغير'), G('Both', 'كليهما'), G('The big one', 'الكبير')], answer: 2 },
     ],
   },
 ];
@@ -155,6 +220,43 @@ export const SONGS: Song[] = [
         morae: ['さ', 'く', 'ら', 'ど', 'お', 'り', 'で', 'ま', 'た', 'あ', 'お', 'う'],
         notes: [[64, 0.5], [67, 0.5], [69, 0.5], [69, 0.5], [67, 0.5], [64, 0.5], [62, 1], [64, 0.5], [67, 0.5], [62, 0.5], [62, 0.5], [60, 3]],
         chords: [43, 48],
+      },
+    ],
+  },
+  /**
+   * 「桜町の一年」 (A Year in Sakura Town), the seasons song (written for the game): G major, 104 bpm, one line per season. Its chords are
+   * G, Em, C and D: the E root is the minor one (`minor: [4]`).
+   */
+  {
+    id: 'song_seasons',
+    title: { ja: '桜町の一年', en: 'A Year in Sakura Town', ar: 'عام في ساكورا ماتشي' },
+    bpm: 104,
+    unlock: 2,
+    minor: [4],
+    lines: [
+      {
+        line: L('春|は|桜|が|咲く|よ', 'In spring the cherry blossoms bloom', 'في الربيع تتفتّح أزهار الكرز'),
+        morae: ['は', 'る', 'は', 'さ', 'く', 'ら', 'が', 'さ', 'く', 'よ'],
+        notes: [[67, 0.5], [69, 0.5], [71, 1], [74, 0.5], [71, 0.5], [69, 0.5], [67, 1], [69, 0.5], [71, 0.5], [74, 2]],
+        chords: [43, 40],
+      },
+      {
+        line: L('夏|は|海|で|泳ごう', "In summer let's swim in the sea", 'في الصيف لنسبح في البحر'),
+        morae: ['な', 'つ', 'は', 'う', 'み', 'で', 'お', 'よ', 'ご', 'う'],
+        notes: [[76, 0.5], [74, 0.5], [71, 1], [69, 0.5], [71, 0.5], [74, 1], [71, 0.5], [69, 0.5], [67, 0.5], [69, 2]],
+        chords: [48, 50],
+      },
+      {
+        line: L('秋|は|もみじ|が|赤い|よ', 'In autumn the maple leaves are red', 'في الخريف تحمرّ أوراق القيقب'),
+        morae: ['あ', 'き', 'は', 'も', 'み', 'じ', 'が', 'あ', 'か', 'い', 'よ'],
+        notes: [[64, 0.5], [67, 0.5], [69, 1], [71, 0.5], [69, 0.5], [67, 0.5], [64, 1], [67, 0.5], [69, 0.5], [71, 0.5], [69, 2]],
+        chords: [40, 48],
+      },
+      {
+        line: L('冬|は|雪|が|降る|よ', 'In winter the snow falls', 'في الشتاء يتساقط الثلج'),
+        morae: ['ふ', 'ゆ', 'は', 'ゆ', 'き', 'が', 'ふ', 'る', 'よ'],
+        notes: [[74, 0.5], [71, 0.5], [69, 1], [71, 0.5], [69, 0.5], [67, 1], [69, 0.5], [71, 0.5], [67, 3]],
+        chords: [50, 43],
       },
     ],
   },

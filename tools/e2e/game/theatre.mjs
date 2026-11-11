@@ -1,7 +1,9 @@
 // The Mini-theatre (ミニシアター) in the REAL UI at 360 px, English or Arabic (--ar):
 //   the menu opens it -> the first episode (はじめてのコンビニ) plays by itself: the subtitle's words light up over the line, the speaker
 //   bounces; a word is tapped for its card; the line is replayed and slowed -> the questions (2 right, 1 wrong) -> filed (1 day's listening)
-//   -> the song 「桜通り」: the karaoke kana light up note by note while it plays. No horizontal scroll, no console error.
+//   -> the song 「桜通り」: the karaoke kana light up note by note while it plays -> Chapter 4: six episodes (in the order they opened) and
+//   two songs; the bath episode (はじめての銭湯) plays on its own backdrop; the seasons song 「桜町の一年」 lights its kana. No horizontal
+//   scroll, no console error.
 // Usage: BASE=http://127.0.0.1:5173/ node tools/e2e/game/theatre.mjs [--ar]
 import assert from 'node:assert/strict';
 import { assertNoConsoleErrors, assertNoHScroll, liveGame, onboard, skipBeats, start } from './_common.mjs';
@@ -110,6 +112,57 @@ assert.equal(await page.locator('[data-song-player]').getAttribute('data-playing
 await page.locator('[data-song-play]').click(); // stop
 await check('the song');
 step(`the song: the kana light up note by note (${sung0} -> ${sung1} sung)`);
+
+// Chapter 4: every episode and both songs are listed; the bath episode plays on its own backdrop; the seasons song lights its kana
+await page.evaluate(() => window.__lw.useStore.getState().go('world'));
+await page.evaluate(() => window.__lw.dispatch({ t: 'profile_set', dev: true }));
+for (let k = 0; k < 3; k++) {
+  await page.evaluate(() => window.__lw.dispatch({ t: 'dev', cmd: 'advance_chapter' }));
+  await t.sleep(300);
+  // the chapter's story beats and the dream choice are not this test's subject
+  await page.evaluate(() => {
+    const ui = window.__lw.useUi.getState();
+    for (const id of [...ui.beats]) window.__lw.dispatch({ t: 'beat_done', id });
+    ui.clearRequests();
+    if (!window.__lw.getGame().dream?.id) window.__lw.dispatch({ t: 'dream_chosen', id: 'travel' });
+  });
+}
+assert.ok((await liveGame(page)).chapter.n >= 4, 'Chapter 4');
+await page.evaluate(() => window.__lw.useStore.getState().go('theatre'));
+await page.waitForSelector('[data-screen=theatre][data-view=list] [data-episode=ep_figure]', { timeout: 10000 });
+for (let i = 0; i < 6 && (await page.locator('.cul-scrim').count()); i++) {
+  await page.locator('.cul-scrim .btn.primary').click();
+  await t.sleep(300);
+}
+assert.deepEqual(
+  await page.locator('[data-episode]').evaluateAll((els) => els.map((e) => e.getAttribute('data-episode'))),
+  ['ep_konbini', 'ep_ramen', 'ep_crane', 'ep_hanami', 'ep_sento', 'ep_figure'],
+  'six episodes, in the order they opened',
+);
+assert.equal(await page.locator('[data-song]').count(), 2, 'two songs');
+await t.shot('list-all');
+await check('the full list');
+await page.locator('[data-episode=ep_sento]').click();
+await page.waitForSelector('.th-stage.th-sento', { timeout: 10000 });
+await page.waitForSelector('.th-sub .tok.lit, .th-sub .tok.now', { timeout: 15000 });
+await t.sleep(600);
+await t.shot('episode-sento');
+await page.locator('[data-th-play]').click(); // pause
+await check('the bath episode');
+await page.locator('.panel-head .icon-btn').first().click();
+await page.waitForSelector('[data-view=list] [data-song=song_seasons]', { timeout: 10000 });
+await page.locator('[data-song=song_seasons]').click();
+await page.waitForSelector('[data-song-player=song_seasons]');
+await page.locator('[data-song-play]').click();
+await page.waitForSelector('.th-mora.now', { timeout: 10000 });
+const seasons0 = await page.locator('.th-mora.sung').count();
+await t.sleep(1500);
+const seasons1 = await page.locator('.th-mora.sung').count();
+assert.ok(seasons1 > seasons0, `the seasons song moves with the music (${seasons0} -> ${seasons1})`);
+await t.shot('song-seasons');
+await page.locator('[data-song-play]').click(); // stop
+await check('the seasons song');
+step(`Chapter 4: six episodes and two songs; the bath episode on its backdrop; 「桜町の一年」 lights its kana (${seasons0} -> ${seasons1})`);
 
 await t.browser.close();
 console.log(`theatre e2e passed (${AR ? 'ar' : 'en'}) in ${Math.round((Date.now() - T0) / 1000)}s`);

@@ -1791,6 +1791,15 @@ html[dir='rtl'] .kyo-host {
 .th-park .th-thumb {
   background: linear-gradient(160deg, #f7b3d0, #e5527c);
 }
+.th-arcade .th-thumb {
+  background: linear-gradient(160deg, #ff7a8a, #d8433f);
+}
+.th-sento .th-thumb {
+  background: linear-gradient(160deg, #5f8fd0, #24467a);
+}
+.th-hobby .th-thumb {
+  background: linear-gradient(160deg, #4a5aa8, #1d2452);
+}
 .th-song .th-thumb {
   background: linear-gradient(160deg, #b28dff, #5b3cc4);
 }
@@ -1822,7 +1831,41 @@ html[dir='rtl'] .kyo-host {
     radial-gradient(circle at 75% 20%, #ffc2da 0 20%, transparent 21%),
     linear-gradient(180deg, #bfe6ff 0%, #e8f7ff 60%, #9ed58f 60%);
 }
+/* the game centre: a dark hall with neon lights */
+.th-stage.th-arcade {
+  background:
+    radial-gradient(circle at 18% 22%, rgba(255, 93, 143, 0.9) 0 5%, transparent 12%),
+    radial-gradient(circle at 50% 14%, rgba(123, 223, 242, 0.9) 0 5%, transparent 12%),
+    radial-gradient(circle at 82% 24%, rgba(255, 209, 102, 0.9) 0 5%, transparent 12%),
+    linear-gradient(180deg, #1b1638 0%, #2a2260 60%, #3d3672 60%);
+}
+/* the public bath: the painted Mount Fuji over the tiles */
+.th-stage.th-sento {
+  background: linear-gradient(180deg, #8cc8ef 0%, #c4e4f6 60%, #e9eef2 60%);
+}
+.th-stage.th-sento::before {
+  content: '';
+  position: absolute;
+  left: 50%;
+  bottom: 40%;
+  width: 220px;
+  height: 84px;
+  transform: translateX(-50%);
+  background: linear-gradient(180deg, #ffffff 0 26%, #4f74a8 26%, #2f5585 100%);
+  clip-path: polygon(0 100%, 40% 0, 60% 0, 100% 100%);
+}
+/* the figure shop: a night sky over the shelves */
+.th-stage.th-hobby {
+  background:
+    radial-gradient(circle at 14% 18%, #ffe9a8 0 1.6%, transparent 2.6%),
+    radial-gradient(circle at 38% 10%, #ffffff 0 1.2%, transparent 2.2%),
+    radial-gradient(circle at 62% 22%, #ffe9a8 0 1.6%, transparent 2.6%),
+    radial-gradient(circle at 86% 12%, #ffffff 0 1.2%, transparent 2.2%),
+    linear-gradient(180deg, #1d2452 0%, #2c3a7a 60%, #b9a27a 60%);
+}
 .th-actor {
+  position: relative;
+  z-index: 1;
   transition: transform 0.2s ease;
 }
 .th-actor.talking {

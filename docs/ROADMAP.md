@@ -102,11 +102,22 @@ game, a bigger city with better conversations, and the same game for German, Dut
   * Tests: engine smalltalk (every shop × every season, EN/AR), app regulars (the visit rotation, the season on the real date in Tokyo),
     e2e `regulars.mjs` (four visits, EN/AR).
 
+* **More for the Mini-theatre**: three episodes for the new places, each on its own backdrop, and a second song.
+  * クレーンゲーム (Chapter 2, the game centre: Yuki and Shota; ほしいです, もう一回, 取りやすくしてもらえますか, やった！取れました！),
+    はじめての銭湯 (Chapter 3, the bath: Rin and Genzō; はじめてです, かけ湯って何ですか, いいお湯でした) and 田中さんのロボット (Chapter 4, the
+    figure shop: Tanaka and Daichi; 大きいのと小さいの, いくらですか, 大好きです). Seven lines and three questions each, recorded voices.
+  * 「桜町の一年」 (A Year in Sakura Town, from Chapter 2): one line per season (春は桜が咲くよ / 夏は海で泳ごう / 秋はもみじが赤いよ / 冬は雪
+    が降るよ) in G major at 104 bpm. A song now names its minor chords (`Song.minor`, pitch classes; default A for the first song's
+    C major), so the accompaniment plays Em here.
+  * Tests: content theatre (six episodes in opening order, both songs' morae), app theatre (the minor chords of each song), e2e
+    `theatre.mjs` (Chapter 4: the full list, the bath episode, the seasons song; EN/AR).
+
 ## Next (Tokyo)
 
-1. **More for the Mini-theatre** — more episodes (one per new place: the bath, the figure shop, the game centre) and a second song.
-2. **Small talk, more topics** — the weekend, the festival, the news of the town (a new shop opened), and shopkeepers who remember your
+1. **Small talk, more topics** — the weekend, the festival, the news of the town (a new shop opened), and shopkeepers who remember your
    name.
+2. **Mini-theatre, later chapters** — episodes for Chapters 5–8 (the station, Hikari Denki, the festival) and a song about the days of
+   the week.
 
 ## Other languages (German in Berlin first)
 

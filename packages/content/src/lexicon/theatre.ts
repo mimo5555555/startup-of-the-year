@@ -19,4 +19,17 @@ export const THEATRE_LEXICON: LexEntry[] = [
   w('来年', 'らいねん', 'next year', 'العام القادم'),
   w('来たい', 'きたい', 'want to come', 'أريد أن آتي'),
   w('ええ', '', 'yes (soft)', 'نعم (بلطف)'),
+  // the game centre, the bath and the figure shop episodes
+  w('落ちました', 'おちました', 'fell, dropped', 'سقطت'),
+  w('もう一回', 'もういっかい', 'one more time, one more go', 'مرة أخرى، محاولة أخرى'),
+  w('やった', '', 'yes! I did it!', 'رائع! نجحت!'),
+  w('はじめて', '', 'for the first time; the first time', 'لأول مرة؛ أول مرة'),
+  w('ああ', '', 'ahh (a happy sigh)', 'آه (تنهيدة ارتياح)'),
+  // the seasons song 「桜町の一年」
+  w('咲く', 'さく', 'to bloom', 'يتفتّح'),
+  w('海', 'うみ', 'the sea', 'البحر'),
+  w('泳ごう', 'およごう', "let's swim", 'لنسبح'),
+  w('もみじ', '', 'maple leaves (red in autumn)', 'أوراق القيقب (حمراء في الخريف)'),
+  w('雪', 'ゆき', 'snow', 'ثلج'),
+  w('降る', 'ふる', 'to fall (rain, snow)', 'يتساقط (المطر، الثلج)'),
 ];
