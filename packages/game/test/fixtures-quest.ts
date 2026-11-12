@@ -366,6 +366,7 @@ export function mkState(over: { cash?: number; chapter?: number; dayIndex?: numb
     arcade: { plays: 0, tries: 0, won: 0 },
     karaoke: { booked: -1, sung: 0 },
     media: {},
+    named: [],
   };
 }
 

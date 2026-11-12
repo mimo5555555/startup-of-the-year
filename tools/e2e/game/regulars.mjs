@@ -1,9 +1,11 @@
 // Shopkeepers who know you, in the REAL UI at 360 px, English or Arabic (--ar):
 //   a fresh profile -> the konbini, first visit: the usual 「いらっしゃいませ。」, typed おにぎりをください / 大丈夫です / 現金で -> the second visit:
 //   Tanaka remembers (「前回のおにぎり、どうでしたか？」) with the two answer chips on top; the good chip is answered (「よかったです！…」) and the
-//   chips go; typed お茶をください … -> the third visit: small talk about the season (「涼しくなりましたね。秋は好きですか？」 in autumn), the
-//   yes chip, a warm reply back to the shop -> the fourth visit: the regular's greeting (いつもありがとうございます), no answer chips; typed
-//   「また来ました」 is understood. After every step: no horizontal scroll, no console error, the wallet = its ledger.
+//   chips go; typed お茶をください … -> the third visit: small talk (the weekend from Friday to Monday, else the season: 「涼しくなりましたね。
+//   秋は好きですか？」), the yes chip, a warm reply back to the shop -> the fourth visit: Tanaka asks the name (お名前は？), the chip
+//   「Samと申します。」, 「Samさんですね。これからもよろしくお願いします！」, GameState.named = [tanaka]; typed 「また来ました」 is understood -> the
+//   seventh visit: greeted by name (「Samさん！…いつもありがとうございます。」). E2E_VOICES=1 also asserts that the line with the name is
+//   played sentence by sentence (needs the recordings). After every step: no horizontal scroll, no console error, the wallet = its ledger.
 // Usage: BASE=http://127.0.0.1:5173/ node tools/e2e/game/regulars.mjs [--ar]
 import assert from 'node:assert/strict';
 import { assertNoConsoleErrors, assertNoHScroll, liveGame, onboard, start } from './_common.mjs';
@@ -129,9 +131,9 @@ await finish();
 await check('after the second visit');
 step(`second visit: 「${first}」 → おいしかったです → 「${reply}」; bought green tea`);
 
-// the third visit: small talk about the season (whatever the real date's season in Tokyo is)
+// the third visit: small talk (the weekend from Friday to Monday in Tokyo, else the season; a fresh profile has no news and no festival)
 first = await visit();
-assert.ok(/好きですか|見ましたか/.test(first), `third visit: Tanaka makes small talk about the season (${first})`);
+assert.ok(/好きですか|見ましたか|楽しかったですか|出かけますか|お休みですか/.test(first), `third visit: Tanaka makes small talk (${first})`);
 cs = await chips();
 assert.ok(cs[0].startsWith('はい、'), `the yes chip is on top (${cs.join(' | ')})`);
 const yesChip = cs[0];
@@ -140,7 +142,7 @@ const m = await page.locator('.msg.char').count();
 await page.locator('.sg').first().click();
 await lineAfter(m);
 const talkReply = await lastLine();
-assert.ok(talkReply.includes('いいですね') && talkReply.includes('ごゆっくり'), `a warm reply, then back to the shop (${talkReply})`);
+assert.ok(talkReply.includes('ごゆっくり'), `a warm reply, then back to the shop (${talkReply})`);
 assert.ok(!(await chips()).includes(yesChip), 'answered: the small talk chips are gone');
 await type('水をください。');
 await type('大丈夫です。');
@@ -149,17 +151,46 @@ await finish();
 await check('after the third visit');
 step(`third visit: 「${first}」 → ${yesChip} → 「${talkReply}」; bought water`);
 
-// the fourth visit: a regular, nothing asked
+// the fourth visit: nothing else to say, so Tanaka asks your name
 first = await visit();
-assert.ok(first.includes('いつも'), `fourth visit: the regular's greeting (${first})`);
-assert.ok(!first.includes('前回') && !/好きですか|見ましたか/.test(first), 'nothing asked this time');
-assert.ok(!(await chips()).some((c) => c.includes('おいしかった') || c.startsWith('はい、')), 'no answer chips');
+assert.ok(first.includes('いつも') && first.includes('お名前は'), `fourth visit: Tanaka asks the name (${first})`);
+cs = await chips();
+assert.ok(cs[0].startsWith('Samです。') && cs[1].startsWith('Samと申します。'), `the two name chips are on top (${cs.join(' | ')})`);
+await t.shot('ask-name');
+const k = await page.locator('.msg.char').count();
+await page.locator('.sg').nth(1).click();
+await lineAfter(k);
+const nameReply = await lastLine();
+assert.ok(nameReply.startsWith('Samさんですね。') && nameReply.includes('よろしく') && nameReply.includes('ごゆっくり'), `the name said back, then the shop (${nameReply})`);
+g = await liveGame(page);
+assert.deepEqual(g.named, ['tanaka'], 'Tanaka knows the name now');
+assert.ok(!(await chips()).some((c) => c.startsWith('Sam')), 'answered: the name chips are gone');
 await type('また来ました！');
 const back = await lastLine();
 assert.ok(back.includes('ありがとう'), `「また来ました」 is understood (${back})`);
-await t.shot('regular');
-await check('the fourth visit');
-step(`fourth visit: 「${first}」; また来ました → 「${back}」`);
+await type('お茶をください。');
+await type('大丈夫です。');
+await type('現金でお願いします。');
+await finish();
+await check('after the fourth visit');
+step(`fourth visit: 「${first}」 → Samと申します → 「${nameReply}」`);
+
+// the seventh visit (the next one with nothing else to say): greeted by name
+await page.evaluate(() => {
+  const lw = window.__lw;
+  const g0 = lw.getGame();
+  lw.useGame.getState().setGame({ ...g0, runs: { ...g0.runs, konbini: { ...g0.runs.konbini, count: 6 } } });
+});
+first = await visit();
+assert.ok(first.startsWith('Samさん！') && first.includes('いつも'), `seventh visit: greeted by name (${first})`);
+assert.ok(!(await chips()).some((c) => c.startsWith('Sam') || c.startsWith('はい、')), 'no answer chips');
+await t.shot('named');
+// the line with the name is not recorded as a whole: it plays sentence by sentence (the name through the device voice)
+const voice = await page.evaluate(() => ({ ...window.__lwVoice, missed: [...window.__lwVoice.missed] }));
+const wholeMissed = voice.missed.filter((x) => x.includes('Samさん'));
+await check('the seventh visit');
+step(`seventh visit: 「${first}」 (recorded lines ${voice.recorded}, whole lines left to the device voice with the name: ${wholeMissed.length})`);
+if (process.env.E2E_VOICES) assert.equal(wholeMissed.length, 0, `lines with the name play sentence by sentence, the rest recorded (${wholeMissed.join(' / ')})`);
 
 await t.browser.close();
 console.log(`regulars e2e passed (${AR ? 'ar' : 'en'}) in ${Math.round((Date.now() - T0) / 1000)}s`);

@@ -1,7 +1,7 @@
 // Japanese speech from pre-recorded files (public/voice, made by tools/voice/generate.mjs), so every device has a voice.
 // A line with no file, or a file that fails, is spoken by the wrapped engine (WebSpeechTts): nothing gets worse.
 import { TTS_SAMPLE_JA, deriveAudioIssues, type AudioReport, type SpeakOptions, type TtsError, type TtsPort, type TtsSampleResult, type TtsVoiceInfo } from '@lw/engine';
-import { voiceEntryKey, voiceTextKey, type VoiceManifest } from './key';
+import { splitSentences, voiceEntryKey, voiceTextKey, type VoiceManifest } from './key';
 import { NARRATOR } from './voices';
 
 /** The bits of HTMLAudioElement the player uses (tests pass a fake). */
@@ -59,6 +59,10 @@ export class RecordedVoiceTts implements TtsPort {
   private loading: Promise<void> | null = null;
   private audio: AudioLike | null = null;
   private current: { stop: () => void } | null = null;
+  /** the line being played sentence by sentence (cancel() and the next speak() end it) */
+  private seq: object | null = null;
+  /** the player's name: a sentence that says it is the one thing only the device voice can say */
+  private playerName = '';
   private viaFile = false;
   private readonly base: string;
   private readonly fetchManifest: (url: string) => Promise<VoiceManifest | null>;
@@ -99,6 +103,30 @@ export class RecordedVoiceTts implements TtsPort {
     if (!e) return null;
     const hash = (who && e[voiceEntryKey(who, text)]) || e[voiceEntryKey(NARRATOR, text)] || this.anyVoice.get(voiceTextKey(text));
     return hash ? `${this.base}${hash}.mp3` : null;
+  }
+
+  /** The player's name (from the profile): lets a line that greets them by name keep the character's voice for its other sentences. */
+  setPlayerName(name: string | null | undefined) {
+    this.playerName = (name ?? '').trim();
+  }
+
+  /**
+   * A line with no recording of its own, sentence by sentence: null unless every sentence is either recorded in the speaker's OWN voice
+   * or says the player's name, with at least one of each. (Nothing else is split: a price line stays whole in the device voice.)
+   */
+  private sentenceParts(text: string, who?: string): Array<{ text: string; url: string | null }> | null {
+    const e = this.manifest?.entries;
+    const name = this.playerName;
+    if (!e || !name) return null;
+    const sentences = splitSentences(text);
+    if (sentences.length < 2) return null;
+    const parts = sentences.map((s) => {
+      const hash = e[voiceEntryKey(who ?? NARRATOR, s)];
+      return { text: s, url: hash ? `${this.base}${hash}.mp3` : null };
+    });
+    const named = parts.filter((p) => !p.url);
+    if (!named.length || named.length === parts.length || !named.every((p) => p.text.includes(name))) return null;
+    return parts;
   }
 
   available() {
@@ -147,6 +175,7 @@ export class RecordedVoiceTts implements TtsPort {
   }
 
   cancel() {
+    this.seq = null;
     const c = this.current;
     this.current = null;
     c?.stop();
@@ -170,6 +199,10 @@ export class RecordedVoiceTts implements TtsPort {
     const url = this.fileFor(text, o.who);
     const a = url ? this.element() : null;
     if (!url || !a) {
+      // a line that greets the player by name: the character's recorded voice for every sentence but the one with the name
+      const parts = this.sentenceParts(text, o.who);
+      const el = parts ? this.element() : null;
+      if (parts && el) return this.speakParts(el, parts, o);
       this.stats.fallback++;
       if (this.stats.missed.length < 200) this.stats.missed.push(`${o.who ?? NARRATOR}|${text}`);
       this.viaFile = false;
@@ -183,6 +216,46 @@ export class RecordedVoiceTts implements TtsPort {
     }
     this.stats.fallback++;
     return this.inner.speak(text, o);
+  }
+
+  /**
+   * Plays a line sentence by sentence: the recorded ones from their files, the one with the player's name through the device voice (left
+   * out when the device has no Japanese voice: the name is on the screen). One onStart at the first sound, one onEnd at the end.
+   */
+  private async speakParts(a: AudioLike, parts: Array<{ text: string; url: string | null }>, o: SpeakOptions): Promise<void> {
+    const token = {};
+    this.seq = token;
+    let started = false;
+    const each: SpeakOptions = {
+      rate: o.rate,
+      who: o.who,
+      onStart: () => {
+        if (started) return;
+        started = true;
+        o.onStart?.();
+      },
+    };
+    const deviceSpeaks = this.inner.hasJapaneseVoice();
+    let files = 0;
+    for (const p of parts) {
+      if (this.seq !== token) break;
+      if (p.url) {
+        const how = await this.play(a, p.url, each);
+        if (how === 'played') {
+          files++;
+          continue;
+        }
+        if (how === 'cancelled' || this.seq !== token) break;
+      }
+      // the sentence with the name, or a file that failed
+      if (deviceSpeaks || p.url) await this.inner.speak(p.text, each);
+    }
+    if (this.seq === token) this.seq = null;
+    this.viaFile = files > 0;
+    if (files > 0) this.stats.recorded++;
+    else this.stats.fallback++;
+    if (!started) o.onStart?.();
+    o.onEnd?.();
   }
 
   private element(): AudioLike | null {

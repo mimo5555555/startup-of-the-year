@@ -88,6 +88,8 @@ const GREETING_PREFIX = /^(?:はじめまして|こんにちは|こんばんは|
 export function captureName(text: string): string | null {
   let t = text.normalize('NFKC').trim();
   t = t.replace(GREETING_PREFIX, '').replace(GREETING_PREFIX, '');
+  // 「はい、サムです。」 answers 「お名前は？」: the name is サム
+  t = t.replace(/^(?:はい|ええ)[、,\s]+/, '');
   const m =
     /(?:わたし|私|わたくし|ぼく|僕|おれ|俺)(?:の名前)?は\s*(.+?)\s*(?:です|と申します|といいます|と言います|だ)/.exec(t) ??
     /^\s*(.+?)\s*(?:です|と申します|といいます|と言います)[。.!！]*$/.exec(t);
@@ -146,6 +148,7 @@ function evalIntent(it: IntentDef, norm: MatchForms, raw: string): IntentHit | n
   if (it.capture === 'name') {
     const n = captureName(raw);
     if (n) rawName = n;
+    else if (it.captureRequired) return null;
   }
   if (!matchedSomething && !rawCountry) return null;
   score += it.boost ?? 0;

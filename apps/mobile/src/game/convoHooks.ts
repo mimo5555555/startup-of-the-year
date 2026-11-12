@@ -384,7 +384,7 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
   }
   if (meta?.twist && twistFor(state.clock.dayIndex, scenarioId, plays)) flags.twist = true;
   // a returning customer: the regular's greeting, and on every other visit the shopkeeper asks about the last thing you bought
-  Object.assign(flags, regularFlags(pack, state, meta));
+  Object.assign(flags, regularFlags(pack, state, meta, Date.now(), deps.view()));
   if (deps.friend) Object.assign(flags, deps.friend.flags);
   // a hang-out or a home visit: the friend's plain speech (the scenarios read no other flag)
   Object.assign(flags, visitFlags(pack, state, meta));

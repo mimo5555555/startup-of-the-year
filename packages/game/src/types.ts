@@ -1392,6 +1392,8 @@ export interface GameState {
   karaoke: { booked: number; sung: number };
   /** the Mini-theatre: episode or song id -> the best number of questions answered right (a song: 1 once sung along) */
   media: Record<string, number>;
+  /** the characters who know the player's name: a shopkeeper who asked (「お名前は？」) and was told greets the player by name afterwards */
+  named: string[];
   /** unknown ids and fields are kept here, never dropped (§14.7) */
   _extra?: Record<string, unknown>;
 }
@@ -1593,6 +1595,8 @@ export type InputEvent =
   | { t: 'manner_used'; itemId: string; characterId: string; text: string }
   /** the Mini-theatre: an episode watched to the end with `right` of `total` questions answered (a song sung along: total 0); ticks the daily `ears` counter */
   | { t: 'media_done'; id: string; right: number; total: number }
+  /** the player told a shopkeeper their name (the conversation's `tell_name` answer): that character knows it from now on */
+  | { t: 'name_told'; characterId: string }
   /** one try at the crane game (uses one play bought from the staff); a win (the app's claw caught `prizeId`) grants that prize once */
   | { t: 'crane_play'; id: string; won: boolean; prizeId?: string }
   /** 耳トレ: today's ear training finished, `right` of `total` recorded lines understood (once a day; ticks the daily `ears` counter) */

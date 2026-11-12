@@ -112,11 +112,29 @@ game, a bigger city with better conversations, and the same game for German, Dut
   * Tests: content theatre (six episodes in opening order, both songs' morae), app theatre (the minor chords of each song), e2e
     `theatre.mjs` (Chapter 4: the full list, the bath episode, the seasons song; EN/AR).
 
+* **More small talk, and your name** (better conversations, part 3).
+  * Topics (`TALK_TOPICS`, flag `talk_<topic>`): besides the season, **the weekend** by the real weekday in Tokyo (Friday 「明日は土曜日です
+    ね。週末は出かけますか？」, Saturday and Sunday 「今日はお休みですか？」, Monday 「週末は楽しかったですか？」), **the festival** from
+    Chapter 7 (「もうすぐ公園でお祭りがありますよ。行きますか？」, or on the day 「今日は公園でお祭りですよ。もう行きましたか？」) and **the news
+    of the town**: a place open to you that you have not tried yet (the bath, the karaoke box, the game centre, the figure shop:
+    「銭湯の桜の湯、もう行きましたか？」 → 「まだです」 → 「いいお湯ですよ。ぜひ行ってみてください。」), never told at that place. Each topic
+    has its own yes / no chips, keys for answers in your own words and replies. `talkTopics` orders them (news, festival, weekend, season)
+    and the small-talk visits go through them one after another.
+  * **Your name**: on the visit with nothing else to say (the 4th, 7th…) a shopkeeper who does not know your name asks once (「いつも
+    ありがとうございます。あのう、お名前は？」; chips 「{name}です。」 / 「{name}と申します。」; any line that gives a name is the answer:
+    `IntentDef.captureRequired`), says it back (「{name}さんですね。これからもよろしくお願いします！」) and the game keeps who knows it
+    (`GameState.named`, event `name_told`). From then on that visit greets you by name (「{name}さん！いつもありがとうございます。」).
+  * **Voice**: a name cannot be recorded, so a line with it used to fall back whole to the device voice. The player now plays such a line
+    sentence by sentence (`splitSentences`): the character's own recording for every sentence but the one with the name, which the device
+    voice says (left out on a device with no Japanese voice). Only lines where every unrecorded sentence holds the player's name are
+    split: a price line stays whole. The generator records the name-free sentences of every line whose only variable is {name}.
+  * Tests: engine smalltalk (every shop × every topic, both answers, own words; the name asked, told, said back, never mistaken for an
+    order), app regulars (which topic when; the name flags; `name_told`), app voice (sentence playback), e2e `regulars.mjs` (seven
+    visits, EN/AR).
+
 ## Next (Tokyo)
 
-1. **Small talk, more topics** — the weekend, the festival, the news of the town (a new shop opened), and shopkeepers who remember your
-   name.
-2. **Mini-theatre, later chapters** — episodes for Chapters 5–8 (the station, Hikari Denki, the festival) and a song about the days of
+1. **Mini-theatre, later chapters** — episodes for Chapters 5–8 (the station, Hikari Denki, the festival) and a song about the days of
    the week.
 
 ## Other languages (German in Berlin first)

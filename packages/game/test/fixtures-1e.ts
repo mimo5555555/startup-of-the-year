@@ -307,6 +307,7 @@ export function makeState(dayIndex = 10): GameState {
     arcade: { plays: 0, tries: 0, won: 0 },
     karaoke: { booked: -1, sung: 0 },
     media: {},
+    named: [],
   };
 }
 

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { LEXICON, SCENARIOS, resolveLine } from '@lw/content';
 import { NullTts, collectAudioReport } from '@lw/engine';
-import { voiceEntryKey, voiceTextKey, type VoiceManifest } from '../src/voice/key';
+import { splitSentences, voiceEntryKey, voiceTextKey, type VoiceManifest } from '../src/voice/key';
 import { RecordedVoiceTts, withRecordedVoices, type AudioLike } from '../src/voice/RecordedVoiceTts';
 import { CUSTOMER, NARRATOR, VOICE_CREDITS, VOICE_SPEAKERS } from '../src/voice/voices';
 import { voiceLines } from '../../../tools/voice/lines';
@@ -152,6 +152,89 @@ describe('RecordedVoiceTts', () => {
   });
 });
 
+describe('a line that greets the player by name', () => {
+  /** a device that has a Japanese voice (NullTts has none) */
+  class JaTts extends NullTts {
+    override hasJapaneseVoice() {
+      return true;
+    }
+  }
+  const NAMED: VoiceManifest = {
+    v: 1,
+    voices: { kenji: 13, narrator: 29 },
+    entries: {
+      [voiceEntryKey('kenji', 'いらっしゃい！')]: 'aaa111',
+      [voiceEntryKey('kenji', 'いつもありがとうございます。')]: 'ccc333',
+      [voiceEntryKey(NARRATOR, 'お水をください。')]: 'bbb222',
+    },
+  };
+  const LINE = 'サムさん！いらっしゃい！いつもありがとうございます。';
+  const build = (inner: NullTts, audio = new FakeAudio(), name: string | null = 'サム') => {
+    const tts = new RecordedVoiceTts(inner, { base: 'voice/', fetchManifest: async () => NAMED, createAudio: () => audio, startMs: 50 });
+    tts.setPlayerName(name);
+    return { tts, audio, inner };
+  };
+
+  it('splits a line into its sentences, each with its closing punctuation', () => {
+    expect(splitSentences(LINE)).toEqual(['サムさん！', 'いらっしゃい！', 'いつもありがとうございます。']);
+    expect(splitSentences('あっ、落ちました…。もう一回！')).toEqual(['あっ、落ちました…。', 'もう一回！']);
+    expect(splitSentences('{name}|さん！|いつも|ありがとう|ございます。').map((x) => voiceTextKey(x))).toEqual(['{name}さん', 'いつもありがとうございます']);
+    expect(splitSentences('こんにちは')).toEqual(['こんにちは']);
+  });
+
+  it('plays the recorded sentences in the speaker’s voice and hands only the name to the device voice, with one start and one end', async () => {
+    const { tts, audio, inner } = build(new JaTts());
+    let starts = 0;
+    let ends = 0;
+    await tts.speak(LINE, { who: 'kenji', onStart: () => starts++, onEnd: () => ends++ });
+    expect(inner.spoken).toEqual(['サムさん！']);
+    expect(audio.played).toEqual(['voice/aaa111.mp3', 'voice/ccc333.mp3']);
+    expect([starts, ends]).toEqual([1, 1]);
+    expect(tts.stats).toMatchObject({ recorded: 1, fallback: 0 });
+  });
+
+  it('leaves the name out on a device with no Japanese voice: the recorded sentences still play', async () => {
+    const { tts, audio, inner } = build(new NullTts());
+    let ends = 0;
+    await tts.speak(LINE, { who: 'kenji', onEnd: () => ends++ });
+    expect(inner.spoken).toEqual([]);
+    expect(audio.played).toEqual(['voice/aaa111.mp3', 'voice/ccc333.mp3']);
+    expect(ends).toBe(1);
+  });
+
+  it('splits nothing else: a price line, a line with no name set, and another voice’s recording stay whole in the device voice', async () => {
+    const price = build(new JaTts());
+    await price.tts.speak('いらっしゃい！三百円です。', { who: 'kenji' });
+    expect(price.inner.spoken).toEqual(['いらっしゃい！三百円です。']);
+    expect(price.audio.played).toEqual([]);
+    const noName = build(new JaTts(), new FakeAudio(), null);
+    await noName.tts.speak(LINE, { who: 'kenji' });
+    expect(noName.inner.spoken).toEqual([LINE]);
+    // the narrator has 「お水をください。」, Kenji has not: the line must not change to the narrator's voice half-way
+    const other = build(new JaTts());
+    await other.tts.speak('サムさん！お水をください。', { who: 'kenji' });
+    expect(other.inner.spoken).toEqual(['サムさん！お水をください。']);
+    expect(other.audio.played).toEqual([]);
+  });
+
+  it('cancel() ends the sequence: the next sentence is not played and the line ends once', async () => {
+    const a = new FakeAudio('manual');
+    const { tts, inner } = build(new JaTts(), a);
+    await tts.load();
+    let ends = 0;
+    const p = tts.speak(LINE, { who: 'kenji', onEnd: () => ends++ });
+    await new Promise((r) => setTimeout(r, 0));
+    expect(inner.spoken).toEqual(['サムさん！']);
+    await new Promise((r) => setTimeout(r, 0));
+    a.emit('playing'); // 「いらっしゃい！」 is playing
+    tts.cancel();
+    await p;
+    expect(a.played).toEqual(['voice/aaa111.mp3']);
+    expect(ends).toBe(1);
+    expect(tts.speaking()).toBe(false);
+  });
+});
+
 describe('the recorded lines', () => {
   const lines = voiceLines();
   const keys = new Set(lines.flatMap((l) => [l.text, ...l.alias].map((t) => voiceEntryKey(l.voice, t))));
@@ -168,6 +251,16 @@ describe('the recorded lines', () => {
     expect(keys.has(voiceEntryKey('yuki', 'コーヒーですね。ホットですか、アイスですか？'))).toBe(true);
     const named = SCENARIOS.flatMap((s) => Object.values(s.nodes).flatMap((n) => n.say.map((v) => ({ who: s.characterId, line: v.line })))).find((x) => x.line.ja.includes('{name}'))!;
     expect(keys.has(voiceEntryKey(named.who, resolveLine(named.line, LEXICON, { name: { ja: 'サム', raw: true } }).plain))).toBe(false);
+  });
+
+  it('cover the name-free sentences of a line that greets the player by name, in the speaker’s voice (the name itself is the device’s)', () => {
+    // Tanaka: 「{name}さん！いらっしゃいませ！あ、いつもありがとうございます。」 and 「{name}さんですね。これからもよろしくお願いします！ごゆっくりどうぞ。」
+    for (const text of ['いらっしゃいませ！', 'あ、いつもありがとうございます。', 'これからもよろしくお願いします！', 'ごゆっくりどうぞ。']) expect(keys.has(voiceEntryKey('tanaka', text)), text).toBe(true);
+    // Kenji speaks plainly
+    expect(keys.has(voiceEntryKey('kenji', 'これからもよろしく！'))).toBe(true);
+    // the question itself has no name in it: recorded whole
+    expect(keys.has(voiceEntryKey('tanaka', 'いらっしゃいませ。いつもありがとうございます。あのう、お名前は？'))).toBe(true);
+    expect([...keys].some((k) => k.includes('{name}'))).toBe(false);
   });
 
   it('cover lexicon words by surface, shift customers, and every voice has a speaker and a credit', () => {

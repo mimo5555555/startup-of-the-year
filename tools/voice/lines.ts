@@ -5,6 +5,7 @@
 import * as C from '@lw/content';
 import { LEXICON, REACTIONS, SCENARIOS, SLOTS, resolveLine, speakableText, tokenize, type Line, type Scenario, type Vars } from '@lw/content';
 import { NARRATOR, CUSTOMER, VOICE_SPEAKERS } from '../../apps/mobile/src/voice/voices';
+import { splitSentences } from '../../apps/mobile/src/voice/key';
 
 export interface VoiceLine {
   voice: string;
@@ -32,6 +33,17 @@ function addLine(voice: string, l: { ja: string; tts?: string; reading?: string;
   else add(voice, spoken, [bare]);
 }
 
+/**
+ * A line whose only variable is the player's name ({name}): the device voice has to say the name, but the player plays the line sentence
+ * by sentence, so its name-free sentences are recorded in the speaker's voice (「{name}さん！いつもありがとうございます。」 keeps its thanks).
+ */
+function addNameLine(voice: string, l: Line): boolean {
+  const vars = [...new Set([...l.ja.matchAll(/\{(\w+)\}/g)].map((m) => m[1]))];
+  if (l.tts || vars.length !== 1 || vars[0] !== 'name') return false;
+  for (const s of splitSentences(l.ja)) if (!/[{}]/.test(s)) addLine(voice, { ja: s.replace(/^\|+|\|+$/g, '') });
+  return true;
+}
+
 /** most recordings one slot line may add (every combination of its slots' options) */
 const SLOT_CAP = 40;
 
@@ -53,7 +65,10 @@ function addScenario(s: Scenario) {
   // {last}: what the shopkeeper remembers you bought (tokyo/regulars.ts), an option of this conversation's item slot
   const itemSlot = C.JP_PACK.scenarioMeta.find((m) => m.id === s.id)?.shop?.itemSlot;
   const as: Record<string, string> = itemSlot ? { last: itemSlot } : {};
-  const line = (voice: string, l: Line) => (/[{}]/.test(l.ja) ? addSlotLine(voice, l, as) : addLine(voice, l));
+  const line = (voice: string, l: Line) => {
+    if (!/[{}]/.test(l.ja)) addLine(voice, l);
+    else if (!addNameLine(voice, l)) addSlotLine(voice, l, as);
+  };
   for (const node of Object.values(s.nodes)) {
     for (const v of node.say) line(who, v.line);
     for (const sg of node.suggestions ?? []) line(NARRATOR, sg);

@@ -36,4 +36,19 @@ export const REGULARS_LEXICON: LexEntry[] = [
   w('わかります', '', 'I understand', 'أفهم'),
   w('風邪', 'かぜ', 'a cold', 'زكام'),
   w('ひかないで', '', "don't catch (a cold)", 'لا تُصب (بالزكام)'),
+  // small talk: the weekend, the festival, the news of the town (tokyo/smalltalk.ts)
+  w('出かけます', 'でかけます', 'go out (polite)', 'أخرج (بأدب)'),
+  w('出かける', 'でかける', 'to go out', 'يخرج'),
+  w('お休み', 'おやすみ', 'a day off; a holiday (polite)', 'يوم إجازة؛ عطلة (بأدب)'),
+  w('休み', 'やすみ', 'a day off; a holiday', 'يوم إجازة؛ عطلة'),
+  w('忙しかった', 'いそがしかった', 'was busy', 'كان مزدحمًا، كنت مشغولًا'),
+  w('大変', 'たいへん', 'tough, hard', 'متعب، صعب'),
+  w('お疲れ様', 'おつかれさま', 'you must be tired; thanks for your hard work', 'يعطيك العافية؛ شكرًا على تعبك'),
+  w('今週', 'こんしゅう', 'this week', 'هذا الأسبوع'),
+  w('行って', 'いって', 'go (and): 行ってみてください = do go and try it', 'اذهب (ثم): 行ってみてください = اذهب وجرّبه'),
+  w('行った', 'いった', 'went, have been (plain)', 'ذهبتَ (عامية)'),
+  w('やりました', '', 'did, have tried (polite)', 'فعلتُ، جرّبتُ (بأدب)'),
+  w('取れます', 'とれます', 'can get, can win (a prize)', 'يمكن الحصول عليه، يمكن ربحه'),
+  // your name (tokyo/smalltalk.ts)
+  w('あのう', '', 'um, excuse me (before asking something)', 'عفوًا، لو سمحت (قبل السؤال)'),
 ];

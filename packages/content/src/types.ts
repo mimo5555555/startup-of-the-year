@@ -120,6 +120,8 @@ export interface IntentDef {
   slotRequired?: boolean;
   /** capture a spoken name, country etc. as raw text when no slot option matched */
   capture?: 'name' | 'country';
+  /** with `capture: 'name'`: matched only when the line really gives a name (「サムです」, 「サムと申します」) */
+  captureRequired?: boolean;
   next?: string;
   step?: string;
   /** answer without changing node */

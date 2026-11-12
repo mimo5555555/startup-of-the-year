@@ -25,7 +25,7 @@ import { WordSheet } from './components/WordSheet';
 import { Toasts } from './components/Toasts';
 import { dirOf } from './i18n';
 import { watchFontsReady } from './fonts';
-import { unlockOnFirstGesture } from './services';
+import { tts, unlockOnFirstGesture } from './services';
 import { init, observeDay } from './game/bridge';
 import { startPay } from './game/goenPay';
 import { BeatGate, ConversationHost } from './game/host';
@@ -45,6 +45,12 @@ export default function App() {
     watchFontsReady();
     unlockOnFirstGesture();
   }, []);
+
+  // the voice player knows the player's name: a line that greets them by name keeps the character's recorded voice for its other sentences
+  const playerName = profile?.name;
+  useEffect(() => {
+    tts.setPlayerName(playerName);
+  }, [playerName]);
 
   // the day is observed on mount (inside init), on focus and on visibilitychange (inside init); a profile created now needs it once too
   const playing = !!profile;

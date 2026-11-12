@@ -81,6 +81,7 @@ export function createGameState(pack: GamePack, now: number): GameState {
     arcade: { plays: 0, tries: 0, won: 0 },
     karaoke: { booked: -1, sung: 0 },
     media: {},
+    named: [],
   };
 }
 
@@ -116,6 +117,7 @@ export function needsFlush(ev: InputEvent): boolean {
     case 'manner_used':
     case 'crane_play':
     case 'media_done':
+    case 'name_told':
       return true;
     default:
       return false;
@@ -160,6 +162,9 @@ const friendOf = (s: GameState, id: string) => s.friends[id] ?? emptyFriend(s.cl
 
 /** Flags that belong to the friend the conversation was with; every other flag is a story flag (`chapter.flags`). */
 const FRIEND_FLAGS: ReadonlySet<string> = new Set(['number_note', 'casual']);
+
+/** how many characters may know the player's name (far more than the town has shopkeepers) */
+const NAMED_MAX = 60;
 
 function setFlag(a: Acc, id: string, friendId?: string): void {
   if (typeof id !== 'string' || !id || id.length > 64) return;
@@ -931,6 +936,17 @@ function apply(a: Acc, ev: InputEvent, ctx: ReduceCtx): void {
       const media = a.s.media ?? {};
       const best = Math.max(media[ev.id] ?? -1, total === 0 ? 1 : right);
       a.s = { ...a.s, media: { ...media, [ev.id]: best } };
+      a.active = true;
+      break;
+    }
+    case 'name_told': {
+      // a shopkeeper learns the player's name once; telling it again changes nothing
+      const named = a.s.named ?? [];
+      if (typeof ev.characterId !== 'string' || !/^[a-z][a-z0-9_]{0,23}$/.test(ev.characterId) || named.includes(ev.characterId)) {
+        a.effective = false;
+        break;
+      }
+      a.s = { ...a.s, named: [...named, ev.characterId].slice(-NAMED_MAX) };
       a.active = true;
       break;
     }

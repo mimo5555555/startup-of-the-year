@@ -306,6 +306,8 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
     judgeManner(result.learner.line.plain);
     // the game centre: Shota moves the prize closer, so this visit's goes get a kinder claw
     if (scenario.id === 'arcade_crane' && result.learner.intentId === 'ask_assist') useCrane.getState().setAssisted(true);
+    // the shopkeeper asked the player's name and was told: they know it from now on (the greeting by name, game/regulars.ts)
+    if (result.learner.intentId === 'tell_name') dispatch({ t: 'name_told', characterId });
     const idx = session.turns.indexOf(result.learner);
     setVisible(idx + 1);
     setHint(null);

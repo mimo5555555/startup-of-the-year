@@ -26,4 +26,4 @@ export const CITY_ID = 'tokyo';
 export * from './tokyo/media/theatre';
 export { SENTO_STEPS, type BathStep } from './tokyo/scenarios-sento';
 export { REGULARS, withRegulars } from './tokyo/regulars';
-export { SEASONS, SEASON_TALK, SHOP_TALK, seasonAt, withSmallTalk, type Season } from './tokyo/smalltalk';
+export { FESTIVAL_TALK, NEWS_TALK, SEASONS, SEASON_TALK, SHOP_TALK, TALK_TOPICS, WEEKEND_TALK, seasonAt, topicsOf, weekendAt, withSmallTalk, type Season, type TalkTopic } from './tokyo/smalltalk';

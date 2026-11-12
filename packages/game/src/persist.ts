@@ -503,6 +503,7 @@ export function migrate(persisted: unknown, from: number, pack: GamePack): GameS
       for (const [k, v] of Object.entries(isRec(src.media) ? src.media : {})) if (/^(ep|song)_[a-z0-9_]{1,40}$/.test(k)) out[k] = int(v, 0, 0, 10);
       return out;
     })(),
+    named: (Array.isArray(src.named) ? src.named : []).filter((x): x is string => typeof x === 'string' && /^[a-z][a-z0-9_]{0,23}$/.test(x)).filter((x, i, all) => all.indexOf(x) === i).slice(-60),
     karaoke: (() => {
       const e = isRec(src.karaoke) ? src.karaoke : {};
       return { booked: int(e.booked, -1, -1), sung: int(e.sung, 0, 0) };
