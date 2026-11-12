@@ -19,7 +19,7 @@ export interface QuizItem {
   answer: number;
 }
 
-export type TheatreSetting = 'konbini' | 'ramen' | 'park' | 'arcade' | 'sento' | 'hobby';
+export type TheatreSetting = 'konbini' | 'ramen' | 'park' | 'arcade' | 'sento' | 'hobby' | 'station' | 'denki' | 'matsuri';
 
 export interface Episode {
   id: string;
@@ -184,6 +184,69 @@ export const EPISODES: Episode[] = [
       { q: G('Which one does he buy?', 'أيّهما يشتري؟'), options: [G('The small one', 'الصغير'), G('Both', 'كليهما'), G('The big one', 'الكبير')], answer: 2 },
     ],
   },
+  {
+    id: 'ep_station',
+    title: { ja: '光が丘まで', en: 'To Hikarigaoka', ar: 'إلى هيكاريغاأوكا' },
+    setting: 'station',
+    cast: ['mio', 'sato'],
+    unlock: 5,
+    lines: [
+      { who: 'sato', line: L('こんにちは。|どうしましたか？', 'Hello. How can I help?', 'مرحبًا. كيف أساعدك؟') },
+      { who: 'mio', line: L('すみません、|光が丘|まで|行きたい|です。', 'Excuse me, I would like to go to Hikarigaoka.', 'عذرًا، أريد أن أذهب إلى هيكاريغاأوكا.') },
+      { who: 'sato', line: L('光が丘|は|二番線|の|電車|です。|ICカード|は|あります|か？', 'For Hikarigaoka, take the train from platform 2. Do you have an IC card?', 'إلى هيكاريغاأوكا، القطار من الرصيف 2. هل معك بطاقة IC؟') },
+      { who: 'mio', line: L('はい、|あります。|でも、|チャージ|したい|です。', 'Yes, I do. But I would like to top it up.', 'نعم، معي. لكنني أريد أن أشحنها.') },
+      { who: 'sato', line: L('あちら|の|券売機|で|チャージ|できます|よ。', 'You can top it up at the ticket machine over there.', 'يمكنك شحنها في آلة التذاكر هناك.') },
+      { who: 'mio', line: L('わかりました。|千|円|チャージ|します。', 'I see. I will put 1,000 yen on it.', 'فهمت. سأشحنها بـ 1,000 ين.') },
+      { who: 'sato', line: L('電車|は|三分後|に|来ます。|気をつけて！', 'The train comes in three minutes. Take care!', 'القطار يأتي بعد ثلاث دقائق. انتبهي لنفسك!') },
+    ],
+    quiz: [
+      { q: G('Where does Mio want to go?', 'إلى أين تريد ميو أن تذهب؟'), options: [G('The park', 'الحديقة'), G('Kyoto', 'كيوتو'), G('Hikarigaoka', 'هيكاريغاأوكا')], answer: 2 },
+      { q: G('Which platform is it?', 'أي رصيف؟'), options: [G('Platform 1', 'الرصيف 1'), G('Platform 2', 'الرصيف 2'), G('Platform 3', 'الرصيف 3')], answer: 1 },
+      { q: G('How much does she put on her card?', 'بكم تشحن بطاقتها؟'), options: [G('1,000 yen', '1,000 ين'), G('500 yen', '500 ين'), G('3,000 yen', '3,000 ين')], answer: 0 },
+    ],
+  },
+  {
+    id: 'ep_denki',
+    title: { ja: 'ケンジさんのスマホ', en: "Kenji's smartphone", ar: 'هاتف كينجي' },
+    setting: 'denki',
+    cast: ['kenji', 'aoi'],
+    unlock: 6,
+    lines: [
+      { who: 'aoi', line: L('いらっしゃいませ。|何|を|お探し|でしょうか？', 'Welcome. What are you looking for?', 'أهلًا بك. عمّ تبحث؟') },
+      { who: 'kenji', line: L('スマホ|が|ほしい|んだ。|安い|の|は|ある？', 'I want a smartphone. Do you have a cheap one?', 'أريد هاتفًا ذكيًا. هل عندكم واحد رخيص؟') },
+      { who: 'aoi', line: L('中古スマホ|は|いかが|です|か？|二|万|四|千|八百|円|です。', 'How about a used smartphone? It is 24,800 yen.', 'ما رأيك بهاتف مستعمل؟ سعره 24,800 ين.') },
+      { who: 'kenji', line: L('いい|ね。|色|は|黒|が|いい。', 'Nice. I would like black.', 'جيد. أريد اللون الأسود.') },
+      { who: 'aoi', line: L('黒|も|あります。|カード|でも|払えます|よ。', 'We have black too. You can also pay by card.', 'عندنا الأسود أيضًا. يمكنك الدفع بالبطاقة أيضًا.') },
+      { who: 'kenji', line: L('じゃあ、|これ|を|ください。|現金|で|お願いします。', 'Then I will take this one. Cash, please.', 'إذن سآخذ هذا. نقدًا من فضلك.') },
+      { who: 'aoi', line: L('ありがとう|ございます。|こちら|に|お名前|を|お願いします。', 'Thank you very much. Your name here, please.', 'شكرًا جزيلًا. اسمك هنا من فضلك.') },
+    ],
+    quiz: [
+      { q: G('What is Kenji looking for?', 'عمّ يبحث كينجي؟'), options: [G('A smartphone', 'هاتف ذكي'), G('A TV', 'تلفزيون'), G('A camera', 'كاميرا')], answer: 0 },
+      { q: G('How much is the used smartphone?', 'كم سعر الهاتف المستعمل؟'), options: [G('12,800 yen', '12,800 ين'), G('128,000 yen', '128,000 ين'), G('24,800 yen', '24,800 ين')], answer: 2 },
+      { q: G('How does he pay?', 'كيف يدفع؟'), options: [G('By card', 'بالبطاقة'), G('In cash', 'نقدًا'), G('With his IC card', 'ببطاقة IC')], answer: 1 },
+    ],
+  },
+  {
+    id: 'ep_matsuri',
+    title: { ja: 'お祭りの夜', en: 'The night of the festival', ar: 'ليلة المهرجان' },
+    setting: 'matsuri',
+    cast: ['mio', 'rin'],
+    unlock: 7,
+    lines: [
+      { who: 'mio', line: L('リン|ちゃん、|こんばんは！|浴衣、|かわいい|ね！', 'Rin, good evening! Your yukata is cute!', 'رين، مساء الخير! اليوكاتا خاصتك لطيفة!') },
+      { who: 'rin', line: L('ありがとう|ございます！|ミオ|さん|も|きれい|です。', 'Thank you! You look lovely too, Mio.', 'شكرًا! وأنتِ جميلة أيضًا يا ميو.') },
+      { who: 'mio', line: L('お腹|が|すいた|ね。|たこ焼き、|食べよう！', 'I am hungry. Let us eat takoyaki!', 'أنا جائعة. لنأكل التاكوياكي!') },
+      { who: 'rin', line: L('いい|です|ね！|わたし|は|焼きそば|が|食べたい|です。', 'Sounds good! I want to eat yakisoba.', 'فكرة جيدة! أنا أريد أن آكل الياكيسوبا.') },
+      { who: 'mio', line: L('あ、|花火|が|始まる|よ！', 'Oh, the fireworks are starting!', 'أوه، الألعاب النارية ستبدأ!') },
+      { who: 'rin', line: L('わあ、|きれい！|すごい|です|ね！', 'Wow, beautiful! Amazing!', 'واو، ما أجملها! مذهلة!') },
+      { who: 'mio', line: L('来年|も|一緒に|来よう|ね。', 'Let us come together next year too.', 'لنأتِ معًا العام القادم أيضًا.') },
+    ],
+    quiz: [
+      { q: G('What is Rin wearing?', 'ماذا ترتدي رين؟'), options: [G('A school uniform', 'زيًّا مدرسيًا'), G('A yukata', 'يوكاتا'), G('A jacket', 'سترة')], answer: 1 },
+      { q: G('What does Rin want to eat?', 'ماذا تريد رين أن تأكل؟'), options: [G('Yakisoba', 'ياكيسوبا'), G('Takoyaki', 'تاكوياكي'), G('Shaved ice', 'ثلج مبشور')], answer: 0 },
+      { q: G('What starts?', 'ماذا يبدأ؟'), options: [G('The rain', 'المطر'), G('The dance', 'الرقص'), G('The fireworks', 'الألعاب النارية')], answer: 2 },
+    ],
+  },
 ];
 
 /**
@@ -257,6 +320,43 @@ export const SONGS: Song[] = [
         morae: ['ふ', 'ゆ', 'は', 'ゆ', 'き', 'が', 'ふ', 'る', 'よ'],
         notes: [[74, 0.5], [71, 0.5], [69, 1], [71, 0.5], [69, 0.5], [67, 1], [69, 0.5], [71, 0.5], [67, 3]],
         chords: [50, 43],
+      },
+    ],
+  },
+  /**
+   * 「わたしの一週間」 (My Week), the days of the week (written for the game): F major, 112 bpm. Its chords are F, Dm, B♭ and C: the D root
+   * is the minor one (`minor: [2]`).
+   */
+  {
+    id: 'song_week',
+    title: { ja: 'わたしの一週間', en: 'My Week', ar: 'أسبوعي' },
+    bpm: 112,
+    unlock: 3,
+    minor: [2],
+    lines: [
+      {
+        line: L('月曜日、|火曜日、|水曜日', 'Monday, Tuesday, Wednesday', 'الاثنين، الثلاثاء، الأربعاء'),
+        morae: ['げ', 'つ', 'よ', 'う', 'び', 'か', 'よ', 'う', 'び', 'す', 'い', 'よ', 'う', 'び'],
+        notes: [[65, 0.5], [67, 0.5], [69, 0.5], [69, 0.5], [72, 1], [74, 0.5], [72, 0.5], [69, 0.5], [72, 1], [69, 0.5], [67, 0.5], [65, 0.5], [67, 0.5], [69, 2]],
+        chords: [41, 50],
+      },
+      {
+        line: L('木曜日、|金曜日', 'Thursday, Friday', 'الخميس، الجمعة'),
+        morae: ['も', 'く', 'よ', 'う', 'び', 'き', 'ん', 'よ', 'う', 'び'],
+        notes: [[70, 0.5], [70, 0.5], [72, 0.5], [74, 0.5], [72, 1], [69, 0.5], [67, 0.5], [69, 0.5], [72, 0.5], [67, 2]],
+        chords: [46, 48],
+      },
+      {
+        line: L('土曜日|は|友達|と', 'Saturday is with my friends', 'السبت مع أصدقائي'),
+        morae: ['ど', 'よ', 'う', 'び', 'は', 'と', 'も', 'だ', 'ち', 'と'],
+        notes: [[74, 0.5], [74, 0.5], [72, 0.5], [69, 1], [67, 0.5], [65, 0.5], [67, 0.5], [69, 0.5], [72, 0.5], [74, 2]],
+        chords: [50, 46],
+      },
+      {
+        line: L('日曜日|は|お休み', 'Sunday is a day off', 'الأحد يوم إجازة'),
+        morae: ['に', 'ち', 'よ', 'う', 'び', 'は', 'お', 'や', 'す', 'み'],
+        notes: [[72, 0.5], [72, 0.5], [69, 0.5], [67, 0.5], [69, 1], [67, 0.5], [65, 0.5], [67, 0.5], [69, 0.5], [65, 3]],
+        chords: [48, 41],
       },
     ],
   },

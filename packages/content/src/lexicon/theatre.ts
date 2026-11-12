@@ -32,4 +32,21 @@ export const THEATRE_LEXICON: LexEntry[] = [
   w('もみじ', '', 'maple leaves (red in autumn)', 'أوراق القيقب (حمراء في الخريف)'),
   w('雪', 'ゆき', 'snow', 'ثلج'),
   w('降る', 'ふる', 'to fall (rain, snow)', 'يتساقط (المطر، الثلج)'),
+  // the station, Hikari Denki and the festival episodes
+  w('三分後', 'さんぷんご', 'in three minutes', 'بعد ثلاث دقائق'),
+  w('払えます', 'はらえます', 'can pay', 'يمكن الدفع'),
+  w('リン', '', 'Rin (a name)', 'رين (اسم)'),
+  w('ちゃん', '', '-chan (a friendly way to call a girl or a child)', '-تشان (لقب ودّي لفتاة أو طفل)'),
+  w('お腹', 'おなか', 'stomach, belly', 'البطن'),
+  w('すいた', '', 'is empty: お腹がすいた = I am hungry', 'فارغ: お腹がすいた = أنا جائع'),
+  w('食べよう', 'たべよう', "let's eat", 'لنأكل'),
+  w('食べたい', 'たべたい', 'want to eat', 'أريد أن آكل'),
+  w('始まる', 'はじまる', 'to start, to begin', 'يبدأ'),
+  // the days of the week (the song 「わたしの一週間」); 土曜日 lives in another module
+  w('月曜日', 'げつようび', 'Monday', 'يوم الاثنين'),
+  w('火曜日', 'かようび', 'Tuesday', 'يوم الثلاثاء'),
+  w('水曜日', 'すいようび', 'Wednesday', 'يوم الأربعاء'),
+  w('木曜日', 'もくようび', 'Thursday', 'يوم الخميس'),
+  w('金曜日', 'きんようび', 'Friday', 'يوم الجمعة'),
+  w('日曜日', 'にちようび', 'Sunday', 'يوم الأحد'),
 ];

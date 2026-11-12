@@ -34,6 +34,7 @@ describe('the songs', () => {
   it('open by chapter, and every song has a timeline', () => {
     expect(openMedia(SONGS, 1).map((s) => s.id)).toEqual(['song_sakura']);
     expect(openMedia(SONGS, 2).map((s) => s.id)).toEqual(['song_sakura', 'song_seasons']);
+    expect(openMedia(SONGS, 3).map((s) => s.id)).toEqual(['song_sakura', 'song_seasons', 'song_week']);
     for (const song of SONGS) {
       const tl = songTimeline(song);
       expect(tl.notes, song.id).toHaveLength(song.lines.reduce((n, l) => n + l.morae.length, 0));
@@ -41,7 +42,7 @@ describe('the songs', () => {
     }
   });
 
-  it('plays the minor chords each song names: A minor in the first (C major), E minor in the seasons song (G major)', () => {
+  it('plays the minor chords each song names: A minor in the first (C major), E minor in the seasons song (G major), D minor in the week song (F major)', () => {
     const pc = (root: number) => root % 12;
     const first = songTimeline(SONGS.find((s) => s.id === 'song_sakura')!).chords;
     expect(first.filter((c) => c.minor).every((c) => pc(c.root) === 9)).toBe(true);
@@ -49,6 +50,9 @@ describe('the songs', () => {
     expect(first.filter((c) => pc(c.root) !== 9).every((c) => !c.minor)).toBe(true);
     const seasons = songTimeline(SONGS.find((s) => s.id === 'song_seasons')!).chords;
     expect(seasons.map((c) => [pc(c.root), c.minor])).toEqual([[7, false], [4, true], [0, false], [2, false], [4, true], [0, false], [2, false], [7, false]]);
+    // the days-of-the-week song is in F major: D minor
+    const week = songTimeline(SONGS.find((s) => s.id === 'song_week')!).chords;
+    expect(week.map((c) => [pc(c.root), c.minor])).toEqual([[5, false], [2, true], [10, false], [0, false], [2, true], [10, false], [0, false], [5, false]]);
   });
 });
 

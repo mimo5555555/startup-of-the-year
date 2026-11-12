@@ -1800,6 +1800,15 @@ html[dir='rtl'] .kyo-host {
 .th-hobby .th-thumb {
   background: linear-gradient(160deg, #4a5aa8, #1d2452);
 }
+.th-station .th-thumb {
+  background: linear-gradient(160deg, #7fa6d6, #2f6fb6);
+}
+.th-denki .th-thumb {
+  background: linear-gradient(160deg, #6fc3f0, #2a86c9);
+}
+.th-matsuri .th-thumb {
+  background: linear-gradient(160deg, #ff9a5e, #d8433f);
+}
 .th-song .th-thumb {
   background: linear-gradient(160deg, #b28dff, #5b3cc4);
 }
@@ -1862,6 +1871,26 @@ html[dir='rtl'] .kyo-host {
     radial-gradient(circle at 62% 22%, #ffe9a8 0 1.6%, transparent 2.6%),
     radial-gradient(circle at 86% 12%, #ffffff 0 1.2%, transparent 2.2%),
     linear-gradient(180deg, #1d2452 0%, #2c3a7a 60%, #b9a27a 60%);
+}
+/* the station: a tiled wall with the line's blue band, the platform's yellow tactile strip */
+.th-stage.th-station {
+  background: linear-gradient(180deg, #dfe6ee 0%, #dfe6ee 34%, #2f6fb6 34%, #2f6fb6 42%, #dfe6ee 42%, #dfe6ee 60%, #f2c744 60%, #f2c744 65%, #b9bec6 65%);
+}
+/* Hikari Denki: a bright shop, a row of lit screens on the wall */
+.th-stage.th-denki {
+  background:
+    linear-gradient(180deg, #eaf2ff 0%, #eaf2ff 16%, transparent 16%, transparent 44%, #eaf2ff 44%, #eaf2ff 60%, #cfd8e6 60%),
+    repeating-linear-gradient(90deg, #3f7fd0 0 36px, #eaf2ff 36px 48px);
+}
+/* the festival: a night sky with a row of red lanterns */
+.th-stage.th-matsuri {
+  background:
+    radial-gradient(circle at 10% 22%, #ff6b5e 0 4.2%, transparent 5.2%),
+    radial-gradient(circle at 30% 18%, #ffb35e 0 4.2%, transparent 5.2%),
+    radial-gradient(circle at 50% 22%, #ff6b5e 0 4.2%, transparent 5.2%),
+    radial-gradient(circle at 70% 18%, #ffb35e 0 4.2%, transparent 5.2%),
+    radial-gradient(circle at 90% 22%, #ff6b5e 0 4.2%, transparent 5.2%),
+    linear-gradient(180deg, #1c2450 0%, #3a2f6b 60%, #6b4a3a 60%);
 }
 .th-actor {
   position: relative;

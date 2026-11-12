@@ -132,10 +132,20 @@ game, a bigger city with better conversations, and the same game for German, Dut
     order), app regulars (which topic when; the name flags; `name_told`), app voice (sentence playback), e2e `regulars.mjs` (seven
     visits, EN/AR).
 
+* **Mini-theatre, later chapters**: nine episodes and three songs in all.
+  * 光が丘まで (Chapter 5, the station: Mio and Sato; 〜まで行きたいです, 二番線, チャージしたいです, 三分後に来ます), ケンジさんのスマホ
+    (Chapter 6, Hikari Denki: Kenji in plain form and Aoi in polite form; 安いのはある？, 二万四千八百円, カードでも払えますよ, 現金で) and
+    お祭りの夜 (Chapter 7, the festival: Mio and Rin; 浴衣、かわいいね, お腹がすいた, 食べよう / 食べたいです, 花火が始まるよ). Seven lines
+    and three questions each, recorded voices, a backdrop each (the platform, the shop's wall of screens, the night with lanterns).
+  * 「わたしの一週間」 (My Week, from Chapter 3): the seven days of the week (月曜日、火曜日、水曜日 / 木曜日、金曜日 / 土曜日は友達と /
+    日曜日はお休み) in F major at 112 bpm, with D minor (`minor: [2]`).
+  * Tests: content theatre (nine episodes in opening order, three songs), app theatre (the week song's chords), e2e `theatre.mjs`
+    (Chapter 7: the full list, the bath and festival episodes, the week song; EN/AR).
+
 ## Next (Tokyo)
 
-1. **Mini-theatre, later chapters** — episodes for Chapters 5–8 (the station, Hikari Denki, the festival) and a song about the days of
-   the week.
+1. **A place for the later chapters** — the Mini-theatre has episodes to Chapter 7; the town's newest places all open in Chapters 2–3.
+   An izakaya evening (the south row's first front) for Chapter 6: ordering for a group, 乾杯, splitting the bill (割り勘).
 
 ## Other languages (German in Berlin first)
 
