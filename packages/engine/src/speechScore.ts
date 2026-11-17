@@ -1,7 +1,7 @@
 // Speech similarity (docs/GAME_DESIGN.md §12.4), moved out of Conversation.tsx so Prepare, the debrief, shifts and the copy rule
 // share it. `levenshtein` and `tokenDice` are the building blocks of the copy rule (§3.2: max(1 - lev/maxlen, tokenDice)).
 import type { Balance } from '@lw/game';
-import { LEXICON, segmentFree } from '@lw/content';
+import { targetLanguage, type TargetLanguage } from './matching';
 import { speechNormalize, type SpeechNormalizeOptions } from './speechNormalize';
 
 /** The §12.4 numbers: `BALANCE.speech`. */
@@ -56,9 +56,9 @@ export function speechSimilarity(a: string, b: string, opts?: SpeechNormalizeOpt
 }
 
 /** The set of normalised lexicon tokens of a text: known words by their reading (辛い = からい), unknown runs as written; punctuation dropped. */
-export function lexiconTokens(text: string): Set<string> {
+export function lexiconTokens(text: string, lang: TargetLanguage = targetLanguage()): Set<string> {
   const out = new Set<string>();
-  for (const t of segmentFree(text.normalize('NFKC'), LEXICON)) {
+  for (const t of lang.segment(text.normalize('NFKC'))) {
     if (t.punct) continue;
     const k = speechNormalize(t.r ?? t.s);
     if (k) out.add(k);

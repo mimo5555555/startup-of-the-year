@@ -1,6 +1,62 @@
-import { hasKanji, normJa, toKatakana } from '@lw/core';
-import { JP_PACK, LEXICON, SLOTS, segmentFree, type IntentDef, type SceneNode, type SlotOption } from '@lw/content';
+import { hasJapanese, hasKanji, normJa, toKatakana } from '@lw/core';
+import { JP_PACK, LEXICON, REACTIONS, SLOTS, segmentFree, type IntentDef, type Lexicon, type Line, type SceneNode, type SlotOption, type Token } from '@lw/content';
 import { speechNormalize, stripFillers, type NumberParser } from './speechNormalize';
+
+// ---------------------------------------------------------------------------------------------------------------
+// The target language: everything the engine needs to know about the language the learner is learning
+// ---------------------------------------------------------------------------------------------------------------
+
+/** The global moves a learner can make anywhere (ask to slow down, say thanks…), with the keys that call them. */
+export interface GlobalIntent {
+  id: 'slow' | 'repeat' | 'dont_understand' | 'thanks' | 'excuse' | 'how_are_you' | 'greet' | 'goodbye';
+  any: string[];
+  priority: number;
+}
+
+/** What the character says to a global move (and when nothing was understood). */
+export type Reactions = Record<'greet' | 'thanks' | 'excuse' | 'how_are_you' | 'slow' | 'goodbye' | 'fallback', Line>;
+
+/**
+ * The language being learned (docs/ROADMAP.md, "other languages"). The engine reads text only through this: how free text is
+ * normalised and searched for keywords, how it is split into words, how numbers are read, what a name sounds like, and its own tables
+ * (the dictionary, the slots, the global moves and the character's reactions). Japanese is the default (`JA`); a session can be given
+ * another (`SessionOptions.language`), and `setTargetLanguage` changes the default for the calls that take none.
+ */
+export interface TargetLanguage {
+  /** 'ja', 'de' */
+  id: string;
+  /** BCP-47 for speech recognition and synthesis: 'ja-JP', 'de-DE' */
+  locale: string;
+  lexicon: Lexicon;
+  slots: Record<string, SlotOption[]>;
+  reactions: Reactions;
+  globalIntents: GlobalIntent[];
+  /** a text normalised two ways for keyword search (§12.4) */
+  matchForms(text: string): MatchForms;
+  /** a normalised keyword is long enough to mean something (a one-kana key would match inside anything) */
+  keyUsable(key: MatchForms): boolean;
+  /** whether a normalised keyword occurs in a normalised text (Japanese: anywhere; a spaced language: at a word start) */
+  contains(text: string, key: string): boolean;
+  /** numerals in free text unified to digits, and the integers found */
+  parseNumbers(text: string): { text: string; numbers: number[] };
+  /** free text (what the learner typed or said) as dictionary tokens */
+  segment(text: string): Token[];
+  /** a spoken name ("I am Sam") and a country ("I am from Egypt"), as written */
+  captureName(text: string): string | null;
+  captureCountry(text: string): string | null;
+  /** whether typed text is in this language (else it is the learner's own, to be translated) */
+  isTarget(text: string): boolean;
+}
+
+let currentLanguage: TargetLanguage | null = null;
+/** The default target language of the calls that are given none; `null` restores Japanese. */
+export function setTargetLanguage(lang: TargetLanguage | null): void {
+  currentLanguage = lang;
+}
+/** The default target language: Japanese unless `setTargetLanguage` said otherwise. */
+export function targetLanguage(): TargetLanguage {
+  return currentLanguage ?? JA;
+}
 
 let numberParser: NumberParser | null = null;
 /** Replaces the pack's number reader (tests, or a pack whose language plugin is not the Japanese one); `null` restores `JP_PACK.lang.parseNumbers`. */
@@ -27,41 +83,47 @@ export interface MatchForms {
  * words written with kanji are replaced by their reading, so 辛い and からい (or 水 and みず) match the same keyword; then fillers
  * (えーと), script and punctuation are flattened.
  */
-export function matchForms(text: string): MatchForms {
+function jaMatchForms(text: string): MatchForms {
   const tokens = segmentFree(parseNumbersIn(text.normalize('NFKC')).text, LEXICON);
   const read = tokens.map((t) => (!t.raw && !t.punct && t.r ? t.r : t.s)).join('');
   return { loose: normJa(stripFillers(read)), folded: normJa(speechNormalize(read)) };
 }
 
-/** The one normal form other modules compare with (the copy rule, duplicate turns, `TurnFacts.norm`): the folded one. */
-export const normMatch = (text: string): string => matchForms(text).folded;
+/** Normalise free text for keyword search in the target language (Japanese by default). */
+export function matchForms(text: string, lang: TargetLanguage = targetLanguage()): MatchForms {
+  return lang.matchForms(text);
+}
 
-/** Normalised keyword; one-character kana would match inside almost anything, so they are ignored. */
+/** The one normal form other modules compare with (the copy rule, duplicate turns, `TurnFacts.norm`): the folded one. */
+export const normMatch = (text: string, lang: TargetLanguage = targetLanguage()): string => lang.matchForms(text).folded;
+
+/** Normalised keywords, per language; a key too short to mean anything is null. */
 const keyCache = new Map<string, MatchForms | null>();
-function nk(k: string): MatchForms | null {
-  let v = keyCache.get(k);
+function nk(k: string, lang: TargetLanguage): MatchForms | null {
+  const id = `${lang.id}\u0000${k}`;
+  let v = keyCache.get(id);
   if (v === undefined) {
-    const f = matchForms(k);
-    v = f.loose.length >= 2 || (f.loose.length === 1 && hasKanji(f.loose)) ? f : null;
-    keyCache.set(k, v);
+    const f = lang.matchForms(k);
+    v = lang.keyUsable(f) ? f : null;
+    keyCache.set(id, v);
   }
   return v;
 }
 
 /** How much of the text a keyword covers (its length), 0 when it is not in the text. */
-function keyHit(norm: MatchForms, k: string): number {
-  const key = nk(k);
+function keyHit(norm: MatchForms, k: string, lang: TargetLanguage): number {
+  const key = nk(k, lang);
   if (!key) return 0;
-  if (norm.loose.includes(key.loose)) return key.loose.length;
-  return key.folded && norm.folded.includes(key.folded) ? key.folded.length : 0;
+  if (lang.contains(norm.loose, key.loose)) return key.loose.length;
+  return key.folded && lang.contains(norm.folded, key.folded) ? key.folded.length : 0;
 }
 
-export function findSlotJa(slot: string, norm: MatchForms, allowed?: string[]): { opt: SlotOption; len: number } | null {
+export function findSlotJa(slot: string, norm: MatchForms, allowed?: string[], lang: TargetLanguage = targetLanguage()): { opt: SlotOption; len: number } | null {
   let best: { opt: SlotOption; len: number } | null = null;
-  for (const opt of SLOTS[slot] ?? []) {
+  for (const opt of lang.slots[slot] ?? []) {
     if (allowed && !allowed.includes(opt.id)) continue;
     for (const k of opt.keys.ja) {
-      const len = keyHit(norm, k);
+      const len = keyHit(norm, k, lang);
       if (len && (!best || len > best.len)) best = { opt, len };
     }
   }
@@ -109,21 +171,21 @@ export function captureCountry(text: string): string | null {
   return v;
 }
 
-function evalIntent(it: IntentDef, norm: MatchForms, raw: string): IntentHit | null {
-  if (it.none?.some((k) => keyHit(norm, k))) return null;
+function evalIntent(it: IntentDef, norm: MatchForms, raw: string, lang: TargetLanguage): IntentHit | null {
+  if (it.none?.some((k) => keyHit(norm, k, lang))) return null;
   let score = 0;
   let matchedSomething = false;
 
   if (it.all) {
     for (const group of it.all) {
-      const hits = group.map((k) => keyHit(norm, k)).filter(Boolean);
+      const hits = group.map((k) => keyHit(norm, k, lang)).filter(Boolean);
       if (!hits.length) return null;
       score += 10 + Math.max(...hits);
       matchedSomething = true;
     }
   }
   if (it.any) {
-    const hits = it.any.map((k) => keyHit(norm, k)).filter(Boolean);
+    const hits = it.any.map((k) => keyHit(norm, k, lang)).filter(Boolean);
     if (!hits.length) return null;
     score += 5 + Math.max(...hits);
     matchedSomething = true;
@@ -131,13 +193,13 @@ function evalIntent(it: IntentDef, norm: MatchForms, raw: string): IntentHit | n
   let option: SlotOption | undefined;
   let rawCountry: string | undefined;
   if (it.slot) {
-    const f = findSlotJa(it.slot, norm, it.slotOptions);
+    const f = findSlotJa(it.slot, norm, it.slotOptions, lang);
     if (f) {
       option = f.opt;
       score += 8 + f.len;
       matchedSomething = true;
     } else if (it.capture === 'country') {
-      const c = captureCountry(raw);
+      const c = lang.captureCountry(raw);
       if (c) rawCountry = c;
       else if (it.slotRequired) return null;
     } else if (it.slotRequired) {
@@ -146,7 +208,7 @@ function evalIntent(it: IntentDef, norm: MatchForms, raw: string): IntentHit | n
   }
   let rawName: string | undefined;
   if (it.capture === 'name') {
-    const n = captureName(raw);
+    const n = lang.captureName(raw);
     if (n) rawName = n;
     else if (it.captureRequired) return null;
   }
@@ -156,7 +218,7 @@ function evalIntent(it: IntentDef, norm: MatchForms, raw: string): IntentHit | n
   if (it.alsoSlots) {
     const also: NonNullable<IntentHit['also']> = [];
     for (const slot of it.alsoSlots) {
-      const f = findSlotJa(slot, norm);
+      const f = findSlotJa(slot, norm, undefined, lang);
       if (f) also.push({ slot, option: f.opt });
     }
     if (also.length) hit.also = also;
@@ -164,28 +226,22 @@ function evalIntent(it: IntentDef, norm: MatchForms, raw: string): IntentHit | n
   return hit;
 }
 
-export function matchNodeIntent(node: SceneNode, text: string): IntentHit | null {
-  const norm = matchForms(text);
+export function matchNodeIntent(node: SceneNode, text: string, lang: TargetLanguage = targetLanguage()): IntentHit | null {
+  const norm = lang.matchForms(text);
   if (!norm.loose) return null;
   let best: IntentHit | null = null;
   for (const it of node.intents) {
-    const hit = evalIntent(it, norm, text);
+    const hit = evalIntent(it, norm, text, lang);
     if (hit && (!best || hit.score > best.score)) best = hit;
   }
   if (best) {
-    const { numbers } = parseNumbersIn(text.normalize('NFKC'));
+    const { numbers } = lang.parseNumbers(text.normalize('NFKC'));
     if (numbers[0] !== undefined) {
       best.number = numbers[0];
       best.numbers = numbers;
     }
   }
   return best;
-}
-
-export interface GlobalIntent {
-  id: 'slow' | 'repeat' | 'dont_understand' | 'thanks' | 'excuse' | 'how_are_you' | 'greet' | 'goodbye';
-  any: string[];
-  priority: number;
 }
 
 export const GLOBAL_INTENTS: GlobalIntent[] = [
@@ -199,13 +255,34 @@ export const GLOBAL_INTENTS: GlobalIntent[] = [
   { id: 'excuse', any: ['すみません', 'すいません', 'ごめん'], priority: 2 },
 ];
 
-export function matchGlobal(text: string): GlobalIntent | null {
-  const norm = matchForms(text);
+export function matchGlobal(text: string, lang: TargetLanguage = targetLanguage()): GlobalIntent | null {
+  const norm = lang.matchForms(text);
   let best: GlobalIntent | null = null;
-  for (const g of GLOBAL_INTENTS) {
-    if (g.any.some((k) => keyHit(norm, k)) && (!best || g.priority > best.priority)) best = g;
+  for (const g of lang.globalIntents) {
+    if (g.any.some((k) => keyHit(norm, k, lang)) && (!best || g.priority > best.priority)) best = g;
   }
   return best;
 }
 
 export { toKatakana };
+
+/** Only digits (any width, with separators), optionally with ¥ in front or 円 / えん behind: a price or a quantity said as a number (§6.2). */
+export const JA_NUMERIC = /^[¥￥]?\s*[0-9０-９][0-9０-９,，]*\s*(?:円|えん)?$/;
+
+/** Japanese, the first target language: everything above, read through the dictionary and folded as kana (§12.4). */
+export const JA: TargetLanguage = {
+  id: 'ja',
+  locale: 'ja-JP',
+  lexicon: LEXICON,
+  slots: SLOTS,
+  reactions: REACTIONS,
+  globalIntents: GLOBAL_INTENTS,
+  matchForms: jaMatchForms,
+  keyUsable: (f) => f.loose.length >= 2 || (f.loose.length === 1 && hasKanji(f.loose)),
+  contains: (text, key) => text.includes(key),
+  parseNumbers: (text) => parseNumbersIn(text),
+  segment: (text) => segmentFree(text, LEXICON),
+  captureName,
+  captureCountry,
+  isTarget: (text) => hasJapanese(text) || JA_NUMERIC.test(text),
+};

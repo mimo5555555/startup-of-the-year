@@ -34,7 +34,7 @@ describe('classifyInput: a number is Japanese, not English', () => {
 
 describe('numbers are one token however they are written (§12.4)', () => {
   const same = (...forms: string[]) => {
-    const [first, ...rest] = forms.map(normMatch);
+    const [first, ...rest] = forms.map((f) => normMatch(f));
     for (const f of rest) expect(f, forms.join(' = ')).toBe(first);
   };
   it('450円 = 四百五十円 = よんひゃくごじゅうえん', () => same('450円', '四百五十円', 'よんひゃくごじゅうえん', '４５０円', '¥450'));

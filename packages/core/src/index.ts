@@ -1,4 +1,5 @@
 export * from './kana';
+export * from './german';
 export * from './storage';
 export * from './srs';
 export * from './progress';

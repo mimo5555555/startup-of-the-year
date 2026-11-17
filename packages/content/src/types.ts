@@ -31,6 +31,8 @@ export interface Token {
   /** user-supplied text (a name) or ASCII text without a dictionary entry */
   raw?: boolean;
   punct?: boolean;
+  /** a space before this token (a language that spaces its words: German); never set in Japanese */
+  sp?: boolean;
 }
 
 /** A line of text: `ja` is markup, tokens separated by `|` and resolved against the lexicon. */

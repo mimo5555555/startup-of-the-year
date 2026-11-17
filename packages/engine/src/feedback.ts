@@ -299,6 +299,98 @@ const stiffWithFriend: Rule = (turn, { text, register, markers, politeMarkers })
 
 const RULES: Rule[] = [wrongParticle, englishWord, bluntWant, bareRequest, missingDesu, shortThanks, casualSorry, casualWithStaff, stiffWithFriend];
 
+// ---------- German (Sie and du) ----------
+
+/** a German word or phrase on word boundaries (umlauts are letters too) */
+const deWord = (w: string, flags = 'iu') => new RegExp(`(?<![\\p{L}])${w}(?![\\p{L}])`, flags);
+
+/** the informal forms and their Sie forms, longest first: 「Kannst du mir helfen?」 → 「Können Sie mir helfen?」 */
+const DU_TO_SIE: Array<[RegExp, string]> = [
+  [deWord('kannst du'), 'können Sie'],
+  [deWord('hast du'), 'haben Sie'],
+  [deWord('bist du'), 'sind Sie'],
+  [deWord('willst du'), 'wollen Sie'],
+  [deWord('möchtest du'), 'möchten Sie'],
+  [deWord('du'), 'Sie'],
+  [deWord('dir'), 'Ihnen'],
+  [deWord('dich'), 'Sie'],
+  [deWord('deine'), 'Ihre'],
+  [deWord('dein'), 'Ihr'],
+];
+/** the formal forms a friend would not use, and their du forms; 「Sie」 alone could be "she", so only after a verb (case matters) */
+const SIE_TO_DU: Array<[RegExp, string]> = [
+  [deWord('[Kk]önnen Sie', 'u'), 'kannst du'],
+  [deWord('[Hh]aben Sie', 'u'), 'hast du'],
+  [deWord('[Ss]ind Sie', 'u'), 'bist du'],
+  [deWord('[Ww]ollen Sie', 'u'), 'willst du'],
+  [deWord('[Mm]öchten Sie', 'u'), 'möchtest du'],
+  [deWord('Ihnen', 'u'), 'dir'],
+];
+
+/** applies every replacement that matches; keeps a capital at the start of the sentence */
+function rewriteDe(text: string, table: Array<[RegExp, string]>): string {
+  let out = text;
+  for (const [re, to] of table) out = out.replace(new RegExp(re.source, re.flags.includes('g') ? re.flags : re.flags + 'g'), (m) => (/^\p{Lu}/u.test(m) ? to.charAt(0).toUpperCase() + to.slice(1) : to));
+  return out;
+}
+
+function firstHit(text: string, table: Array<[RegExp, string]>): { marker: string; index: number } | null {
+  for (const [re] of table) {
+    const m = re.exec(text);
+    if (m) return { marker: m[0], index: m.index };
+  }
+  return null;
+}
+
+/** du with a shopkeeper or anyone you do not know: Germans say Sie */
+const deDuWithStaff: Rule = (turn, { text, register, friend }) => {
+  if (friend || register === 'casual') return [];
+  const hit = firstHit(text, DU_TO_SIE);
+  if (!hit) return [];
+  const better = rewriteDe(text, DU_TO_SIE);
+  return [
+    {
+      turnId: turn.id,
+      span: [hit.index, hit.index + hit.marker.length],
+      category: 'naturalness',
+      kind: 'register',
+      severity: 1,
+      original: text,
+      better,
+      explanation: {
+        en: `「${hit.marker}」 is the informal du. With staff and people you do not know, Germans say Sie: 「${better}」.`,
+        ar: `«${hit.marker}» هي صيغة du غير الرسمية. مع الموظفين ومن لا تعرفهم يقول الألمان Sie: «${better}».`,
+      },
+    },
+  ];
+};
+
+/** Sie with a friend who says du: distant, not wrong (a soft note) */
+const deSieWithFriend: Rule = (turn, { text, register }) => {
+  if (register !== 'casual') return [];
+  const hit = firstHit(text, SIE_TO_DU);
+  if (!hit) return [];
+  return [
+    {
+      turnId: turn.id,
+      span: [hit.index, hit.index + hit.marker.length],
+      category: 'naturalness',
+      kind: 'register',
+      soft: true,
+      severity: 1,
+      original: text,
+      better: rewriteDe(text, SIE_TO_DU),
+      explanation: {
+        en: `「${hit.marker}」 is the formal Sie. Your friend says du to you, so Sie sounds a little distant. It is not wrong.`,
+        ar: `«${hit.marker}» هي صيغة Sie الرسمية. صديقك يخاطبك بـ du، فتبدو Sie بعيدة قليلًا. وهي ليست خطأ.`,
+      },
+    },
+  ];
+};
+
+/** the rules of each target language; a language without its own rules gets no corrections, only its scores */
+const RULES_BY_LANGUAGE: Record<string, Rule[]> = { ja: RULES, de: [deDuWithStaff, deSieWithFriend] };
+
 const clamp = (n: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, Math.round(n)));
 
 export function evaluateSession(session: ConversationSession, opts: FeedbackOptions = {}): FeedbackReport {
@@ -321,7 +413,7 @@ export function evaluateSession(session: ConversationSession, opts: FeedbackOpti
   for (const turn of independent) {
     if (!turn.matched && !turn.line.written) continue;
     const text = turn.line.written;
-    const found = RULES.flatMap((r) => r(turn, { ...ctxBase, text }));
+    const found = (RULES_BY_LANGUAGE[session.lang.id] ?? []).flatMap((r) => r(turn, { ...ctxBase, text }));
     // one correction per turn is enough to learn from; keep the most severe
     found.sort((a, b) => b.severity - a.severity);
     // a speech turn the recogniser was unsure of may just be mis-heard: its findings are "maybe" notes (§11.4)

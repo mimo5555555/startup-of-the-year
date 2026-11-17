@@ -1,10 +1,10 @@
 // Turn classification and the facts handed to @lw/game (docs/GAME_DESIGN.md §3.2). `ConversationFacts` (from @lw/game) is the
 // cross-package contract; everything else here is engine-internal and pure.
 import type { Balance, ConversationFacts, TurnClass, TurnFacts } from '@lw/game';
-import { LEXICON, segmentFree, type Token } from '@lw/content';
+import type { Token } from '@lw/content';
 import type { ConversationSession, InputMode } from './dialogue';
 import { evaluateSession, type FeedbackOptions } from './feedback';
-import { matchForms, normMatch } from './matching';
+import { matchForms, normMatch, targetLanguage, type TargetLanguage } from './matching';
 import { levenshtein, tokenDice } from './speechScore';
 
 /** The §3.2 numbers: the slice of `BALANCE` the classifier reads. */
@@ -78,16 +78,17 @@ const isContent = (t: Token) => !t.raw && !t.punct && !t.grammar;
 export const lineContentTokens = (tokens: Token[]): number => tokens.filter(isContent).length;
 
 /** The surfaces of a text's content tokens, in order. */
-export function turnWords(text: string): string[] {
-  return segmentFree(text.normalize('NFKC'), LEXICON)
+export function turnWords(text: string, lang: TargetLanguage = targetLanguage()): string[] {
+  return lang
+    .segment(text.normalize('NFKC'))
     .filter(isContent)
     .map((t) => t.s);
 }
 
 /** Content tokens of what the learner typed or said; a run of digits is one number token. */
-export function contentTokenCount(text: string): number {
+export function contentTokenCount(text: string, lang: TargetLanguage = targetLanguage()): number {
   const t = text.normalize('NFKC');
-  return segmentFree(t, LEXICON).filter(isContent).length + (t.match(/[0-9]+/g) ?? []).length;
+  return lang.segment(t).filter(isContent).length + (t.match(/[0-9]+/g) ?? []).length;
 }
 
 export function createShownSet(): ShownSet {
@@ -95,9 +96,16 @@ export function createShownSet(): ShownSet {
 }
 
 /** Adds a displayed string once; an NPC line enters only with >= `shownNpcTokens` content tokens (a short repeat-back is ordinary conversation). */
-export function addShown(set: ShownSet, source: keyof ShownSet, text: string, tokens?: Token[], policy: ScoringPolicy = DEFAULT_SCORING_POLICY): void {
+export function addShown(
+  set: ShownSet,
+  source: keyof ShownSet,
+  text: string,
+  tokens?: Token[],
+  policy: ScoringPolicy = DEFAULT_SCORING_POLICY,
+  lang: TargetLanguage = targetLanguage(),
+): void {
   if (!text.trim() || set[source].includes(text)) return;
-  if (source === 'npc' && lineContentTokens(tokens ?? segmentFree(text, LEXICON)) < policy.shownNpcTokens) return;
+  if (source === 'npc' && lineContentTokens(tokens ?? lang.segment(text)) < policy.shownNpcTokens) return;
   set[source].push(text);
 }
 
@@ -198,7 +206,7 @@ export function buildConversationFacts(session: ConversationSession, extra: Fact
   for (const t of session.turns) {
     const sc = t.score;
     if (t.speaker !== 'learner' || !sc || sc.cls === 'unmatched') continue;
-    const words = turnWords(t.line.written);
+    const words = turnWords(t.line.written, session.lang);
     // only what the learner produced herself is "new words said" (the reducer feeds say_new and words.said from class-I turns)
     const newWords = sc.cls === 'I' && sc.substantive ? words.filter((w, i) => !heard.has(w) && words.indexOf(w) === i) : [];
     if (sc.cls === 'I' && sc.substantive) for (const w of words) heard.add(w);

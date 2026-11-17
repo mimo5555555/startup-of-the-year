@@ -1,19 +1,23 @@
-import { hasKanji, kanaToRomaji } from '@lw/core';
+import { hasJapanese, hasKanji, kanaToRomaji } from '@lw/core';
 import { NUMERAL_TOKEN, readNumeralTokens } from './lexicon/numbers';
 import type { Gloss, LexEntry, Line, Token, Vars } from './types';
 
 const PUNCT_CHARS = '。、！？!?,.「」『』…・（）()';
-const isPunctOnly = (s: string) => s.length > 0 && Array.from(s).every((c) => PUNCT_CHARS.includes(c));
+const isPunctOnly = (s: string, punct = PUNCT_CHARS) => s.length > 0 && Array.from(s).every((c) => punct.includes(c));
 const VAR = /^\{(\w+)\}$/;
-const ASCII_RAW = /^[A-Za-z0-9@#_.+-]+$/;
+const ASCII_RAW = /^[A-Za-z0-9@#_.,+-]+$/;
+/** Latin letters (with the accented ones) */
+const LATIN = /[A-Za-z\u00c0-\u024f]/;
+/** punctuation of Latin-script text, split off a word's edges (an apostrophe inside a word stays: geht's) */
+const LATIN_PUNCT = PUNCT_CHARS + '„“”":;–';
 
 /** Split trailing/leading punctuation off a piece so authors can write `ですか？`. */
-function splitPunct(piece: string): string[] {
+function splitPunct(piece: string, punct = PUNCT_CHARS): string[] {
   const chars = Array.from(piece);
   let a = 0;
   let b = chars.length;
-  while (a < b && PUNCT_CHARS.includes(chars[a])) a++;
-  while (b > a && PUNCT_CHARS.includes(chars[b - 1])) b--;
+  while (a < b && punct.includes(chars[a])) a++;
+  while (b > a && punct.includes(chars[b - 1])) b--;
   const out: string[] = [];
   for (let i = 0; i < a; i++) out.push(chars[i]);
   if (b > a) out.push(chars.slice(a, b).join(''));
@@ -26,7 +30,8 @@ export function entryToToken(e: LexEntry): Token {
   return {
     s: e.s,
     r: reading && hasKanji(e.s) ? reading : undefined,
-    rom: e.rom ?? kanaToRomaji(reading ?? e.s),
+    // a word of a Latin-script language is its own romanisation
+    rom: e.rom ?? (hasJapanese(reading ?? e.s) ? kanaToRomaji(reading ?? e.s) : e.s),
     gloss: { en: e.en, ar: e.ar },
     grammar: e.g,
   };
@@ -34,14 +39,19 @@ export function entryToToken(e: LexEntry): Token {
 
 export class Lexicon {
   private map = new Map<string, LexEntry>();
+  /** the entries by their lower-case form: 「Ich」 at the start of a sentence and a typed 「brötchen」 are found */
+  private lower = new Map<string, LexEntry>();
   constructor(entries: LexEntry[]) {
     for (const e of entries) {
       if (this.map.has(e.s)) throw new Error(`Duplicate lexicon entry: ${e.s}`);
       this.map.set(e.s, e);
+      const k = e.s.toLowerCase();
+      if (k !== e.s && !this.lower.has(k)) this.lower.set(k, e);
     }
   }
+  /** the entry written exactly so, else one that differs only in letter case */
   get(s: string) {
-    return this.map.get(s);
+    return this.map.get(s) ?? this.map.get(s.toLowerCase()) ?? this.lower.get(s.toLowerCase());
   }
   has(s: string) {
     return this.map.has(s);
@@ -56,45 +66,79 @@ export interface TokenizeResult {
   missing: string[];
 }
 
+/**
+ * The pieces of a markup string: split on `|`; a piece with spaces and no Japanese in it (German: `Guten Tag!`, a price `2,50 €`) is
+ * also split on its spaces, and each word after a space is marked `sp`. A Japanese piece keeps its space (a name like 「高橋 凜」).
+ */
+function markupPieces(markup: string): Array<{ text: string; sp: boolean; latin: boolean }> {
+  const out: Array<{ text: string; sp: boolean; latin: boolean }> = [];
+  for (const piece of markup.split('|')) {
+    if (!piece) continue;
+    if (!/\s/.test(piece) || hasJapanese(piece)) {
+      out.push({ text: piece, sp: false, latin: LATIN.test(piece) && !hasJapanese(piece) });
+      continue;
+    }
+    const words = piece.split(/(\s+)/);
+    let sp = false;
+    for (const w of words) {
+      if (!w) continue;
+      if (/^\s+$/.test(w)) {
+        sp = out.length > 0;
+        continue;
+      }
+      out.push({ text: w, sp, latin: true });
+      sp = false;
+    }
+  }
+  return out;
+}
+
 export function tokenize(markup: string, lex: Lexicon, vars: Vars = {}): TokenizeResult {
   const tokens: Token[] = [];
   const missing: string[] = [];
-  for (const piece of markup.split('|')) {
-    if (!piece) continue;
-    for (const part of splitPunct(piece)) {
-      if (isPunctOnly(part)) {
-        tokens.push({ s: part, rom: part === '。' ? '.' : part === '、' ? ',' : part === '？' ? '?' : part === '！' ? '!' : part, punct: true });
+  for (const piece of markupPieces(markup)) {
+    let first = true;
+    // the space before a word goes on the word's first token (not on punctuation split off its front: „Brezel“)
+    const push = (t: Token) => {
+      tokens.push(first && piece.sp ? { ...t, sp: true } : t);
+      first = false;
+    };
+    for (const part of splitPunct(piece.text, piece.latin ? LATIN_PUNCT : PUNCT_CHARS)) {
+      if (isPunctOnly(part, piece.latin ? LATIN_PUNCT : PUNCT_CHARS)) {
+        push({ s: part, rom: part === '。' ? '.' : part === '、' ? ',' : part === '？' ? '?' : part === '！' ? '!' : part, punct: true });
         continue;
       }
       const v = VAR.exec(part);
       if (v) {
         const val = vars[v[1]];
         if (!val) {
-          tokens.push({ s: '…', rom: '…', raw: true });
+          push({ s: '…', rom: '…', raw: true });
         } else if (val.raw) {
-          tokens.push({ s: val.ja, rom: val.ja, raw: true });
+          push({ s: val.ja, rom: val.ja, raw: true });
         } else {
           const inner = tokenize(val.ja, lex);
-          tokens.push(...inner.tokens);
+          inner.tokens.forEach(push);
           missing.push(...inner.missing);
         }
         continue;
       }
       const e = lex.get(part);
       if (e) {
-        tokens.push(entryToToken(e));
+        // the word as written (「Ich」 at the start of a sentence), with the entry's reading and meaning
+        push(e.s === part ? entryToToken(e) : { ...entryToToken(e), s: part, rom: e.rom ?? part });
       } else if (ASCII_RAW.test(part)) {
-        tokens.push({ s: part, rom: part, raw: true });
+        push({ s: part, rom: part, raw: true });
       } else {
         missing.push(part);
-        tokens.push({ s: part, rom: kanaToRomaji(part), raw: true });
+        push({ s: part, rom: kanaToRomaji(part), raw: true });
       }
     }
   }
   return { tokens, missing };
 }
 
-export const plainText = (tokens: Token[]) => tokens.map((t) => t.s).join('');
+/** The tokens' text joined as written: no spaces in Japanese, a space before each token marked `sp` (German words). */
+export const plainText = (tokens: Token[]) => tokens.map((t) => (t.sp ? ' ' : '') + t.s).join('');
 /** Text for the speech engine: user-supplied Arabic-script names are left out. */
 export function speakableText(tokens: Token[]): string {
   const out: string[] = [];
@@ -105,13 +149,13 @@ export function speakableText(tokens: Token[]): string {
     let j = i;
     while (j < spoken.length && !spoken[j].raw && NUMERAL_TOKEN.test(spoken[j].s)) j++;
     if (j > i && spoken[j - 1].s === '円') {
-      out.push(readNumeralTokens(spoken.slice(i, j).map((t) => t.s)));
+      out.push((spoken[i].sp ? ' ' : '') + readNumeralTokens(spoken.slice(i, j).map((t) => t.s)));
       i = j - 1;
-    } else out.push(spoken[i].s);
+    } else out.push((spoken[i].sp ? ' ' : '') + spoken[i].s);
   }
-  return out.join('');
+  return out.join('').trim();
 }
-export const readingText = (tokens: Token[]) => tokens.map((t) => (t.r ?? t.s)).join('');
+export const readingText = (tokens: Token[]) => tokens.map((t) => (t.sp ? ' ' : '') + (t.r ?? t.s)).join('');
 /** Space-separated romaji with punctuation attached to the preceding word. */
 export function romajiText(tokens: Token[]): string {
   let out = '';
@@ -154,6 +198,7 @@ export const emptyGloss = (): Gloss => ({ en: '', ar: '' });
  * dictionary. Unknown runs stay together as raw tokens. A real build swaps this for a bundled analyser.
  */
 export function segmentFree(text: string, lex: Lexicon, maxLen = 14): Token[] {
+  // (Japanese: no spaces between words; a spaced language reads its words with `segmentWords`)
   const chars = Array.from(text);
   const tokens: Token[] = [];
   let raw = '';
@@ -192,5 +237,29 @@ export function segmentFree(text: string, lex: Lexicon, maxLen = 14): Token[] {
     }
   }
   flush();
+  return tokens;
+}
+
+/**
+ * Break free text of a language that spaces its words (German) into tokens: one per word, looked up in the dictionary whatever its
+ * letter case; punctuation split off; an unknown word stays as a raw token. Each word after the first carries `sp`.
+ */
+export function segmentWords(text: string, lex: Lexicon): Token[] {
+  const tokens: Token[] = [];
+  const words = text.replace(/\|/g, ' ').split(/\s+/).filter(Boolean);
+  words.forEach((word, i) => {
+    let first = i > 0;
+    for (const part of splitPunct(word, LATIN_PUNCT)) {
+      const sp = first;
+      first = false;
+      if (isPunctOnly(part, LATIN_PUNCT)) {
+        tokens.push(sp ? { s: part, rom: part, punct: true, sp } : { s: part, rom: part, punct: true });
+        continue;
+      }
+      const e = lex.get(part);
+      const t: Token = e ? { ...entryToToken(e), s: part, rom: e.rom ?? part } : { s: part, rom: part, raw: true };
+      tokens.push(sp ? { ...t, sp } : t);
+    }
+  });
   return tokens;
 }

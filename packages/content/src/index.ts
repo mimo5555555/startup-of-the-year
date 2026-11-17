@@ -22,6 +22,8 @@ export { VIEWING_MINOR_TEXT } from './tokyo/scenarios-home';
 export { CLOTHES_COLOURS, DENIM_COLOURS } from './tokyo/game/items';
 export { JP_LANGUAGE, parseNumbers, parseJaNumber, setSpeechNormalizer, yenToJa } from './tokyo/game/jp-language';
 
+export * from './berlin';
+
 export const CITY_ID = 'tokyo';
 export * from './tokyo/media/theatre';
 export { SENTO_STEPS, type BathStep } from './tokyo/scenarios-sento';

@@ -1,12 +1,8 @@
 import { toKatakana, uid } from '@lw/core';
 import {
-  LEXICON,
-  REACTIONS,
-  SLOTS,
   TOPICS,
   plainText,
   resolveLine,
-  segmentFree,
   speakableText,
   tokenize,
   type Character,
@@ -23,7 +19,7 @@ import {
   type Vars,
 } from '@lw/content';
 import type { ConversationFacts } from '@lw/game';
-import { matchGlobal, matchNodeIntent, type GlobalIntent, type IntentHit } from './matching';
+import { matchGlobal, matchNodeIntent, targetLanguage, type GlobalIntent, type IntentHit, type TargetLanguage } from './matching';
 import {
   DEFAULT_SCORING_POLICY,
   addShown,
@@ -116,6 +112,8 @@ export interface SessionOptions {
   recalled?: RecalledLines;
   /** `BALANCE` numbers of §3.2; the pinned defaults when absent */
   policy?: ScoringPolicy;
+  /** the language being learned: its dictionary, slots, reactions and matching (`targetLanguage()`, Japanese, when absent) */
+  language?: TargetLanguage;
 }
 
 export interface SubmitInput {
@@ -180,8 +178,12 @@ export class ConversationSession {
     this.nodeId = opts.startNode ?? opts.scenario.start;
     if (!opts.scenario.nodes[this.nodeId]) throw new Error(`Scenario ${opts.scenario.id} has no node ${this.nodeId}`);
     this.flags = opts.flags ?? {};
+    this.lang = opts.language ?? targetLanguage();
     this.baseVars = { name: { ja: opts.profileName || 'あなた', raw: true } };
   }
+
+  /** the language being learned in this conversation */
+  readonly lang: TargetLanguage;
 
   get scenario() {
     return this.opts.scenario;
@@ -198,7 +200,7 @@ export class ConversationSession {
   }
 
   private resolve(line: Line): ResolvedLine {
-    return resolveLine(line, LEXICON, this.vars);
+    return resolveLine(line, this.lang.lexicon, this.vars);
   }
 
   private pickSay(node: SceneNode): Line {
@@ -260,7 +262,7 @@ export class ConversationSession {
       ...p,
     };
     this.turns.push(turn);
-    if (turn.kind !== 'fallback') addShown(this.shown, 'npc', turn.line.written, turn.line.tokens, this.policy);
+    if (turn.kind !== 'fallback') addShown(this.shown, 'npc', turn.line.written, turn.line.tokens, this.policy, this.lang);
     return turn;
   }
 
@@ -291,10 +293,10 @@ export class ConversationSession {
     let line: ResolvedLine;
     const assisted = input.mode === 'assist' || input.mode === 'suggestion';
     if (input.translation) {
-      line = resolveLine({ ja: input.translation.ja, en: input.l1Text ?? '', ar: input.l1Text ?? '' }, LEXICON, { ...this.vars, ...input.translation.vars });
+      line = resolveLine({ ja: input.translation.ja, en: input.l1Text ?? '', ar: input.l1Text ?? '' }, this.lang.lexicon, { ...this.vars, ...input.translation.vars });
     } else {
       const text = input.kana ?? input.text;
-      const tokens = segmentFree(text, LEXICON);
+      const tokens = this.lang.segment(text);
       line = { tokens, plain: speakableText(tokens), written: plainText(tokens), en: '', ar: '' };
     }
     const turn: Turn = {
@@ -329,15 +331,15 @@ export class ConversationSession {
 
   private matchNode(input: SubmitInput, text: string): IntentHit | null {
     const node = this.liveNode;
-    if (!this.hasAlternatives(input)) return matchNodeIntent(node, text);
+    if (!this.hasAlternatives(input)) return matchNodeIntent(node, text, this.lang);
     const alts = alternativesOf({ text: input.text, confidence: input.confidence ?? 1, alternatives: input.alternatives });
-    return pickBestAlternative(alts, (t) => matchNodeIntent(node, t), (h) => h.score)?.hit ?? null;
+    return pickBestAlternative(alts, (t) => matchNodeIntent(node, t, this.lang), (h) => h.score)?.hit ?? null;
   }
 
   private matchManagement(input: SubmitInput, text: string): GlobalIntent | null {
-    if (!this.hasAlternatives(input)) return matchGlobal(text);
+    if (!this.hasAlternatives(input)) return matchGlobal(text, this.lang);
     for (const a of alternativesOf({ text: input.text, confidence: input.confidence ?? 1, alternatives: input.alternatives })) {
-      const g = matchGlobal(a.text);
+      const g = matchGlobal(a.text, this.lang);
       if (g) return g;
     }
     return null;
@@ -351,7 +353,7 @@ export class ConversationSession {
         mode: learner.mode ?? 'typed_ja',
         text,
         matched,
-        contentTokens: learner.contentTokens ?? contentTokenCount(text),
+        contentTokens: learner.contentTokens ?? contentTokenCount(text, this.lang),
         hintOpened: !!learner.hintOpened,
         idealScore: learner.ideal ? idealSimilarity(text, learner.ideal.written) : 0,
         recalledLine,
@@ -370,13 +372,13 @@ export class ConversationSession {
     if (input.translation) {
       for (const [k, v] of Object.entries(input.translation.vars)) {
         this.baseVars[k] = v;
-        const opt = SLOTS[k]?.find((o) => o.ja === v.ja);
+        const opt = this.lang.slots[k]?.find((o) => o.ja === v.ja);
         if (opt) this.slotIds[k] = opt.id;
       }
     }
-    const text = input.translation ? plainText(tokenize(input.translation.ja, LEXICON, { ...this.vars, ...input.translation.vars }).tokens) : (input.kana ?? input.text);
+    const text = input.translation ? plainText(tokenize(input.translation.ja, this.lang.lexicon, { ...this.vars, ...input.translation.vars }).tokens) : (input.kana ?? input.text);
     const learner = this.learnerTurn(input);
-    learner.contentTokens = contentTokenCount(text);
+    learner.contentTokens = contentTokenCount(text, this.lang);
     learner.hintOpened = this.hintArmed;
     this.hintArmed = false; // a Hint belongs to the submit that follows it
     const newSteps: string[] = [];
@@ -445,7 +447,7 @@ export class ConversationSession {
       return { learner, character, ended: true, stepsDone: [] };
     }
     const character = this.characterTurn({
-      line: this.resolve(REACTIONS.fallback),
+      line: this.resolve(this.lang.reactions.fallback),
       kind: 'fallback',
       emotion: 'confused',
       needsHelp: this.fallbackStreak >= 2,
@@ -480,21 +482,21 @@ export class ConversationSession {
     const last = this.lastSay();
     switch (g.id) {
       case 'repeat':
-        return this.characterTurn({ line: last ? last.line : this.resolve(REACTIONS.fallback), kind: 'repeat', emotion: last?.emotion });
+        return this.characterTurn({ line: last ? last.line : this.resolve(this.lang.reactions.fallback), kind: 'repeat', emotion: last?.emotion });
       case 'slow':
       case 'dont_understand':
-        return this.characterTurn({ line: this.resolve(REACTIONS.slow), kind: 'reaction', followUp: last?.line, slow: true, emotion: 'happy' });
+        return this.characterTurn({ line: this.resolve(this.lang.reactions.slow), kind: 'reaction', followUp: last?.line, slow: true, emotion: 'happy' });
       case 'thanks':
-        return this.characterTurn({ line: this.resolve(REACTIONS.thanks), kind: 'reaction', emotion: 'happy' });
+        return this.characterTurn({ line: this.resolve(this.lang.reactions.thanks), kind: 'reaction', emotion: 'happy' });
       case 'excuse':
-        return this.characterTurn({ line: this.resolve(REACTIONS.excuse), kind: 'reaction' });
+        return this.characterTurn({ line: this.resolve(this.lang.reactions.excuse), kind: 'reaction' });
       case 'how_are_you':
-        return this.characterTurn({ line: this.resolve(REACTIONS.how_are_you), kind: 'reaction', emotion: 'happy' });
+        return this.characterTurn({ line: this.resolve(this.lang.reactions.how_are_you), kind: 'reaction', emotion: 'happy' });
       case 'goodbye':
-        return this.characterTurn({ line: this.resolve(REACTIONS.goodbye), kind: 'reaction' });
+        return this.characterTurn({ line: this.resolve(this.lang.reactions.goodbye), kind: 'reaction' });
       case 'greet':
       default:
-        return this.characterTurn({ line: this.resolve(REACTIONS.greet), kind: 'reaction', emotion: 'happy' });
+        return this.characterTurn({ line: this.resolve(this.lang.reactions.greet), kind: 'reaction', emotion: 'happy' });
     }
   }
 
@@ -510,11 +512,12 @@ export class ConversationSession {
     // a chip gated on a flag (`Suggestion.when`) shows only while the flag is on
     const base = (node.suggestionsByL1?.[this.opts.l1] ?? node.suggestions ?? []).filter((s) => !s.when || !!this.flags[s.when.flag]);
     let list = base;
-    if (node.topicSuggestions) {
+    // the learner's topics as chips: Japanese sentences built here (「〜が好きです」), so for Japanese only
+    if (node.topicSuggestions && this.lang.id === 'ja') {
       const topical: Suggestion[] = [];
       for (const id of this.opts.topics) {
         const hobby = TOPICS.find((t) => t.id === id)?.hobby;
-        const opt = SLOTS.hobby.find((o) => o.id === hobby);
+        const opt = (this.lang.slots.hobby ?? []).find((o) => o.id === hobby);
         if (opt) {
           topical.push({
             ja: `${opt.ja}|が|好き|です。`,

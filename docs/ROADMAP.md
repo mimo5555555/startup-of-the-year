@@ -160,9 +160,34 @@ game, a bigger city with better conversations, and the same game for German, Dut
     engine izakaya (every chip as adult and minor, typed routes, together vs split charged once, the beer gate, the prices), world
     buildings-izakaya, e2e `izakaya.mjs` (EN/AR: exactly ¥990).
 
-## Next (Tokyo)
+- **German step 1: the language layer** (done)
+  * Engine: a `TargetLanguage` (`@lw/engine` matching.ts) holds what the engine reads text with: the dictionary, the slots, the
+    reactions, the global intents (slow, repeat, thanks, …), the matching forms and how a key is found in a sentence, numbers, a name
+    or a country in a sentence, and whether a line is in the language at all. Japanese (`JA`) is the default and is what every
+    session used before, unchanged; a session takes `language` (or `setTargetLanguage` for all of them). Scoring, speech tokens and
+    feedback go through the session's language; the Japanese grammar notes run for Japanese only.
+  * Text: markup with spaces and no Japanese in it (German) is split into words that keep their spaces (`Token.sp`); `plainText`,
+    `speakableText` and `readingText` put them back; a dictionary word is found whatever its letter case (「Ich」, a typed
+    「brötchen」); `segmentWords` reads typed German word by word. Japanese lines tokenize exactly as before.
+  * German (`@lw/core` german.ts, `@lw/engine` german.ts): matching with and without umlauts (Brötchen = Broetchen = brotchen),
+    keys from the start of a word (「ein」 in 「eine」, never in 「kein」), fillers dropped; German numbers both ways
+    (einundzwanzig, zweihundertfünfzig) and prices (「2,50 €」 = 「zwei Euro fünfzig」); 「Ich heiße / Ich bin / Mein Name ist …」;
+    「Ich komme aus …」; German vs English/Arabic typed input; global intents (langsam, wie bitte, danke, tschüss, …); feedback
+    for **du with staff** (with the Sie form: 「Kannst du …?」 → 「Können Sie …?」) and a soft note for Sie with a friend.
+  * Berlin seed content (`@lw/content` berlin/): a German dictionary, slots (bakery items, drinks, quantity, cash or card), Jana
+    Krüger and her **Bäckerei Krüger** conversation: rolls (or Berlin's Schrippen), a Brezel, a croissant or Berlin's Pfannkuchen,
+    a coffee for here or to go, 「Das macht 3,40 €. Bar oder mit Karte?」, and with `cashOnly` 「Tut mir leid, wir nehmen nur
+    Bargeld.」 It runs through the real engine in tests; it is not in the app yet.
+  * Tests: core german (forms, numbers 0..2500 both ways, prices, names, countries), content berlin (every word in the dictionary,
+    spacing, case), engine berlin-bakery (every chip at every node with and without hooks and cash-only, EN/AR; typed routes with
+    and without umlauts; the total; global intents; German vs English; Sie/du; Japanese unchanged beside it).
 
-1. **German in Berlin** — see below: the town of Tokyo now has a place for every chapter.
+## Next
+
+1. **German step 2: the Berlin pack** — a `GamePack` for Berlin (euro and cents, the German `LanguagePlugin` for the game: prices,
+   Sie/du markers), the rest of the street's shops (Späti, Döner, U-Bahn ticket machine, Flohmarkt), three friends who switch to du,
+   Chapters 1–3; then a Berlin street in 3D, the language picker, German text in the conversation screen and `de-DE` speech, and
+   voices.
 
 ## Other languages (German in Berlin first)
 
@@ -180,5 +205,5 @@ Japanese-specific and has to become a language plugin:
 | Culture cards | 23 Japan cards | Berlin cards: Pfand (bottle deposit), Sonntagsruhe, Mülltrennung, "Mahlzeit", cash culture |
 
 Order of work: (1) a `LanguagePlugin` seam in `@lw/engine` and `@lw/core` (normalise, tokenise, number reading) with the Japanese one moved
-behind it, (2) the German plugin and a small Berlin pack (one street, 5 shops, 3 friends, chapters 1–3), (3) a language picker in
+behind it (done: the `TargetLanguage`, with German beside it and a bakery conversation), (2) the German plugin and a small Berlin pack (one street, 5 shops, 3 friends, chapters 1–3), (3) a language picker in
 onboarding, (4) voices, then (5) Dutch in Amsterdam the same way.

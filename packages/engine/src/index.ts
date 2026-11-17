@@ -9,3 +9,4 @@ export * from './audio-diagnostics';
 export * from './scoring';
 export * from './speechNormalize';
 export * from './speechScore';
+export * from './german';
