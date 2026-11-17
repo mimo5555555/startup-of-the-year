@@ -1,5 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
-import { LEXICON, tokenize } from '@lw/content';
+import { tokenize } from '@lw/content';
 import { Icon } from '../components/Icon';
 import { FareMap, placeLabel } from '../components/game/FareMap';
 import { JaLabel, PanelShell, SpeakButton, Tile, WalletStrip } from '../components/game/PanelParts';
@@ -30,6 +30,7 @@ import { PACK } from '../game/pack';
 import { useT } from '../hooks';
 import { speakJa } from '../services';
 import { useStore } from '../store';
+import { LEXICON } from '../target';
 
 export interface TicketPanelProps {
   kind: 'ramen' | 'station';

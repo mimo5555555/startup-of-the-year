@@ -2,7 +2,7 @@
 // word chips. It is shown whenever the 3D room cannot load, on a low-end setting and with `?panel=1`; the conversation is the same one.
 import type { Character } from '@lw/content';
 import type { HomeDef } from '@lw/content';
-import { LEXICON, PROP_WORDS, tokenize } from '@lw/content';
+import { PROP_WORDS, tokenize } from '@lw/content';
 import { useT } from '../../hooks';
 import { useStore } from '../../store';
 import { displayName } from '../../content';
@@ -10,6 +10,7 @@ import { propPick } from '../../game/homeLogic';
 import { Icon } from '../Icon';
 import { JaText } from '../JaText';
 import { Portrait } from '../Portrait';
+import { LEXICON } from '../../target';
 
 /** The room behind the host: wall, floor, window and a rug in the home's colours (pure CSS; `data-room` picks the palette). */
 export function PanelBackdrop({ home, host, talking = false }: { home: HomeDef; host: Character; talking?: boolean }) {

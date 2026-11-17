@@ -4,7 +4,7 @@
 import * as THREE from 'three';
 import { Batch, rng, toonRamp } from './batch';
 import { COLORS } from './palette';
-import { FRONT_Z, shopRect, type MapRect, type Occluder, type Rect, type ShopDef, type SpawnSite } from './layout';
+import { FRONT_Z, shopRect, type MapRect, type Occluder, type Rect, type ShopBox, type SpawnSite } from './layout';
 import { signTexture, type SignStyle } from './textures';
 
 export interface Pickable {
@@ -92,9 +92,9 @@ export interface BuildCtx {
   registerShutter(shopId: string, shutter: THREE.Object3D): void;
 
   /** the open-front diorama box shared by every north-side shop (floor, walls, roof, header band, ceiling lights) */
-  shopFrame(s: ShopDef, o: ShopFrameStyle): void;
+  shopFrame(s: ShopBox, o: ShopFrameStyle): void;
   /** the hanging sign in the header band; also a pick */
-  hangSign(id: string, s: ShopDef, text: string, sub: string, bg: string, fg: string, openH: number, band: number, border?: string, low?: boolean): THREE.Mesh;
+  hangSign(id: string, s: ShopBox, text: string, sub: string, bg: string, fg: string, openH: number, band: number, border?: string, low?: boolean): THREE.Mesh;
   /** a flat textured sign in the world, optionally tappable */
   signPlane(text: string, style: SignStyle, o: SignPlaneOpts): THREE.Mesh;
 }

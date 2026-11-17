@@ -5,10 +5,11 @@
 // A desk customer's `task` is `{ kind, answer }` (platform | time | fare | direction | announce). The board and the map are DRAWN FROM the
 // customer: the platform of the destination the customer names is the `answer`, the target on the map sits where the `answer` points, the
 // timetable is built around the answer's departure. So the data of a customer can never disagree with the widget that shows it.
-import { SLOTS, parseJaNumber, yenToJa } from '@lw/content';
+import { parseJaNumber, yenToJa } from '@lw/content';
 import { normJa, romajiAsKana } from '@lw/core';
 import { BALANCE, type GamePack, type ShiftCustomer } from '@lw/game';
 import { amountSaid, totalPhrase } from './shiftLogic';
+import { SLOTS } from '../../../target';
 
 export type DeskKind = 'platform' | 'time' | 'fare' | 'direction' | 'announce';
 export type Dir = 'right' | 'left' | 'straight';

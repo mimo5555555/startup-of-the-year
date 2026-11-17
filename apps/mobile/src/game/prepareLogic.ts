@@ -1,10 +1,11 @@
 // Pure rules of the Prepare screen and the hidden-line Say it (docs/GAME_DESIGN.md §11.1, §11.3): the recall pass mark, how a typed or
 // spoken attempt is scored against a line, the build-it-from-pieces tiles, and the readiness view of a pocket. No React, no stores:
 // the screens read the game state and pass it in, so every rule here is a plain test.
-import { LEXICON, plainText, tokenize } from '@lw/content';
+import { plainText, tokenize } from '@lw/content';
 import { romajiAsKana } from '@lw/core';
 import { alternativesOf, bestAlternativeScore, normMatch, speechSimilarity, type SpeechAlternative } from '@lw/engine';
 import { BALANCE, lineReady, pocketReady, type AgeGroup, type GamePack, type GameState, type GameView, type PocketLine } from '@lw/game';
+import { LEXICON } from '../target';
 
 // ---------------------------------------------------------------------------------------------------------------
 // Pass marks and scoring

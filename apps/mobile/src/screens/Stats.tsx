@@ -1,10 +1,11 @@
-import { SIGNS } from '@lw/content';
+
 import { levelProgress, localDate, xpForLevel } from '@lw/core';
 import { Icon } from '../components/Icon';
 import { JaText } from '../components/JaText';
 import { useStore } from '../store';
 import { useT } from '../hooks';
 import { entryForSign, tokenOf } from '../content';
+import { SIGNS } from '../target';
 
 function lastDays(n: number) {
   const out: string[] = [];

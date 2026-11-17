@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { LEXICON, lessonById, romajiText, tokenize } from '@lw/content';
+import { lessonById, romajiText, tokenize } from '@lw/content';
 import { normJa, romajiAsKana } from '@lw/core';
 import { Icon } from '../components/Icon';
 import { JaText } from '../components/JaText';
@@ -9,6 +9,7 @@ import { useT } from '../hooks';
 import { characterById } from '../content';
 import { lessonFinished } from '../game/bridge';
 import { blip, speakJa, stt } from '../services';
+import { LEXICON, TARGET_LOCALE } from '../target';
 
 type Stage = 'intro' | 'cards' | 'quiz' | 'say' | 'done';
 
@@ -86,7 +87,7 @@ export function Lesson() {
     if (!stt.available()) return;
     setListening(true);
     stt
-      .listen('ja-JP')
+      .listen(TARGET_LOCALE)
       .result.then((r) => {
         setTyped(r.text);
         check(r.text);

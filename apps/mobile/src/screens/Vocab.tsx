@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { LEXICON, segmentFree, entryToToken, type Token } from '@lw/content';
+import { entryToToken, type Token } from '@lw/content';
 import { previewIntervals, type Grade } from '@lw/core';
 import { Icon } from '../components/Icon';
 import { JaText } from '../components/JaText';
@@ -11,6 +11,7 @@ import type { StringKey } from '../i18n';
 import { dispatch } from '../game/bridge';
 import { recallMark, recallScore } from '../game/prepareLogic';
 import { applyRespace, enforceGoalCaps, isParked, planReview, reviewEvent } from '../game/srsHooks';
+import { LEXICON, segmentFree } from '../target';
 
 /** The label of where a card came from: the four sources the game adds have their own keys (the v1 table has the other five). */
 const SOURCE_KEYS: Record<VocabItem['source'], StringKey> = {

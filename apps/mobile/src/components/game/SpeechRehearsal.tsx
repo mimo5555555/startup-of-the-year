@@ -4,7 +4,7 @@
 // recorded) or types it; a line that matches gets its tick. The speech itself is Real mode; a player who has never used Real mode gets the
 // one-time Guided run (`guidedFallbackOpen`), told plainly. The pocket lines of the scenario that a passed line contains are filed as ready.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { LEXICON, SPEECH_LINES, scenarioById, speechRehearsal, tokenize, type SpeechSlot } from '@lw/content';
+import { SPEECH_LINES, speechRehearsal, tokenize, type SpeechSlot } from '@lw/content';
 import { guidedFallbackOpen, objectiveRows, type GameState, type GameView } from '@lw/game';
 import { explainSttError } from '@lw/engine';
 import { Icon } from '../Icon';
@@ -20,6 +20,7 @@ import { getGame } from '../../game/gameStore';
 import { useGameState, useGameView } from '../../game/hooks';
 import { PACK } from '../../game/pack';
 import { ownFactScore, plainOf, recallMark, recallScore, recallScoreSpoken } from '../../game/prepareLogic';
+import { LEXICON, scenarioById, TARGET_LOCALE } from '../../target';
 
 /** The speech objective (c7_3) and how many own lines it asks for now (5, or 3 once the easier version is accepted). */
 export const SPEECH_OBJECTIVE = 'c7_3';
@@ -137,7 +138,7 @@ function RehearsalLine({ n, slot, ja, meaning, example, ok, onPass }: { n: numbe
     setListening(true);
     // recognition only: text comes back, no audio is recorded or kept
     stt
-      .listen('ja-JP')
+      .listen(TARGET_LOCALE)
       .result.then((r) => {
         setTyped(r.text);
         judge(Math.max(recallScoreSpoken(r, plain), tail ? ownFactScore(r.text, tail) : 0));

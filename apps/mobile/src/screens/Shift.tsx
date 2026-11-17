@@ -2,7 +2,7 @@
 // default), take the order from the item grid, say the total, say thanks. No timer anywhere. The result is one `shift_done` event; the
 // reducer pays it (`applyShift`), so what this screen shows is what the wallet got. Leaving mid-shift is a quit (paid x0.6 from 2 customers).
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { scenarioById } from '@lw/content';
+
 import { uid } from '@lw/core';
 import {
   BALANCE,
@@ -71,6 +71,7 @@ import { tts } from '../services';
 import { useStore } from '../store';
 import { useUi } from '../ui';
 import { CUSTOMER } from '../voice/voices';
+import { scenarioById } from '../target';
 
 const JOB_DEFAULT = 'job_konbini';
 

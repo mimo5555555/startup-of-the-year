@@ -14,7 +14,7 @@ import {
   type SrsOp,
   type UiEffect,
 } from '@lw/game';
-import { LEXICON, entryToToken, festivalReturned, plainText, romajiText, scenarioById, tokenize } from '@lw/content';
+import { entryToToken, festivalReturned, plainText, romajiText, tokenize } from '@lw/content';
 import { STRINGS, translate, type StringKey } from '../i18n';
 import { blip, haptic } from '../services';
 import { setLoopFactsHook, setStreakCharmHook, flushNow, useStore, type VocabItem } from '../store';
@@ -33,6 +33,7 @@ import { autoWearOutfit } from './avatarFx';
 import { gameView } from './selectors';
 import { KYOTO, RIDE_PAINT, goenReason, goenToastVars, ridePaintColours } from './goenLogic';
 import { useShrine } from './goenStore';
+import { LEXICON, scenarioById } from '../target';
 
 /** The beat Hanako plays when the player comes back after BALANCE.nextGoal.awayDays or more (§11.7; no streak scolding). */
 export const WELCOME_BACK_BEAT = 'b_welcome_back';

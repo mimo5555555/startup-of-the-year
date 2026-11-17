@@ -1,7 +1,7 @@
 // What the conversation screen hands the engine for the game (docs/GAME_DESIGN.md §6.2, §11.2): the economy hooks of one shop
 // conversation, the flags, the recalled pocket lines. Pure on its inputs (state, view and the commit function are passed in), so a
 // test can drive it without a screen; the Conversation screen passes the bridge's `dispatch`.
-import { CLOTHES_COLOURS, LEXICON, parseJaNumber, plainText, tokenize, yenToJa, type AvatarSpec, type Vars } from '@lw/content';
+import { CLOTHES_COLOURS, DE_LANGUAGE, EUR, parseJaNumber, plainText, tokenize, yenToJa, type AvatarSpec, type Vars } from '@lw/content';
 import type { RecalledLines, SessionGameHooks } from '@lw/engine';
 import {
   fareFor,
@@ -29,6 +29,7 @@ import { pieceColours, tryOnSpec } from './avatarFx';
 import { IC_SCENARIO, icHooks } from './icHooks';
 import { ownRoomFlags } from './ownLogic';
 import { lastBought, lastVar, regularFlags } from './regulars';
+import { LEXICON, IS_GERMAN } from '../target';
 
 /** Slot option ids of `qty` (slots/shop.ts) and of `payMethod`. */
 const QTY: Record<string, number> = { one: 1, two: 2, three: 3 };
@@ -63,8 +64,15 @@ export function twistFor(dayIndex: number, scenarioId: string, plays: number): b
   return (h >>> 0) % TWIST_EVERY === 0;
 }
 
-/** A price as a Vars value: yenToJa markup with its EN/AR gloss; a free basket (a perk covered it) reads 「ゼロ円」. */
+/**
+ * A price as a Vars value: yenToJa markup with its EN/AR gloss; a free basket (a perk covered it) reads 「ゼロ円」. Learning German, the
+ * amount is cents and reads as German writes it (「2,50 €」).
+ */
 export function yenVar(n: number): Vars[string] {
+  if (IS_GERMAN) {
+    const p = DE_LANGUAGE.priceMarkup(Math.max(0, Math.round(n)), EUR);
+    return { ja: p.markup, gloss: p.gloss };
+  }
   if (n < 1) return { ja: 'ゼロ|円', gloss: { en: '0 yen', ar: '0 ين' } };
   const p = yenToJa(n);
   return { ja: p.markup, gloss: p.gloss };
@@ -324,6 +332,9 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
       }
       // reading the total back (「合計は千円ですね」) is right when the number is the real total; asking for it always works
       if (kind === 'ask_total') return { ok: true };
+      // the engine hears numbers as said (euros, yen); the game counts in the pack's minor unit (cents, yen)
+      const minor = (x: number) => Math.round(x * pack.currency.minorPerMajor);
+      if (ctx.number !== undefined) ctx = { ...ctx, number: minor(ctx.number), ...(ctx.numbers ? { numbers: ctx.numbers.map(minor) } : {}) };
       if (kind === 'say_total') {
         const t = totalNow(ctx.slotIds);
         // 「三万円と三万円で六万円です」: the parts first, then the sum. Any number the learner said counts, so the right sum is never lost behind the first one
@@ -358,7 +369,7 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
   const inner = scenarioId === IC_SCENARIO ? icHooks({ pack, state: deps.state, view: deps.view, dispatch: commit, sessionId }) : shopHooks;
   /** the numbers the lines quote, read back from the Vars the hooks return (the price chip shows them in digits) */
   const numberOf = (v: Vars[string] | undefined): number | undefined => {
-    const n = v ? parseJaNumber(v.ja.replace(/\|/g, '')) : null;
+    const n = !v ? null : IS_GERMAN ? (DE_LANGUAGE.parseNumbers(v.ja).numbers[0] ?? null) : parseJaNumber(v.ja.replace(/\|/g, ''));
     return n !== null && n >= 1 ? n : undefined;
   };
   const hooks: SessionGameHooks = {

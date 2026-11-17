@@ -26,6 +26,7 @@ import * as goen from './strings/goen';
 import * as goenContent from './strings/goen-content';
 import * as goenPay from './strings/goen-pay';
 import * as ears from './strings/ears';
+import { IS_GERMAN } from './target';
 
 type Key =
   | keyof typeof core.en
@@ -59,8 +60,43 @@ const merge = (lang: UiLang) => Object.assign({}, ...MODULES.map((m) => m[lang])
 export const STRINGS: Record<UiLang, Record<Key, string>> = { en: merge('en'), ar: merge('ar') };
 export type StringKey = Key;
 
+/**
+ * Learning German, the app's own words name the language and the city being learned: "Japanese" reads "German", Tokyo reads Berlin
+ * (the screens that are Tokyo's alone are not reachable from Berlin). Longest words first, so 「باليابانية」 is not cut.
+ */
+const TO_GERMAN: Array<[string, string]> = [
+  ['Japanese', 'German'],
+  ['Japan', 'Germany'],
+  ['Tokyo', 'Berlin'],
+  ['日本語', 'Deutsch'],
+  ['باليابانية', 'بالألمانية'],
+  ['اليابانية', 'الألمانية'],
+  ['الياباني', 'الألماني'],
+  ['يابانيًا', 'ألمانيًا'],
+  ['يابانية', 'ألمانية'],
+  ['ياباني', 'ألماني'],
+  ['اليابان', 'ألمانيا'],
+  ['طوكيو', 'برلين'],
+];
+const forTarget = (s: string): string => (IS_GERMAN ? TO_GERMAN.reduce((acc, [a, b]) => acc.replaceAll(a, b), s) : s);
+
+/** cents as German writes them: 3000 -> 30,00 € */
+const euros = (cents: number): string => {
+  const neg = cents < 0;
+  const c = Math.abs(Math.round(cents));
+  const whole = String(Math.floor(c / 100)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return `${neg ? '−' : ''}${whole},${String(c % 100).padStart(2, '0')} €`;
+};
+
 export function translate(lang: UiLang, key: StringKey, vars?: Record<string, string | number>): string {
-  let s = STRINGS[lang][key] ?? STRINGS.en[key] ?? key;
+  let s = forTarget(STRINGS[lang][key] ?? STRINGS.en[key] ?? key);
+  // learning German, an amount the string writes as yen (¥{n}) is the pack's cents: it reads in euros
+  if (IS_GERMAN && vars)
+    s = s.replace(/¥\{(\w+)\}/g, (m, k: string) => {
+      const v = vars[k];
+      const n = typeof v === 'number' ? v : Number(String(v ?? '').replace(/[^\d-]/g, ''));
+      return v !== undefined && Number.isFinite(n) ? euros(n) : m;
+    });
   if (vars) for (const [k, v] of Object.entries(vars)) s = s.replaceAll(`{${k}}`, String(v));
   return s;
 }

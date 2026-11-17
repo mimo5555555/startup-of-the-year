@@ -6,6 +6,7 @@ import { useT } from '../hooks';
 import type { StringKey } from '../i18n';
 import { currentUa, sttErrorKey, touchDevice } from '../voiceHelp';
 import { VoiceHint } from './VoiceHint';
+import { TARGET_LOCALE } from '../target';
 
 /** Id of the Settings section that holds the check, so other screens can link to it. */
 export const AUDIO_CHECK_ID = 'audio-check';
@@ -121,7 +122,7 @@ export function AudioCheck() {
     }
     audio.tts.cancel();
     setMic({ phase: 'listening', interim: '', text: '', confidence: 0 });
-    const s = audio.stt.listen('ja-JP', (interim) => alive.current && setMic((m) => (m.phase === 'listening' ? { ...m, interim } : m)));
+    const s = audio.stt.listen(TARGET_LOCALE, (interim) => alive.current && setMic((m) => (m.phase === 'listening' ? { ...m, interim } : m)));
     session.current = s;
     s.result
       .then((r) => alive.current && setMic({ phase: 'done', interim: '', text: r.text, confidence: r.confidence }))

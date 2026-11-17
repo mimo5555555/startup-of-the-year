@@ -3,7 +3,7 @@
 // to choose from. After the choice the Japanese is shown (furigana and romaji as in Settings) with the meaning. The first finished session
 // of a day is filed (`ears_done`: the g_ears daily goal); later ones the same day are practice.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { SCENARIOS } from '@lw/content';
+
 import { JaText } from '../components/JaText';
 import { Portrait } from '../components/Portrait';
 import { Icon } from '../components/Icon';
@@ -14,6 +14,7 @@ import { useGameState } from '../game/hooks';
 import { useT } from '../hooks';
 import { blip, tts } from '../services';
 import { useStore } from '../store';
+import { SCENARIOS } from '../target';
 
 export function Ears() {
   const { t, dir, lang } = useT();

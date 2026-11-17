@@ -1,5 +1,5 @@
 import { useEffect } from 'react';
-import { romajiText, segmentFree, LEXICON, type Token } from '@lw/content';
+import { romajiText, type Token } from '@lw/content';
 import { levelProgress } from '@lw/core';
 import type { Correction } from '@lw/engine';
 import { Icon } from '../components/Icon';
@@ -9,7 +9,7 @@ import { DebriefPay, DebriefProgress, FriendsStrip, KeepThese, KeepsakesStrip, N
 import { useStore } from '../store';
 import { useT } from '../hooks';
 import { characterById, displayName } from '../content';
-import { SCENARIOS } from '@lw/content';
+
 import { blip, speakJa } from '../services';
 import { useUi } from '../ui';
 import { openScreen, startConversation } from '../game/bridge';
@@ -17,6 +17,7 @@ import { feedbackThen } from '../game/phoneLogic';
 import { shownScenario } from '../game/ownLogic';
 import { PACK } from '../game/pack';
 import { CapstoneNote } from '../components/game/SpeechRehearsal';
+import { LEXICON, SCENARIOS, segmentFree } from '../target';
 
 function Ring({ value, label, tone, note }: { value: number | null; label: string; tone: string; note?: string }) {
   const r = 30;

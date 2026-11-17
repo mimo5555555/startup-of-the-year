@@ -204,11 +204,33 @@ game, a bigger city with better conversations, and the same game for German, Dut
     with and without hooks and cash-only, EN/AR; a typed route in each shop with its charge; the friends' name, country and hobby;
     Sie with a friend).
 
+- **German step 3: Berlin in the app** (done)
+  * One switch (`apps/mobile/src/target.ts`): the language being learned is read once at start from `lw.target` (Japanese by
+    default). The pack (`JP_PACK` / `BERLIN_PACK`), the dictionary, the scenarios, the characters, the slots, the signs, the free-text
+    splitter and the engine's `TargetLanguage` follow it; the app reads them through it instead of `@lw/content`. Each language keeps
+    its own saves (`lw.v1.` and the game save as before for Japanese; `lw.de.v1.` and `lw.game.de.v1` for German), so switching
+    never touches the other's progress. Choosing saves the choice and restarts the app.
+  * Onboarding asks **What do you want to learn?** (日本語 · Japanese in Tokyo / Deutsch · German in Berlin) under the UI language;
+    German restarts into a German onboarding with the UI language kept. Settings can switch either way. The German notebook starts
+    with five German greetings.
+  * German on screen: words with their spaces and no furigana or romaji (`JaText`), names said once, the device's German voice
+    (`WebSpeechTts({ locale })`; German has no recordings yet), `de-DE` recognition everywhere the app listens, the mic toggle
+    `Deutsch`, prices as German writes them (「3,40 €」) in lines and chips, numbers said in euros taken in cents by the game, a euro
+    coin, and the app's own words name German and Berlin (and amounts written as yen read in euros).
+  * The Berlin street in 3D (`@lw/world` berlin.ts, a `District` with its own city): the open fronts of Bäckerei Krüger, the Späti,
+    Döner am Kotti and the BVG counter under Altbau; the WG's door, the courtyard gate and Café Tandem across the street; Mauerpark
+    with the flea market stalls and a graffiti wall; linden trees, old street lamps, the Litfaß column, the blue U, bike stands. Each
+    of the eight characters stands at their place; a shop not open yet is shuttered as in Tokyo.
+  * Tests: app target (both languages: registries, pack, engine, store prefix, words, euros, starters, the choice), world berlin
+    (every site built, every character reachable, the player's start, nothing of Tokyo's), e2e `berlin.mjs` (EN/AR: German picked in
+    onboarding, the restart, Lena typed, the bakery typed with 「Das macht 3,40 €」 and exactly €3.40, back to Japanese with its save
+    untouched). Japanese e2e runs are unchanged.
+
 ## Next
 
-1. **German step 3: Berlin in the app** — the language picker in onboarding, the app running on `BERLIN_PACK` with the `DE` target
-   language, German text in the conversation screen (spaces, no furigana or romaji), `de-DE` speech and recognition, and a Berlin
-   street in 3D with the five shops and the three friends; then voices.
+1. **German step 4: voices and polish** — recorded German voices for the Berlin lines (an open-source German TTS with a free
+   licence, generated like the Japanese ones), Berlin shop signs to read, the German small talk and regulars, and the screens that are
+   Tokyo's alone kept out of Berlin's HUD; then Dutch in Amsterdam the same way.
 
 ## Other languages (German in Berlin first)
 

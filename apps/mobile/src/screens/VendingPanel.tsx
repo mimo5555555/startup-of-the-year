@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { LEXICON, tokenize } from '@lw/content';
+import { tokenize } from '@lw/content';
 import { Icon } from '../components/Icon';
 import { JaLabel, PanelShell, Tile, WalletStrip } from '../components/game/PanelParts';
 import { PanelPay } from '../components/game/PanelPay';
@@ -26,6 +26,7 @@ import { PACK } from '../game/pack';
 import { useT } from '../hooks';
 import { speakJa } from '../services';
 import { useStore } from '../store';
+import { LEXICON } from '../target';
 
 type Temp = 'hot' | 'cold';
 

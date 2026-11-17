@@ -5,7 +5,7 @@ import type { Badge, TokyoWorld } from '@lw/world';
 import { DOORS, NPC_SPAWNS, SHOPS, shopIdOf } from '@lw/world';
 import type { Character } from '@lw/content';
 import type { AvatarSpec } from '@lw/content';
-import { CHARACTERS, HOMES, OWN_GUEST, homeOfFriend, lessonById, type HomeDef } from '@lw/content';
+import { HOMES, OWN_GUEST, homeOfFriend, lessonById, type HomeDef } from '@lw/content';
 import {
   derivedFlags,
   evalPred,
@@ -30,6 +30,7 @@ import { furnitureOpen, inviteStatus, ownDoors } from './ownLogic';
 import { heartsOf } from './selectors';
 import { festivalOpen, festivalPickOf, festivalRowOf, isFestivalRow, syncFestival, FESTIVAL, type FestivalPick } from './festivalSync';
 import { KYOTO, isKyotoScenario, rideSkinOf } from './goenLogic';
+import { CHARACTERS } from '../target';
 
 // ---------------------------------------------------------------------------------------------------------------
 // HUD disclosure: which elements are on screen (§2.5)

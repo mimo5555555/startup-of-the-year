@@ -5,7 +5,7 @@
 // romaji per the settings, the meaning below) that can be saved as an image (a local download) and that Hanako reads back by TTS. The diary lines
 // of the earlier closing beats can be added under the five sentences.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { LETTER_FRAMES, LETTER_HANAKO, LETTER_RULE, LEXICON, letterDiary, letterFrames, resolveLine, type Gloss, type Line } from '@lw/content';
+import { LETTER_FRAMES, LETTER_HANAKO, LETTER_RULE, letterDiary, letterFrames, resolveLine, type Gloss, type Line } from '@lw/content';
 import type { DiaryEntry } from '@lw/game';
 import { explainSttError, translatePhrase } from '@lw/engine';
 import { Icon } from '../components/Icon';
@@ -21,6 +21,7 @@ import { useT } from '../hooks';
 import type { StringKey } from '../i18n';
 import { stt, tts } from '../services';
 import { useStore } from '../store';
+import { LEXICON, TARGET_LOCALE } from '../target';
 
 type FrameView = ReturnType<typeof letterFrames>[number];
 
@@ -217,7 +218,7 @@ function FrameCard({ n, frame, draft, onDraft }: { n: number; frame: FrameView; 
     setListening(true);
     // recognition only: the recogniser hands back text, nothing is recorded or kept
     stt
-      .listen('ja-JP')
+      .listen(TARGET_LOCALE)
       .result.then((r) => {
         const text = r.text.trim();
         if (!text) return;

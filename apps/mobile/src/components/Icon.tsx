@@ -1,4 +1,5 @@
 import type { ReactNode } from 'react';
+import { IS_GERMAN } from '../target';
 
 const P: Record<string, ReactNode> = {
   mic: (
@@ -131,7 +132,13 @@ const P: Record<string, ReactNode> = {
     </>
   ),
   // --- game icons (docs/GAME_DESIGN.md §15.2; all added at once so no later agent edits this file) ---
-  coin: (
+  // a yen coin, or a euro coin when the pack's money is the euro
+  coin: IS_GERMAN ? (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M15.5 8.6a4.2 4.2 0 1 0 0 6.8M7.6 11h6M7.6 13.2h6" />
+    </>
+  ) : (
     <>
       <circle cx="12" cy="12" r="9" />
       <path d="m9 8 3 4 3-4M12 12v5M9.5 13.5h5M9.5 15.5h5" />

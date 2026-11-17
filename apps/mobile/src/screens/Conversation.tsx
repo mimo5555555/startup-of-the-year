@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useReducer, useRef, useState } from 'react';
-import { LEXICON, resolveLine, scenarioById, segmentFree, speakableText, type Token } from '@lw/content';
+import { resolveLine, speakableText, type Token } from '@lw/content';
 import { uid } from '@lw/core';
 import {
   ConversationSession,
@@ -45,6 +45,7 @@ import { gameView } from '../game/selectors';
 import { isOwnGuestScenario, shownScenario } from '../game/ownLogic';
 import { blip, haptic, stt, tts } from '../services';
 import { useUi } from '../ui';
+import { LEXICON, scenarioById, segmentFree, IS_GERMAN, TARGET_LOCALE } from '../target';
 
 interface Assist {
   l1Text: string;
@@ -405,7 +406,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
       return;
     }
     stopSpeech();
-    const code = target === 'ja' ? 'ja-JP' : l1 === 'ar' ? 'ar-SA' : 'en-US';
+    const code = target === 'ja' ? TARGET_LOCALE : l1 === 'ar' ? 'ar-SA' : 'en-US';
     const s = stt.listen(code, (interim) => setInput(interim));
     micSession.current = s;
     setMic((m) => ({ ...m, listening: true, msg: t('c.mic.listening'), fix: false }));
@@ -753,7 +754,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
             <div className="assist dbf-heard">
               <div className="assist-said" dir="auto">
                 <small>{t('debrief.heard')}</small>
-                <span lang="ja">{heard.text}</span>
+                <span lang={IS_GERMAN ? 'de' : 'ja'}>{heard.text}</span>
               </div>
               <div className="assist-actions">
                 <button className="btn primary" onClick={confirmHeard}>
@@ -867,7 +868,7 @@ export function Conversation({ characterId, onClose }: { characterId: string; on
                 aria-label="Voice language"
               >
                 <span className={mic.lang === 'l1' ? 'on' : ''}>{l1 === 'ar' ? 'العربية' : 'English'}</span>
-                <span className={mic.lang === 'ja' ? 'on' : ''}>日本語</span>
+                <span className={mic.lang === 'ja' ? 'on' : ''}>{IS_GERMAN ? 'Deutsch' : '日本語'}</span>
               </button>
               {(mic.msg || !stt.available()) && <small className="mic-msg" dir="auto">{mic.msg ?? t('audio.mic.err.unsupported')}</small>}
               {(mic.fix || (!mic.msg && !stt.available())) && (

@@ -1,6 +1,6 @@
 // The omikuji (おみくじ, docs/GOEN.md): a free fortune slip once a day at the shrine. It teaches one word due for review; 大吉 / 吉 / 小吉 decide
 // only the wording (nothing random is ever an item or currency). The app hands the reducer the due words (`omikuji_drawn`), the reducer picks.
-import { LEXICON, entryToToken, tokenize } from '@lw/content';
+import { entryToToken, tokenize } from '@lw/content';
 import { omikujiOpen } from '@lw/game';
 import { useT } from '../../hooks';
 import { dispatch } from '../../game/bridge';
@@ -11,6 +11,7 @@ import { speakJa, blip } from '../../services';
 import { useStore } from '../../store';
 import { Icon } from '../Icon';
 import { JaText } from '../JaText';
+import { LEXICON } from '../../target';
 
 const FORTUNE_JA: Record<string, string> = { daikichi: '大吉', kichi: '吉', shokichi: '小吉' };
 

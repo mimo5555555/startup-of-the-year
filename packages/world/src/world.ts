@@ -20,7 +20,7 @@ import {
   newLighting,
   type FestivalPark,
 } from './festival';
-import { DOOR_RETURN, KARAOKE, PLAYER_START, SHRINE, SHRINE_PICKS, shopRect, spotsAt, type NpcSpawn, type Rect, type ShopDef, type SpotId } from './layout';
+import { DOOR_RETURN, KARAOKE, PLAYER_START, SHRINE, SHRINE_PICKS, shopRect, spotsAt, type NpcSpawn, type Rect, type ShopBox, type SpotId } from './layout';
 import { COLORS } from './palette';
 import type { Stage, StageHandle, StageId, StagePick, StageState } from './stage';
 import { STAGES } from './stages';
@@ -154,7 +154,7 @@ interface Walker {
  * Which shop's shutter hides this spawn: its declared `site` (Aiko's stall is the 'aiko' shop), else the shop diorama
  * it stands inside, else none (Hanako's lesson spot and Mio in the park never close).
  */
-export function shopIdOf(spawn: Pick<NpcSpawn, 'x' | 'z' | 'site'>, shops: readonly ShopDef[]): string | null {
+export function shopIdOf(spawn: Pick<NpcSpawn, 'x' | 'z' | 'site'>, shops: readonly ShopBox[]): string | null {
   if (spawn.site) return spawn.site === 'aiko_stall' ? 'aiko' : spawn.site;
   for (const s of shops) {
     const r = shopRect(s);
@@ -266,6 +266,10 @@ export class TokyoWorld {
   constructor(private opts: WorldOptions) {
     const { canvas } = opts;
     this.district = opts.district ?? TOKYO_DISTRICT;
+    if (this.district.playerStart) {
+      this.playerPos.set(this.district.playerStart.x, 0, this.district.playerStart.z);
+      this.playerHeading = this.district.playerStart.heading;
+    }
     this.stageDefs = opts.stages ?? STAGES;
     this.renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance', alpha: false });
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
@@ -294,7 +298,7 @@ export class TokyoWorld {
     this.sun.shadow.normalBias = 0.05;
     this.scene.add(this.sun, this.sun.target);
 
-    this.city = buildCity(this.district);
+    this.city = this.district.buildCity ? this.district.buildCity(this.district) : buildCity(this.district);
     this.scene.add(this.city.group);
 
     // player

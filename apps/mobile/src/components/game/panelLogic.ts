@@ -2,7 +2,7 @@
 // station ticket machine offer, what a choice costs, and the events a purchase becomes. No React, no stores: the panels pass the game
 // state in and `bridge.dispatch` (or a fake) in, so `apps/mobile/test/panels.test.ts` drives every rule without a screen.
 import { kanaToRomaji, hasKanji } from '@lw/core';
-import { LEXICON, segmentFree, tokenize, yenToJa, type Token } from '@lw/content';
+import { tokenize, yenToJa, type Token } from '@lw/content';
 import {
   LEDGER_IDS,
   fareFor,
@@ -22,6 +22,7 @@ import {
 } from '@lw/game';
 
 import { PACK } from '../../game/pack';
+import { LEXICON, segmentFree } from '../../target';
 
 /** An amount in the pack's currency with its grouping (¥1,050). The numerals stay Latin digits in both languages (§4.1). */
 export const yen = (amount: number): string => yenFormat(amount, PACK.currency);

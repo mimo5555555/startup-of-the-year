@@ -18,12 +18,13 @@ import {
   type StreakState,
 } from '@lw/core';
 import type { AvatarSpec, Gloss, L1, Lesson } from '@lw/content';
-import { LEXICON, romajiText, tokenize, GREETINGS } from '@lw/content';
+import { romajiText, tokenize, GREETINGS } from '@lw/content';
 import type { FeedbackReport } from '@lw/engine';
 import type { ConversationFacts } from '@lw/game';
 import type { UiLang } from './i18n';
 import { useGame } from './game/gameStore';
 import { useUi } from './ui';
+import { IS_GERMAN, LEXICON, STORE_PREFIX, takePendingUiLang } from './target';
 
 /** The closed set of routes; the game's screens (docs/GAME_DESIGN.md §15.4 row 2A); every one is built except `letter` (chapter 8), which goes back to the street. */
 export type Screen =
@@ -173,11 +174,15 @@ const DEFAULT_SETTINGS: Settings = {
   seenTutorial: false,
 };
 
-const store = new SafeLocalStore('lw.v1.');
+// each language being learned has its own profile, notebook and settings (Japanese keeps the prefix it always had)
+const store = new SafeLocalStore(STORE_PREFIX);
 const KEY = 'state';
 
 function initialPersisted(): Persisted {
-  const lang: UiLang = typeof navigator !== 'undefined' && navigator.language?.toLowerCase().startsWith('ar') ? 'ar' : 'en';
+  // the UI language chosen in the other language's onboarding comes first (the player picked it a moment ago)
+  const pending = takePendingUiLang();
+  const lang: UiLang =
+    pending === 'ar' || pending === 'en' ? pending : typeof navigator !== 'undefined' && navigator.language?.toLowerCase().startsWith('ar') ? 'ar' : 'en';
   return {
     profile: null,
     vocab: [],
@@ -194,8 +199,17 @@ function initialPersisted(): Persisted {
   };
 }
 
+/** German's first five: the greetings every Berlin conversation opens and closes with */
+const DE_STARTERS = [
+  { ja: 'Hallo!', en: 'Hello!', ar: 'مرحبًا!' },
+  { ja: 'Guten Morgen!', en: 'Good morning!', ar: 'صباح الخير!' },
+  { ja: 'Bitte.', en: 'Please.', ar: 'من فضلك.' },
+  { ja: 'Danke!', en: 'Thanks!', ar: 'شكرًا!' },
+  { ja: 'Tschüss!', en: 'Bye!', ar: 'باي!' },
+];
+
 function starterWords(): Array<Omit<VocabItem, 'id' | 'savedAt' | 'card'>> {
-  return GREETINGS.cards.slice(0, 5).map((c) => {
+  return (IS_GERMAN ? DE_STARTERS : GREETINGS.cards.slice(0, 5)).map((c) => {
     const tok = tokenize(c.ja, LEXICON).tokens;
     return {
       kind: 'phrase' as const,

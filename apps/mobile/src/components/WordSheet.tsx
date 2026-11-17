@@ -6,6 +6,7 @@ import { useT } from '../hooks';
 import { speakJa, blip } from '../services';
 import { exampleFor, meaningOf } from '../content';
 import { romajiText } from '@lw/content';
+import { LEXICON, segmentFree } from '../target';
 
 /** Bottom card shown when a word is tapped: reading, meaning, audio and a save button. */
 export function WordSheet() {
@@ -81,7 +82,6 @@ export function WordSheet() {
   );
 }
 
-import { LEXICON, segmentFree } from '@lw/content';
 function exampleTokens(ja: string) {
   return segmentFree(ja, LEXICON);
 }

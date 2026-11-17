@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { AvatarSpec } from '@lw/content';
-import { AGE_GROUPS, CHARACTERS, GOALS, TOPICS } from '@lw/content';
+import { AGE_GROUPS, GOALS, TOPICS } from '@lw/content';
 import { Portrait } from '../components/Portrait';
 import { Icon } from '../components/Icon';
 import { useStore, type Profile } from '../store';
@@ -8,6 +8,7 @@ import { useT } from '../hooks';
 import type { UiLang } from '../i18n';
 import { HAIRS, JACKETS, SKINS } from '../content';
 import { blip } from '../services';
+import { CHARACTERS, TARGET, chooseTarget, type Target } from '../target';
 
 const STEPS = 5;
 
@@ -26,6 +27,7 @@ export function Onboarding() {
   const [goal, setGoal] = useState<Profile['goal']>('travel');
   const [age, setAge] = useState<Profile['age']>('adults');
   const [topics, setTopics] = useState<string[]>([]);
+  const [learn, setLearn] = useState<Target>(TARGET);
 
   const spec: AvatarSpec = {
     skin,
@@ -40,6 +42,8 @@ export function Onboarding() {
   const valid = [true, name.trim().length > 0, true, true, topics.length >= 3][step];
   const next = () => {
     blip('tap');
+    // learning the other language: its app starts over in it (its own saves), with the UI language just picked
+    if (step === 0 && learn !== TARGET) return chooseTarget(learn, lang);
     if (step < STEPS - 1) return setStep(step + 1);
     const profile: Profile = { name: name.trim().slice(0, 18), l1: lang, level, goal, age, topics, avatar: spec, createdAt: new Date().toISOString() };
     updateSettings({ autoTranslate: level === 'A1', romaji: level === 'A1' });
@@ -51,7 +55,7 @@ export function Onboarding() {
     blip('tap');
   };
 
-  const cast = ['yuki', 'kenji', 'mio'].map((id) => CHARACTERS.find((c) => c.id === id)!);
+  const cast = (TARGET === 'de' ? ['jana', 'lena', 'emre'] : ['yuki', 'kenji', 'mio']).map((id) => CHARACTERS.find((c) => c.id === id)!);
 
   return (
     <div className="onb">
@@ -74,7 +78,7 @@ export function Onboarding() {
               ))}
             </div>
             <h1 className="hero-title">{t('app.name')}</h1>
-            <p className="hero-sub">{t('app.tagline')}</p>
+            <p className="hero-sub">{t(learn === 'de' ? 'app.tagline.de' : 'app.tagline')}</p>
             <h2 className="onb-h">{t('ob.lang.title')}</h2>
             <p className="muted">{t('ob.lang.sub')}</p>
             <div className="choice-row">
@@ -85,8 +89,18 @@ export function Onboarding() {
                 العربية
               </button>
             </div>
+            <h2 className="onb-h">{t('ob.learn.title')}</h2>
+            <div className="choice-row learn-row">
+              <button className={`choice big ${learn === 'ja' ? 'on' : ''}`} data-learn="ja" onClick={() => (setLearn('ja'), blip('tap'))}>
+                <span lang="ja">日本語</span> <span className="small">{t('ob.learn.ja')}</span>
+              </button>
+              <button className={`choice big ${learn === 'de' ? 'on' : ''}`} data-learn="de" onClick={() => (setLearn('de'), blip('tap'))}>
+                <span lang="de">Deutsch</span> <span className="small">{t('ob.learn.de')}</span>
+              </button>
+            </div>
+            <p className="muted small">{t('ob.learn.note')}</p>
             <div className="soon">
-              {['Español', 'Deutsch', 'Nederlands', 'Русский', '日本語'].map((l) => (
+              {['Español', 'Nederlands', 'Русский'].map((l) => (
                 <span key={l} className="chip dim">
                   {l}
                 </span>

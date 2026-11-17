@@ -2,13 +2,14 @@
 // `diaryLine`, assisted) or a sentence typed in Japanese (kana, kanji or romaji: the learner's own). Skipping never blocks the story. The
 // entry goes to `diary_added`; the Letter Home replays the lines (`letterDiary`).
 import { useMemo, useState } from 'react';
-import { DIARY_FEELINGS, LEXICON, diaryLine, diaryPrompt, tokenize, type Line } from '@lw/content';
+import { DIARY_FEELINGS, diaryLine, diaryPrompt, tokenize, type Line } from '@lw/content';
 import type { DiaryEntry } from '@lw/game';
 import { JaText } from '../JaText';
 import { useT } from '../../hooks';
 import { useStore } from '../../store';
 import { meaningOf } from '../../content';
 import { typedJapanese } from '../../game/letterLogic';
+import { LEXICON } from '../../target';
 
 export interface DiaryPromptProps {
   /** the chapter whose closing beat asks (not the current one: the chapter is already over when its closing plays) */

@@ -1,8 +1,9 @@
-import { LEXICON, SLOTS, tokenize, type Token } from '@lw/content';
+import { tokenize, type Token } from '@lw/content';
 import { JaText } from '../JaText';
 import { useStore } from '../../store';
 import { useT } from '../../hooks';
 import { yen, type FareStop } from './panelLogic';
+import { LEXICON, SLOTS } from '../../target';
 
 export interface FareMapProps {
   stops: FareStop[];

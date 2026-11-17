@@ -6,8 +6,9 @@
 // the 4th, 7th… the regular's greeting: a shopkeeper who does not know your name yet asks it once (flag `ask_name`), and greets you by it
 // from then on (flag `named`; the game keeps who knows it in `GameState.named`). The last purchase is found in the ledger: the newest
 // purchase of anything this conversation sells.
-import { FESTIVAL, NEWS_TALK, SHOP_TALK, SLOTS, festivalOpen, scenarioById, seasonAt, topicsOf, weekendAt, type Vars } from '@lw/content';
+import { FESTIVAL, NEWS_TALK, SHOP_TALK, festivalOpen, seasonAt, topicsOf, weekendAt, type Vars } from '@lw/content';
 import { evalPred, type GamePack, type GameState, type GameView, type ScenarioMeta } from '@lw/game';
+import { SLOTS, scenarioById } from '../target';
 
 export interface LastBought {
   itemId: string;

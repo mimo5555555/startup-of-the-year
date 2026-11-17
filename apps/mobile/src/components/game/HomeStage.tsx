@@ -5,7 +5,7 @@
 // being inside is never persisted, a reload puts the player on the street.
 import { useEffect, useRef, useState } from 'react';
 import type { StageId, TokyoWorld } from '@lw/world';
-import { DOOR_LOCKED, GENKAN_FLAG, LEXICON, tokenize, type Line } from '@lw/content';
+import { DOOR_LOCKED, GENKAN_FLAG, tokenize, type Line } from '@lw/content';
 import { BALANCE } from '@lw/game';
 import { useT } from '../../hooks';
 import { useStore } from '../../store';
@@ -25,6 +25,7 @@ import { Joystick } from '../Joystick';
 import { Portrait } from '../Portrait';
 import { GenkanButtons, type GenkanStep } from './GenkanButtons';
 import { PanelBackdrop, PropChips } from './PanelFallback';
+import { LEXICON } from '../../target';
 
 /** How long the host's line stays up, and the pause between the last step and the conversation (long enough to read "come on up"). */
 const SAY_MS = 4800;

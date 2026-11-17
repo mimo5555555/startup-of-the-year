@@ -2,11 +2,12 @@
 // the Phone screen reads `threadRows` / `mapPins` / `openerLine`; the conversation host asks `planChat` for the flags a chat thread needs
 // (the contract at the top of `content/src/tokyo/scenarios-chat.ts`: `casual`, `f_<id>`, `fc_<id>`) and files an accepted plan with
 // `planFlagEvent`.
-import { LEXICON, characterById, resolveLine, scenarioById, type Line, type Token } from '@lw/content';
+import { characterById, resolveLine, type Line, type Token } from '@lw/content';
 import { BALANCE, emptyFriend, heartsForAp, type FriendState, type GamePack, type GameState, type InputEvent } from '@lw/game';
 import { NPC_SPAWNS } from '@lw/world';
 import { isCasual, type FriendPlan } from './friendsLogic';
 import { PACK } from './pack';
+import { LEXICON, scenarioById } from '../target';
 
 /** the goal step of `chat_plan` that an accepted plan completes (a polite refusal completes `reply` only) */
 export const PLAN_SCENARIO = 'chat_plan';

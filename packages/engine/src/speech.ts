@@ -105,7 +105,7 @@ export class SttError extends Error {
 
 export interface SttPort {
   available(): boolean;
-  listen(lang: 'ja-JP' | 'en-US' | 'ar-SA', onInterim?: (text: string) => void): SttSession;
+  listen(lang: 'ja-JP' | 'de-DE' | 'en-US' | 'ar-SA', onInterim?: (text: string) => void): SttSession;
 }
 
 const STT_CODES: SttErrorCode[] = ['unsupported', 'not-allowed', 'service-not-allowed', 'no-speech', 'audio-capture', 'network', 'aborted', 'language-not-supported', 'bad-grammar', 'timeout'];
@@ -164,13 +164,27 @@ export function isJapaneseVoice(v: { name?: string; lang?: string }): boolean {
 
 /** Local voices first (they work offline and start fast), then the requested gender hint, then exact ja-JP. */
 export function pickJapaneseVoice<T extends VoiceLike>(voices: readonly T[], kind?: 'f' | 'm'): T | undefined {
-  const ja = voices.filter(isJapaneseVoice);
-  if (!ja.length) return undefined;
+  return pickVoiceFor(voices, 'ja-JP', kind);
+}
+
+/** A voice of the language of `locale` ('ja-JP': also the well-known Japanese voice names; 'de-DE': de, de-DE, de_AT, deu-DEU). */
+export function isVoiceFor(v: { name?: string; lang?: string }, locale: string): boolean {
+  const base = locale.slice(0, 2).toLowerCase();
+  if (base === 'ja') return isJapaneseVoice(v);
+  const l = normLang(v.lang);
+  return l === base || l.startsWith(`${base}-`) || (base === 'de' && /^deu(-|$)/.test(l));
+}
+
+/** The voice to speak `locale` with: local first, then the gender hint, then the exact locale (de-DE before de-AT). */
+export function pickVoiceFor<T extends VoiceLike>(voices: readonly T[], locale: string, kind?: 'f' | 'm'): T | undefined {
+  const mine = voices.filter((v) => isVoiceFor(v, locale));
+  if (!mine.length) return undefined;
   const want = kind === 'm' ? MALE : kind === 'f' ? FEMALE : null;
   const other = kind === 'm' ? FEMALE : kind === 'f' ? MALE : null;
-  const score = (v: T) => (v.localService ? 8 : 0) + (want?.test(v.name) ? 4 : 0) + (normLang(v.lang) === 'ja-jp' ? 2 : 0) - (other?.test(v.name) ? 1 : 0);
-  let best = ja[0]!;
-  for (const v of ja) if (score(v) > score(best)) best = v;
+  const exact = locale.toLowerCase();
+  const score = (v: T) => (v.localService ? 8 : 0) + (want?.test(v.name) ? 4 : 0) + (normLang(v.lang) === exact ? 2 : 0) - (other?.test(v.name) ? 1 : 0);
+  let best = mine[0]!;
+  for (const v of mine) if (score(v) > score(best)) best = v;
   return best;
 }
 
@@ -268,6 +282,7 @@ const synthesis = (): any => (globalThis as any).speechSynthesis;
 const hasSynthesis = () => typeof globalThis !== 'undefined' && !!synthesis() && typeof (globalThis as any).SpeechSynthesisUtterance === 'function';
 
 export const TTS_SAMPLE_JA = 'こんにちは。よろしくお願いします。';
+export const TTS_SAMPLE_DE = 'Hallo! Schön, dich kennenzulernen.';
 
 export interface WebSpeechTtsOptions {
   /** how long to wait for the device to report voices when none are known yet (ms) */
@@ -275,6 +290,8 @@ export interface WebSpeechTtsOptions {
   /** pause between cancel() and speak() when something was speaking (ms) */
   deferMs?: number;
   chunkMax?: number;
+  /** the language spoken: 'ja-JP' (default) or 'de-DE'; the voice list and every utterance follow it */
+  locale?: string;
 }
 
 export class WebSpeechTts implements TtsPort {
@@ -291,8 +308,10 @@ export class WebSpeechTts implements TtsPort {
   private readonly voiceWaitMs: number;
   private readonly deferMs: number;
   private readonly chunkMax: number;
+  private readonly locale: string;
 
   constructor(opts: WebSpeechTtsOptions = {}) {
+    this.locale = opts.locale ?? 'ja-JP';
     this.voiceWaitMs = opts.voiceWaitMs ?? 700;
     this.deferMs = opts.deferMs ?? 60;
     this.chunkMax = opts.chunkMax ?? TTS_CHUNK_MAX;
@@ -314,7 +333,7 @@ export class WebSpeechTts implements TtsPort {
     } catch {
       this.all = [];
     }
-    this.ja = this.all.filter(isJapaneseVoice);
+    this.ja = this.all.filter((v) => isVoiceFor(v, this.locale));
   }
 
   available() {
@@ -343,7 +362,7 @@ export class WebSpeechTts implements TtsPort {
 
   voiceName() {
     this.refresh();
-    return this.chosen ?? pickJapaneseVoice(this.ja, 'f')?.name ?? null;
+    return this.chosen ?? pickVoiceFor(this.ja, this.locale, 'f')?.name ?? null;
   }
 
   lastError() {
@@ -361,7 +380,7 @@ export class WebSpeechTts implements TtsPort {
     try {
       const u = new SpeechSynthesisUtterance(' ');
       u.volume = 0;
-      u.lang = 'ja-JP';
+      u.lang = this.locale;
       synthesis().speak(u);
     } catch {
       /* optional */
@@ -398,7 +417,7 @@ export class WebSpeechTts implements TtsPort {
   }
 
   async speakSample(): Promise<TtsSampleResult> {
-    await this.speak(TTS_SAMPLE_JA, { rate: 0.9 });
+    await this.speak(this.locale.startsWith('de') ? TTS_SAMPLE_DE : TTS_SAMPLE_JA, { rate: 0.9 });
     const error = this.err;
     return { audible: hasSynthesis() && !this.sim && !error, voice: this.chosen, error };
   }
@@ -442,7 +461,7 @@ export class WebSpeechTts implements TtsPort {
 
       const speakChain = () => {
         const chunks = splitForSpeech(clean, this.chunkMax);
-        const voice = pickJapaneseVoice(this.ja, o.voice);
+        const voice = pickVoiceFor(this.ja, this.locale, o.voice);
         this.chosen = voice?.name ?? null;
         let i = 0;
         const next = () => {
@@ -462,7 +481,7 @@ export class WebSpeechTts implements TtsPort {
           };
           try {
             const u = new SpeechSynthesisUtterance(piece);
-            u.lang = 'ja-JP';
+            u.lang = this.locale;
             u.rate = rate;
             u.pitch = Math.max(0.5, Math.min(1.8, o.pitch ?? 1));
             if (voice) u.voice = voice;
@@ -519,7 +538,7 @@ export class WebSpeechTts implements TtsPort {
         this.refresh();
         if (!this.ja.length && !this.waited) {
           this.waited = true;
-          await waitForVoices(synthesis(), this.voiceWaitMs, (v) => v.some(isJapaneseVoice));
+          await waitForVoices(synthesis(), this.voiceWaitMs, (v) => v.some((x) => isVoiceFor(x, this.locale)));
           if (!alive()) return;
           this.refresh();
         }
@@ -615,7 +634,7 @@ export class WebSpeechStt implements SttPort {
     return recognitionCtor() !== null;
   }
 
-  listen(lang: 'ja-JP' | 'en-US' | 'ar-SA', onInterim?: (text: string) => void): SttSession {
+  listen(lang: 'ja-JP' | 'de-DE' | 'en-US' | 'ar-SA', onInterim?: (text: string) => void): SttSession {
     const Ctor = recognitionCtor();
     if (!Ctor) {
       return { result: Promise.reject(new SttError('unsupported')), stop() {}, abort() {} };

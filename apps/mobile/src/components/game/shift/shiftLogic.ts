@@ -1,6 +1,6 @@
 // Pure logic of the Shift screen (agent 4D, docs/GAME_DESIGN.md §9): carts, the total and the change in Japanese, answer checking,
 // tile and choice sets, and turning what the player did into a `ShiftResult`. No React here, so the rules are tested on their own.
-import { LEXICON, parseNumbers, tokenize, yenToJa, type Token } from '@lw/content';
+import { parseNumbers, tokenize, yenToJa, type Token } from '@lw/content';
 import { normJa, romajiAsKana } from '@lw/core';
 import {
   BALANCE,
@@ -14,6 +14,7 @@ import {
   type ShiftResult,
   type ShiftTaskResult,
 } from '@lw/game';
+import { LEXICON } from '../../../target';
 
 /** How an answer is given: typed (or spoken), built from tiles, or picked from three. */
 export type AnswerMode = 'type' | 'tiles' | 'pick';

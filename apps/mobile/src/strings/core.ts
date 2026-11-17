@@ -3,6 +3,7 @@
 export const en = {
   'app.name': 'Language World',
   'app.tagline': 'Walk around Tokyo. Talk to people. Learn Japanese by using it.',
+  'app.tagline.de': 'Walk around Berlin. Talk to people. Learn German by using it.',
   'app.sample': 'Interactive sample',
 
   'common.next': 'Next',
@@ -21,8 +22,13 @@ export const en = {
   'common.off': 'Off',
 
   'ob.lang.title': 'Your language',
-  'ob.lang.sub': 'The app talks to you in this language while you practise Japanese.',
+  'ob.lang.sub': 'The app talks to you in this language while you practise.',
   'ob.lang.soon': 'More languages are on the way',
+  'ob.learn.title': 'What do you want to learn?',
+  'st.learn': 'The language you learn',
+  'ob.learn.ja': 'Japanese in Tokyo',
+  'ob.learn.de': 'German in Berlin',
+  'ob.learn.note': 'Each language keeps its own progress. You can switch later in Settings.',
   'ob.you.title': 'Who are you?',
   'ob.you.name': 'Your name',
   'ob.you.hint': 'People will call you by it. Letters work best, like Sam or Layla.',
@@ -218,6 +224,7 @@ export const en = {
 export const ar: Record<keyof typeof en, string> = {
   'app.name': 'عالم اللغة',
   'app.tagline': 'تجوّل في طوكيو، وتحدّث مع الناس، وتعلّم اليابانية بالتحدّث بها.',
+  'app.tagline.de': 'تجوّل في برلين، وتحدّث مع الناس، وتعلّم الألمانية بالتحدّث بها.',
   'app.sample': 'نسخة تجريبية تفاعلية',
 
   'common.next': 'التالي',
@@ -236,8 +243,13 @@ export const ar: Record<keyof typeof en, string> = {
   'common.off': 'متوقف',
 
   'ob.lang.title': 'لغتك',
-  'ob.lang.sub': 'سيخاطبك التطبيق بهذه اللغة بينما تتدرّب على اليابانية.',
+  'ob.lang.sub': 'سيخاطبك التطبيق بهذه اللغة بينما تتدرّب.',
   'ob.lang.soon': 'المزيد من اللغات قادم قريبًا',
+  'ob.learn.title': 'ماذا تريد أن تتعلّم؟',
+  'st.learn': 'اللغة التي تتعلّمها',
+  'ob.learn.ja': 'اليابانية في طوكيو',
+  'ob.learn.de': 'الألمانية في برلين',
+  'ob.learn.note': 'لكل لغة تقدّمها الخاص. يمكنك التبديل لاحقًا من الإعدادات.',
   'ob.you.title': 'من أنت؟',
   'ob.you.name': 'اسمك',
   'ob.you.hint': 'ستناديك الشخصيات به. الأحرف اللاتينية تعمل بشكل أفضل، مثل Sam أو Layla.',

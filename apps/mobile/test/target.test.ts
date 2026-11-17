@@ -1,0 +1,83 @@
+// The language being learned (German step 3): read once at start from `lw.target`. Japanese by default, with every registry, the
+// pack, the stores and the app's words as before; German switches all of them, keeps its own saves, and speaks of German and Berlin.
+import './_fakeStorage';
+import { afterEach, describe, expect, it, vi } from 'vitest';
+import { putSaved, saved, wipeSaved } from './_fakeStorage';
+
+afterEach(() => {
+  wipeSaved();
+  vi.resetModules();
+});
+
+describe('learning Japanese (the default)', () => {
+  it('reads Tokyo’s registries, the Japanese pack and engine, the store prefix it always had', async () => {
+    const t = await import('../src/target');
+    const { JP_PACK, LEXICON } = await import('@lw/content');
+    const { targetLanguage } = await import('@lw/engine');
+    const { PACK } = await import('../src/game/pack');
+    expect(t.TARGET).toBe('ja');
+    expect(t.IS_GERMAN).toBe(false);
+    expect(t.LEXICON).toBe(LEXICON);
+    expect(t.STORE_PREFIX).toBe('lw.v1.');
+    expect(t.TARGET_LOCALE).toBe('ja-JP');
+    expect(t.scenarioById('konbini')).toBeDefined();
+    expect(t.scenarioById('berlin_bakery')).toBeUndefined();
+    expect(targetLanguage().id).toBe('ja');
+    expect(PACK).toBe(JP_PACK);
+    const { translate } = await import('../src/i18n');
+    expect(translate('en', 'app.tagline')).toContain('Tokyo');
+    expect(translate('en', 'quests.reward', { n: '2,500' })).toBe('Reward: ¥2,500');
+  });
+});
+
+describe('learning German', () => {
+  it('reads Berlin’s registries, the Berlin pack and the German engine, and saves under its own prefix', async () => {
+    putSaved('lw.target', 'de');
+    const t = await import('../src/target');
+    const { BERLIN_PACK, DE_LEXICON } = await import('@lw/content');
+    const { targetLanguage } = await import('@lw/engine');
+    const { PACK } = await import('../src/game/pack');
+    expect(t.TARGET).toBe('de');
+    expect(t.LEXICON).toBe(DE_LEXICON);
+    expect(t.STORE_PREFIX).toBe('lw.de.v1.');
+    expect(t.TARGET_LOCALE).toBe('de-DE');
+    expect(t.scenarioById('berlin_bakery')).toBeDefined();
+    expect(t.scenarioById('konbini')).toBeUndefined();
+    expect(t.CHARACTERS.map((c) => c.id)).toContain('jana');
+    expect(t.segmentFree('zwei broetchen, bitte').map((x) => x.s)).toEqual(['zwei', 'broetchen', ',', 'bitte']);
+    expect(targetLanguage().id).toBe('de');
+    expect(PACK).toBe(BERLIN_PACK);
+  });
+
+  it('speaks of German and Berlin in the app’s own words, and writes amounts in euros', async () => {
+    putSaved('lw.target', 'de');
+    const { translate } = await import('../src/i18n');
+    expect(translate('en', 'app.tagline')).toBe('Walk around Berlin. Talk to people. Learn German by using it.');
+    expect(translate('en', 'audio.speaker.noVoice')).toBe('No German voice installed');
+    expect(translate('ar', 'audio.speaker.noVoice')).toContain('ألماني');
+    expect(translate('en', 'quests.reward', { n: '3,000' })).toBe('Reward: 30,00 €');
+    expect(translate('en', 'quests.reward', { n: 123456 })).toBe('Reward: 1.234,56 €');
+  });
+
+  it('starts the German notebook with German greetings, and keeps the UI language picked before the restart', async () => {
+    putSaved('lw.target', 'de');
+    putSaved('lw.target.ui', 'ar');
+    const { useStore } = await import('../src/store');
+    expect(useStore.getState().uiLang).toBe('ar');
+    useStore.getState().completeOnboarding({ name: 'Sam', l1: 'ar', level: 'A1', goal: 'travel', age: 'adults', topics: ['food', 'music', 'travel'], avatar: {} as never, createdAt: new Date().toISOString() });
+    expect(useStore.getState().vocab.map((v) => v.s)).toEqual(['Hallo!', 'Guten Morgen!', 'Bitte.', 'Danke!', 'Tschüss!']);
+  });
+
+  it('a choice saves the target and the UI language, then restarts', async () => {
+    const reload = vi.fn();
+    vi.stubGlobal('location', { reload });
+    const t = await import('../src/target');
+    t.chooseTarget('de', 'ar');
+    expect(saved('lw.target')).toBe('de');
+    expect(saved('lw.target.ui')).toBe('ar');
+    expect(reload).toHaveBeenCalledTimes(1);
+    t.chooseTarget('ja'); // the language already learned in this run: nothing to do
+    expect(reload).toHaveBeenCalledTimes(1);
+    vi.unstubAllGlobals();
+  });
+});

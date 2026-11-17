@@ -9,6 +9,7 @@ import { useDevMode } from '../game/hooks';
 import pkg from '../../package.json';
 import { VOICE_CREDITS } from '../voice/voices';
 import { GoenPurchases } from '../components/game/GoenPurchases';
+import { TARGET, chooseTarget, type Target } from '../target';
 
 /** Taps on the version line that switch the QA tools on or off (docs/GAME_DESIGN.md §15.1 rule 8). */
 const DEV_TAPS = 7;
@@ -88,6 +89,18 @@ export function Settings() {
               </button>
             ))}
           </div>
+        </section>
+
+        <section className="group">
+          <h2 className="h2">{t('st.learn')}</h2>
+          <div className="seg-row learn-row">
+            {(['ja', 'de'] as Target[]).map((l) => (
+              <button key={l} className={`choice ${TARGET === l ? 'on' : ''}`} data-learn={l} onClick={() => chooseTarget(l, lang)}>
+                <span lang={l}>{l === 'ja' ? '日本語' : 'Deutsch'}</span> <span className="small">{t(l === 'ja' ? 'ob.learn.ja' : 'ob.learn.de')}</span>
+              </button>
+            ))}
+          </div>
+          <p className="muted small">{t('ob.learn.note')}</p>
         </section>
 
         {profile && (

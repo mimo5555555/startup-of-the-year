@@ -2,7 +2,7 @@
 // Builders run inside `buildCity()` through the district's `build(ctx)`; a builder that returns without calling
 // `ctx.shopFrame` (or `ctx.markBuilt`) has not built its site, and NPCs whose spawn `site` is that building are skipped.
 import type { BuildCtx } from '../buildctx';
-import { SOUTH_FRONTS, type DoorDef, type ShopDef } from '../layout';
+import { SOUTH_FRONTS, type DoorDef, type ShopBox, type ShopDef } from '../layout';
 import { buildAiko } from './aiko';
 import { buildArcade } from './arcade';
 import { buildKaraoke } from './karaoke';
@@ -41,11 +41,11 @@ export const SHOP_BUILDERS: Record<ShopDef['id'], BuildingBuilder> = {
 };
 
 /** Shops, then the door facades and street props. Shops run in `district.shops` order (the original five keep their indices). */
-export function buildBuildings(ctx: BuildCtx, district: { shops: readonly ShopDef[]; doors: readonly DoorDef[] }): void {
+export function buildBuildings(ctx: BuildCtx, district: { shops: readonly ShopBox[]; doors: readonly DoorDef[] }): void {
   for (const s of district.shops) {
-    const build = SHOP_BUILDERS[s.id];
+    const build = SHOP_BUILDERS[s.id as ShopDef['id']];
     if (!build) throw new Error(`no builder registered for shop '${s.id}'`);
-    build(ctx, s);
+    build(ctx, s as ShopDef);
   }
   buildDoors(ctx, district.doors);
   buildProps(ctx);

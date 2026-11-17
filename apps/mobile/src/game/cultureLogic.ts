@@ -1,7 +1,8 @@
 // Pure rules of the stamp book (docs/GAME_DESIGN.md §10): which cards are shown, a card's state, the phrase a learner says. No React.
-import { LEXICON, tokenize, type Token, type Vars } from '@lw/content';
+import { tokenize, type Token, type Vars } from '@lw/content';
 import { normTurn } from '@lw/engine';
 import type { AgeGroup, CultureCard, ConversationFacts, GamePack, GameState } from '@lw/game';
+import { LEXICON } from '../target';
 
 /**
  * Cards whose trigger belongs to content that is not released yet. They stay in the pack but the stamp book hides them until they are collected:

@@ -1,7 +1,7 @@
 // The widgets of the Shift screen (agent 4D, docs/GAME_DESIGN.md §9.4): the customer's line with its assists, the item grid, the answer box
 // (type / tiles / pick) and the verdict strip. State lives in `screens/Shift.tsx`; the rules in `shiftLogic.ts`.
 import { useMemo, useRef, useState } from 'react';
-import { LEXICON, speakableText, tokenize, type Token } from '@lw/content';
+import { speakableText, tokenize, type Token } from '@lw/content';
 import type { MenuItem, ShiftCustomer, ShiftInput } from '@lw/game';
 import { Icon } from '../../Icon';
 import { JaText } from '../../JaText';
@@ -27,6 +27,7 @@ import {
   type Flags,
   type Track,
 } from './shiftLogic';
+import { LEXICON, TARGET_LOCALE } from '../../../target';
 
 const tokensOf = (markup: string): Token[] => tokenize(markup, LEXICON).tokens;
 
@@ -366,7 +367,7 @@ export function AnswerBox({ spec, onDone }: { spec: AnswerSpec; onDone(ok: boole
   const listen = () => {
     if (listening) return session.current?.stop();
     if (!stt.available()) return setMsg(t('audio.mic.err.unsupported'));
-    const s = stt.listen('ja-JP', (interim) => setText(interim));
+    const s = stt.listen(TARGET_LOCALE, (interim) => setText(interim));
     session.current = s;
     setListening(true);
     s.result

@@ -28,6 +28,7 @@ import { watchFontsReady } from './fonts';
 import { tts, unlockOnFirstGesture } from './services';
 import { init, observeDay } from './game/bridge';
 import { startPay } from './game/goenPay';
+import { PACK } from './game/pack';
 import { BeatGate, ConversationHost } from './game/host';
 import { CultureCardHost } from './components/game/CultureCard';
 import { useGameReady } from './game/hooks';
@@ -60,7 +61,8 @@ export default function App() {
 
   // Goen stage 2: the shop, the way back from Stripe's payment page, the spend reports (docs/GOEN.md)
   useEffect(() => {
-    if (ready && gameReady) startPay();
+    // a pack without Goen (Berlin) has no shop to load
+    if (ready && gameReady && PACK.goen) startPay();
   }, [ready, gameReady]);
 
   useEffect(() => {

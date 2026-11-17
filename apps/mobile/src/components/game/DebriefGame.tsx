@@ -4,7 +4,7 @@
 // the ledger. Conversation.finish() files a `DebriefData`; Feedback composes the blocks around its existing skeleton.
 import { Fragment, useEffect, useState } from 'react';
 import { create } from 'zustand';
-import { LEXICON, SCENARIOS, tokenize, type Token } from '@lw/content';
+import { tokenize, type Token } from '@lw/content';
 import {
   BALANCE,
   estimatePay,
@@ -33,6 +33,7 @@ import { StarsRow } from './StarsRow';
 import { Icon } from '../Icon';
 import { JaText } from '../JaText';
 import { Portrait } from '../Portrait';
+import { LEXICON, SCENARIOS } from '../../target';
 
 /** A line the debrief offers to keep (an assisted line or a corrected one) with its hidden-line Say it. */
 export interface KeepLine {

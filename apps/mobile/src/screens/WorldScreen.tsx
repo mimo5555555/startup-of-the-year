@@ -1,6 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { TokyoWorld } from '@lw/world';
-import { CHARACTERS, SIGNS, SCENARIOS } from '@lw/content';
+import { BERLIN_DISTRICT, TokyoWorld } from '@lw/world';
 import { levelProgress } from '@lw/core';
 import { WorldCtx, useT } from '../hooks';
 import { useStore } from '../store';
@@ -58,6 +57,7 @@ import {
   type Plan,
   type PickRoute,
 } from '../game/worldSync';
+import { SCENARIOS, CHARACTERS, SIGNS, IS_GERMAN } from '../target';
 
 /** What the player is looking at over the world: the NPC's options, a shop front, or Hanako's lesson list. */
 type Sheet = { kind: 'npc'; id: string; lessonsOnly?: boolean } | { kind: 'shop'; id: string };
@@ -125,6 +125,8 @@ export function WorldScreen() {
         playerSpec: useStore.getState().profile!.avatar,
         quality: mode === 'auto' ? 'auto' : mode,
         labels: npcLabels(useStore.getState().uiLang),
+        // learning German: Berlin's street instead of Tokyo's
+        ...(IS_GERMAN ? { district: BERLIN_DISTRICT } : {}),
       });
       w.start();
       setWorld(w);
@@ -385,7 +387,8 @@ export function WorldScreen() {
               </div>
               <div className="hud-right">
                 <MiniMap world={world} pin={pinOf(goal)} plans={planPins} />
-                {elements.includes('found') && (
+                {/* signs to read: Tokyo's kanji signs (Berlin has none yet) */}
+                {elements.includes('found') && TOTAL_SIGNS > 0 && (
                   <div className="found glass chip" title={t('w.found', { n: found, total: TOTAL_SIGNS })}>
                     <Icon name="sparkle" size={14} /> {found}/{TOTAL_SIGNS}
                   </div>

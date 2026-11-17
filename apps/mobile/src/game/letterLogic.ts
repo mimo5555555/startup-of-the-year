@@ -3,8 +3,9 @@
 // glosses, the TTS read-back text and the card as a PNG drawn on a canvas and handed to the browser as a local download (no network).
 // The frames, facts and the own/assisted rule are the content's (`@lw/content` letter.ts); this module only keeps the drafts.
 import { hasJapanese, kanaToRomaji, romajiToHiragana } from '@lw/core';
-import { DIARY_FEELINGS, DIARY_PROMPTS, LEXICON, LETTER_HEADER, LETTER_RULE, LETTER_SIGN, diaryLine, letterAssisted, letterComplete, letterLineOk, romajiText, segmentFree, tokenize, type Line, type Token } from '@lw/content';
+import { DIARY_FEELINGS, DIARY_PROMPTS, LETTER_HEADER, LETTER_RULE, LETTER_SIGN, diaryLine, letterAssisted, letterComplete, letterLineOk, romajiText, tokenize, type Line, type Token } from '@lw/content';
 import type { DiaryEntry, GamePack, LetterSentence } from '@lw/game';
+import { LEXICON, segmentFree } from '../target';
 
 type Lang = 'en' | 'ar';
 

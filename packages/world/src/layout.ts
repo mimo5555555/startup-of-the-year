@@ -25,12 +25,17 @@ export const GROUND_X = { x0: -150, x1: 170 };
 /** A box centred on (cx, cz). */
 export const boxRect = (cx: number, cz: number, w: number, d: number): Rect => ({ x0: cx - w / 2, x1: cx + w / 2, z0: cz - d / 2, z1: cz + d / 2 });
 
-export interface ShopDef {
-  id: 'konbini' | 'cafe' | 'school' | 'ramen' | 'station' | 'fukufuku' | 'denki' | 'motors' | 'hobby';
+/** An open-front shop box on the north side of a district's street (any district: Tokyo's ids below, Berlin's own). */
+export interface ShopBox {
+  id: string;
   cx: number;
   w: number;
   d: number;
   h: number;
+}
+
+export interface ShopDef extends ShopBox {
+  id: 'konbini' | 'cafe' | 'school' | 'ramen' | 'station' | 'fukufuku' | 'denki' | 'motors' | 'hobby';
 }
 
 // The first five keep their indices (city.ts reads SHOPS[0..4]); the new open-front dioramas are appended.
@@ -46,10 +51,11 @@ export const SHOPS: ShopDef[] = [
   { id: 'hobby', cx: 92, w: 13, d: 10, h: 6.4 }, // x 85.5..98.5: ほしぞらホビー, the figure shop (the second east extension)
 ];
 
-export const shopRect = (s: ShopDef): Rect => ({ x0: s.cx - s.w / 2, x1: s.cx + s.w / 2, z0: FRONT_Z - s.d, z1: FRONT_Z });
+export const shopRect = (s: ShopBox): Rect => ({ x0: s.cx - s.w / 2, x1: s.cx + s.w / 2, z0: FRONT_Z - s.d, z1: FRONT_Z });
 
 /** Something a spawn can stand inside of: a shop diorama, or Aiko's street stall (the restyled florist front). */
-export type SpawnSite = ShopDef['id'] | 'aiko_stall' | 'arcade' | 'karaoke' | 'sento' | 'izakaya';
+/** Tokyo's: a shop diorama, Aiko's stall, the south-row fronts; another district names its own buildings (Berlin: 'wg', 'hof', …). */
+export type SpawnSite = ShopDef['id'] | 'aiko_stall' | 'arcade' | 'karaoke' | 'sento' | 'izakaya' | (string & {});
 
 export interface NpcSpawn {
   id: string;

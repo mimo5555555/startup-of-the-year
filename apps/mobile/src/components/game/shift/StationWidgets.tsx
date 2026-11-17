@@ -2,7 +2,7 @@
 // (an arrow: 右 / 左 / まっすぐ), the timetable (read it, pick the time) and the fare table (pick the fare). Each one is a pick-then-confirm
 // step like the item grid, so a slip of the thumb can be put right. State lives in `screens/Shift.tsx`; the rules in `stationLogic.ts`.
 // The map is a physical plan: left stays left in Arabic too (the container is `dir="ltr"`), the Japanese and the numbers keep their direction.
-import { LEXICON, tokenize } from '@lw/content';
+import { tokenize } from '@lw/content';
 import type { GamePack, ShiftCustomer } from '@lw/game';
 import { Icon } from '../../Icon';
 import { JaText } from '../../JaText';
@@ -12,6 +12,7 @@ import { placeLabel } from '../FareMap';
 import { yen } from '../panelLogic';
 import { Ja } from './ShiftParts';
 import { DIRS, DIR_JA, boardFor, deskKindOf, fareRowsFor, fmtTime, mapSpotsFor, minutesOf, timetableFor, type Dir } from './stationLogic';
+import { LEXICON } from '../../../target';
 
 /** What the player has tapped: a key to mark it and the value the rules judge. */
 export interface DeskPick {

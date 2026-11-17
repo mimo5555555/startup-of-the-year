@@ -11,6 +11,7 @@ import { opensIn } from '../../game/opensIn';
 import { cooldownText } from '../../game/homeLogic';
 import { beginVisit } from '../../game/homeStore';
 import { beginOwn } from '../../game/ownStore';
+import { IS_GERMAN } from '../../target';
 
 /** Carries out a plan that starts something (the plans for a sheet, `window`, are the caller's: it shows the Goods sheet). */
 export function runPlan(plan: Plan): void {
@@ -113,7 +114,7 @@ export function InteractionSheet({ character, shopName, rows, closedUntil, hasGo
           {character && <Portrait spec={character.avatar} size={52} />}
           <div>
             <h2 dir="auto">{character ? displayName(character, lang) : shopName?.[lang]}</h2>
-            <p lang="ja">{character ? character.name.ja : ''}</p>
+            {!IS_GERMAN && <p lang="ja">{character ? character.name.ja : ''}</p>}
           </div>
         </header>
 

@@ -2,7 +2,7 @@
 // says it (mic), types it (kana, kanji or romaji) or builds it from tiles; Peek shows the line instead. Prepare's recall check and the
 // debrief's echo button are both this component with a different pass mark. Everything is retryable at once; there is no failure state.
 import { useMemo, useState } from 'react';
-import { LEXICON, tokenize } from '@lw/content';
+import { tokenize } from '@lw/content';
 import { explainSttError } from '@lw/engine';
 import type { PocketLine } from '@lw/game';
 import { Icon } from '../Icon';
@@ -12,6 +12,7 @@ import { useStore } from '../../store';
 import { blip, speakJa, stt } from '../../services';
 import { plainOf, recallScore, recallScoreSpoken, tileDeck, tilePieces, tilesCorrect } from '../../game/prepareLogic';
 import type { StringKey } from '../../i18n';
+import { LEXICON, TARGET_LOCALE } from '../../target';
 
 export interface SayItProps {
   /** the line as markup (hidden until it is passed or peeked) */
@@ -74,7 +75,7 @@ export function SayIt({ ja, meaning, mark, tiles, onPass, onPeek, peekLabel }: S
     setMicMsg(null);
     setListening(true);
     stt
-      .listen('ja-JP', (interim) => setText(interim))
+      .listen(TARGET_LOCALE, (interim) => setText(interim))
       .result.then((r) => {
         setText(r.text);
         judge(recallScoreSpoken(r, plain));

@@ -1,7 +1,7 @@
 // The Phrase Pocket summary for the interaction sheet in the world and for the debrief (docs/GAME_DESIGN.md §11.1): the scenario's
 // lines with a status each (new, studied, ready), whether the +10% is on, and a button into the Prepare screen.
 import { Fragment } from 'react';
-import { scenarioById } from '@lw/content';
+
 import { Icon } from '../Icon';
 import { useT } from '../../hooks';
 import { openScreen } from '../../game/bridge';
@@ -9,6 +9,7 @@ import { PACK } from '../../game/pack';
 import { useGameState, useGameView } from '../../game/hooks';
 import { pocketView, type LineStatus } from '../../game/prepareLogic';
 import { meaningOf } from '../../content';
+import { scenarioById } from '../../target';
 
 export interface PocketCardProps {
   scenarioId: string;

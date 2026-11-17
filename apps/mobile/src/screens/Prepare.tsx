@@ -2,7 +2,7 @@
 // with the Japanese hidden. Passing a recall makes the line `ready` for BALANCE.readyDays; a pocket with its key lines ready pays the
 // x1.10 and counts those lines as recalled (class I) in the conversation. Skipping is one tap and only forfeits the bonus.
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { LEXICON, scenarioById, tokenize } from '@lw/content';
+import { tokenize } from '@lw/content';
 import { BALANCE, type PocketLine } from '@lw/game';
 import { explainSttError } from '@lw/engine';
 import { Icon } from '../components/Icon';
@@ -27,6 +27,7 @@ import { linesToRecall, plainOf, pocketView, recallMark, recallScoreSpoken, type
 import { enforceGoalCaps, pocketWordOps } from '../game/srsHooks';
 import { isCapstone, realTryFor } from '../game/realTry';
 import { SpeechRehearsal } from '../components/game/SpeechRehearsal';
+import { LEXICON, scenarioById, TARGET_LOCALE } from '../target';
 
 type Stage = 'ready' | 'study' | 'recall' | 'done';
 type Mode = 'guided' | 'real';
@@ -373,7 +374,7 @@ function StudyCard({ line, status, index, total }: { line: PocketLine; status: P
     setHeard(null);
     setListening(true);
     stt
-      .listen('ja-JP')
+      .listen(TARGET_LOCALE)
       .result.then((r) => {
         const score = recallScoreSpoken(r, plain);
         setHeard({ text: r.text, score });
