@@ -908,7 +908,8 @@ function level5(pack: GamePack, out: Out, index?: ContentIndex): void {
   // every pocket line and culture phrase is made of words the lexicon knows
   const tokensOf = (ja: string): string[] => ja.split('|').filter((t) => t && !/^\{\w+\}$/.test(t) && !/^[。、！？!?,.「」『』…・（）()]+$/.test(t));
   const lexicon = (line: { ja: string }, path: string, what: string): void => {
-    for (const t of tokensOf(line.ja)) if (!index.lexiconSurfaces.has(t)) add(out, 5, 'index_lexicon', path, `${what} uses "${t}", which the lexicon does not know`);
+    const unknown = index.unknownWords ? index.unknownWords(line.ja) : tokensOf(line.ja).filter((t) => !index.lexiconSurfaces.has(t));
+    for (const t of unknown) add(out, 5, 'index_lexicon', path, `${what} uses "${t}", which the lexicon does not know`);
   };
   Object.values(pack.pockets).forEach((p) => lexicon(p.line, `pockets.${p.id}.line`, `pocket line ${p.id}`));
   pack.culture.forEach((c, i) => lexicon(c.phrase, `culture[${i}].phrase`, `card ${c.id}`));

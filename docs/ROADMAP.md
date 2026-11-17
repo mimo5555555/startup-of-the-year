@@ -182,12 +182,33 @@ game, a bigger city with better conversations, and the same game for German, Dut
     spacing, case), engine berlin-bakery (every chip at every node with and without hooks and cash-only, EN/AR; typed routes with
     and without umlauts; the total; global intents; German vs English; Sie/du; Japanese unchanged beside it).
 
+- **German step 2: the Berlin pack** (done)
+  * The street, in German (`@lw/content` berlin/): Murat's **Späti** (Club-Mate, water, an Apfelschorle; 「Was ist Pfand?」 → the
+    bottle deposit explained), Emre's **Döner** stand (a Döner, a Dürüm or a Falafel; 「Mit allem? Und scharf?」 → with everything,
+    without onions, not spicy; here or to go), Sabine's **BVG counter** (a single ticket for Berlin AB, a day ticket or a short trip,
+    explained when asked; 「Den Fahrschein vor der Fahrt entwerten!」), Greta's stall at the **Mauerpark flea market** (a lamp, a
+    record, a jacket, a camera or a second-hand bike, said back with its article: 「Ah, das Fahrrad!」; the game's haggle, an offer
+    in euros, cash only), beside Jana's bakery. A shared way to pay: card or cash, and a cash-only shop refuses the card kindly.
+  * Three friends who say du from the first word: **Lena** (the WG kitchen: your name in any form, where you are from, listed or
+    not, what you like doing, said back), **Kofi** (the courtyard: neighbours, a name, a bike or not), **Jonas** (a Sprach-Tandem in
+    Neukölln: a name, how long you have been learning, the next meeting).
+  * `BERLIN_PACK`: euro and cents (`minorPerMajor: 100`, 「2,50 €」), German VAT (19 %, 7 % for food and transport), the German
+    `LanguagePlugin` (numbers in words, prices written and said, numbers said in cents, Sie/du markers), the menus of the five shops
+    and a second-hand bike, three friends with tastes and a perk each, Chapters 1–3 (*Willkommen in Berlin*, *Mein Kiez*, *Sonntag
+    im Mauerpark*) with their beats, then Free Walk; two dreams (a bike, friends), titles, eight Berlin culture cards (Schrippe, Pfand,
+    Sie/du, Mit allem, entwerten, Bargeld, Sonntagsruhe, Tandem), daily goals. It validates at level 5 like `JP_PACK`
+    (`ContentIndex.unknownWords` lets a spaced language check its own words). German lines are checked word by word: an unknown
+    Latin word in German is a missing word (`Lexicon` `latin`), never raw text.
+  * Tests: content berlin and berlin-pack (every word in the dictionary, slot keys unique, the pack at level 5, the menu, cents,
+    the German plugin, the game's quote and haggle limit), engine berlin-street (every chip of the eight conversations at every node,
+    with and without hooks and cash-only, EN/AR; a typed route in each shop with its charge; the friends' name, country and hobby;
+    Sie with a friend).
+
 ## Next
 
-1. **German step 2: the Berlin pack** — a `GamePack` for Berlin (euro and cents, the German `LanguagePlugin` for the game: prices,
-   Sie/du markers), the rest of the street's shops (Späti, Döner, U-Bahn ticket machine, Flohmarkt), three friends who switch to du,
-   Chapters 1–3; then a Berlin street in 3D, the language picker, German text in the conversation screen and `de-DE` speech, and
-   voices.
+1. **German step 3: Berlin in the app** — the language picker in onboarding, the app running on `BERLIN_PACK` with the `DE` target
+   language, German text in the conversation screen (spaces, no furigana or romaji), `de-DE` speech and recognition, and a Berlin
+   street in 3D with the five shops and the three friends; then voices.
 
 ## Other languages (German in Berlin first)
 

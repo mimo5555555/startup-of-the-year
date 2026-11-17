@@ -3,6 +3,7 @@
 // Berlin bakeries) a card is politely refused and cash is asked for. Lines are German markup: words separated by spaces.
 import type { Character, IntentDef, Line, Scenario } from '../types';
 import { L, S, asRecord, node, say } from '../tokyo/dsl';
+import { PAY_CHIPS, askToPay, payIntents, saleDone, shortOfMoney } from './common';
 
 /** cents, by slot option */
 export const BAKERY_PRICES: Record<string, number> = { broetchen: 45, brezel: 120, croissant: 150, pfannkuchen: 180, kaffee: 250, kakao: 280 };
@@ -121,51 +122,11 @@ export const BAKERY: Scenario = {
     }),
     node({
       id: 'pay',
-      say: [
-        say(L('Das macht {total}. Bar oder mit Karte?', 'That comes to {total}. Cash or card?', 'المجموع {total}. نقدًا أم بالبطاقة؟'), { flag: 'priced' }),
-        say(L('Gerne. Bar oder mit Karte?', 'Sure. Cash or card?', 'حسنًا. نقدًا أم بالبطاقة؟')),
-      ],
-      suggestions: [S('Mit Karte, bitte.', 'By card, please.', 'بالبطاقة من فضلك.'), S('Bar, bitte.', 'Cash, please.', 'نقدًا من فضلك.')],
-      intents: [
-        { id: 'pay_card', slot: 'payMethod', slotOptions: ['card'], slotRequired: true, next: 'bye' },
-        { id: 'pay_cash', slot: 'payMethod', slotOptions: ['cash'], slotRequired: true, next: 'bye' },
-        // a small Berlin bakery often takes cash only: the card is refused kindly, and the cash chip and answer stay
-        {
-          id: 'card_refused',
-          when: { flag: 'cashOnly' },
-          slot: 'payMethod',
-          slotOptions: ['card'],
-          slotRequired: true,
-          stay: true,
-          boost: 20,
-          reply: L('Tut mir leid, wir nehmen nur Bargeld.', 'Sorry, we only take cash.', 'آسفة، نقبل النقد فقط.'),
-        },
-        { id: 'pay_ok', any: ['hier bitte', 'bitte schon', 'bitte sehr', 'stimmt so'], next: 'bye' },
-      ],
+      say: askToPay(),
+      suggestions: PAY_CHIPS,
+      intents: payIntents('bye'),
     }),
-    node({
-      id: 'bye',
-      end: true,
-      emotion: 'happy',
-      step: 'pay',
-      econ: 'charge',
-      onShort: 'short',
-      say: [say(L('Danke schön! Einen schönen Tag noch!', 'Thank you! Have a nice day!', 'شكرًا جزيلًا! أتمنى لك يومًا سعيدًا!'))],
-      intents: [],
-    }),
-    node({
-      id: 'short',
-      end: true,
-      say: [
-        say(
-          L(
-            'Oh, das reicht leider nicht. Kein Problem, vielleicht beim nächsten Mal!',
-            "Oh, that's not quite enough, I'm afraid. No problem, maybe next time!",
-            'أوه، هذا لا يكفي للأسف. لا مشكلة، ربما في المرة القادمة!',
-          ),
-        ),
-      ],
-      intents: [],
-    }),
+    saleDone(L('Danke schön! Einen schönen Tag noch!', 'Thank you! Have a nice day!', 'شكرًا جزيلًا! أتمنى لك يومًا سعيدًا!')),
+    shortOfMoney(),
   ]),
 };

@@ -1964,6 +1964,11 @@ export interface ContentIndex {
   slots: Record<string, string[]>;
   characters?: string[];
   lessons?: string[];
+  /**
+   * The words of a line the dictionary does not know, for a language whose lines are not `|`-separated dictionary surfaces (German
+   * writes sentences with spaces and looks words up in any letter case); absent = split on `|` and check `lexiconSurfaces`
+   */
+  unknownWords?: (markup: string) => string[];
 }
 
 export type ValidationLevel = 1 | 2 | 3 | 4 | 5;

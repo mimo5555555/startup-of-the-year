@@ -1,7 +1,7 @@
 // Berlin's German content: every word of every line, chip, reaction and slot option is in the German dictionary, lines keep their
 // spaces, a word is found whatever its letter case, and a Japanese line still tokenizes exactly as before.
 import { describe, expect, it } from 'vitest';
-import { BAKERY, BERLIN_CHARACTERS, BERLIN_SCENARIOS, DE_LEXICON, DE_REACTIONS, DE_SLOTS, LEXICON, plainText, readingText, resolveLine, segmentWords, tokenize } from '../src';
+import { BAKERY, BERLIN_CHARACTERS, BERLIN_SCENARIOS, CHARACTERS, DE_LEXICON, DE_REACTIONS, DE_SLOTS, LEXICON, scenarioById, plainText, readingText, resolveLine, segmentWords, tokenize } from '../src';
 
 function allLines(): string[] {
   const out: string[] = Object.values(DE_REACTIONS).map((l) => l.ja);
@@ -54,9 +54,30 @@ describe('Berlin content', () => {
     expect(name[0]!.s).toBe('高橋 凜');
   });
 
-  it('the baker is Berlin’s, at her bakery, with her conversation', () => {
-    expect(BERLIN_CHARACTERS.map((c) => c.id)).toEqual(['jana']);
+  it('every character has her or his conversation, at its place; ids are unique and never Tokyo’s', () => {
+    expect(BERLIN_CHARACTERS.map((c) => c.id)).toEqual(['jana', 'murat', 'emre', 'sabine', 'greta', 'lena', 'kofi', 'jonas']);
+    for (const c of BERLIN_CHARACTERS) {
+      const sc = BERLIN_SCENARIOS.find((s) => s.id === c.scenarioId);
+      expect(sc?.characterId, c.id).toBe(c.id);
+      expect(sc?.locationId, c.id).toBe(c.locationId);
+      expect(CHARACTERS.some((t) => t.id === c.id), c.id).toBe(false);
+      expect(scenarioById(sc!.id), sc!.id).toBeUndefined();
+    }
+    expect(new Set(BERLIN_SCENARIOS.map((s) => s.id)).size).toBe(BERLIN_SCENARIOS.length);
     expect(BAKERY.characterId).toBe('jana');
-    expect(BERLIN_CHARACTERS[0]!.scenarioId).toBe(BAKERY.id);
+  });
+
+  it('every slot option is dictionary words, and no two options of a slot share a key', () => {
+    for (const [slot, opts] of Object.entries(DE_SLOTS)) {
+      const seen = new Map<string, string>();
+      for (const o of opts) {
+        expect(tokenize(o.ja, DE_LEXICON).missing, `${slot}.${o.id}`).toEqual([]);
+        for (const k of o.keys.ja) {
+          const key = k.toLowerCase();
+          expect(seen.get(key), `${slot}: "${k}" in ${o.id} and ${seen.get(key)}`).toBeUndefined();
+          seen.set(key, o.id);
+        }
+      }
+    }
   });
 });

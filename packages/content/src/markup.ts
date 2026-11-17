@@ -41,7 +41,13 @@ export class Lexicon {
   private map = new Map<string, LexEntry>();
   /** the entries by their lower-case form: 「Ich」 at the start of a sentence and a typed 「brötchen」 are found */
   private lower = new Map<string, LexEntry>();
-  constructor(entries: LexEntry[]) {
+  /**
+   * `latin`: the language is written in Latin letters (German), so an unknown Latin word in a line is a missing word, not raw ASCII
+   * (Japanese lines keep `Wi-Fi` or a password as raw text)
+   */
+  readonly latin: boolean;
+  constructor(entries: LexEntry[], opts: { latin?: boolean } = {}) {
+    this.latin = !!opts.latin;
     for (const e of entries) {
       if (this.map.has(e.s)) throw new Error(`Duplicate lexicon entry: ${e.s}`);
       this.map.set(e.s, e);
@@ -126,7 +132,7 @@ export function tokenize(markup: string, lex: Lexicon, vars: Vars = {}): Tokeniz
       if (e) {
         // the word as written (「Ich」 at the start of a sentence), with the entry's reading and meaning
         push(e.s === part ? entryToToken(e) : { ...entryToToken(e), s: part, rom: e.rom ?? part });
-      } else if (ASCII_RAW.test(part)) {
+      } else if (ASCII_RAW.test(part) && !(lex.latin && /\p{L}/u.test(part))) {
         push({ s: part, rom: part, raw: true });
       } else {
         missing.push(part);
