@@ -133,9 +133,9 @@ describe('FRONT_OVERRIDES', () => {
     FRONT_OVERRIDES.hanaya = saved;
   });
 
-  /** signs the other overrides add besides their own sign: the karaoke box's price board on the sidewalk, and the public bath's two curtains and
-   * the ゆ on its chimney */
-  const EXTRA_SIGNS = 4;
+  /** signs the other overrides add besides their own sign: the karaoke box's price board on the sidewalk, the public bath's two curtains and
+   * the ゆ on its chimney, the izakaya's noren and its menu board */
+  const EXTRA_SIGNS = 6;
 
   it('styles every south front, in the order of layout.SOUTH_FRONTS', () => {
     expect(SOUTH_FRONTS.map((f) => f.id)).toEqual(['izakaya', 'yakkyoku', 'hanaya', 'honya', 'hotel', 'game', 'sento']);

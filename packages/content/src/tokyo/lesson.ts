@@ -48,4 +48,6 @@ export const SIGNS: SignDef[] = [
   { id: 'sento', lex: '銭湯' },
   { id: 'chimney', lex: '煙突' },
   { id: 'noren', lex: 'のれん' },
+  // the izakaya's board
+  { id: 'izakaya', lex: '居酒屋' },
 ];

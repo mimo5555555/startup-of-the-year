@@ -77,6 +77,8 @@ export const INTERACTIONS: Record<string, Interaction[]> = {
   aoi: [scenario('aoi_shop', 'denki_phone', 'Look for a phone', 'ابحث عن هاتف'), peek('aoi', 'denki')],
   daichi: [scenario('daichi_shop', 'hobby_figures', 'Look at figures', 'تفرّج على المجسّمات')],
   shota: [scenario('shota_crane', 'arcade_crane', 'Buy goes at the crane game', 'اشترِ محاولات في لعبة الرافعة')],
+  // the izakaya: an evening with a friend, from Chapter 6 (the shop opens then)
+  misaki: [scenario('misaki_dinner', 'izakaya_dinner', 'An evening with a friend', 'أمسية مع صديق', { ch: 6 })],
   // the public bath: the bandai, then (once you have bathed) the after-bath milk
   genzo: [
     scenario('genzo_desk', 'sento_desk', 'Take a bath', 'خذ حمّامًا'),

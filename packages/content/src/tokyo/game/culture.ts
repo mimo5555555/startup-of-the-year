@@ -287,4 +287,23 @@ export const CULTURE: CultureCard[] = [
     },
     say: true,
   }),
+  c({
+    id: 'cc_otoshi',
+    trigger: { on: 'payment', ids: ['izakaya'] },
+    phrase: { ja: 'お通し', en: 'otoshi (the starter you did not order)', ar: 'أوتوشي (المقبّلات التي لم تطلبها)' },
+    text: {
+      en: 'At an izakaya a small dish arrives with your first drinks before you order any food: the お通し. It is not a mistake or a gift, it is the table charge, a few hundred yen per person, and it appears on the bill. Groups often share every dish, and call the staff with a loud 「すみません！」.',
+      ar: 'في الإيزاكايا يصل طبق صغير مع مشروباتك الأولى قبل أن تطلب أي طعام: الأوتوشي. ليس خطأً ولا هدية، بل هو رسم الطاولة، بضع مئات من الين للشخص، ويظهر في الحساب. كثيرًا ما تتشارك المجموعات كل الأطباق، وتنادي الموظفين بـ 「すみません！」 بصوت عالٍ.',
+    },
+  }),
+  c({
+    id: 'cc_warikan',
+    trigger: { on: 'intent', ids: ['izakaya_dinner:split_half'] },
+    phrase: { ja: '割り勘', en: 'splitting the bill evenly', ar: 'تقسيم الحساب بالتساوي' },
+    text: {
+      en: 'Friends in Japan usually split the bill evenly, 割り勘, whoever ate a little more. At the till say 「割り勘でお願いします」, or 「別々にお願いします」 to pay for what each of you had. When someone senior or the one who invited says 「今日はおごるよ」, they are treating you.',
+      ar: 'يقسّم الأصدقاء في اليابان الحساب عادةً بالتساوي (واريكان)، حتى لو أكل أحدهم أكثر قليلًا. عند الصندوق قل 「割り勘でお願いします」، أو 「別々にお願いします」 ليدفع كلٌّ ما طلبه. وعندما يقول الأكبر سنًا أو صاحب الدعوة 「今日はおごるよ」 فهو يدعوك على حسابه.',
+    },
+    say: true,
+  }),
 ];

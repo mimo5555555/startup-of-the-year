@@ -25,6 +25,7 @@ import { ARCADE_LEXICON } from './arcade';
 import { KARAOKE_LEXICON } from './karaoke';
 import { SENTO_LEXICON } from './sento';
 import { REGULARS_LEXICON } from './regulars';
+import { IZAKAYA_LEXICON } from './izakaya';
 import { THEATRE_LEXICON } from './theatre';
 
 export { w, g } from './helpers';
@@ -56,6 +57,7 @@ const PARTS: LexEntry[][] = [
   KARAOKE_LEXICON,
   SENTO_LEXICON,
   REGULARS_LEXICON,
+  IZAKAYA_LEXICON,
   THEATRE_LEXICON,
 ];
 
@@ -101,6 +103,7 @@ export const LEXICON_PARTS: Record<string, LexEntry[]> = {
   karaoke: KARAOKE_LEXICON,
   sento: SENTO_LEXICON,
   regulars: REGULARS_LEXICON,
+  izakaya: IZAKAYA_LEXICON,
   theatre: THEATRE_LEXICON,
 };
 

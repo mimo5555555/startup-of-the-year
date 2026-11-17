@@ -194,6 +194,8 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
       if (EXCLUSIVE_EXTRAS.includes(x) && !newer.includes(x)) continue;
       lines.push({ itemId: itemOf(x)!, qty: 1 });
     }
+    // a cover charge (an izakaya's お通し) comes with whatever is ordered, one per person at the table
+    if (lines.length && shopMeta.cover) lines.push({ itemId: shopMeta.cover.itemId, qty: shopMeta.cover.qty });
     return lines.length ? lines : null;
   };
 
@@ -210,8 +212,13 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
     const n = shopMeta ? pack.rules.negotiation[shopMeta.shopId] : undefined;
     return !!n && (n.items?.includes(itemId) ?? true);
   };
+  /** the bill split (割り勘): the `billSplit` slot's 'half' is two ways */
+  const splitFor = (slots: Record<string, string>): number | undefined => (slots.billSplit === 'half' ? 2 : undefined);
+  let split: number | undefined;
   const quoteAll = (basket: BasketLine[], method: PayMethod, haggle = haggled): Quote[] =>
-    basket.map((l) => quote(pack, deps.state(), deps.view(), { shopId: shopMeta!.shopId, itemId: l.itemId, qty: l.qty, method, ...(haggle > 0 && negotiable(l.itemId) ? { haggle } : {}) }));
+    basket.map((l) =>
+      quote(pack, deps.state(), deps.view(), { shopId: shopMeta!.shopId, itemId: l.itemId, qty: l.qty, method, ...(haggle > 0 && negotiable(l.itemId) ? { haggle } : {}), ...(split ? { split } : {}) }),
+    );
 
   /** a quote that could not be priced at all (unknown item, closed shop...); running short of money still has a total */
   const priced = (qs: Quote[]) => qs.every((q) => !q.block || q.block === 'funds');
@@ -244,6 +251,7 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
   const shopHooks: SessionGameHooks = {
     vars(slots) {
       lastSlots = { ...slots };
+      split = splitFor(slots);
       const v: Vars = remembered ? { last: remembered } : {};
       const b = basketOf(slots);
       if (b) {
@@ -255,7 +263,7 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
           // a piece that is paid for and on its way counts as held too (`pendingQty`): it is quoted the same way
           const deliveries = (deps.state().deliveries ?? []).filter((d) => !b.some((l) => l.itemId === d.item));
           const st = { ...deps.state(), owned, deliveries };
-          qs = b.map((l) => quote(pack, st, deps.view(), { shopId: shopMeta!.shopId, itemId: l.itemId, qty: l.qty, method: methodOf(slots) }));
+          qs = b.map((l) => quote(pack, st, deps.view(), { shopId: shopMeta!.shopId, itemId: l.itemId, qty: l.qty, method: methodOf(slots), ...(split ? { split } : {}) }));
         }
         if (priced(qs)) {
           v.price = yenVar(qs[0].lines[0]?.unit ?? qs[0].total);
@@ -271,6 +279,7 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
 
     charge(slots) {
       lastSlots = { ...slots };
+      split = splitFor(slots);
       const b = basketOf(slots);
       if (!b || !shopMeta) return { ok: false };
       const method = methodOf(slots);
@@ -291,7 +300,7 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
       for (let i = 0; i < b.length; i++) {
         const q = qs[i];
         const id = LEDGER_IDS.purchase(sessionId, n + 1);
-        commit({ t: 'purchase', sessionId, n: n + 1, shopId: shopMeta.shopId, itemId: b[i].itemId, qty: b[i].qty, total: q.total, method, lines: q.lines, ...(haggled > 0 && negotiable(b[i].itemId) ? { haggle: haggled } : {}), ...(slots.deliveryDay ? { deliveryDay: slots.deliveryDay } : {}) });
+        commit({ t: 'purchase', sessionId, n: n + 1, shopId: shopMeta.shopId, itemId: b[i].itemId, qty: b[i].qty, total: q.total, method, lines: q.lines, ...(haggled > 0 && negotiable(b[i].itemId) ? { haggle: haggled } : {}), ...(slots.deliveryDay ? { deliveryDay: slots.deliveryDay } : {}), ...(split ? { split } : {}) });
         if (!ledgerHas(deps.state(), id)) return done.length ? { ok: true } : { ok: false };
         n++;
         done.push(q);
@@ -383,6 +392,8 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
     }
   }
   if (meta?.twist && twistFor(state.clock.dayIndex, scenarioId, plays)) flags.twist = true;
+  // what the player may order: an adult may have a beer at the izakaya; a younger player is told 「お酒は二十歳からです」
+  if (meta?.kind === 'shop') flags[pack.ageProfiles[deps.view().profile.age].ageFloor >= 18 ? 'adult' : 'minor'] = true;
   // a returning customer: the regular's greeting, and on every other visit the shopkeeper asks about the last thing you bought
   Object.assign(flags, regularFlags(pack, state, meta, Date.now(), deps.view()));
   if (deps.friend) Object.assign(flags, deps.friend.flags);

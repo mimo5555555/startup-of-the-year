@@ -336,7 +336,8 @@ function sold(pack: GamePack): Map<string, string[]> {
   const bySale = new Map<string, string[]>();
   for (const m of pack.scenarioMeta) {
     if (!m.shop) continue;
-    const ids = [...Object.values(m.shop.itemMap), ...(m.shop.fixedItem ? [m.shop.fixedItem] : [])];
+    // a cover charge (an izakaya's お通し) is sold with every order of its conversation
+    const ids = [...Object.values(m.shop.itemMap), ...(m.shop.fixedItem ? [m.shop.fixedItem] : []), ...(m.shop.cover ? [m.shop.cover.itemId] : [])];
     for (const id of ids) bySale.set(id, [...(bySale.get(id) ?? []), m.id]);
   }
   return bySale;

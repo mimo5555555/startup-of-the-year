@@ -28,6 +28,7 @@ export const VOICE_SPEAKERS: Record<string, { id: number; name: string }> = {
   shota: { id: 57, name: '猫使アル' }, // 22, cheerful game-centre staff (うきうき)
   nanami: { id: 24, name: 'WhiteCUL' }, // 25, the karaoke box's bubbly desk (たのしい)
   genzo: { id: 42, name: 'ちび式じい' }, // 74, the old owner of the public bath
+  misaki: { id: 46, name: '小夜/SAYO' }, // 27, the izakaya's lively server
   [CUSTOMER]: { id: 107, name: '東北ずん子' },
   [NARRATOR]: { id: 29, name: 'No.7' },
 };

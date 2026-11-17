@@ -137,4 +137,25 @@ export const DENKI_FUKU_META: ScenarioMeta[] = [
     culture: ['cc_yuagari'],
     shop: { shopId: 'sento', itemSlot: 'milk', payStep: 'pay', itemMap: { coffee: 'sento:coffee', fruit: 'sento:fruit', plain: 'sento:plain' } },
   },
+  // 居酒屋「なごみ」: Misaki's floor; the お通し is the cover on every order (two: one per person), the bill together or split (割り勘)
+  {
+    id: 'izakaya_dinner',
+    kind: 'shop',
+    band: 'A2',
+    register: 'polite',
+    pay: 'full',
+    real: true,
+    place: 'izakaya',
+    pocket: ['p_izakaya_1', 'p_izakaya_2', 'p_izakaya_3', 'p_izakaya_4'],
+    culture: ['cc_otoshi', 'cc_warikan'],
+    shop: {
+      shopId: 'izakaya',
+      itemSlot: 'izaDrink',
+      qtySlot: 'qty',
+      extraSlots: ['izaFood'],
+      payStep: 'pay',
+      itemMap: { oolong: 'izakaya:oolong', orange: 'izakaya:orange', beer: 'izakaya:beer', yakitori: 'izakaya:yakitori', edamame: 'izakaya:edamame', karaage: 'izakaya:karaage' },
+      cover: { itemId: 'izakaya:otoshi', qty: 2 },
+    },
+  },
 ];

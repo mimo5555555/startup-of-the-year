@@ -90,6 +90,17 @@ export const SHOPS: ShopDef[] = [
     pay: ['cash'],
     sells: menuOf('arcade'),
   },
+  // 居酒屋「なごみ」 (the south row's west end) opens with Chapter 6: an evening with a friend, cash or card, the bill together or split
+  {
+    id: 'izakaya',
+    placeId: 'izakaya',
+    name: { en: 'Izakaya Nagomi', ar: 'إيزاكايا ناغومي' },
+    openChapter: 6,
+    surface: 'world',
+    register: 'polite',
+    pay: ['cash', 'card'],
+    sells: menuOf('izakaya'),
+  },
   // 銭湯「桜の湯」 (the south side's public bath, east of the game centre) opens with Chapter 2: the bath, a rental towel and the after-bath milk,
   // cash only like many sentō (Genzō says so when you ask for the card)
   {

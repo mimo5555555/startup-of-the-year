@@ -110,8 +110,8 @@ describe('shop hooks over the real pack', () => {
     expect(r.game.amounts().fare).toBe(JP_PACK.fares.shinjuku);
   });
 
-  it('flags: priced always, twist only from the second play', () => {
-    expect(rig('cafe').game.flags).toEqual({ priced: true });
+  it('flags: priced always, the age (an adult may order a beer at the izakaya), twist only from the second play', () => {
+    expect(rig('cafe').game.flags).toEqual({ priced: true, adult: true });
     let any = false;
     for (let day = 0; day < 30 && !any; day++) {
       const r = rig('cafe', (s) => ({ ...s, clock: { ...s.clock, dayIndex: day }, runs: { ...s.runs, cafe: { count: 2, complete: true, stars: 1, bestIndependent: 0, bestShare: 0, bestR: 0, steps: [] } } }));

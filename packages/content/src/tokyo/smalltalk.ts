@@ -232,6 +232,7 @@ export const SHOP_TALK: Record<string, ShopTalk> = {
   motors_bike: { hello: L('いらっしゃいませ。', 'Welcome.', 'أهلًا بك.'), ask: L('何|を|お探し|です|か？', 'What are you looking for?', 'عمّ تبحث؟') },
   motors_car: { hello: L('いらっしゃいませ。', 'Welcome.', 'أهلًا بك.'), ask: L('軽自動車|を|お探し|です|か？', 'Are you looking for a kei car?', 'هل تبحث عن سيارة كي؟') },
   sento_desk: { hello: L('いらっしゃい！', 'Welcome!', 'أهلًا!'), ask: L('大人|一人|です|か？', 'One adult?', 'شخص بالغ واحد؟'), plain: true },
+  izakaya_dinner: { hello: L('いらっしゃいませー！', 'Welcome!', 'أهلًا بكم!'), ask: L('何名様|です|か？', 'How many people?', 'كم عددكم؟') },
 };
 
 /** two lines said as one */

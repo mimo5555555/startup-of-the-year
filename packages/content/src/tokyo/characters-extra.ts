@@ -4,6 +4,30 @@ import type { Character } from '../types';
  * scenario; scenarios that do not exist yet are authored by later slices (the world skips a spawn whose scenario is missing). */
 export const EXTRA_CHARACTERS: Character[] = [
   {
+    id: 'misaki',
+    name: { ja: '中島 美咲', reading: 'なかじま みさき', en: 'Misaki Nakajima', ar: 'ميساكي ناكاجيما' },
+    age: 27,
+    job: { en: 'Server at the izakaya Nagomi', ar: 'نادلة في إيزاكايا ناغومي' },
+    bio: {
+      en: 'Runs the floor of the izakaya with a loud 「いらっしゃいませー！」 and remembers every regular’s favourite dish. Quick, clear restaurant Japanese.',
+      ar: 'تدير صالة الإيزاكايا بترحيب عالٍ 「いらっしゃいませー！」 وتتذكّر الطبق المفضّل لكل زبون دائم. يابانية مطاعم سريعة وواضحة.',
+    },
+    personality: { en: 'Lively, attentive', ar: 'نشيطة ومنتبهة' },
+    interests: ['food', 'social', 'music'],
+    speaking: { rate: 1.08, pitch: 1.1, voice: 'f' },
+    avatar: {
+      skin: '#f1cfb4',
+      hair: { style: 'ponytail', color: '#3a2420' },
+      top: '#2b2b36',
+      bottom: '#2b2b36',
+      shoes: '#3a2b2a',
+      accent: '#c0392b',
+      accessories: ['apron', 'headband'],
+    },
+    locationId: 'izakaya',
+    scenarioId: 'izakaya_dinner',
+  },
+  {
     id: 'genzo',
     name: { ja: '松田 源三', reading: 'まつだ げんぞう', en: 'Genzō Matsuda', ar: 'غينزو ماتسودا' },
     age: 74,

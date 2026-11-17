@@ -270,7 +270,8 @@ describe('sale routes (§5.6)', () => {
   });
 
   it('every item and every menu id is reachable: a scenario item map, or a panel (vending, station tickets) the app owns', () => {
-    const routed = new Set(metas.flatMap((m) => [...Object.values(m.shop!.itemMap), ...(m.shop!.fixedItem ? [m.shop!.fixedItem] : [])]));
+    // a cover charge (the izakaya's お通し) is sold with every order of its conversation
+    const routed = new Set(metas.flatMap((m) => [...Object.values(m.shop!.itemMap), ...(m.shop!.fixedItem ? [m.shop!.fixedItem] : []), ...(m.shop!.cover ? [m.shop!.cover.itemId] : [])]));
     const panels = new Set(JP_PACK.shops.filter((s) => s.surface === 'panel').map((s) => s.id));
     const orphans = [...JP_PACK.items.map((i) => ({ id: i.id, shop: i.shop })), ...JP_PACK.menu.map((m) => ({ id: m.id, shop: m.shop }))].filter((x) => !routed.has(x.id) && !panels.has(x.shop));
     expect(orphans).toEqual([]);

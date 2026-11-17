@@ -21,7 +21,7 @@ const flat = (s: string) => s.replace(/\s/g, '');
 describe('small talk', () => {
   it('covers every shop that greets a regular, but the festival stall and the talk after the bath (they open with their own question)', () => {
     expect(Object.keys(SHOP_TALK).sort()).toEqual(
-      ['aiko_tea', 'arcade_crane', 'cafe', 'denki_phone', 'fuku_clothes', 'fuku_home', 'hobby_figures', 'karaoke_desk', 'konbini', 'motors_bike', 'motors_car', 'ramen', 'sento_desk', 'station_ic'].sort(),
+      ['aiko_tea', 'arcade_crane', 'cafe', 'denki_phone', 'fuku_clothes', 'fuku_home', 'hobby_figures', 'izakaya_dinner', 'karaoke_desk', 'konbini', 'motors_bike', 'motors_car', 'ramen', 'sento_desk', 'station_ic'].sort(),
     );
   });
 

@@ -367,6 +367,8 @@ export interface ScenarioMeta {
     /** slot option id -> menu / catalog item id (for every slot named above) */
     itemMap: Record<string, string>;
     fees?: Array<{ id: string; amount: number; when?: string }>;
+    /** a cover charge on every order (an izakaya's お通し): this menu item, this many (one per person at the table) */
+    cover?: { itemId: string; qty: number };
   };
   friendId?: string;
   /** the heart level a hang-out (3), home visit or heart scene (4, 5) belongs to */
@@ -1472,7 +1474,7 @@ export interface ConversationFacts {
 
 /** One receipt row (§6.2): signed yen, negative for discounts. */
 export interface QuoteLine {
-  kind: 'item' | 'delivery' | 'fee' | 'discount' | 'points' | 'perk' | 'haggle';
+  kind: 'item' | 'delivery' | 'fee' | 'discount' | 'points' | 'perk' | 'haggle' | 'split';
   /** item or fee id, perk id... */
   ref?: string;
   label: Gloss;
@@ -1525,6 +1527,8 @@ export type InputEvent =
       usePoints?: boolean;
       /** yen the haggle hook granted in this conversation */
       haggle?: number;
+      /** the bill is split this many ways (2..4, 割り勘): the friends' shares are taken off and the player pays one share */
+      split?: number;
     }
   /** cash -> ic transfer (ledger `topup:<id>`); a station_ic card purchase is a `purchase` of 'ic_card' plus a `topup` of the loaded amount */
   | { t: 'topup'; id: string; amount: number }
@@ -1724,6 +1728,8 @@ export interface QuoteRequest {
   usePoints?: boolean;
   /** yen the haggle hook granted this conversation (never stored) */
   haggle?: number;
+  /** the bill is split this many ways (2..4, 割り勘): what is left after every discount is shared, the player pays one share */
+  split?: number;
 }
 
 export interface Quote {

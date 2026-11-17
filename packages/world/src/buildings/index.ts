@@ -7,6 +7,7 @@ import { buildAiko } from './aiko';
 import { buildArcade } from './arcade';
 import { buildKaraoke } from './karaoke';
 import { buildSento } from './sento';
+import { buildIzakaya } from './izakaya';
 import { buildCafe } from './cafe';
 import { buildDenki } from './denki';
 import { buildDoors } from './doors';
@@ -103,4 +104,6 @@ export const FRONT_OVERRIDES: Partial<Record<SouthFrontId, FrontOverride>> = {
   hotel: buildKaraoke,
   // 銭湯「桜の湯」: the public bath and Genzō (docs/ROADMAP.md)
   sento: buildSento,
+  // 居酒屋「なごみ」: the izakaya and Misaki (Chapter 6)
+  izakaya: buildIzakaya,
 };

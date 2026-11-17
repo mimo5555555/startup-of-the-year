@@ -40,6 +40,7 @@ describe('menu (docs/GAME_DESIGN.md §5.1)', () => {
     const errors: string[] = [];
     for (const m of MENU) {
       if (m.shop === 'vending') continue; // panel only: no conversation slot
+      if (m.slot === 'izaCover') continue; // the izakaya's お通し: a cover charge on every order (ScenarioMeta.shop.cover), never named by a slot
       if (!optionIds(m.slot).includes(m.option)) errors.push(`${m.id}: slot ${m.slot} has no option ${m.option}`);
     }
     expect(errors).toEqual([]);

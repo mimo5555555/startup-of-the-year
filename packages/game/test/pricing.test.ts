@@ -314,6 +314,47 @@ describe('itemAvailability', () => {
   });
 });
 
+describe('the split bill (割り勘)', () => {
+  it('takes the friends\' shares off last, after the discounts; the player pays one share (the odd yen is theirs)', () => {
+    const s = mkState({ cash: 5000 });
+    const half = quote(pack, s, view, { shopId: 'cafe', itemId: 'cafe:cake', split: 2 });
+    expect(half.total).toBe(300);
+    expect(half.lines.at(-1)).toMatchObject({ kind: 'split', amount: -300 });
+    expect(sum(half)).toBe(half.total);
+    // three ways: 600 / 3
+    expect(quote(pack, s, view, { shopId: 'cafe', itemId: 'cafe:cake', split: 3 }).total).toBe(200);
+    // an odd amount: 450 split two ways is 225 + 225; 3 coffees (1,350) three ways is 450 each
+    expect(quote(pack, s, view, { shopId: 'konbini', itemId: 'konbini:coffee', split: 2 }).total).toBe(225);
+    // after a friend's discount: 450 - 22 = 428, half 214
+    const perk = mkState({ cash: 5000, friendAp: { tanaka: 240 } });
+    const q = quote(pack, perk, view, { shopId: 'konbini', itemId: 'konbini:coffee', split: 2 });
+    expect(q.total).toBe(214);
+    expect(q.lines.map((l) => l.kind)).toEqual(['item', 'discount', 'split']);
+  });
+
+  it('only splits two to four ways: anything else is no split', () => {
+    const s = mkState({ cash: 5000 });
+    for (const bad of [0, 1, 5, -2, 2.5 as number, Number.NaN, '2' as unknown as number]) {
+      const q = quote(pack, s, view, { shopId: 'cafe', itemId: 'cafe:cake', split: bad });
+      if (bad === 2.5 || (bad as unknown) === '2') expect(q.total, String(bad)).toBe(300);
+      else expect(q.total, String(bad)).toBe(600);
+    }
+  });
+
+  it('a split purchase charges the player\'s share only and the ledger balances', () => {
+    const s = mkState({ cash: 3000 });
+    const r = commitPurchase(s, ev({ shopId: 'cafe', itemId: 'cafe:cake', split: 2 }), ctx());
+    expect(r.ok).toBe(true);
+    expect(r.state.wallet.cash).toBe(3000 - 300);
+    expect(r.state.totals).toMatchObject({ spent: 300 });
+    expect(reconcile(r.state, 3000).ok).toBe(true);
+    // short of the whole bill but not of a share: the split pays
+    const poor = mkState({ cash: 400 });
+    expect(quote(pack, poor, view, { shopId: 'cafe', itemId: 'cafe:cake' }).canPay).toBe(false);
+    expect(commitPurchase(poor, ev({ shopId: 'cafe', itemId: 'cafe:cake', split: 2 }), ctx()).ok).toBe(true);
+  });
+});
+
 describe('commitPurchase', () => {
   it('charges the re-quoted total, writes the ledger id purchase:<session>:<n>, grants the item and earns points', () => {
     const s = mkState({ cash: 3000 });

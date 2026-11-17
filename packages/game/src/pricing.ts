@@ -179,6 +179,15 @@ const L = {
   registration: { en: 'Bicycle registration', ar: 'تسجيل الدراجة' },
   points: { en: 'Sakura Points', ar: 'نقاط ساكورا' },
   haggle: { en: 'Haggling', ar: 'مساومة' },
+  split: { en: 'Split the bill: your friend’s share', ar: 'تقسيم الحساب: حصة صديقك' },
+};
+
+/** how many ways a bill may be split (割り勘): a table of up to four */
+export const MAX_SPLIT = 4;
+/** A valid split (2..MAX_SPLIT), else none. */
+export const splitOf = (n: unknown): number | null => {
+  const k = Math.trunc(Number(n));
+  return Number.isFinite(k) && k >= 2 && k <= MAX_SPLIT ? k : null;
 };
 
 function blocked(req: QuoteRequest, qty: number, block: PurchaseBlock, partial?: Partial<Quote>): QuotePlan {
@@ -305,6 +314,13 @@ function buildQuote(pack: GamePack, state: GameState, view: GameView, req: Quote
     lines.splice(at < 0 ? lines.length : at, 0, { kind: 'points', label: L.points, amount: -pointsUsed });
   }
 
+  // 5. the bill is split (割り勘): last, on what is left after every discount; the friends pay their shares, the player the rest
+  const split = splitOf(req.split);
+  if (split) {
+    const share = take(Math.floor((left * (split - 1)) / split));
+    if (share > 0) lines.push({ kind: 'split', label: L.split, amount: -share });
+  }
+
   const total = left;
   const tax = gross > 0 ? Math.round((rawTax * total) / gross) : 0;
   const hours = itemAmount > sc(BALANCE.workHoursChipMin) ? workHours(itemAmount, pack.economy) : null;
@@ -357,6 +373,7 @@ export function commitPurchase(state: GameState, ev: PurchaseEvent, ctx: ReduceC
     delivery: ev.delivery,
     usePoints: ev.usePoints,
     haggle: ev.haggle,
+    split: ev.split,
   });
   const q = plan.quote;
   const s = plan.sellable;

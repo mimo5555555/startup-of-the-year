@@ -21,6 +21,8 @@ export const en = {
   'culture.hint.karaoke': 'Book a room at the karaoke box and pay at the desk.',
   'culture.hint.sento': 'Pay for a bath at Sakura-no-yu, the public bath east of the game centre.',
   'culture.hint.yuagari': 'After your bath, tell Genzō at the bandai how it was.',
+  'culture.hint.otoshi': 'Have an evening at the izakaya Nagomi (from Chapter 6) and pay the bill.',
+  'culture.hint.warikan': 'At the izakaya, ask to split the bill.',
 } as const;
 
 export const ar: Record<keyof typeof en, string> = {
@@ -43,4 +45,6 @@ export const ar: Record<keyof typeof en, string> = {
   'culture.hint.karaoke': 'احجز غرفة في صالة الكاريوكي وادفع عند المكتب.',
   'culture.hint.sento': 'ادفع ثمن حمّام في ساكورا نو يو، الحمّام العام شرق صالة الألعاب.',
   'culture.hint.yuagari': 'بعد حمّامك، أخبر غينزو عند مكتب الاستقبال كيف كان.',
+  'culture.hint.otoshi': 'اقضِ أمسية في إيزاكايا ناغومي (من الفصل السادس) وادفع الحساب.',
+  'culture.hint.warikan': 'في الإيزاكايا، اطلب تقسيم الحساب.',
 };

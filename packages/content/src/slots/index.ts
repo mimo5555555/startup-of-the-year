@@ -20,6 +20,7 @@ import { SHOP_HOBBY_SLOTS } from './shop-hobby';
 import { ARCADE_SLOTS } from './arcade';
 import { KARAOKE_SLOTS } from './karaoke';
 import { SENTO_SLOTS } from './sento';
+import { IZAKAYA_SLOTS } from './izakaya';
 
 export { opt } from './helpers';
 
@@ -45,6 +46,7 @@ const MODULES: Array<[string, Record<string, SlotOption[]>]> = [
   ['arcade', ARCADE_SLOTS],
   ['karaoke', KARAOKE_SLOTS],
   ['sento', SENTO_SLOTS],
+  ['izakaya', IZAKAYA_SLOTS],
 ];
 
 export const SLOTS: Record<string, SlotOption[]> = {};

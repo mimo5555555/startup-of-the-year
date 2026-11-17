@@ -85,6 +85,19 @@ export const MENU: MenuItem[] = [
     { option: 'h1', ja: 'カラオケ（一時間）', en: 'Karaoke room, one hour (two people)', ar: 'غرفة كاريوكي، ساعة واحدة (شخصان)', price: 1000, tags: ['music'] },
     { option: 'h2', ja: 'カラオケ（二時間）', en: 'Karaoke room, two hours (two people)', ar: 'غرفة كاريوكي، ساعتان (شخصان)', price: 1800, tags: ['music'] },
   ]),
+  // 居酒屋「なごみ」: the drinks (beer for adults only: the conversation never sells it to a younger player), the dishes to share, and the
+  // お通し, the small dish every guest gets (the cover charge: two on every order, one per person at the table)
+  ...rows('izakaya', 'izaDrink', 'standard', {}, [
+    { option: 'oolong', ja: 'ウーロン茶', en: 'Oolong tea', ar: 'شاي أولونغ', price: 350, tags: ['drink'] },
+    { option: 'orange', ja: 'オレンジジュース', en: 'Orange juice', ar: 'عصير البرتقال', price: 350, tags: ['drink'] },
+    { option: 'beer', ja: '生ビール', en: 'Draft beer', ar: 'بيرة', price: 550, tags: ['drink'] },
+  ]),
+  ...rows('izakaya', 'izaFood', 'standard', {}, [
+    { option: 'yakitori', ja: '焼き鳥', en: 'Yakitori (grilled chicken skewers)', ar: 'ياكيتوري (أسياخ دجاج مشوي)', price: 680, tags: ['food'] },
+    { option: 'edamame', ja: '枝豆', en: 'Edamame', ar: 'إيدامامي', price: 380, tags: ['food'] },
+    { option: 'karaage', ja: '唐揚げ', en: 'Karaage (fried chicken)', ar: 'كاراغي (دجاج مقلي)', price: 580, tags: ['food'] },
+  ]),
+  ...rows('izakaya', 'izaCover', 'standard', {}, [{ option: 'otoshi', ja: 'お通し', en: 'Otoshi (the starter, per person)', ar: 'أوتوشي (المقبّلات، للشخص)', price: 300, tags: ['food'] }]),
   // 銭湯「桜の湯」: the bath (¥550, the Tokyo adult price), a rental towel, and the after-bath bottle of milk; paid in cash at the bandai, nothing kept in the bag
   ...rows('sento', 'bath', 'standard', {}, [{ option: 'adult', ja: '銭湯（大人）', en: 'Public bath (adult)', ar: 'الحمّام العام (بالغ)', price: 550, tags: ['bath'] }]),
   ...rows('sento', 'towel', 'standard', {}, [{ option: 'rent', ja: '貸しタオル', en: 'Rental towel', ar: 'منشفة مستأجرة', price: 100, tags: ['bath'] }]),

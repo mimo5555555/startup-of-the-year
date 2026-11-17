@@ -142,10 +142,27 @@ game, a bigger city with better conversations, and the same game for German, Dut
   * Tests: content theatre (nine episodes in opening order, three songs), app theatre (the week song's chords), e2e `theatre.mjs`
     (Chapter 7: the full list, the bath and festival episodes, the week song; EN/AR).
 
+* **居酒屋「なごみ」 (Nagomi), the izakaya** (Chapter 6) — the south row's west end restyled: a warm doorway under a red noren, red
+  lanterns, a lit lattice window, the 居酒屋なごみ board and a chalk menu board on the sidewalk. Misaki (中島美咲, 27, the server, voice
+  小夜/SAYO) stands at the door. `izakaya_dinner` is an evening with a friend:
+  * 二人です → the table and the drinks for two (ウーロン茶 / オレンジジュース を二つください; 生ビール only for an adult profile: a younger
+    player is told 「お酒は二十歳からです。ソフトドリンクはいかがですか？」, the chip and the answer are flag-gated `adult` / `minor`) → the
+    お通し arrives unasked (「お通しって何ですか？」 → a small dish, ¥300 a person) → a dish to share (焼き鳥 / 枝豆 / 唐揚げ) → 乾杯 → 「すみ
+    ません！お会計お願いします」 → 「全部で千九百八十円です。お会計はご一緒でよろしいですか？」 → 「一緒で」 (you pay it all) or 「割り勘で」
+    / 「別々に払えますか？」 (you pay your half: 「お一人様九百九十円です」) → cash or card.
+  * Game: a **split bill** (`QuoteRequest.split` / `PurchaseEvent.split`, 2..4 ways): the last step of the quote takes the friends'
+    shares off what is left after every discount, as a receipt line of its own (`split`); the player pays one share, the odd yen
+    included. A **cover charge** (`ScenarioMeta.shop.cover`): the お通し rides on every order of the conversation, two of them. The
+    conversation's `billSplit` slot ('half') asks for the split.
+  * Culture cards `cc_otoshi` (the お通し is the table charge, not a mistake) and `cc_warikan` (割り勘, a say-it card; 別々に; おごる).
+    Tapping the board teaches 居酒屋. The regular's greeting and the small talk include the izakaya.
+  * Tests: game pricing (the split: shares, order after discounts, rounding, bounds, a split that pays when the whole would not),
+    engine izakaya (every chip as adult and minor, typed routes, together vs split charged once, the beer gate, the prices), world
+    buildings-izakaya, e2e `izakaya.mjs` (EN/AR: exactly ¥990).
+
 ## Next (Tokyo)
 
-1. **A place for the later chapters** — the Mini-theatre has episodes to Chapter 7; the town's newest places all open in Chapters 2–3.
-   An izakaya evening (the south row's first front) for Chapter 6: ordering for a group, 乾杯, splitting the bill (割り勘).
+1. **German in Berlin** — see below: the town of Tokyo now has a place for every chapter.
 
 ## Other languages (German in Berlin first)
 

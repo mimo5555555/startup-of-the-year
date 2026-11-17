@@ -115,6 +115,9 @@ export const REGULARS: Record<string, Regular> = {
     regular: L('おっ、|また|来て|くれた|ね！|楽しんで|います|か？', 'Oh, you came back! Are you having fun?', 'أوه، عدت! هل تستمتع؟'),
     back: L('ありがとう！|うれしい|ね。', 'Thanks! That makes me happy.', 'شكرًا! هذا يسعدني.'),
   },
+  izakaya_dinner: {
+    regular: L('いらっしゃいませー！|あ、|また|来て|くれた|んです|ね！|何名様|です|か？', 'Welcome! Oh, you came again! How many people?', 'أهلًا بكم! أوه، أتيتم مجددًا! كم عددكم؟'),
+  },
   sento_desk: {
     regular: L('おっ、|また|来て|くれた|ね！|大人|一人|です|か？', 'Oh, you came again! One adult?', 'أوه، أتيت مجددًا! شخص بالغ واحد؟'),
     back: L('ありがとう！|うれしい|ね。', 'Thanks! That makes me happy.', 'شكرًا! هذا يسعدني.'),
