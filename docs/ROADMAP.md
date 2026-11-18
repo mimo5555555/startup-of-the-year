@@ -226,11 +226,23 @@ game, a bigger city with better conversations, and the same game for German, Dut
     onboarding, the restart, Lena typed, the bakery typed with 「Das macht 3,40 €」 and exactly €3.40, back to Japanese with its save
     untouched). Japanese e2e runs are unchanged.
 
+- **German step 4: Berlin polish** (done, but for the recordings)
+  * Berlin's HUD keeps Tokyo's own things out: no lessons or Mini-theatre in the menu, no Goen or dorm room in the wallet, no furigana
+    or romaji switches, no VOICEVOX credits; the microphone's example is 「Hallo」, and the learn picker always names both languages.
+  * Fourteen things to tap and read on the Berlin street (`BERLIN_SIGNS`): the four shop signs, the U-Bahn's U, the Litfaß column, a
+    linden, a street lamp, Kofi's bike, Café Tandem, the Mauerpark sign, the Wall, the zebra crossing, the orange bin.
+  * Regulars and small talk in German (`berlin/smalltalk.ts`), on the flags the app already sets for a shop's return visits: the
+    regular's greeting per shop, and season and weekend small talk (with Sie) with yes and no chips, answers in your own words, a reply
+    and back to the shop's question; an order still works while it is on.
+  * German voices, ready to record: `tools/voice/lines-de.ts` collects the 712 Berlin lines (prices read in words, letters spelled),
+    `generate-de.mjs` + `piper_batch.py` record them with Piper and two CC0 voices (Thorsten-Voice, Kerstin), a pitch and a pace per
+    character, into `public/voice-de/` (played like the Japanese recordings, credited in Settings once there). Not yet recorded: the
+    voice models' download was not allowed in this session.
+
 ## Next
 
-1. **German step 4: voices and polish** — recorded German voices for the Berlin lines (an open-source German TTS with a free
-   licence, generated like the Japanese ones), Berlin shop signs to read, the German small talk and regulars, and the screens that are
-   Tokyo's alone kept out of Berlin's HUD; then Dutch in Amsterdam the same way.
+1. **Record the German voices** (`PIPER_PYTHON=… PIPER_MODELS=… node tools/voice/generate-de.mjs`), listen to them, then Dutch in
+   Amsterdam the same way.
 
 ## Other languages (German in Berlin first)
 

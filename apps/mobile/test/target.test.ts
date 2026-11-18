@@ -68,6 +68,34 @@ describe('learning German', () => {
     expect(useStore.getState().vocab.map((v) => v.s)).toEqual(['Hallo!', 'Guten Morgen!', 'Bitte.', 'Danke!', 'Tschüss!']);
   });
 
+  it('a Berlin regular gets the regular’s flag and small talk Berlin has lines for, on every visit and any day of the year', async () => {
+    putSaved('lw.target', 'de');
+    const { regularFlags } = await import('../src/game/regulars');
+    const { BERLIN_PACK, BERLIN_TALK_TOPICS } = await import('@lw/content');
+    const { createGameState } = await import('@lw/game');
+    const meta = BERLIN_PACK.scenarioMeta.find((m) => m.id === 'berlin_bakery')!;
+    const base = createGameState(BERLIN_PACK, Date.UTC(2030, 0, 1));
+    expect(regularFlags(BERLIN_PACK, base, meta)).toEqual({});
+    for (let plays = 1; plays <= 12; plays++) {
+      for (let day = 0; day < 365; day += 9) {
+        const state = { ...base, runs: { berlin_bakery: { ...(base.runs.berlin_bakery ?? {}), count: plays } as never } };
+        const flags = regularFlags(BERLIN_PACK, state, meta, Date.UTC(2030, 0, 1) + day * 86_400_000);
+        expect(flags.regular, `${plays}`).toBe(true);
+        for (const f of Object.keys(flags).filter((k) => k.startsWith('talk_'))) expect(BERLIN_TALK_TOPICS[f.slice(5)], f).toBeDefined();
+      }
+    }
+  });
+
+  it('keeps Tokyo’s lessons and Mini-theatre out of Berlin’s menu; Japanese keeps them', async () => {
+    putSaved('lw.target', 'de');
+    const de = await import('../src/game/worldSync');
+    expect(de.menuIds({ friends: true, phoneIcon: false })).toEqual({ play: ['quests', 'friends', 'wallet'], study: ['vocab', 'stats', 'settings'] });
+    wipeSaved();
+    vi.resetModules();
+    const ja = await import('../src/game/worldSync');
+    expect(ja.menuIds({ friends: true, phoneIcon: false })).toEqual({ play: ['quests', 'friends', 'wallet', 'lessons'], study: ['vocab', 'theatre', 'stats', 'settings'] });
+  });
+
   it('a choice saves the target and the UI language, then restarts', async () => {
     const reload = vi.fn();
     vi.stubGlobal('location', { reload });

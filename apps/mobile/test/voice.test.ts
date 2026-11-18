@@ -5,6 +5,8 @@ import { splitSentences, voiceEntryKey, voiceTextKey, type VoiceManifest } from 
 import { RecordedVoiceTts, withRecordedVoices, type AudioLike } from '../src/voice/RecordedVoiceTts';
 import { CUSTOMER, NARRATOR, VOICE_CREDITS, VOICE_SPEAKERS } from '../src/voice/voices';
 import { voiceLines } from '../../../tools/voice/lines';
+import { readingDe, voiceLinesDe } from '../../../tools/voice/lines-de';
+import { DE_VOICES } from '../src/voice/voices-de';
 
 /** An audio element that plays (or fails) when the test says so. */
 class FakeAudio implements AudioLike {
@@ -271,3 +273,40 @@ describe('the recorded lines', () => {
     expect(lines.every((l) => !/[{}]/.test(l.text))).toBe(true);
   });
 });
+
+describe('German voice lines (Berlin)', () => {
+  const lines = voiceLinesDe();
+  it('collects every Berlin line for a voice that exists, never a line with a runtime variable', () => {
+    expect(lines.length).toBeGreaterThan(600);
+    for (const l of lines) {
+      expect(DE_VOICES[l.voice], l.voice).toBeDefined();
+      expect(l.text, l.text).not.toMatch(/[{}…]/);
+    }
+    const has = (voice: string, text: string) => lines.some((l) => l.voice === voice && l.text === text);
+    expect(has('jana', 'Guten Morgen! Was darf es sein?')).toBe(true);
+    expect(has('narrator', 'Zwei Brötchen, bitte.')).toBe(true);
+    // a priced line: its sentence without the price is recorded, the price is not
+    expect(has('jana', 'Bar oder mit Karte?')).toBe(true);
+    expect(lines.some((l) => /€/.test(l.text) && /\{total\}/.test(l.text))).toBe(false);
+    // a slot line, once per option
+    expect(has('greta', 'Ah, das Fahrrad! Ein schönes Stück!')).toBe(true);
+    // the small talk, in the shopkeeper's voice
+    expect(has('murat', 'Hallo! Brr, kalt heute! Mögen Sie den Winter?')).toBe(true);
+    // the beats, the friends' facts, the dictionary
+    expect(has('lena', 'Was ist dein Traum hier in Berlin?')).toBe(true);
+    expect(has('kofi', 'Ich repariere Fahrräder.')).toBe(true);
+    expect(has('narrator', 'Brötchen')).toBe(true);
+  });
+
+  it('reads prices and letters the way a German says them', () => {
+    expect(readingDe('Eine Kurzstrecke kostet 2,60 €.')).toBe('Eine Kurzstrecke kostet zwei Euro sechzig.');
+    expect(readingDe('Einen Fahrschein für Berlin AB, bitte.')).toBe('Einen Fahrschein für Berlin A B, bitte.');
+    expect(readingDe('Die WG ist da drüben.')).toBe('Die W G ist da drüben.');
+  });
+
+  it('gives every Berlin character a voice of their own (no two the same model, pitch and pace)', () => {
+    const sig = Object.values(DE_VOICES).map((v) => `${v.model}:${v.pitch}:${v.speed}`);
+    expect(new Set(sig).size).toBe(sig.length);
+  });
+});
+

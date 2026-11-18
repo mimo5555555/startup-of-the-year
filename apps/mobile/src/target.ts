@@ -7,6 +7,7 @@
 import {
   BERLIN_CHARACTERS,
   BERLIN_SCENARIOS,
+  BERLIN_SIGNS,
   CHARACTERS as JA_CHARACTERS,
   DE_LEXICON,
   DE_SLOTS,
@@ -52,8 +53,8 @@ export const LEXICON: Lexicon = IS_GERMAN ? DE_LEXICON : JA_LEXICON;
 export const SCENARIOS: Scenario[] = IS_GERMAN ? BERLIN_SCENARIOS : JA_SCENARIOS;
 export const CHARACTERS: Character[] = IS_GERMAN ? BERLIN_CHARACTERS : JA_CHARACTERS;
 export const SLOTS: Record<string, SlotOption[]> = IS_GERMAN ? DE_SLOTS : JA_SLOTS;
-/** shop signs to read (Tokyo's kanji signs; Berlin has none yet) */
-export const SIGNS: typeof JA_SIGNS = IS_GERMAN ? [] : JA_SIGNS;
+/** things to tap and read on the street: Tokyo's signs, Berlin's signs and things */
+export const SIGNS: typeof JA_SIGNS = IS_GERMAN ? BERLIN_SIGNS : JA_SIGNS;
 export const scenarioById = (id: string): Scenario | undefined => SCENARIOS.find((s) => s.id === id);
 
 /** Free text into tokens: Japanese by the dictionary's longest match, German word by word. */

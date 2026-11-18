@@ -69,6 +69,8 @@ const TO_GERMAN: Array<[string, string]> = [
   ['Japan', 'Germany'],
   ['Tokyo', 'Berlin'],
   ['日本語', 'Deutsch'],
+  // the example of something to say into the microphone
+  ['こんにちは', 'Hallo'],
   ['باليابانية', 'بالألمانية'],
   ['اليابانية', 'الألمانية'],
   ['الياباني', 'الألماني'],
@@ -88,8 +90,12 @@ const euros = (cents: number): string => {
   return `${neg ? '−' : ''}${whole},${String(c % 100).padStart(2, '0')} €`;
 };
 
+/** strings that name the languages one can learn: they say what they say whichever language is being learned */
+const OWN_WORDS = new Set<string>(['ob.learn.ja', 'ob.learn.de', 'ob.learn.title', 'ob.learn.note', 'st.learn']);
+
 export function translate(lang: UiLang, key: StringKey, vars?: Record<string, string | number>): string {
-  let s = forTarget(STRINGS[lang][key] ?? STRINGS.en[key] ?? key);
+  const raw = STRINGS[lang][key] ?? STRINGS.en[key] ?? key;
+  let s = OWN_WORDS.has(key) ? raw : forTarget(raw);
   // learning German, an amount the string writes as yen (¥{n}) is the pack's cents: it reads in euros
   if (IS_GERMAN && vars)
     s = s.replace(/¥\{(\w+)\}/g, (m, k: string) => {

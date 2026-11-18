@@ -6,6 +6,7 @@ import { BERLIN_DISTRICT, BERLIN_SHOPS, BERLIN_SPAWNS, buildBerlinCity } from '.
 import { TOKYO_DISTRICT } from '../src/district';
 import { resolveCircle } from '../src/collision';
 import type { City } from '../src/city';
+import { BERLIN_SIGNS, DE_LEXICON } from '@lw/content';
 
 beforeAll(installFakeDom);
 
@@ -52,6 +53,15 @@ describe('the Berlin street', () => {
     expect(city.mapRects.some((r) => r.label === 'Mauerpark')).toBe(true);
     expect(BERLIN_DISTRICT.buildCity).toBeDefined();
     expect(TOKYO_DISTRICT.buildCity).toBeUndefined();
+  });
+
+  it('has something to tap for every Berlin sign, and every sign is a German word', () => {
+    const picks = new Set(city.pickables.map((p) => p.id));
+    for (const sg of BERLIN_SIGNS) {
+      expect(picks.has(sg.id), sg.id).toBe(true);
+      expect(DE_LEXICON.get(sg.lex), sg.lex).toBeDefined();
+    }
+    expect(BERLIN_SIGNS.length).toBeGreaterThanOrEqual(12);
   });
 
   it('closes a shop not open yet with a shutter, and opens it again', () => {

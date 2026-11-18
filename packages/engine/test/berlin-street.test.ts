@@ -6,6 +6,8 @@ import { describe, expect, it } from 'vitest';
 import {
   BAKERY_PRICES,
   BERLIN_SCENARIOS,
+  BERLIN_SHOP_TALK,
+  BERLIN_TALK_TOPICS,
   DOENER_PRICES,
   FLOHMARKT_PRICES,
   SPAETI_PRICES,
@@ -279,3 +281,45 @@ describe('the friends', () => {
     expect(evaluateSession(d, { register: 'casual', friend: true }).corrections).toEqual([]);
   });
 });
+
+describe('regulars and small talk', () => {
+  const first = (s: ConversationSession) => s.turns[0]!.line.written;
+  const plain = (ja: string) => ja;
+  for (const [id, shop] of Object.entries(BERLIN_SHOP_TALK)) {
+    it(`${id}: a regular is greeted as one`, () => {
+      expect(first(open(id, 'en', { flags: { regular: true } }))).toBe(plain(shop.regular.ja));
+      // a first visit: the plain opening
+      expect(first(open(id))).toBe(berlinScenarioById(id)!.nodes[berlinScenarioById(id)!.start]!.say.at(-1)!.line.ja);
+    });
+    for (const [topic, tp] of Object.entries(BERLIN_TALK_TOPICS)) {
+      it(`${id}, ${topic}: the remark, yes and no in chips or own words, back to the shop`, () => {
+        const s = open(id, topic === 'winter' ? 'ar' : 'en', { flags: { regular: true, [`talk_${topic}`]: true } });
+        expect(first(s)).toBe(`${shop.hello.ja} ${tp.remark.ja}`);
+        expect(s.suggestions().slice(0, 2).map((c) => c.written)).toEqual([tp.yes.ja, tp.no.ja]);
+        const yes = s.pickSuggestion(0);
+        expect(yes.learner.intentId).toBe(`talk_yes_${topic}`);
+        expect(yes.character.line.written).toBe(`${tp.yesReply.ja} ${shop.ask.ja}`);
+        expect(s.nodeId).toBe(berlinScenarioById(id)!.start);
+        expect(s.suggestions().map((c) => c.written)).not.toContain(tp.yes.ja);
+        const own = s.pickSuggestion(0);
+        expect(own.learner.matched, `${id}: the shop's own first chip after the small talk`).toBe(true);
+        expect(own.character.kind).not.toBe('fallback');
+
+        const no = open(id, 'en', { flags: { [`talk_${topic}`]: true } }).pickSuggestion(1);
+        expect(no.learner.intentId).toBe(`talk_no_${topic}`);
+        expect(no.character.line.written).toBe(`${tp.noReply.ja} ${shop.ask.ja}`);
+      });
+    }
+  }
+
+  it('answers in your own words, and an order is still an order while the small talk is on', () => {
+    const said = (topic: string, text: string) => say(open('berlin_bakery', 'en', { flags: { [`talk_${topic}`]: true } }), text).learner.intentId;
+    expect(said('winter', 'Nein, mir ist kalt!')).toBe('talk_no_winter');
+    expect(said('winter', 'Ja, ich mag Schnee.')).toBe('talk_yes_winter');
+    expect(said('spring', 'Nicht so sehr, ehrlich gesagt.')).toBe('talk_no_spring');
+    expect(said('weekend_now', 'Nein, ich muss heute arbeiten.')).toBe('talk_no_weekend_now');
+    expect(said('weekend_after', 'Es war super!')).toBe('talk_yes_weekend_after');
+    expect(said('summer', 'Zwei Brötchen, bitte.')).toBe('order');
+  });
+});
+

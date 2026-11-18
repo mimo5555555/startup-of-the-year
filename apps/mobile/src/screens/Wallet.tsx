@@ -7,6 +7,7 @@ import { Icon } from '../components/Icon';
 import { useDerivedFlags, useGameState, useWallet } from '../game/hooks';
 import { useT } from '../hooks';
 import { useStore } from '../store';
+import { PACK } from '../game/pack';
 
 type Tab = 'things' | 'receipts';
 const TABS: Tab[] = ['things', 'receipts'];
@@ -57,7 +58,7 @@ export function Wallet() {
           </small>
         </section>
         {/* Goen (docs/GOEN.md): its own card, apart from the yen; the Shrine is one tap away */}
-        <GoenWalletCard />
+        {PACK.goen && <GoenWalletCard />}
         <nav className="qst-tabs wlt-tabs" role="tablist" aria-label={t('hud.wallet')}>
           {TABS.map((id) => (
             <button key={id} role="tab" aria-selected={tab === id} className={tab === id ? 'on' : ''} data-tab={id} onClick={() => setTab(id)}>

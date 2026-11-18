@@ -4,9 +4,9 @@ import { RecordedVoiceTts, withRecordedVoices } from './voice/RecordedVoiceTts';
 import { IS_GERMAN, TARGET_LOCALE } from './target';
 
 // One speech stack for the whole app. Native builds replace these with on-device engines.
-// Japanese lines play from recorded files (public/voice) when there is one, else the device voice says them; German has no recordings
-// yet, so the device's German voice says every line.
-export const tts = new RecordedVoiceTts(new WebSpeechTts({ locale: TARGET_LOCALE }), { base: 'voice/', ...(IS_GERMAN ? { fetchManifest: async () => null } : {}) });
+// A line plays from its recorded file when there is one (Japanese: public/voice, VOICEVOX; German: public/voice-de, Piper), else the
+// device voice of the language says it.
+export const tts = new RecordedVoiceTts(new WebSpeechTts({ locale: TARGET_LOCALE }), { base: IS_GERMAN ? 'voice-de/' : 'voice/' });
 export const stt = new WebSpeechStt();
 // the e2e scripts read how many lines found a recording
 if (typeof window !== 'undefined') Object.assign(window, { __lwVoice: tts.stats });

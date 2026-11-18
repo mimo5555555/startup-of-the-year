@@ -161,11 +161,12 @@ function buildBerlinFronts(ctx: BuildCtx): void {
   glow.boxB(-3.2, 0, SOUTH_Z - 0.02, 3.4, 3.6, 0.04, '#2a2622');
   solid.boxB(-3.2, 3.6, SOUTH_Z - 0.06, 3.9, 0.45, 0.12, '#8d8478');
   bike(ctx, -1.2, 8.9, 0.15);
+  ctx.pickAt('fahrrad', -1.2, 0.7, 8.9, 1.0);
   markBuilt('hof');
   // the café: big warm windows, an awning, two tables outside
   glow.boxB(14, 0.5, SOUTH_Z - 0.03, 7, 2.6, 0.04, '#f6d9a1');
   for (let i = 0; i < 8; i++) solid.boxB(10.85 + i * 0.9, 3.3, SOUTH_Z - 0.8, 0.9, 0.12, 1.6, i % 2 ? '#2f6b5a' : '#f4efe6', { rx: -0.25 });
-  signPlane('Café Tandem', { bg: '#2f6b5a', fg: '#f4efe6', round: 8 }, { x: 14, y: 3.9, z: SOUTH_Z - 0.1, w: 3.4, h: 0.7, ry: Math.PI });
+  signPlane('Café Tandem', { bg: '#2f6b5a', fg: '#f4efe6', round: 8 }, { x: 14, y: 3.9, z: SOUTH_Z - 0.1, w: 3.4, h: 0.7, ry: Math.PI, pickId: 'cafe_sign' });
   for (const tx of [12.2, 15.6]) {
     solid.cyl(tx, 0, 7.4, 0.05, 0.05, 0.72, '#3a3a3a', { seg: 6 });
     solid.cyl(tx, 0.72, 7.4, 0.42, 0.42, 0.04, '#e8e2d8', { seg: 14 });
@@ -175,7 +176,7 @@ function buildBerlinFronts(ctx: BuildCtx): void {
   markBuilt('berlin_cafe');
 
   // ---------- Mauerpark: the Sunday flea market ----------
-  signPlane('Mauerpark · Flohmarkt', { bg: '#3f5a3c', fg: '#ffffff', round: 8 }, { x: 33, y: 2.4, z: SOUTH_Z + 0.1, w: 3.6, h: 0.7, ry: Math.PI });
+  signPlane('Mauerpark · Flohmarkt', { bg: '#3f5a3c', fg: '#ffffff', round: 8 }, { x: 33, y: 2.4, z: SOUTH_Z + 0.1, w: 3.6, h: 0.7, ry: Math.PI, pickId: 'flohmarkt_sign' });
   for (const dx of [-1.7, 1.7]) solid.cyl(33 + dx, 0, SOUTH_Z + 0.12, 0.06, 0.06, 2.4, '#3a3a3a', { seg: 6 });
   const stall = (x: number, z: number, roof: string) => {
     solid.boxB(x, 0, z, 3, 0.8, 1.1, '#b08a5a');
@@ -194,6 +195,7 @@ function buildBerlinFronts(ctx: BuildCtx): void {
   solid.boxB(45, 0, 27.6, 30, 3.6, 0.5, '#bdb6aa');
   for (let i = 0; i < 18; i++) glow.boxB(31.5 + i * 1.6 + R() * 0.6, 0.4 + R() * 2.2, 27.33, 1 + R() * 1.4, 0.6 + R() * 1.2, 0.01, pick(['#ff595e', '#ffca3a', '#8ac926', '#1982c4', '#6a4c93', '#ff924c']));
   collide(45, 27.6, 30, 0.6);
+  ctx.pickAt('mauer', 38, 1.8, 27.2, 1.6);
   // the park's edges
   collide(29.6, 19.5, 0.6, 19.6);
   collide(60.2, 19.5, 0.6, 21);
@@ -273,6 +275,7 @@ export function buildBerlinCity(): City {
   for (const z of [-4.2, 4.2]) glow.boxB(mid, 0.012, z, len, 0.01, 1.2, '#b5654f'); // the bike lanes
   for (let x = X0 + 3; x < X1; x += 6) glow.boxB(x, 0.013, 0, 3, 0.01, 0.14, '#f2f0ea'); // white centre dashes
   for (let i = 0; i < 8; i++) glow.boxB(26, 0.014, -3.6 + i * 1.0, 3.4, 0.01, 0.5, '#f2f0ea'); // a zebra crossing
+  pickAt('zebra', 26, 0.3, 0, 1.6);
 
   buildBerlinFronts(ctx);
 
@@ -285,6 +288,7 @@ export function buildBerlinCity(): City {
   };
   for (const x of [-40, -33, -20.5, -6, 13.5, 24, 33]) linden(x, -6.4);
   for (const x of [-38, -30, -11, 5, 22]) linden(x, 6.5);
+  pickAt('linde', -11, 2.2, 6.5, 1.0);
 
   // old Berlin street lamps (no overhead wires here)
   const lamp = (x: number, z: number) => {
@@ -295,6 +299,7 @@ export function buildBerlinCity(): City {
   };
   for (const x of [-44, -26, -8, 12, 30, 48]) lamp(x, -5.9);
   for (const x of [-35, -17, 1, 19, 37, 55]) lamp(x, 5.9);
+  pickAt('laterne', -17, 3.4, 5.9, 0.9);
 
   // the Litfaß column with its posters
   solid.cyl(28.5, 0, -6.5, 0.62, 0.62, 3.2, '#3e5a46', { seg: 16 });
@@ -327,6 +332,7 @@ export function buildBerlinCity(): City {
   collide(36, 16.6, 1.8, 0.7);
   solid.boxB(-15, 0, -7.9, 0.5, 0.9, 0.5, '#e05a1b'); // the orange BSR bin
   collide(-15, -7.9, 0.6, 0.6);
+  pickAt('muell', -15, 0.6, -7.9, 0.8);
 
   const solidMesh = solid.build(toon, { cast: true, receive: true, name: 'berlin-solid' });
   if (solidMesh) group.add(solidMesh);
