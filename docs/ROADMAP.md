@@ -234,15 +234,16 @@ game, a bigger city with better conversations, and the same game for German, Dut
   * Regulars and small talk in German (`berlin/smalltalk.ts`), on the flags the app already sets for a shop's return visits: the
     regular's greeting per shop, and season and weekend small talk (with Sie) with yes and no chips, answers in your own words, a reply
     and back to the shop's question; an order still works while it is on.
-  * German voices, ready to record: `tools/voice/lines-de.ts` collects the 712 Berlin lines (prices read in words, letters spelled),
+  * German voices: `tools/voice/lines-de.ts` collects the 712 Berlin lines (prices read in words, letters spelled),
     `generate-de.mjs` + `piper_batch.py` record them with Piper and two CC0 voices (Thorsten-Voice, Kerstin), a pitch and a pace per
-    character, into `public/voice-de/` (played like the Japanese recordings, credited in Settings once there). Not yet recorded: the
-    voice models' download was not allowed in this session.
+    character and 1 dB of headroom, into `public/voice-de/` (4.2 MB; played like the Japanese recordings, credited in Settings). All
+    712 recorded and checked by measure (no silence, no clipping, 5–15 characters a second); a line with a price or the player's name
+    keeps the device voice for that sentence. The Berlin e2e asserts the recordings play.
 
 ## Next
 
-1. **Record the German voices** (`PIPER_PYTHON=… PIPER_MODELS=… node tools/voice/generate-de.mjs`), listen to them, then Dutch in
-   Amsterdam the same way.
+1. **Listen to the German voices** and adjust a character's pitch or pace in `voices-de.ts` where needed (re-run
+   `PIPER_PYTHON=… PIPER_MODELS=… node tools/voice/generate-de.mjs`); then Dutch in Amsterdam the same way.
 
 ## Other languages (German in Berlin first)
 

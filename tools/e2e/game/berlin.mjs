@@ -125,6 +125,14 @@ const g = await liveGame(page);
 assert.equal(g0.wallet.cash - g.wallet.cash + (g.totals.earned - g0.totals.earned), 340, 'exactly €3.40: two rolls and a coffee');
 await check('after breakfast');
 step('the bakery: typed German, 「Das macht 3,40 €」, exactly €3.40 charged');
+// the recorded German voices (public/voice-de): Jana's lines play from their files; a line with a price is left to the device voice
+const voice = await page.evaluate(() => ({ ...window.__lwVoice, missed: [...window.__lwVoice.missed] }));
+const manifest = await page.evaluate(() => fetch('voice-de/manifest.json').then((r) => r.json()));
+if (Object.keys(manifest.entries).length > 0) {
+  assert.ok(voice.recorded > 0, `German lines played from their recordings (${JSON.stringify(voice)})`);
+  assert.ok(!voice.missed.some((x) => x.startsWith('Guten Morgen! Was darf es sein')), 'Jana’s greeting is recorded');
+}
+step(`voices: ${voice.recorded} lines from recordings, ${voice.fallback} by the device voice`);
 
 // back to Japanese: Tokyo, and the Japanese save is still there
 await settle();

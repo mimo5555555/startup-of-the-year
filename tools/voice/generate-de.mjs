@@ -68,13 +68,15 @@ writeFileSync(`${WORK}jobs.json`, JSON.stringify(batch));
 const py = spawnSync(PY, [`${ROOT}tools/voice/piper_batch.py`, MODELS, `${WORK}jobs.json`], { stdio: 'inherit' });
 if (py.status !== 0) throw new Error(`piper_batch exited ${py.status}`);
 
-// 2. ffmpeg: the character's pitch (the sample rate shifted, the tempo kept), mono 22.05 kHz MP3
+// 2. ffmpeg: the character's pitch (the sample rate shifted, the tempo kept), a little headroom, mono 22.05 kHz MP3
 const rateOf = (wav) => readFileSync(wav).readUInt32LE(24);
 const toMp3 = (j) =>
   new Promise((resolve, reject) => {
     const wav = `${WORK}${j.hash}.wav`;
     const sr = rateOf(wav);
-    const filter = j.pitch === 1 ? 'anull' : `asetrate=${Math.round(sr * j.pitch)},aresample=22050,atempo=${(1 / j.pitch).toFixed(4)}`;
+    // 1 dB of headroom: Piper normalizes to full scale, and the pitch shift and the MP3 encoder would clip its peaks
+    const pitch = j.pitch === 1 ? '' : `asetrate=${Math.round(sr * j.pitch)},aresample=22050,atempo=${(1 / j.pitch).toFixed(4)},`;
+    const filter = `${pitch}volume=0.89`;
     const ff = spawn('/usr/bin/ffmpeg', ['-v', 'error', '-y', '-i', wav, '-af', filter, '-ac', '1', '-ar', '22050', '-b:a', '32k', '-f', 'mp3', `${OUT}${j.hash}.mp3.tmp`]);
     ff.on('error', reject);
     ff.on('close', (code) => (code === 0 ? (renameSync(`${OUT}${j.hash}.mp3.tmp`, `${OUT}${j.hash}.mp3`), resolve()) : reject(new Error(`ffmpeg ${code}`))));
