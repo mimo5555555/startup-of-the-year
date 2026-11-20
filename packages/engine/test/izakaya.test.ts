@@ -136,12 +136,16 @@ describe('the evening', () => {
     expect(c.log.charges.map((x) => x.yen)).toEqual([940]);
   });
 
-  it('beer: an adult may order it; a minor is told it is from twenty and offered a soft drink, and nothing is set', () => {
+  it('beer: an adult may order it after the age check (二十歳以上); a minor is told it is from twenty and offered a soft drink', () => {
     const adult = open('en', { flags: { adult: true } });
     say(adult, '二人です。');
     expect(adult.suggestions().map((x) => x.written)).toContain('生ビールを二つください。');
     expect(say(adult, '生ビールを二つください。').learner.intentId).toBe('pick_beer');
+    expect(adult.nodeId).toBe('age_check');
+    expect(adult.turns.at(-1)!.line.written.replace(/\s/g, '')).toBe('失礼ですが、二十歳以上ですか？');
+    expect(say(adult, 'はい、二十歳以上です。').learner.intentId).toBe('age_ok');
     expect(adult.nodeId).toBe('otoshi');
+    expect(adult.turns.at(-1)!.line.written).toContain('生ビール');
 
     const minor = open('en', { flags: { minor: true } });
     say(minor, '二人です。');
@@ -151,6 +155,33 @@ describe('the evening', () => {
     expect(r.character.line.written.replace(/\s/g, '')).toContain('お酒は二十歳からです');
     expect(minor.nodeId).toBe('drinks');
     expect(say(minor, 'じゃあ、ウーロン茶を二つください。').learner.intentId).toBe('pick_drink');
+  });
+});
+
+describe('the age check (年齢確認)', () => {
+  it('「未成年です」: no beer, a soft drink instead, charged at its price', () => {
+    const c = till(50000);
+    const s = open('ar', { game: c.hooks, flags: { priced: true, adult: true } });
+    for (const line of ['二人です。', '生ビールを二つください。']) say(s, line);
+    expect(say(s, 'いいえ、未成年です。').learner.intentId).toBe('age_no');
+    expect(s.nodeId).toBe('soft');
+    expect(s.suggestions().map((x) => x.written)).not.toContain('生ビールを二つください。');
+    say(s, 'オレンジジュースを二つください。');
+    expect(s.nodeId).toBe('otoshi');
+    for (const line of ['枝豆をください。', '乾杯！', 'お会計お願いします。', '一緒でお願いします。', '現金でお願いします。']) say(s, line);
+    expect(s.ended).toBe(true);
+    expect(c.log.charges.map((x) => x.yen)).toEqual([350 * 2 + 380 + 600]);
+    expect(c.log.charges[0]!.slots.izaDrink).toBe('orange');
+  });
+
+  it('a change of mind at the check is a soft drink too; 「はい」 alone is a yes', () => {
+    const s = open('en', { flags: { adult: true } });
+    for (const line of ['二人です。', '生ビールを二つください。']) say(s, line);
+    expect(say(s, 'じゃあ、ウーロン茶を二つください。').learner.intentId).toBe('pick_drink');
+    expect(s.nodeId).toBe('otoshi');
+    const t = open('en', { flags: { adult: true } });
+    for (const line of ['二人です。', '生ビールを二つください。']) say(t, line);
+    expect(say(t, 'はい。').learner.intentId).toBe('age_ok');
   });
 });
 

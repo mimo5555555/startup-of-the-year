@@ -72,13 +72,60 @@ export const IZAKAYA_DINNER: Scenario = {
           request: true,
           ideal: L('ウーロン茶|を|二つ|ください。', 'Two oolong teas, please.', 'كوبان من شاي أولونغ من فضلك.'),
         },
-        { id: 'pick_beer', when: { flag: 'adult' }, slot: 'izaDrink', slotOptions: ['beer'], slotRequired: true, alsoSlots: ['qty'], next: 'otoshi', step: 'drinks', request: true },
+        // beer for an adult profile, after Misaki checks the age (年齢確認): drinking is from twenty in Japan, an adult profile is from eighteen
+        { id: 'pick_beer', when: { flag: 'adult' }, slot: 'izaDrink', slotOptions: ['beer'], slotRequired: true, alsoSlots: ['qty'], next: 'age_check', step: 'drinks', request: true },
         {
           id: 'beer_no',
           when: { flag: 'minor' },
           any: ['ビール', 'びーる', 'おさけ', 'お酒', 'さけ'],
           stay: true,
           reply: L('すみません、|お酒|は|二十歳|から|です。|ソフトドリンク|は|いかが|です|か？', 'Sorry, alcohol is from 20 years old. How about a soft drink?', 'آسفة، المشروبات الكحولية من سن العشرين. ما رأيك بمشروب غازي؟'),
+        },
+        later(),
+      ],
+    }),
+    // the age check (年齢確認): 「はい、二十歳以上です」 brings the beer; 「未成年です」 (or a change of mind) a soft drink
+    node({
+      id: 'age_check',
+      say: [say(L('失礼|です|が、|二十歳|以上|です|か？', 'Excuse me, but are you twenty or over?', 'اعذرني، لكن هل عمرك عشرون عامًا أو أكثر؟'))],
+      suggestions: [
+        S('はい、|二十歳|以上|です。', 'Yes, I am twenty or over.', 'نعم، عمري عشرون عامًا أو أكثر.'),
+        S('いいえ、|未成年|です。', 'No, I am under twenty.', 'لا، أنا دون العشرين.'),
+        S('じゃあ、|ウーロン茶|を|二つ|ください。', 'Then two oolong teas, please.', 'إذن كوبان من شاي أولونغ من فضلك.'),
+      ],
+      intents: [
+        { id: 'age_ok', any: ['はい', 'ええ', 'いじょう', 'はたちです', 'そうです'], none: ['いいえ', 'みせいねん', 'まだ', 'ちがいます', 'じゃあ', 'うーろんちゃ', 'おれんじ'], next: 'otoshi' },
+        { id: 'age_no', any: ['いいえ', 'みせいねん', 'まだ', 'ちがいます'], next: 'soft' },
+        {
+          id: 'pick_drink',
+          slot: 'izaDrink',
+          slotOptions: ['oolong', 'orange'],
+          slotRequired: true,
+          alsoSlots: ['qty'],
+          next: 'otoshi',
+          request: true,
+          ideal: L('ウーロン茶|を|二つ|ください。', 'Two oolong teas, please.', 'كوبان من شاي أولونغ من فضلك.'),
+        },
+        later(),
+      ],
+    }),
+    node({
+      id: 'soft',
+      say: [say(L('かしこまりました。|ソフトドリンク|は|いかが|です|か？', 'Certainly. How about a soft drink?', 'بكل سرور. ما رأيك بمشروب غازي؟'))],
+      suggestions: [
+        S('ウーロン茶|を|二つ|ください。', 'Two oolong teas, please.', 'كوبان من شاي أولونغ من فضلك.'),
+        S('オレンジジュース|を|二つ|ください。', 'Two orange juices, please.', 'كوبان من عصير البرتقال من فضلك.'),
+      ],
+      intents: [
+        {
+          id: 'pick_drink',
+          slot: 'izaDrink',
+          slotOptions: ['oolong', 'orange'],
+          slotRequired: true,
+          alsoSlots: ['qty'],
+          next: 'otoshi',
+          request: true,
+          ideal: L('ウーロン茶|を|二つ|ください。', 'Two oolong teas, please.', 'كوبان من شاي أولونغ من فضلك.'),
         },
         later(),
       ],

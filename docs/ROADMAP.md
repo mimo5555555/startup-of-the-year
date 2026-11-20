@@ -240,6 +240,10 @@ game, a bigger city with better conversations, and the same game for German, Dut
     712 recorded and checked by measure (no silence, no clipping, 5–15 characters a second); a line with a price or the player's name
     keeps the device voice for that sentence. The Berlin e2e asserts the recordings play.
 
+- **The izakaya's age check (年齢確認)** (done): an adult profile (from eighteen) who orders beer is asked 「失礼ですが、二十歳以上ですか？」;
+  「はい、二十歳以上です」 brings the beer, 「いいえ、未成年です」 or a change of mind a soft drink, charged at its price (drinking is from
+  twenty in Japan). Younger profiles never see the beer, as before. New words 以上, 失礼, 未成年; the lines are recorded.
+
 ## Next
 
 1. **Listen to the German voices** and adjust a character's pitch or pace in `voices-de.ts` where needed (re-run
