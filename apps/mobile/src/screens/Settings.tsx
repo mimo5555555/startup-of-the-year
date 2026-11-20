@@ -9,9 +9,10 @@ import { useDevMode } from '../game/hooks';
 import pkg from '../../package.json';
 import { VOICE_CREDITS } from '../voice/voices';
 import { DE_VOICE_CREDITS } from '../voice/voices-de';
+import { NL_VOICE_CREDITS } from '../voice/voices-nl';
 import { tts } from '../services';
 import { GoenPurchases } from '../components/game/GoenPurchases';
-import { TARGET, chooseTarget, type Target, IS_GERMAN } from '../target';
+import { TARGET, TARGETS, TARGET_NAMES, chooseTarget, IS_JAPANESE } from '../target';
 
 /** Taps on the version line that switch the QA tools on or off (docs/GAME_DESIGN.md §15.1 rule 8). */
 const DEV_TAPS = 7;
@@ -47,10 +48,10 @@ export function Settings() {
   const update = useStore((s) => s.updateSettings);
   const profile = useStore((s) => s.profile);
   const setUiLang = useStore((s) => s.setUiLang);
-  // German's recorded voices: credited once the manifest lists lines
-  const [deRecorded, setDeRecorded] = useState(false);
+  // German's and Dutch's recorded voices: credited once the manifest lists lines
+  const [recorded, setRecorded] = useState(false);
   useEffect(() => {
-    if (IS_GERMAN) void tts.load().then(() => setDeRecorded(tts.recorded()));
+    if (!IS_JAPANESE) void tts.load().then(() => setRecorded(tts.recorded()));
   }, []);
   const setLevel = useStore((s) => s.setLevel);
   const reset = useStore((s) => s.reset);
@@ -101,9 +102,9 @@ export function Settings() {
         <section className="group">
           <h2 className="h2">{t('st.learn')}</h2>
           <div className="seg-row learn-row">
-            {(['ja', 'de'] as Target[]).map((l) => (
+            {TARGETS.map((l) => (
               <button key={l} className={`choice ${TARGET === l ? 'on' : ''}`} data-learn={l} onClick={() => chooseTarget(l, lang)}>
-                <span lang={l}>{l === 'ja' ? '日本語' : 'Deutsch'}</span> <span className="small">{t(l === 'ja' ? 'ob.learn.ja' : 'ob.learn.de')}</span>
+                <span lang={l}>{TARGET_NAMES[l]}</span> <span className="small">{t(`ob.learn.${l}`)}</span>
               </button>
             ))}
           </div>
@@ -126,8 +127,8 @@ export function Settings() {
         <section className="group">
           <h2 className="h2">{t('st.reading')}</h2>
           {/* furigana and romaji are Japanese reading aids: German is read as written */}
-          {!IS_GERMAN && <Switch on={settings.furigana} onChange={(v) => update({ furigana: v })} label={t('st.furigana')} sub={t('st.furigana.sub')} />}
-          {!IS_GERMAN && <Switch on={settings.romaji} onChange={(v) => update({ romaji: v })} label={t('st.romaji')} sub={t('st.romaji.sub')} />}
+          {IS_JAPANESE && <Switch on={settings.furigana} onChange={(v) => update({ furigana: v })} label={t('st.furigana')} sub={t('st.furigana.sub')} />}
+          {IS_JAPANESE && <Switch on={settings.romaji} onChange={(v) => update({ romaji: v })} label={t('st.romaji')} sub={t('st.romaji.sub')} />}
           <Switch on={settings.autoTranslate} onChange={(v) => update({ autoTranslate: v })} label={t('st.autoTranslate')} />
         </section>
 
@@ -156,11 +157,11 @@ export function Settings() {
           <p dir="auto">{t('st.about1')}</p>
           <p dir="auto">{t('st.about2')}</p>
           <p dir="auto">{t('st.about3')}</p>
-          {/* the recorded voices' credits: VOICEVOX's for Japanese; Piper's open voices for German, once its lines are recorded */}
-          {(!IS_GERMAN || deRecorded) && (
+          {/* the recorded voices' credits: VOICEVOX's for Japanese; Piper's open voices for German and Dutch, once their lines are recorded */}
+          {(IS_JAPANESE || recorded) && (
             <p dir="auto" data-voice-credits>
               {t('st.voiceCredits', { names: '' })}
-              <bdi dir="ltr">{IS_GERMAN ? DE_VOICE_CREDITS : VOICE_CREDITS}</bdi>
+              <bdi dir="ltr">{{ ja: VOICE_CREDITS, de: DE_VOICE_CREDITS, nl: NL_VOICE_CREDITS }[TARGET]}</bdi>
             </p>
           )}
           <p className="version" dir="ltr" onClick={tapVersion} style={{ minHeight: 44, display: 'flex', alignItems: 'center', opacity: 0.6, fontSize: 13 }}>

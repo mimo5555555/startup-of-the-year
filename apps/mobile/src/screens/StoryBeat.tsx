@@ -18,7 +18,7 @@ import { useT } from '../hooks';
 import { tts } from '../services';
 import { useStore } from '../store';
 import { useUi } from '../ui';
-import { LEXICON, IS_GERMAN } from '../target';
+import { LEXICON, IS_JAPANESE } from '../target';
 
 /** Wraps a player-supplied name so a Latin name inside Arabic text keeps its place (Unicode first-strong isolate ... pop). */
 const isolate = (s: string) => `⁨${s}⁩`;
@@ -166,7 +166,7 @@ export function StoryBeat() {
         // a tap anywhere on the card goes on; the Continue button is the same thing for a keyboard or a screen reader
         <div className="qst-beat-card" data-next="1" onClick={advance}>
           <span className="qst-beat-name">
-            {who && !IS_GERMAN && <span lang="ja">{who.name.ja}</span>}
+            {who && IS_JAPANESE && <span lang="ja">{who.name.ja}</span>}
             <small dir="auto">{speaker}</small>
             <button
               type="button"

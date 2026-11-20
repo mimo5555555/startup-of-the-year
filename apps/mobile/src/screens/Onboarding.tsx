@@ -8,7 +8,7 @@ import { useT } from '../hooks';
 import type { UiLang } from '../i18n';
 import { HAIRS, JACKETS, SKINS } from '../content';
 import { blip } from '../services';
-import { CHARACTERS, TARGET, chooseTarget, type Target } from '../target';
+import { CHARACTERS, TARGET, TARGETS, TARGET_NAMES, chooseTarget, type Target } from '../target';
 
 const STEPS = 5;
 
@@ -55,7 +55,7 @@ export function Onboarding() {
     blip('tap');
   };
 
-  const cast = (TARGET === 'de' ? ['jana', 'lena', 'emre'] : ['yuki', 'kenji', 'mio']).map((id) => CHARACTERS.find((c) => c.id === id)!);
+  const cast = { ja: ['yuki', 'kenji', 'mio'], de: ['jana', 'lena', 'emre'], nl: ['femke', 'sanne', 'mo'] }[TARGET].map((id) => CHARACTERS.find((c) => c.id === id)!);
 
   return (
     <div className="onb">
@@ -78,7 +78,7 @@ export function Onboarding() {
               ))}
             </div>
             <h1 className="hero-title">{t('app.name')}</h1>
-            <p className="hero-sub">{t(learn === 'de' ? 'app.tagline.de' : 'app.tagline')}</p>
+            <p className="hero-sub">{t(`app.tagline.${learn}`)}</p>
             <h2 className="onb-h">{t('ob.lang.title')}</h2>
             <p className="muted">{t('ob.lang.sub')}</p>
             <div className="choice-row">
@@ -91,16 +91,15 @@ export function Onboarding() {
             </div>
             <h2 className="onb-h">{t('ob.learn.title')}</h2>
             <div className="choice-row learn-row">
-              <button className={`choice big ${learn === 'ja' ? 'on' : ''}`} data-learn="ja" onClick={() => (setLearn('ja'), blip('tap'))}>
-                <span lang="ja">日本語</span> <span className="small">{t('ob.learn.ja')}</span>
-              </button>
-              <button className={`choice big ${learn === 'de' ? 'on' : ''}`} data-learn="de" onClick={() => (setLearn('de'), blip('tap'))}>
-                <span lang="de">Deutsch</span> <span className="small">{t('ob.learn.de')}</span>
-              </button>
+              {TARGETS.map((l) => (
+                <button key={l} className={`choice big ${learn === l ? 'on' : ''}`} data-learn={l} onClick={() => (setLearn(l), blip('tap'))}>
+                  <span lang={l}>{TARGET_NAMES[l]}</span> <span className="small">{t(`ob.learn.${l}`)}</span>
+                </button>
+              ))}
             </div>
             <p className="muted small">{t('ob.learn.note')}</p>
             <div className="soon">
-              {['Español', 'Nederlands', 'Русский'].map((l) => (
+              {['Español', 'Русский'].map((l) => (
                 <span key={l} className="chip dim">
                   {l}
                 </span>

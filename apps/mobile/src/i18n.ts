@@ -26,7 +26,7 @@ import * as goen from './strings/goen';
 import * as goenContent from './strings/goen-content';
 import * as goenPay from './strings/goen-pay';
 import * as ears from './strings/ears';
-import { IS_GERMAN } from './target';
+import { TARGET } from './target';
 
 type Key =
   | keyof typeof core.en
@@ -61,8 +61,9 @@ export const STRINGS: Record<UiLang, Record<Key, string>> = { en: merge('en'), a
 export type StringKey = Key;
 
 /**
- * Learning German, the app's own words name the language and the city being learned: "Japanese" reads "German", Tokyo reads Berlin
- * (the screens that are Tokyo's alone are not reachable from Berlin). Longest words first, so 「باليابانية」 is not cut.
+ * Learning German or Dutch, the app's own words name the language and the city being learned: "Japanese" reads "German" or "Dutch",
+ * Tokyo reads Berlin or Amsterdam (the screens that are Tokyo's alone are not reachable from there). Longest words first, so
+ * 「باليابانية」 is not cut.
  */
 const TO_GERMAN: Array<[string, string]> = [
   ['Japanese', 'German'],
@@ -80,24 +81,41 @@ const TO_GERMAN: Array<[string, string]> = [
   ['اليابان', 'ألمانيا'],
   ['طوكيو', 'برلين'],
 ];
-const forTarget = (s: string): string => (IS_GERMAN ? TO_GERMAN.reduce((acc, [a, b]) => acc.replaceAll(a, b), s) : s);
+const TO_DUTCH: Array<[string, string]> = [
+  ['Japanese', 'Dutch'],
+  ['Japan', 'the Netherlands'],
+  ['Tokyo', 'Amsterdam'],
+  ['日本語', 'Nederlands'],
+  ['こんにちは', 'Hallo'],
+  ['باليابانية', 'بالهولندية'],
+  ['اليابانية', 'الهولندية'],
+  ['الياباني', 'الهولندي'],
+  ['يابانيًا', 'هولنديًا'],
+  ['يابانية', 'هولندية'],
+  ['ياباني', 'هولندي'],
+  ['اليابان', 'هولندا'],
+  ['طوكيو', 'أمستردام'],
+];
+const SWAPS = { ja: null, de: TO_GERMAN, nl: TO_DUTCH }[TARGET];
+const forTarget = (s: string): string => (SWAPS ? SWAPS.reduce((acc, [a, b]) => acc.replaceAll(a, b), s) : s);
 
-/** cents as German writes them: 3000 -> 30,00 € */
+/** cents as the language being learned writes them: German 3000 -> 30,00 €, Dutch 3000 -> € 30,00 */
 const euros = (cents: number): string => {
   const neg = cents < 0;
   const c = Math.abs(Math.round(cents));
   const whole = String(Math.floor(c / 100)).replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  return `${neg ? '−' : ''}${whole},${String(c % 100).padStart(2, '0')} €`;
+  const body = `${whole},${String(c % 100).padStart(2, '0')}`;
+  return `${neg ? '−' : ''}${TARGET === 'nl' ? `€ ${body}` : `${body} €`}`;
 };
 
 /** strings that name the languages one can learn: they say what they say whichever language is being learned */
-const OWN_WORDS = new Set<string>(['ob.learn.ja', 'ob.learn.de', 'ob.learn.title', 'ob.learn.note', 'st.learn']);
+const OWN_WORDS = new Set<string>(['app.tagline.ja', 'app.tagline.de', 'app.tagline.nl', 'ob.learn.ja', 'ob.learn.de', 'ob.learn.nl', 'ob.learn.title', 'ob.learn.note', 'st.learn']);
 
 export function translate(lang: UiLang, key: StringKey, vars?: Record<string, string | number>): string {
   const raw = STRINGS[lang][key] ?? STRINGS.en[key] ?? key;
   let s = OWN_WORDS.has(key) ? raw : forTarget(raw);
-  // learning German, an amount the string writes as yen (¥{n}) is the pack's cents: it reads in euros
-  if (IS_GERMAN && vars)
+  // learning German or Dutch, an amount the string writes as yen (¥{n}) is the pack's cents: it reads in euros
+  if (TARGET !== 'ja' && vars)
     s = s.replace(/¥\{(\w+)\}/g, (m, k: string) => {
       const v = vars[k];
       const n = typeof v === 'number' ? v : Number(String(v ?? '').replace(/[^\d-]/g, ''));

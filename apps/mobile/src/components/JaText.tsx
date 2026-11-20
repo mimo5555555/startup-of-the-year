@@ -1,6 +1,6 @@
 import { Fragment } from 'react';
 import type { Token } from '@lw/content';
-import { IS_GERMAN } from '../target';
+import { IS_JAPANESE, TARGET_HTML_LANG } from '../target';
 
 export interface Mark {
   start: number;
@@ -21,15 +21,15 @@ interface Props {
 }
 
 /**
- * Target-language text: Japanese with optional furigana (above) and romaji (below); German as words with their spaces (no reading aids:
- * a German word is read as written). Words with a meaning are tappable.
+ * Target-language text: Japanese with optional furigana (above) and romaji (below); German and Dutch as words with their spaces (no reading
+ * aids: a word is read as written). Words with a meaning are tappable.
  */
 export function JaText({ tokens, furigana, romaji, size = 'md', onTap, marks, className = '', lit }: Props) {
-  const anyRuby = !IS_GERMAN && furigana && tokens.some((t) => t.r);
-  const showRomaji = romaji && !IS_GERMAN;
+  const anyRuby = IS_JAPANESE && furigana && tokens.some((t) => t.r);
+  const showRomaji = romaji && IS_JAPANESE;
   let offset = 0;
   return (
-    <span className={`ja ja-${size}${IS_GERMAN ? ' de' : ''} ${className}`} lang={IS_GERMAN ? 'de' : 'ja'} dir="ltr">
+    <span className={`ja ja-${size}${IS_JAPANESE ? '' : ' latin'} ${className}`} lang={TARGET_HTML_LANG} dir="ltr">
       {tokens.map((t, i) => {
         // a spaced word: the space counts in the text's character offsets (corrections mark spans of the written line)
         if (t.sp) offset += 1;

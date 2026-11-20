@@ -11,7 +11,10 @@ import { opensIn } from '../../game/opensIn';
 import { cooldownText } from '../../game/homeLogic';
 import { beginVisit } from '../../game/homeStore';
 import { beginOwn } from '../../game/ownStore';
-import { IS_GERMAN } from '../../target';
+import { IS_JAPANESE, TARGET_HTML_LANG } from '../../target';
+
+/** the shop's 「not open yet」 in the language being learned (Japanese has its 準備中 with the reading) */
+const CLOSED_SIGN: Record<string, string> = { de: 'Noch geschlossen.', nl: 'Nog gesloten.' };
 
 /** Carries out a plan that starts something (the plans for a sheet, `window`, are the caller's: it shows the Goods sheet). */
 export function runPlan(plan: Plan): void {
@@ -76,7 +79,7 @@ export interface InteractionSheetProps {
   /** the shop front's name when there is no character */
   shopName?: Gloss;
   rows: OptionRow[];
-  /** the shop is shut until this chapter: the sheet says 「まだ準備中です。」 */
+  /** the shop is shut until this chapter: the sheet says 「まだ準備中です。」 (「Noch geschlossen.」, 「Nog gesloten.」) */
   closedUntil?: number;
   /** adds "Look at the goods" next to the options (it is not counted as an option: §6.1) */
   hasGoods?: boolean;
@@ -114,15 +117,21 @@ export function InteractionSheet({ character, shopName, rows, closedUntil, hasGo
           {character && <Portrait spec={character.avatar} size={52} />}
           <div>
             <h2 dir="auto">{character ? displayName(character, lang) : shopName?.[lang]}</h2>
-            {!IS_GERMAN && <p lang="ja">{character ? character.name.ja : ''}</p>}
+            {IS_JAPANESE && <p lang="ja">{character ? character.name.ja : ''}</p>}
           </div>
         </header>
 
         {closedUntil !== undefined && (
           <div className="hud-closed" role="status">
-            <p lang="ja" className="hud-closed-ja">
-              まだ<ruby>準備中<rt>じゅんびちゅう</rt></ruby>です。
-            </p>
+            {IS_JAPANESE ? (
+              <p lang="ja" className="hud-closed-ja">
+                まだ<ruby>準備中<rt>じゅんびちゅう</rt></ruby>です。
+              </p>
+            ) : (
+              <p lang={TARGET_HTML_LANG} className="hud-closed-ja">
+                {CLOSED_SIGN[TARGET_HTML_LANG]}
+              </p>
+            )}
             <p dir="auto">{t('hud.closedSay')}</p>
             <p className="hud-closed-ch" dir="auto">
               <Icon name="lock" size={14} /> {opensIn(t, 'shop.opensIn', closedUntil)}

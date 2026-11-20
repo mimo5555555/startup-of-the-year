@@ -3,7 +3,9 @@
 export const en = {
   'app.name': 'Language World',
   'app.tagline': 'Walk around Tokyo. Talk to people. Learn Japanese by using it.',
+  'app.tagline.ja': 'Walk around Tokyo. Talk to people. Learn Japanese by using it.',
   'app.tagline.de': 'Walk around Berlin. Talk to people. Learn German by using it.',
+  'app.tagline.nl': 'Walk around Amsterdam. Talk to people. Learn Dutch by using it.',
   'app.sample': 'Interactive sample',
 
   'common.next': 'Next',
@@ -28,6 +30,7 @@ export const en = {
   'st.learn': 'The language you learn',
   'ob.learn.ja': 'Japanese in Tokyo',
   'ob.learn.de': 'German in Berlin',
+  'ob.learn.nl': 'Dutch in Amsterdam',
   'ob.learn.note': 'Each language keeps its own progress. You can switch later in Settings.',
   'ob.you.title': 'Who are you?',
   'ob.you.name': 'Your name',
@@ -224,7 +227,9 @@ export const en = {
 export const ar: Record<keyof typeof en, string> = {
   'app.name': 'عالم اللغة',
   'app.tagline': 'تجوّل في طوكيو، وتحدّث مع الناس، وتعلّم اليابانية بالتحدّث بها.',
+  'app.tagline.ja': 'تجوّل في طوكيو، وتحدّث مع الناس، وتعلّم اليابانية بالتحدّث بها.',
   'app.tagline.de': 'تجوّل في برلين، وتحدّث مع الناس، وتعلّم الألمانية بالتحدّث بها.',
+  'app.tagline.nl': 'تجوّل في أمستردام، وتحدّث مع الناس، وتعلّم الهولندية بالتحدّث بها.',
   'app.sample': 'نسخة تجريبية تفاعلية',
 
   'common.next': 'التالي',
@@ -249,6 +254,7 @@ export const ar: Record<keyof typeof en, string> = {
   'st.learn': 'اللغة التي تتعلّمها',
   'ob.learn.ja': 'اليابانية في طوكيو',
   'ob.learn.de': 'الألمانية في برلين',
+  'ob.learn.nl': 'الهولندية في أمستردام',
   'ob.learn.note': 'لكل لغة تقدّمها الخاص. يمكنك التبديل لاحقًا من الإعدادات.',
   'ob.you.title': 'من أنت؟',
   'ob.you.name': 'اسمك',

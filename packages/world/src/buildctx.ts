@@ -235,7 +235,14 @@ export function createBuildCtx(): { ctx: BuildCtx; out: BuildOutput } {
  * The plain closed-shop shutter: a ribbed slab across the opening with a 準備中 plate, in front of the diorama.
  * Built on first close, so a world where every shop stays open pays nothing for it.
  */
-export function makeShutter(ctx: BuildCtx, o: ShopOpening): THREE.Group {
+/** the closed sign's words: Tokyo's 準備中 (with its reading) unless a district gives its own (Berlin's 「Geschlossen」, Amsterdam's 「Gesloten」) */
+export interface ShutterLabel {
+  text: string;
+  sub?: string;
+}
+const JUNBI: ShutterLabel = { text: '準備中', sub: 'junbi-chū' };
+
+export function makeShutter(ctx: BuildCtx, o: ShopOpening, label: ShutterLabel = JUNBI): THREE.Group {
   const g = new THREE.Group();
   const w = o.w - 0.6;
   const h = o.openH - 0.12;
@@ -246,7 +253,7 @@ export function makeShutter(ctx: BuildCtx, o: ShopOpening): THREE.Group {
   const slab = b.build(ctx.toon, { cast: false, receive: false, name: 'shutter' });
   if (slab) g.add(slab);
   const pw = Math.min(4.2, w - 1);
-  const plate = ctx.signPlane('準備中', { bg: '#f4f1e6', fg: '#b3402f', sub: 'junbi-chū', subColor: '#6b7080', border: '#b3402f', round: 14 }, { x: o.cx, y: 0.12 + h * 0.55, z: z + 0.09, w: pw, h: pw * 0.36 });
+  const plate = ctx.signPlane(label.text, { bg: '#f4f1e6', fg: '#b3402f', ...(label.sub ? { sub: label.sub } : {}), subColor: '#6b7080', border: '#b3402f', round: 14 }, { x: o.cx, y: 0.12 + h * 0.55, z: z + 0.09, w: pw, h: pw * 0.36 });
   ctx.group.remove(plate); // signPlane parks it in the city group; it lives in the shutter group instead
   g.add(plate);
   return g;

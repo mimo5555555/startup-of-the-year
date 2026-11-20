@@ -30,7 +30,7 @@ import { furnitureOpen, inviteStatus, ownDoors } from './ownLogic';
 import { heartsOf } from './selectors';
 import { festivalOpen, festivalPickOf, festivalRowOf, isFestivalRow, syncFestival, FESTIVAL, type FestivalPick } from './festivalSync';
 import { KYOTO, isKyotoScenario, rideSkinOf } from './goenLogic';
-import { CHARACTERS, IS_GERMAN } from '../target';
+import { CHARACTERS, IS_JAPANESE } from '../target';
 
 // ---------------------------------------------------------------------------------------------------------------
 // HUD disclosure: which elements are on screen (§2.5)
@@ -64,9 +64,9 @@ export function menuIds(d: Pick<Disclosure, 'friends' | 'phoneIcon'>): { play: M
   const play: MenuId[] = ['quests'];
   if (d.friends) play.push('friends');
   if (d.phoneIcon) play.push('phone');
-  // Hanako's lessons and the Mini-theatre are Tokyo's (Japanese lessons, Japanese songs): Berlin has none of its own yet
-  play.push('wallet', ...(IS_GERMAN ? [] : (['lessons'] as MenuId[])));
-  return { play, study: IS_GERMAN ? ['vocab', 'stats', 'settings'] : ['vocab', 'theatre', 'stats', 'settings'] };
+  // Hanako's lessons and the Mini-theatre are Tokyo's (Japanese lessons, Japanese songs): Berlin and Amsterdam have none of their own yet
+  play.push('wallet', ...(IS_JAPANESE ? (['lessons'] as MenuId[]) : []));
+  return { play, study: IS_JAPANESE ? ['vocab', 'theatre', 'stats', 'settings'] : ['vocab', 'stats', 'settings'] };
 }
 
 // ---------------------------------------------------------------------------------------------------------------

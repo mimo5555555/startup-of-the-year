@@ -109,3 +109,68 @@ describe('learning German', () => {
     vi.unstubAllGlobals();
   });
 });
+
+describe('learning Dutch', () => {
+  it('reads Amsterdam’s registries, the Amsterdam pack and the Dutch engine, and saves under its own prefix', async () => {
+    putSaved('lw.target', 'nl');
+    const t = await import('../src/target');
+    const { AMSTERDAM_PACK, AMSTERDAM_SIGNS, NL_LEXICON } = await import('@lw/content');
+    const { targetLanguage } = await import('@lw/engine');
+    const { PACK } = await import('../src/game/pack');
+    expect(t.TARGET).toBe('nl');
+    expect(t.IS_DUTCH).toBe(true);
+    expect(t.IS_JAPANESE).toBe(false);
+    expect(t.IS_GERMAN).toBe(false);
+    expect(t.LEXICON).toBe(NL_LEXICON);
+    expect(t.SIGNS).toBe(AMSTERDAM_SIGNS);
+    expect(t.STORE_PREFIX).toBe('lw.nl.v1.');
+    expect(t.TARGET_LOCALE).toBe('nl-NL');
+    expect(t.VOICE_BASE).toBe('voice-nl/');
+    expect(t.TARGET_OWN_NAME).toBe('Nederlands');
+    expect(t.scenarioById('ams_cafe')).toBeDefined();
+    expect(t.scenarioById('berlin_bakery')).toBeUndefined();
+    expect(t.scenarioById('konbini')).toBeUndefined();
+    expect(t.CHARACTERS.map((c) => c.id)).toContain('femke');
+    expect(t.segmentFree('twee koffie, graag').map((x) => x.s)).toEqual(['twee', 'koffie', ',', 'graag']);
+    expect(targetLanguage().id).toBe('nl');
+    expect(PACK).toBe(AMSTERDAM_PACK);
+  });
+
+  it('speaks of Dutch and Amsterdam in the app’s own words, and writes amounts the Dutch way', async () => {
+    putSaved('lw.target', 'nl');
+    const { translate } = await import('../src/i18n');
+    expect(translate('en', 'app.tagline')).toBe('Walk around Amsterdam. Talk to people. Learn Dutch by using it.');
+    expect(translate('en', 'audio.speaker.noVoice')).toBe('No Dutch voice installed');
+    expect(translate('ar', 'audio.speaker.noVoice')).toContain('هولندي');
+    expect(translate('en', 'quests.reward', { n: '3,000' })).toBe('Reward: € 30,00');
+    expect(translate('en', 'quests.reward', { n: 123456 })).toBe('Reward: € 1.234,56');
+    // the pickers name every language in its own words, whatever is learned
+    expect(translate('en', 'ob.learn.ja')).toBe('Japanese in Tokyo');
+    expect(translate('en', 'ob.learn.nl')).toBe('Dutch in Amsterdam');
+  });
+
+  it('prices in conversations read the Dutch way, and a quoted price reads back as cents', async () => {
+    putSaved('lw.target', 'nl');
+    const { yenVar } = await import('../src/game/convoHooks');
+    const v = yenVar(250);
+    expect(v.gloss?.en).toBe('€2.50');
+    expect(v.ja).toContain('2,50');
+  });
+
+  it('starts the Dutch notebook with Dutch greetings', async () => {
+    putSaved('lw.target', 'nl');
+    const { useStore } = await import('../src/store');
+    useStore.getState().completeOnboarding({ name: 'Sam', l1: 'en', level: 'A1', goal: 'travel', age: 'adults', topics: ['food', 'music', 'travel'], avatar: {} as never, createdAt: new Date().toISOString() });
+    expect(useStore.getState().vocab.map((v) => v.s)).toEqual(['Hallo!', 'Goedemorgen!', 'Graag.', 'Dank u wel!', 'Doei!']);
+    expect(saved('lw.v1.state')).toBeNull();
+  });
+
+  it('keeps Tokyo’s lessons and Mini-theatre out of Amsterdam’s menu, and offers all three languages', async () => {
+    putSaved('lw.target', 'nl');
+    const nl = await import('../src/game/worldSync');
+    expect(nl.menuIds({ friends: true, phoneIcon: false })).toEqual({ play: ['quests', 'friends', 'wallet'], study: ['vocab', 'stats', 'settings'] });
+    const t = await import('../src/target');
+    expect(t.TARGETS).toEqual(['ja', 'de', 'nl']);
+    expect(t.TARGET_NAMES).toEqual({ ja: '日本語', de: 'Deutsch', nl: 'Nederlands' });
+  });
+});

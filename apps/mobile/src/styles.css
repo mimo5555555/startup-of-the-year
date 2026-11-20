@@ -375,13 +375,13 @@ html[lang='ar'] .label {
   font-weight: 700;
   unicode-bidi: isolate;
 }
-/* German: words in normal text flow, so the spaces between them show and lines wrap between words */
-.ja.de {
+/* German and Dutch: words in normal text flow, so the spaces between them show and lines wrap between words */
+.ja.latin {
   display: inline;
   font-family: var(--font-body);
   line-height: 1.35;
 }
-.ja.de .tok {
+.ja.latin .tok {
   display: inline;
   padding: 0;
 }

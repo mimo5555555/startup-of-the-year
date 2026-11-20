@@ -105,7 +105,7 @@ export class SttError extends Error {
 
 export interface SttPort {
   available(): boolean;
-  listen(lang: 'ja-JP' | 'de-DE' | 'en-US' | 'ar-SA', onInterim?: (text: string) => void): SttSession;
+  listen(lang: 'ja-JP' | 'de-DE' | 'nl-NL' | 'en-US' | 'ar-SA', onInterim?: (text: string) => void): SttSession;
 }
 
 const STT_CODES: SttErrorCode[] = ['unsupported', 'not-allowed', 'service-not-allowed', 'no-speech', 'audio-capture', 'network', 'aborted', 'language-not-supported', 'bad-grammar', 'timeout'];
@@ -167,12 +167,12 @@ export function pickJapaneseVoice<T extends VoiceLike>(voices: readonly T[], kin
   return pickVoiceFor(voices, 'ja-JP', kind);
 }
 
-/** A voice of the language of `locale` ('ja-JP': also the well-known Japanese voice names; 'de-DE': de, de-DE, de_AT, deu-DEU). */
+/** A voice of the language of `locale` ('ja-JP': also the well-known Japanese voice names; 'de-DE': de, de-DE, de_AT, deu-DEU; 'nl-NL': nl, nl-BE, nld-NLD). */
 export function isVoiceFor(v: { name?: string; lang?: string }, locale: string): boolean {
   const base = locale.slice(0, 2).toLowerCase();
   if (base === 'ja') return isJapaneseVoice(v);
   const l = normLang(v.lang);
-  return l === base || l.startsWith(`${base}-`) || (base === 'de' && /^deu(-|$)/.test(l));
+  return l === base || l.startsWith(`${base}-`) || (base === 'de' && /^deu(-|$)/.test(l)) || (base === 'nl' && /^(nld|dut)(-|$)/.test(l));
 }
 
 /** The voice to speak `locale` with: local first, then the gender hint, then the exact locale (de-DE before de-AT). */
@@ -283,6 +283,7 @@ const hasSynthesis = () => typeof globalThis !== 'undefined' && !!synthesis() &&
 
 export const TTS_SAMPLE_JA = 'こんにちは。よろしくお願いします。';
 export const TTS_SAMPLE_DE = 'Hallo! Schön, dich kennenzulernen.';
+export const TTS_SAMPLE_NL = 'Hallo! Leuk je te ontmoeten.';
 
 export interface WebSpeechTtsOptions {
   /** how long to wait for the device to report voices when none are known yet (ms) */
@@ -290,7 +291,7 @@ export interface WebSpeechTtsOptions {
   /** pause between cancel() and speak() when something was speaking (ms) */
   deferMs?: number;
   chunkMax?: number;
-  /** the language spoken: 'ja-JP' (default) or 'de-DE'; the voice list and every utterance follow it */
+  /** the language spoken: 'ja-JP' (default), 'de-DE' or 'nl-NL'; the voice list and every utterance follow it */
   locale?: string;
 }
 
@@ -417,7 +418,7 @@ export class WebSpeechTts implements TtsPort {
   }
 
   async speakSample(): Promise<TtsSampleResult> {
-    await this.speak(this.locale.startsWith('de') ? TTS_SAMPLE_DE : TTS_SAMPLE_JA, { rate: 0.9 });
+    await this.speak(this.locale.startsWith('de') ? TTS_SAMPLE_DE : this.locale.startsWith('nl') ? TTS_SAMPLE_NL : TTS_SAMPLE_JA, { rate: 0.9 });
     const error = this.err;
     return { audible: hasSynthesis() && !this.sim && !error, voice: this.chosen, error };
   }
@@ -634,7 +635,7 @@ export class WebSpeechStt implements SttPort {
     return recognitionCtor() !== null;
   }
 
-  listen(lang: 'ja-JP' | 'de-DE' | 'en-US' | 'ar-SA', onInterim?: (text: string) => void): SttSession {
+  listen(lang: 'ja-JP' | 'de-DE' | 'nl-NL' | 'en-US' | 'ar-SA', onInterim?: (text: string) => void): SttSession {
     const Ctor = recognitionCtor();
     if (!Ctor) {
       return { result: Promise.reject(new SttError('unsupported')), stop() {}, abort() {} };

@@ -24,7 +24,7 @@ import type { ConversationFacts } from '@lw/game';
 import type { UiLang } from './i18n';
 import { useGame } from './game/gameStore';
 import { useUi } from './ui';
-import { IS_GERMAN, LEXICON, STORE_PREFIX, takePendingUiLang } from './target';
+import { LEXICON, STORE_PREFIX, TARGET, takePendingUiLang } from './target';
 
 /** The closed set of routes; the game's screens (docs/GAME_DESIGN.md §15.4 row 2A); every one is built except `letter` (chapter 8), which goes back to the street. */
 export type Screen =
@@ -208,8 +208,17 @@ const DE_STARTERS = [
   { ja: 'Tschüss!', en: 'Bye!', ar: 'باي!' },
 ];
 
+/** Dutch's first five: the greetings every Amsterdam conversation opens and closes with (u with the staff) */
+const NL_STARTERS = [
+  { ja: 'Hallo!', en: 'Hello!', ar: 'مرحبًا!' },
+  { ja: 'Goedemorgen!', en: 'Good morning!', ar: 'صباح الخير!' },
+  { ja: 'Graag.', en: 'Please.', ar: 'من فضلك.' },
+  { ja: 'Dank u wel!', en: 'Thank you!', ar: 'شكرًا!' },
+  { ja: 'Doei!', en: 'Bye!', ar: 'باي!' },
+];
+
 function starterWords(): Array<Omit<VocabItem, 'id' | 'savedAt' | 'card'>> {
-  return (IS_GERMAN ? DE_STARTERS : GREETINGS.cards.slice(0, 5)).map((c) => {
+  return { ja: GREETINGS.cards.slice(0, 5), de: DE_STARTERS, nl: NL_STARTERS }[TARGET].map((c) => {
     const tok = tokenize(c.ja, LEXICON).tokens;
     return {
       kind: 'phrase' as const,

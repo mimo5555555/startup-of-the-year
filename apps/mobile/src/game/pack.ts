@@ -1,10 +1,10 @@
 // The app's one door to the game pack (docs/GAME_DESIGN.md §14.5): screens and hooks read tables through here.
-import { BERLIN_PACK, JP_PACK } from '@lw/content';
+import { AMSTERDAM_PACK, BERLIN_PACK, JP_PACK } from '@lw/content';
 import type { Beat, FriendDef, ItemDef, MenuItem, ShopDef } from '@lw/game';
-import { IS_GERMAN } from '../target';
+import { TARGET } from '../target';
 
-/** the pack of the language being learned: Sakura-chō (Japanese) or Kreuzberg (German) */
-export const PACK = IS_GERMAN ? BERLIN_PACK : JP_PACK;
+/** the pack of the language being learned: Sakura-chō (Japanese), Kreuzberg (German) or De Pijp (Dutch) */
+export const PACK = { ja: JP_PACK, de: BERLIN_PACK, nl: AMSTERDAM_PACK }[TARGET];
 /** the pack id is the persistence key's middle part (`lw.game.<packId>.v1`) */
 export const PACK_ID = PACK.id;
 

@@ -1,7 +1,7 @@
 // App-side helpers over the content pack.
 import { LESSONS, entryToToken, plainText, romajiText, tokenize, type Character, type Gloss, type LexEntry, type Line, type Scenario, type Token } from '@lw/content';
 import type { UiLang } from './i18n';
-import { LEXICON, SCENARIOS, CHARACTERS, SIGNS, IS_GERMAN } from './target';
+import { LEXICON, SCENARIOS, CHARACTERS, SIGNS, IS_JAPANESE } from './target';
 
 export const NPC_ORDER = ['hanako', 'yuki', 'tanaka', 'sato', 'kenji', 'mio'];
 export const TOTAL_SIGNS = SIGNS.length;
@@ -30,8 +30,8 @@ export function displayName(c: Character, lang: UiLang): string {
 /** Labels shown above characters in the 3D view. */
 export function npcLabels(lang: UiLang): Record<string, string> {
   const out: Record<string, string> = {};
-  // a German name is the same in every script: say it once
-  for (const c of CHARACTERS) out[c.id] = IS_GERMAN ? c.name.en : `${c.name.ja}  ${displayName(c, lang)}`;
+  // a German or Dutch name is the same in every script: say it once
+  for (const c of CHARACTERS) out[c.id] = IS_JAPANESE ? `${c.name.ja}  ${displayName(c, lang)}` : c.name.en;
   return out;
 }
 

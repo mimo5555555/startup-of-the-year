@@ -358,7 +358,7 @@ export function buildBerlinCity(): City {
       if (!shutter && !open) {
         const opening = out.openings.get(shopId);
         if (!opening) return;
-        shutter = makeShutter(ctx, opening);
+        shutter = makeShutter(ctx, opening, { text: 'Geschlossen' });
         group.add(shutter);
         out.shutters.set(shopId, shutter);
       }

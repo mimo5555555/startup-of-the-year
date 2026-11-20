@@ -13,7 +13,7 @@ import { beginOwn } from '../../game/ownStore';
 import { comfortInfo, ownRoomOf, pieceRows, transitLine } from '../../game/ownLogic';
 import { Icon, type IconName } from '../Icon';
 import { Ltr } from './WalletPill';
-import { IS_GERMAN } from '../../target';
+import { IS_JAPANESE } from '../../target';
 
 // "What you own" (docs/GAME_DESIGN.md §7.5): a grid of the things the player has bought, a card for each, and the wardrobe for the pieces
 // that can be worn (the helmet and Fuku-Fuku's clothes, grouped by what they cover, with a colour pick for the pieces that come in several;
@@ -284,7 +284,7 @@ export function Inventory() {
   return (
     <div className="wlt-things" data-pane="things">
       {/* your room is a Tokyo stage (the dorm, Ono-sō): Berlin's WG room is not built yet */}
-      {!IS_GERMAN && <RoomCard state={state} />}
+      {IS_JAPANESE && <RoomCard state={state} />}
       <Wardrobe state={state} />
       {rows.length === 0 ? (
         <p className="muted center wlt-empty" dir="auto">

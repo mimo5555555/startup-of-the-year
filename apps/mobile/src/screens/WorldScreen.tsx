@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { BERLIN_DISTRICT, TokyoWorld } from '@lw/world';
+import { AMSTERDAM_DISTRICT, BERLIN_DISTRICT, TokyoWorld } from '@lw/world';
 import { levelProgress } from '@lw/core';
 import { WorldCtx, useT } from '../hooks';
 import { useStore } from '../store';
@@ -57,7 +57,7 @@ import {
   type Plan,
   type PickRoute,
 } from '../game/worldSync';
-import { SCENARIOS, CHARACTERS, SIGNS, IS_GERMAN } from '../target';
+import { SCENARIOS, CHARACTERS, SIGNS, TARGET } from '../target';
 
 /** What the player is looking at over the world: the NPC's options, a shop front, or Hanako's lesson list. */
 type Sheet = { kind: 'npc'; id: string; lessonsOnly?: boolean } | { kind: 'shop'; id: string };
@@ -125,8 +125,8 @@ export function WorldScreen() {
         playerSpec: useStore.getState().profile!.avatar,
         quality: mode === 'auto' ? 'auto' : mode,
         labels: npcLabels(useStore.getState().uiLang),
-        // learning German: Berlin's street instead of Tokyo's
-        ...(IS_GERMAN ? { district: BERLIN_DISTRICT } : {}),
+        // learning German or Dutch: Berlin's or Amsterdam's street instead of Tokyo's
+        ...(TARGET === 'de' ? { district: BERLIN_DISTRICT } : TARGET === 'nl' ? { district: AMSTERDAM_DISTRICT } : {}),
       });
       w.start();
       setWorld(w);
