@@ -13,3 +13,4 @@ export const AMSTERDAM_SCENARIOS: Scenario[] = [AMS_CAFE, AMS_KAAS, AMS_MARKT, A
 export const AMSTERDAM_CHARACTERS: Character[] = [FEMKE, KEES, JESSE, MO, INGRID, SANNE, DAAN, NOOR];
 export const amsterdamScenarioById = (id: string): Scenario | undefined => AMSTERDAM_SCENARIOS.find((s) => s.id === id);
 export const amsterdamCharacterById = (id: string): Character | undefined => AMSTERDAM_CHARACTERS.find((c) => c.id === id);
+export { AMSTERDAM_PACK, EUR_NL, NL_LANGUAGE } from './game';

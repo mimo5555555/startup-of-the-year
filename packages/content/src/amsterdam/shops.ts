@@ -9,7 +9,7 @@ import { PAY_CHIPS_NL, askToPayNl, payIntentsNl, saleDoneNl, shortOfMoneyNl } fr
 export const AMSTERDAM_PRICES: Record<string, number> = {
   koffie: 300, verkeerd: 380, thee: 280, chocomel: 350, appeltaart: 450,
   jong: 450, belegen: 520, oud: 650, geit: 600,
-  gewoon: 250, choco: 350,
+  gewoon: 250, choco: 350, blik: 795,
   patat: 350, kroket: 300, frikandel: 280, kaassouffle: 290,
   uur: 340, dag: 950,
 };
@@ -149,12 +149,20 @@ export const AMS_MARKT = shop('ams_markt', 'jesse', 'A1', ['Stroopwafels at the 
       id: 'start',
       emotion: 'happy',
       say: [say(L('Goedemiddag! Verse stroopwafels! Hoeveel wilt u?', 'Good afternoon! Fresh stroopwafels! How many would you like?', 'مساء الخير! «ستروبفافل» طازجة! كم تريد؟'))],
-      suggestions: [S('Eén stroopwafel, graag.', 'One stroopwafel, please.', '«ستروبفافل» واحدة من فضلك.'), S('Twee stroopwafels, graag.', 'Two stroopwafels, please.', 'اثنتان من «ستروبفافل» من فضلك.'), S('Een met chocolade, graag.', 'One with chocolate, please.', 'واحدة بالشوكولاتة من فضلك.')],
+      suggestions: [
+        S('Eén stroopwafel, graag.', 'One stroopwafel, please.', '«ستروبفافل» واحدة من فضلك.'),
+        S('Twee stroopwafels, graag.', 'Two stroopwafels, please.', 'اثنتان من «ستروبفافل» من فضلك.'),
+        S('Een met chocolade, graag.', 'One with chocolate, please.', 'واحدة بالشوكولاتة من فضلك.'),
+        S('Een blik stroopwafels, als cadeau.', 'A tin of stroopwafels, as a gift.', 'علبة «ستروبفافل» كهدية.'),
+      ],
       intents: [{ id: 'buy', slot: 'wafel', slotRequired: true, alsoSlots: ['qty'], next: 'warm', step: 'order', request: true, ideal: L('Twee stroopwafels, graag.', 'Two stroopwafels, please.', 'اثنتان من «ستروبفافل» من فضلك.') }],
     }),
     node({
       id: 'warm',
-      say: [say(L('Alstublieft, nog warm! Wilt u er een zakje bij?', 'Here you are, still warm! Would you like a bag for it?', 'تفضّل، ما زالت دافئة! هل تريد كيسًا لها؟'))],
+      say: [
+        say(L('Alstublieft, een mooi cadeau! Wilt u er een zakje bij?', 'Here you are, a lovely present! Would you like a bag for it?', 'تفضّل، هدية جميلة! هل تريد كيسًا لها؟'), { slot: 'wafel', in: ['blik'] }),
+        say(L('Alstublieft, nog warm! Wilt u er een zakje bij?', 'Here you are, still warm! Would you like a bag for it?', 'تفضّل، ما زالت دافئة! هل تريد كيسًا لها؟')),
+      ],
       suggestions: [S('Nee, dank u. Ik eet hem meteen op.', 'No, thanks. I’ll eat it right away.', 'لا، شكرًا. سآكلها فورًا.'), S('Ja, graag.', 'Yes, please.', 'نعم، من فضلك.')],
       intents: [
         { id: 'no_bag', any: ['nee', 'meteen', 'hoeft niet'], next: 'pay' },

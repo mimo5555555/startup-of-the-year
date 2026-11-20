@@ -32,6 +32,7 @@ export const NL_SLOTS: Record<string, SlotOption[]> = {
     opt('two', 'pond', ['een pond', '500 gram', 'vijfhonderd', 'groot stuk'], ['a pound', '500 grams', 'a big piece'], ['رطل', '500 غرام'], { en: 'a pound (500 g)', ar: 'رطل (500 غ)' }),
   ],
   wafel: [
+    opt('blik', 'blik stroopwafels', ['blik', 'blikje', 'trommel', 'cadeau'], ['tin', 'a tin of stroopwafels', 'gift'], ['علبة', 'علبة «ستروبفافل»'], { en: 'a tin of stroopwafels', ar: 'علبة «ستروبفافل»' }),
     opt('choco', 'stroopwafel met chocolade', ['chocolade', 'choco', 'met chocola'], ['with chocolate', 'chocolate'], ['بالشوكولاتة'], { en: 'stroopwafel with chocolate', ar: '«ستروبفافل» بالشوكولاتة' }),
     opt('gewoon', 'stroopwafel', ['stroopwafels', 'wafel', 'wafels', 'gewoon', 'gewone', 'naturel'], ['stroopwafel', 'waffle', 'plain'], ['«ستروبفافل»', 'فافل']),
   ],

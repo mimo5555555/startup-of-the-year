@@ -129,6 +129,8 @@ export interface CurrencyDef {
   symbol: string;
   minorPerMajor: 1 | 100;
   symbolPlacement: 'prefix' | 'suffix';
+  /** a space between a prefix symbol and the amount (the Dutch write 「€ 2,50」; the yen is 「¥250」) */
+  symbolSpace?: boolean;
   groupSep: string;
   decimalSep: string;
   roundTo: number;

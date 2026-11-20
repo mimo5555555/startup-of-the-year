@@ -19,7 +19,7 @@ export function yenFormat(amount: number, cur: CurrencyDef): string {
     const decimals = String(cur.minorPerMajor - 1).length;
     num += cur.decimalSep + String(abs % cur.minorPerMajor).padStart(decimals, '0');
   }
-  const body = cur.symbolPlacement === 'prefix' ? `${cur.symbol}${num}` : `${num} ${cur.symbol}`;
+  const body = cur.symbolPlacement === 'prefix' ? `${cur.symbol}${cur.symbolSpace ? ' ' : ''}${num}` : `${num} ${cur.symbol}`;
   return neg ? `-${body}` : body;
 }
 
