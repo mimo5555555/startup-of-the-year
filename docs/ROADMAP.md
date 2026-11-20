@@ -235,7 +235,7 @@ game, a bigger city with better conversations, and the same game for German, Dut
     regular's greeting per shop, and season and weekend small talk (with Sie) with yes and no chips, answers in your own words, a reply
     and back to the shop's question; an order still works while it is on.
   * German voices: `tools/voice/lines-de.ts` collects the 712 Berlin lines (prices read in words, letters spelled),
-    `generate-de.mjs` + `piper_batch.py` record them with Piper and two CC0 voices (Thorsten-Voice, Kerstin), a pitch and a pace per
+    `generate-piper.mjs de` (then `generate-de.mjs`) + `piper_batch.py` record them with Piper and two CC0 voices (Thorsten-Voice, Kerstin), a pitch and a pace per
     character and 1 dB of headroom, into `public/voice-de/` (4.2 MB; played like the Japanese recordings, credited in Settings). All
     712 recorded and checked by measure (no silence, no clipping, 5–15 characters a second); a line with a price or the player's name
     keeps the device voice for that sentence. The Berlin e2e asserts the recordings play.
@@ -260,12 +260,38 @@ game, a bigger city with better conversations, and the same game for German, Dut
     conversations, EN/AR, with and without hooks and card-only; a typed route in each shop with its charge; the friends; Dutch vs
     English; je/u notes).
 
+- **Dutch step 2: Amsterdam in the app** (done)
+  * The Amsterdam pack (`@lw/content` amsterdam/game): the euro the Dutch way (「€ 2,50」, `CurrencyDef.symbolSpace`), BTW included
+    (21 %, 9 % on food and transport), the Dutch language plugin (numbers read and parsed, prices in words, u/je), the menu of the five
+    places, three friends, chapters 1–3 with their beats, two dreams (a tin of stroopwafels to take home; three friends), titles, daily
+    tasks and nine culture cards (gezellig, pinnen, in- en uitchecken, koffie verkeerd, proeven, stroopwafels, patatje met, the bike,
+    je and u).
+  * The app's third language, **Nederlands · Dutch in Amsterdam**, in onboarding and Settings. `apps/mobile/src/target.ts` holds one
+    setup per language (engine, locale, store prefix `lw.nl.v1.`, voice folder, registries); the screens ask "is it Japanese?" instead of
+    "is it German?". The app's words say Dutch and Amsterdam, amounts read 「€ 30,00」, the notebook starts with Hallo, Goedemorgen,
+    Graag, Dank u wel, Doei; speech in and out is nl-NL.
+  * An Amsterdam canal in 3D (`@lw/world` amsterdam.ts): Café De Gracht, Kaashandel Bakker, Snackbar Mo and the GVB under narrow canal
+    houses (stepped, neck and cornice gables, hoist beams); the brick street with tram tracks, the red bike path, the quay with elms,
+    lamps, bike racks and Daan's bike; the canal with houseboats (Sanne's), a little open boat passing under the bridge, the south quay
+    with the language café (Noor); the Albert Cuyp market stalls (Jesse). The water is crossed only on the bridge. Sixteen things to tap
+    and read (`AMSTERDAM_SIGNS`).
+  * Closed shops outside Tokyo no longer show 準備中: Berlin's shutters say 「Geschlossen」, Amsterdam's 「Gesloten」, and the shop
+    sheet says it in the language learned.
+  * Dutch voices: all 509 Amsterdam lines recorded with Piper (`tools/voice/generate-piper.mjs nl`, the German recorder made
+    language-neutral), three CC0 voices with a pitch and a pace per character: Pim and Ronnie (Netherlands Dutch) for the men and the
+    narrator, whose lines are the learner's models; Nathalie for the four women. Checked by measure: none silent or clipped, 6.6–12.8
+    characters a second on full sentences; the voices' sex measured with pYIN against Berlin's two known voices.
+  * Tests: the canal (sites, spawns in reach, the water crossed on the bridge, every sign a Dutch word), the pack (prices, euro, the
+    shops), the app's Dutch switch, and an e2e in the real UI, EN and AR (`tools/e2e/game/amsterdam.mjs`: Sanne, a café order charged
+    exactly € 8,30, recordings playing, back to Japanese with its save untouched).
+
 ## Next
 
-1. **Dutch step 2: Amsterdam in the app** — the Amsterdam pack (euro, the Dutch plugin, chapters 1–3), the app's third language
-   (Nederlands · Dutch in Amsterdam), an Amsterdam street in 3D (canal houses, a canal, bikes) and Dutch voices.
-2. **Listen to the German voices** and adjust a character's pitch or pace in `voices-de.ts` where needed (re-run
-   `PIPER_PYTHON=… PIPER_MODELS=… node tools/voice/generate-de.mjs`); then Dutch in Amsterdam the same way.
+1. **Listen to the German and Dutch voices** and adjust a character's pitch or pace in `voices-de.ts` / `voices-nl.ts` where needed
+   (re-run `PIPER_PYTHON=… PIPER_MODELS=… node tools/voice/generate-piper.mjs <de|nl>`). Nathalie was trained on Flemish speech: if her
+   accent jars in Amsterdam, a Netherlands-Dutch woman's voice from Piper's MLS model (CC BY 4.0, needs a credit) can replace it.
+2. **Dutch step 3: Amsterdam's regulars and small talk**, as Berlin's (German step 4): the shopkeepers greet a regular and talk about
+   the season or the weekend (the app already sets the flags; the Dutch lines are missing).
 
 ## Other languages (German in Berlin first)
 
@@ -284,4 +310,4 @@ Japanese-specific and has to become a language plugin:
 
 Order of work: (1) a `LanguagePlugin` seam in `@lw/engine` and `@lw/core` (normalise, tokenise, number reading) with the Japanese one moved
 behind it (done: the `TargetLanguage`, with German beside it and a bakery conversation), (2) the German plugin and a small Berlin pack (one street, 5 shops, 3 friends, chapters 1–3), (3) a language picker in
-onboarding, (4) voices, then (5) Dutch in Amsterdam the same way.
+onboarding, (4) voices, then (5) Dutch in Amsterdam the same way (done: Dutch steps 1–2).

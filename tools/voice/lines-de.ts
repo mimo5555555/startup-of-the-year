@@ -1,4 +1,4 @@
-// Every static German line the app can speak in Berlin, with the voice that speaks it (tools/voice/generate-de.mjs records them).
+// Every static German line the app can speak in Berlin, with the voice that speaks it (tools/voice/generate-piper.mjs de records them).
 // Built from the content's own data: the street's conversations (with the regulars' greetings and the small talk), the reactions, the
 // story beats, the friends' facts, the culture phrases and every dictionary word. A line with slot variables ({floh}) is recorded once
 // per option; a sentence with any other runtime variable ({name}, a price) is left to the device voice, its other sentences recorded.

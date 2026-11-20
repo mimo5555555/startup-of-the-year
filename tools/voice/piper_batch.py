@@ -1,4 +1,4 @@
-# Synthesizes a batch of German lines with Piper (tools/voice/generate-de.mjs writes the batch and turns the WAVs into MP3s).
+# Synthesizes a batch of German or Dutch lines with Piper (tools/voice/generate-piper.mjs writes the batch and turns the WAVs into MP3s).
 #   python piper_batch.py <models dir> <jobs.json>      jobs: [{"model", "text", "speed", "wav"}]
 # Each model loads once; a job whose WAV exists is skipped (the run is resumable).
 import json
@@ -17,7 +17,11 @@ for job in jobs:
         continue
     voice = voices.get(job["model"])
     if voice is None:
-        voice = voices[job["model"]] = PiperVoice.load(os.path.join(models_dir, f"de_DE-{job['model']}.onnx"))
+        # a model is named in full (nl_NL-pim-medium) or, for Berlin's two, without its de_DE- prefix (thorsten-high)
+        path = os.path.join(models_dir, f"{job['model']}.onnx")
+        if not os.path.exists(path):
+            path = os.path.join(models_dir, f"de_DE-{job['model']}.onnx")
+        voice = voices[job["model"]] = PiperVoice.load(path)
     tmp = job["wav"] + ".tmp"
     with wave.open(tmp, "wb") as w:
         voice.synthesize_wav(job["text"], w, syn_config=SynthesisConfig(length_scale=1.0 / job["speed"]))

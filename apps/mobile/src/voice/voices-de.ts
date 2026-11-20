@@ -1,5 +1,5 @@
 // The recorded German voices of Berlin's cast and the narrator (chips, words, model lines): two open voices for Piper, both CC0
-// (Thorsten-Voice, male; Kerstin, female), each character set apart by a little pitch and pace (tools/voice/generate-de.mjs).
+// (Thorsten-Voice, male; Kerstin, female), each character set apart by a little pitch and pace (tools/voice/generate-piper.mjs de).
 import { NARRATOR } from './voices';
 
 export interface DeVoice {
