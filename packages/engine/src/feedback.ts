@@ -342,54 +342,93 @@ function firstHit(text: string, table: Array<[RegExp, string]>): { marker: strin
   return null;
 }
 
-/** du with a shopkeeper or anyone you do not know: Germans say Sie */
-const deDuWithStaff: Rule = (turn, { text, register, friend }) => {
-  if (friend || register === 'casual') return [];
-  const hit = firstHit(text, DU_TO_SIE);
-  if (!hit) return [];
-  const better = rewriteDe(text, DU_TO_SIE);
-  return [
-    {
-      turnId: turn.id,
-      span: [hit.index, hit.index + hit.marker.length],
-      category: 'naturalness',
-      kind: 'register',
-      severity: 1,
-      original: text,
-      better,
-      explanation: {
-        en: `「${hit.marker}」 is the informal du. With staff and people you do not know, Germans say Sie: 「${better}」.`,
-        ar: `«${hit.marker}» هي صيغة du غير الرسمية. مع الموظفين ومن لا تعرفهم يقول الألمان Sie: «${better}».`,
+/** The informal "you" with staff (German du, Dutch je): a note with the polite form, made whole (「Können Sie mir helfen?」). */
+function informalWithStaff(table: Array<[RegExp, string]>, explain: (marker: string, better: string) => Gloss): Rule {
+  return (turn, { text, register, friend }) => {
+    if (friend || register === 'casual') return [];
+    const hit = firstHit(text, table);
+    if (!hit) return [];
+    const better = rewriteDe(text, table);
+    return [
+      {
+        turnId: turn.id,
+        span: [hit.index, hit.index + hit.marker.length],
+        category: 'naturalness',
+        kind: 'register',
+        severity: 1,
+        original: text,
+        better,
+        explanation: explain(hit.marker, better),
       },
-    },
-  ];
-};
+    ];
+  };
+}
 
-/** Sie with a friend who says du: distant, not wrong (a soft note) */
-const deSieWithFriend: Rule = (turn, { text, register }) => {
-  if (register !== 'casual') return [];
-  const hit = firstHit(text, SIE_TO_DU);
-  if (!hit) return [];
-  return [
-    {
-      turnId: turn.id,
-      span: [hit.index, hit.index + hit.marker.length],
-      category: 'naturalness',
-      kind: 'register',
-      soft: true,
-      severity: 1,
-      original: text,
-      better: rewriteDe(text, SIE_TO_DU),
-      explanation: {
-        en: `「${hit.marker}」 is the formal Sie. Your friend says du to you, so Sie sounds a little distant. It is not wrong.`,
-        ar: `«${hit.marker}» هي صيغة Sie الرسمية. صديقك يخاطبك بـ du، فتبدو Sie بعيدة قليلًا. وهي ليست خطأ.`,
+/** The formal "you" with a friend who says the informal one (German Sie, Dutch u): distant, not wrong (a soft note). */
+function formalWithFriend(table: Array<[RegExp, string]>, explain: (marker: string) => Gloss): Rule {
+  return (turn, { text, register }) => {
+    if (register !== 'casual') return [];
+    const hit = firstHit(text, table);
+    if (!hit) return [];
+    return [
+      {
+        turnId: turn.id,
+        span: [hit.index, hit.index + hit.marker.length],
+        category: 'naturalness',
+        kind: 'register',
+        soft: true,
+        severity: 1,
+        original: text,
+        better: rewriteDe(text, table),
+        explanation: explain(hit.marker),
       },
-    },
-  ];
-};
+    ];
+  };
+}
+
+const deDuWithStaff = informalWithStaff(DU_TO_SIE, (m, better) => ({
+  en: `「${m}」 is the informal du. With staff and people you do not know, Germans say Sie: 「${better}」.`,
+  ar: `«${m}» هي صيغة du غير الرسمية. مع الموظفين ومن لا تعرفهم يقول الألمان Sie: «${better}».`,
+}));
+const deSieWithFriend = formalWithFriend(SIE_TO_DU, (m) => ({
+  en: `「${m}」 is the formal Sie. Your friend says du to you, so Sie sounds a little distant. It is not wrong.`,
+  ar: `«${m}» هي صيغة Sie الرسمية. صديقك يخاطبك بـ du، فتبدو Sie بعيدة قليلًا. وهي ليست خطأ.`,
+}));
+
+// ---------- Dutch (u and je) ----------
+
+/** the informal forms and their u forms, longest first: 「Kun je mij helpen?」 → 「Kunt u mij helpen?」 */
+const JE_TO_U: Array<[RegExp, string]> = [
+  [deWord('kun je'), 'kunt u'],
+  [deWord('kan je'), 'kunt u'],
+  [deWord('heb je'), 'heeft u'],
+  [deWord('wil je'), 'wilt u'],
+  [deWord('ben je'), 'bent u'],
+  [deWord('jij'), 'u'],
+  [deWord('jou'), 'u'],
+  [deWord('jouw'), 'uw'],
+  [deWord('je'), 'u'],
+];
+/** the polite forms a friend would not use, and their je forms */
+const U_TO_JE: Array<[RegExp, string]> = [
+  [deWord('kunt u'), 'kun je'],
+  [deWord('heeft u'), 'heb je'],
+  [deWord('wilt u'), 'wil je'],
+  [deWord('bent u'), 'ben je'],
+  [deWord('uw'), 'je'],
+  [deWord('u'), 'je'],
+];
+const nlJeWithStaff = informalWithStaff(JE_TO_U, (m, better) => ({
+  en: `「${m}」 is the informal je. With staff and people you do not know, u is the polite form: 「${better}」. (Many Amsterdammers say je, but u is always safe.)`,
+  ar: `«${m}» هي صيغة je غير الرسمية. مع الموظفين ومن لا تعرفهم الصيغة المهذبة هي u: «${better}». (كثير من أهل أمستردام يقولون je، لكن u مناسبة دائمًا.)`,
+}));
+const nlUWithFriend = formalWithFriend(U_TO_JE, (m) => ({
+  en: `「${m}」 is the polite u. Your friend says je to you, so u sounds a little distant. It is not wrong.`,
+  ar: `«${m}» هي صيغة u المهذبة. صديقك يخاطبك بـ je، فتبدو u بعيدة قليلًا. وهي ليست خطأ.`,
+}));
 
 /** the rules of each target language; a language without its own rules gets no corrections, only its scores */
-const RULES_BY_LANGUAGE: Record<string, Rule[]> = { ja: RULES, de: [deDuWithStaff, deSieWithFriend] };
+const RULES_BY_LANGUAGE: Record<string, Rule[]> = { ja: RULES, de: [deDuWithStaff, deSieWithFriend], nl: [nlJeWithStaff, nlUWithFriend] };
 
 const clamp = (n: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, Math.round(n)));
 

@@ -10,3 +10,4 @@ export * from './scoring';
 export * from './speechNormalize';
 export * from './speechScore';
 export * from './german';
+export * from './dutch';

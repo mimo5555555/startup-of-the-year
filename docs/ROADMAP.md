@@ -244,9 +244,27 @@ game, a bigger city with better conversations, and the same game for German, Dut
   「はい、二十歳以上です」 brings the beer, 「いいえ、未成年です」 or a change of mind a soft drink, charged at its price (drinking is from
   twenty in Japan). Younger profiles never see the beer, as before. New words 以上, 失礼, 未成年; the lines are recorded.
 
+- **Dutch step 1: Amsterdam in Dutch** (done)
+  * Dutch text (`@lw/core` dutch.ts): matching with and without accents (één = een, café = cafe), ĳ as y for a learner's typing,
+    keys from the start of a word (「een」 never in 「geen」), Dutch numbers both ways (eenentwintig, tweeëntwintig; the article een is no
+    number, één is), prices the Dutch way (「€ 2,50」 = 「twee euro vijftig」), 「Ik heet / Ik ben / Mijn naam is …」, 「Ik kom uit …」.
+  * The engine's `NL` target language (`@lw/engine` dutch.ts): Dutch vs English/Arabic input, global intents (langzaam, nog een keer,
+    dank u, doei, hoi, …), feedback for **je with staff** (with the u form: 「Kun je …?」 → 「Kunt u …?」) and a soft note for u with a
+    friend; the German Sie/du rules and the Dutch ones share one pair of rule makers.
+  * Amsterdam in Dutch (`@lw/content` amsterdam/), polite u with the staff: Café De Gracht (koffie verkeerd, appeltaart met
+    slagroom), Kaashandel Bakker (taste first, young or old Gouda, a half pond or a pound), the stroopwafel stall at the Albert Cuyp
+    market, the snack bar (「Zeg het maar!」, a patatje met, what a frikandel is), the GVB desk (an hour or a day; card only, and 「in- en
+    uitchecken」); pinnen or contant, and card-only places (`pinOnly`) refuse cash kindly. Three friends who say je: Sanne on her
+    houseboat, Daan and his bike, Noor at the language café.
+  * Tests: core dutch, content amsterdam (every word in the dictionary, slot keys), engine amsterdam (every chip of the eight
+    conversations, EN/AR, with and without hooks and card-only; a typed route in each shop with its charge; the friends; Dutch vs
+    English; je/u notes).
+
 ## Next
 
-1. **Listen to the German voices** and adjust a character's pitch or pace in `voices-de.ts` where needed (re-run
+1. **Dutch step 2: Amsterdam in the app** — the Amsterdam pack (euro, the Dutch plugin, chapters 1–3), the app's third language
+   (Nederlands · Dutch in Amsterdam), an Amsterdam street in 3D (canal houses, a canal, bikes) and Dutch voices.
+2. **Listen to the German voices** and adjust a character's pitch or pace in `voices-de.ts` where needed (re-run
    `PIPER_PYTHON=… PIPER_MODELS=… node tools/voice/generate-de.mjs`); then Dutch in Amsterdam the same way.
 
 ## Other languages (German in Berlin first)

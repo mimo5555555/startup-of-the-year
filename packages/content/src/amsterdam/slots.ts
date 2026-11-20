@@ -1,0 +1,81 @@
+// The slots of Amsterdam's Dutch conversations. Keys are compared the Dutch way (@lw/core nlMatchForms): any letter case, accents or not
+// (één = een, café = cafe), from the start of a word (「een」 is in 「eentje」, never in 「geen」).
+import type { SlotOption } from '../types';
+import { NL_LEXICON } from './lexicon';
+
+/** A slot option whose Dutch is dictionary words (a noun, or an adjective and a noun); the gloss is the last word's unless given; its own words are a key. */
+const opt = (id: string, nl: string, keys: string[], en: string[], ar: string[], gloss?: { en: string; ar: string }): SlotOption => {
+  const noun = nl.split(' ').at(-1)!;
+  const e = NL_LEXICON.get(noun);
+  if (!e) throw new Error(`Slot option ${id}: ${noun} is not in the Dutch dictionary`);
+  // the option's own words are a key, not its last word alone: 「jonge kaas」 and 「oude kaas」 must not both answer to 「kaas」
+  return { id, ja: nl, gloss: gloss ?? { en: e.en.replace(/ \(.*\)$/, ''), ar: e.ar.replace(/ \(.*\)$/, '') }, keys: { ja: [nl, ...keys], en, ar } };
+};
+
+export const NL_SLOTS: Record<string, SlotOption[]> = {
+  cafe: [
+    opt('verkeerd', 'koffie verkeerd', ['verkeerd', 'latte', 'koffie met melk'], ['latte', 'milky coffee', 'coffee with milk'], ['قهوة بالحليب', 'لاتيه'], { en: 'milky coffee', ar: 'قهوة بالحليب' }),
+    opt('koffie', 'koffie', ['koffietje', 'zwarte koffie'], ['coffee', 'a coffee'], ['قهوة']),
+    opt('thee', 'thee', ['theetje', 'muntthee'], ['tea', 'a tea'], ['شاي']),
+    opt('chocomel', 'chocolademelk', ['chocomel', 'warme chocolademelk', 'chocola'], ['hot chocolate', 'cocoa'], ['شوكولاتة ساخنة', 'كاكاو']),
+  ],
+  taart: [opt('appeltaart', 'appeltaart', ['taart', 'appel', 'stuk taart', 'stukje taart'], ['apple pie', 'pie', 'cake'], ['فطيرة التفاح', 'فطيرة'])],
+  kaas: [
+    opt('jong', 'jonge kaas', ['jong', 'jonge'], ['young cheese', 'young', 'mild'], ['جبن طري', 'طرية'], { en: 'young cheese', ar: 'الجبن الطري' }),
+    opt('belegen', 'belegen kaas', ['belegen'], ['mature cheese', 'mature', 'medium'], ['جبن متوسط', 'متوسطة'], { en: 'mature cheese', ar: 'الجبن المتوسط' }),
+    opt('oud', 'oude kaas', ['oud', 'oude', 'pittig', 'pittige'], ['old cheese', 'old', 'strong', 'aged'], ['جبن معتّق', 'معتّقة'], { en: 'old cheese', ar: 'الجبن المعتّق' }),
+    opt('geit', 'geitenkaas', ['geit'], ['goat cheese', 'goat'], ['جبن الماعز']),
+  ],
+  // the cheese is sold by the half pond (250 g): a half pond is one, a pond (500 g) two; the longer key wins (「een half pond」 is not 「een pond」)
+  gewicht: [
+    opt('one', 'half pond', ['halve pond', '250 gram', 'tweehonderdvijftig', 'klein stuk', 'klein stukje'], ['half a pound', '250 grams', 'a small piece'], ['نصف رطل', '250 غرامًا'], { en: 'half a pound (250 g)', ar: 'نصف رطل (250 غ)' }),
+    opt('two', 'pond', ['een pond', '500 gram', 'vijfhonderd', 'groot stuk'], ['a pound', '500 grams', 'a big piece'], ['رطل', '500 غرام'], { en: 'a pound (500 g)', ar: 'رطل (500 غ)' }),
+  ],
+  wafel: [
+    opt('choco', 'stroopwafel met chocolade', ['chocolade', 'choco', 'met chocola'], ['with chocolate', 'chocolate'], ['بالشوكولاتة'], { en: 'stroopwafel with chocolate', ar: '«ستروبفافل» بالشوكولاتة' }),
+    opt('gewoon', 'stroopwafel', ['stroopwafels', 'wafel', 'wafels', 'gewoon', 'gewone', 'naturel'], ['stroopwafel', 'waffle', 'plain'], ['«ستروبفافل»', 'فافل']),
+  ],
+  snack: [
+    opt('patat', 'patatje met', ['patat', 'patatje', 'friet', 'frietje', 'patat met', 'frites'], ['fries', 'chips', 'fries with mayo'], ['بطاطا مقلية', 'بطاطا'], { en: 'fries with mayonnaise', ar: 'بطاطا مقلية بالمايونيز' }),
+    opt('kroket', 'kroket', ['kroketten', 'kroketje'], ['kroket', 'croquette'], ['«كروكيت»']),
+    opt('frikandel', 'frikandel', ['frikandellen', 'frikadel'], ['frikandel', 'sausage'], ['«فريكاندل»', 'نقانق']),
+    opt('kaassouffle', 'kaassoufflé', ['kaassouffle', 'souffle', 'kaas souffle'], ['cheese souffle', 'cheese snack'], ['«كاسوفليه»', 'وجبة بالجبن']),
+  ],
+  kaartje: [
+    opt('uur', 'uurkaart', ['een uur', 'uur kaart', 'kaartje voor een uur', 'enkele reis', 'kaartje'], ['one-hour ticket', 'ticket', 'an hour'], ['تذكرة لساعة', 'تذكرة']),
+    opt('dag', 'dagkaart', ['dag kaart', '24 uur', 'hele dag', 'dagkaartje'], ['day ticket', 'day pass', '24 hours'], ['تذكرة يومية', 'تذكرة يوم']),
+  ],
+  // where you are from (a country not listed is taken as said: 「Ik kom uit IJsland」)
+  country: [
+    opt('egypt', 'Egypte', [], ['egypt'], ['مصر']),
+    opt('morocco', 'Marokko', [], ['morocco'], ['المغرب']),
+    opt('syria', 'Syrië', ['syrie'], ['syria'], ['سوريا', 'سورية']),
+    opt('saudi', 'Saoedi-Arabië', ['saoedi arabie', 'saoedi'], ['saudi arabia', 'saudi'], ['السعودية']),
+    opt('turkey', 'Turkije', [], ['turkey', 'türkiye'], ['تركيا']),
+    opt('england', 'Engeland', ['groot-brittannie', 'uk'], ['england', 'uk', 'britain'], ['إنجلترا', 'بريطانيا']),
+    opt('usa', 'Amerika', ['vs', 'de vs', 'verenigde staten'], ['usa', 'america', 'the us'], ['أمريكا', 'الولايات المتحدة']),
+    opt('japan', 'Japan', [], ['japan'], ['اليابان']),
+    opt('germany', 'Duitsland', [], ['germany'], ['ألمانيا']),
+  ],
+  hobby: [
+    opt('cooking', 'koken', ['kook', 'kok'], ['cooking', 'cook'], ['الطبخ', 'أطبخ']),
+    opt('music', 'muziek', ['luister', 'zing', 'gitaar', 'piano'], ['music'], ['الموسيقى', 'موسيقى']),
+    opt('sports', 'sport', ['voetbal', 'voetballen', 'hardlopen', 'loop hard', 'zwem', 'fiets', 'fietsen'], ['sport', 'sports', 'football', 'running'], ['الرياضة', 'كرة القدم']),
+    opt('games', 'spelletjes', ['gamen', 'game', 'spelletje', 'spel'], ['games', 'gaming', 'video games'], ['الألعاب', 'ألعاب الفيديو']),
+    opt('travel', 'reizen', ['reis'], ['travel', 'travelling'], ['السفر', 'أسافر']),
+    opt('movies', 'films', ['film', 'bioscoop', 'series', 'kijk'], ['movies', 'films', 'cinema'], ['الأفلام', 'السينما']),
+    opt('books', 'lezen', ['lees', 'boeken', 'boek'], ['reading', 'books'], ['القراءة', 'الكتب']),
+    opt('drawing', 'tekenen', ['teken', 'schilder', 'schilderen', 'kunst'], ['drawing', 'painting', 'art'], ['الرسم', 'أرسم']),
+  ],
+  payMethod: [
+    opt('card', 'pinnen', ['pin', 'pinpas', 'met de kaart', 'kaart', 'pas', 'ik pin'], ['card', 'by card', 'debit card'], ['بطاقة', 'بالبطاقة']),
+    opt('cash', 'contant', ['cash', 'met geld', 'contanten'], ['cash', 'in cash'], ['نقدًا', 'كاش']),
+  ],
+  // `one` comes last: on a tie of key length the first option wins, and 「twee stroopwafels en een koffie」 is two
+  qty: [
+    opt('two', 'twee', ['2', 'tweemaal'], ['two', '2'], ['اثنان', 'اثنين', '2']),
+    opt('three', 'drie', ['3'], ['three', '3'], ['ثلاثة', '3']),
+    opt('four', 'vier', ['4'], ['four', '4'], ['أربعة', '4']),
+    opt('one', 'één', ['een', 'eentje', '1'], ['one', 'a', '1'], ['واحد', 'واحدة', '1']),
+  ],
+};
