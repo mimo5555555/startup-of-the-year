@@ -84,11 +84,14 @@ function walk(id: string, l1: L1, mk: () => Partial<SessionOptions>) {
 const SHOPS = ['ams_cafe', 'ams_kaas', 'ams_markt', 'ams_snackbar', 'ams_gvb'];
 
 describe('the Amsterdam street: every chip is understood', () => {
+  // the canal of Dutch steps 1-3; the friends' chats, gifts and hang-outs and the places of Chapters 4-6 have their own tests
+  // (amsterdam-friends.test.ts, amsterdam-places.test.ts)
+  const STREET = [...SHOPS, 'ams_sanne', 'ams_daan', 'ams_noor'];
   it('has the five shops and the three friends, and Japanese stays the default language', () => {
-    expect(AMSTERDAM_SCENARIOS.map((s) => s.id)).toEqual([...SHOPS, 'ams_sanne', 'ams_daan', 'ams_noor']);
+    expect(AMSTERDAM_SCENARIOS.map((s) => s.id)).toEqual(expect.arrayContaining(STREET));
     expect(targetLanguage().id).toBe('ja');
   });
-  for (const sc of AMSTERDAM_SCENARIOS) {
+  for (const sc of AMSTERDAM_SCENARIOS.filter((x) => STREET.includes(x.id))) {
     const shop = SHOPS.includes(sc.id);
     const modes: Array<[string, () => Partial<SessionOptions>]> = shop
       ? [
@@ -228,8 +231,8 @@ describe('Dutch or not, u and je', () => {
 
 describe('regulars and small talk (Dutch step 3)', () => {
   const first = (s: ConversationSession) => s.turns[0]!.line.written;
-  it('every shop has a regular’s greeting and small talk; the friends have none', () => {
-    expect(Object.keys(AMSTERDAM_SHOP_TALK).sort()).toEqual([...SHOPS].sort());
+  it('every shop has a regular’s greeting and small talk (the drogist and the brown café of Dutch step 4 too); the friends have none', () => {
+    expect(Object.keys(AMSTERDAM_SHOP_TALK).sort()).toEqual([...SHOPS, 'ams_drogist', 'ams_kroeg'].sort());
   });
   for (const [id, shop] of Object.entries(AMSTERDAM_SHOP_TALK)) {
     it(`${id}: a regular is greeted as one`, () => {

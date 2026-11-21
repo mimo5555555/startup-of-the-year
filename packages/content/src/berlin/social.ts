@@ -1,107 +1,42 @@
 // Berlin's friends, after the first meeting (German step 5): the hand-over of a present (`give_gift`) and a chat on any day
-// (`smalltalk_<friend>`), in du. The app drives both the way it drives Tokyo's (apps/mobile/src/game/friendsLogic.ts):
-//   small talk  startNode `g_<topic>`, flags `rev_<factId>` (a friend's fact said after the reaction), `cb_<key>` (a callback in the
-//               greeting: `cb_hobby` with {hobby}, `cb_food` with {food}, `cb_dream`), steps greet / answer / react
-//   gift        flags `gift_<reaction>`, var {gift} (the giftItem / giftFood option), intents give_item / give_food / give_bare
-// Lines say du (Berlin's friends do from the first word), so only the plain variants exist: the `casual` twins of the flags
-// (`revc_`, `cbc_`, `giftc_`) are never needed.
-import type { IntentDef, Line, Scenario, SceneNode, SayVariant, Suggestion } from '../types';
-import { L, S, asRecord, node, say } from '../tokyo/dsl';
+// (`smalltalk_<friend>`), in du. The shape is shared with Amsterdam (../friendtalk.ts); these are the German lines.
+import type { Line } from '../types';
+import { L, S } from '../tokyo/dsl';
+import { buildGiveGift, buildSmalltalk, type FriendTopic } from '../friendtalk';
 import { DE_FRIENDS } from './game/people';
 
 type Friend = 'lena' | 'kofi' | 'jonas';
 export const DE_SMALLTALK_FRIENDS: readonly Friend[] = ['lena', 'kofi', 'jonas'];
-const HOME: Record<Friend, string> = { lena: 'berlin_wg', kofi: 'berlin_hof', jonas: 'berlin_cafe' };
 
 const BYE = ['tschüss', 'tschuss', 'bis morgen', 'bis bald', 'bis dann', 'ciao', 'danke', 'gern', 'gerne', 'ja', 'super', 'schön', 'mach', 'gut'];
 const END = L('Tschüss, {name}!', 'Bye, {name}!', 'إلى اللقاء يا {name}!');
 
-// ---------------------------------------------------------------------------------------------------------------
-// the gift
-// ---------------------------------------------------------------------------------------------------------------
-
-const GIFT_REACT: Record<'loved' | 'liked' | 'neutral' | 'disliked', Line> = {
-  loved: L('Echt? Wie toll! Vielen Dank!', 'Really? How wonderful! Thank you so much!', 'حقًا؟ ما أروع ذلك! شكرًا جزيلًا!'),
-  liked: L('Oh, danke! Das freut mich!', 'Oh, thanks! That makes me happy!', 'أوه، شكرًا! هذا يسعدني!'),
-  neutral: L('Danke schön.', 'Thank you.', 'شكرًا لك.'),
-  disliked: L('Oh. Na ja, danke.', 'Oh. Well, thanks.', 'أوه. حسنًا، شكرًا.'),
-};
-const GIVE_WORDS = ['für dich', 'geschenk', 'hier', 'bitte schön', 'bitteschön', 'schenke', 'nimm'];
-const GIVE_IDEAL = L('Ich habe {giftItem} für dich.', 'I have {giftItem} for you.', 'لديّ {giftItem} لك.');
-const giveIntent = (id: string, slot: string): IntentDef => ({ id, slot, slotRequired: true, next: 'react', step: 'give', ideal: GIVE_IDEAL });
-
-export const DE_GIVE_GIFT: Scenario = {
-  id: 'give_gift',
+export const DE_GIVE_GIFT = buildGiveGift({
   locationId: 'berlin_wg',
   characterId: 'lena',
-  level: 'A1',
-  title: { en: 'Give a gift', ar: 'قدّم هدية' },
-  setup: {
-    en: 'Hand your friend a present. Say what it is: Ich habe … für dich.',
-    ar: 'قدّم لصديقك هدية. قل ما هي: «Ich habe … für dich».',
-  },
-  minutes: 1,
-  steps: [
-    { id: 'give', text: { en: 'Hand over the present and name it', ar: 'قدّم الهدية وسمِّها' } },
-    { id: 'reply', text: { en: 'Answer the reaction', ar: 'أجب على ردّ الفعل' } },
+  setup: { en: 'Hand your friend a present. Say what it is: Ich habe … für dich.', ar: 'قدّم لصديقك هدية. قل ما هي: «Ich habe … für dich».' },
+  start: L('Hey {name}! Was gibt es?', 'Hey {name}! What’s up?', 'أهلًا يا {name}! ما الأخبار؟'),
+  chips: [
+    S('Ich habe {gift} für dich!', 'I have {gift} for you!', 'لديّ {gift} لك!'),
+    S('Hier, {gift}. Für dich!', 'Here, {gift}. For you!', 'تفضّل، {gift}. لك!'),
+    S('Hier, ein kleines Geschenk!', 'Here, a little present!', 'تفضّل، هدية صغيرة!'),
   ],
-  start: 'start',
-  nodes: asRecord([
-    node({
-      id: 'start',
-      emotion: 'neutral',
-      say: [say(L('Hey {name}! Was gibt es?', 'Hey {name}! What’s up?', 'أهلًا يا {name}! ما الأخبار؟'))],
-      suggestions: [
-        S('Ich habe {gift} für dich!', 'I have {gift} for you!', 'لديّ {gift} لك!'),
-        S('Hier, {gift}. Für dich!', 'Here, {gift}. For you!', 'تفضّل، {gift}. لك!'),
-        S('Hier, ein kleines Geschenk!', 'Here, a little present!', 'تفضّل، هدية صغيرة!'),
-      ],
-      intents: [
-        giveIntent('give_item', 'giftItem'),
-        giveIntent('give_food', 'giftFood'),
-        // a hand-over that does not name the item still works, for half the affinity
-        { id: 'give_bare', any: GIVE_WORDS, next: 'react', step: 'give', ideal: GIVE_IDEAL },
-      ],
-    }),
-    node({
-      id: 'react',
-      step: 'give',
-      emotion: 'happy',
-      say: [...(Object.keys(GIFT_REACT) as Array<keyof typeof GIFT_REACT>).map((r) => say(GIFT_REACT[r], { flag: `gift_${r}` })), say(GIFT_REACT.neutral)],
-      suggestions: [S('Gern geschehen!', 'You’re welcome!', 'عفوًا!'), S('Das freut mich!', 'I’m glad!', 'يسعدني ذلك!')],
-      intents: [{ id: 'reply', any: ['gern', 'gerne', 'freut', 'bitte', 'kein problem', 'schön', 'toll', 'super', 'ja', 'danke', 'hoffe'], next: 'thanks', step: 'reply' }],
-    }),
-    node({
-      id: 'thanks',
-      emotion: 'happy',
-      say: [say(L('Danke, {name}! Das ist echt lieb von dir.', 'Thanks, {name}! That’s really sweet of you.', 'شكرًا يا {name}! هذا لطف كبير منك.'))],
-      suggestions: [S('Bis bald!', 'See you soon!', 'إلى اللقاء قريبًا!'), S('Tschüss!', 'Bye!', 'باي!')],
-      intents: [{ id: 'bye', any: BYE, next: 'end' }],
-    }),
-    node({ id: 'end', emotion: 'happy', say: [say(END)], end: true, suggestions: [S('Tschüss!', 'Bye!', 'باي!')], intents: [] }),
-  ]),
-};
-
-// ---------------------------------------------------------------------------------------------------------------
-// small talk
-// ---------------------------------------------------------------------------------------------------------------
-
-interface Topic {
-  id: string;
-  ask: Line;
-  chips: [Suggestion, Suggestion];
-  /** what the learner may say, besides the common words */
-  keys: string[];
-  /** the friend's reaction (a function: each friend's own line) */
-  react: Line | ((f: Friend) => Line);
-  /** the learner's answer is kept as a fact the friend can quote later */
-  remember?: IntentDef;
-  /** friend-specific: only this friend raises it */
-  only?: Friend;
-}
-
-const COMMON = ['ja', 'nein', 'gern', 'gerne', 'nicht', 'gut', 'manchmal', 'oft', 'immer', 'weiß nicht', 'keine ahnung'];
-const UNSURE = ['weiß nicht', 'weiss nicht', 'keine ahnung', 'mal sehen', 'vielleicht'];
+  giveWords: ['für dich', 'geschenk', 'hier', 'bitte schön', 'bitteschön', 'schenke', 'nimm'],
+  ideal: L('Ich habe {giftItem} für dich.', 'I have {giftItem} for you.', 'لديّ {giftItem} لك.'),
+  react: {
+    loved: L('Echt? Wie toll! Vielen Dank!', 'Really? How wonderful! Thank you so much!', 'حقًا؟ ما أروع ذلك! شكرًا جزيلًا!'),
+    liked: L('Oh, danke! Das freut mich!', 'Oh, thanks! That makes me happy!', 'أوه، شكرًا! هذا يسعدني!'),
+    neutral: L('Danke schön.', 'Thank you.', 'شكرًا لك.'),
+    disliked: L('Oh. Na ja, danke.', 'Oh. Well, thanks.', 'أوه. حسنًا، شكرًا.'),
+  },
+  replyChips: [S('Gern geschehen!', 'You’re welcome!', 'عفوًا!'), S('Das freut mich!', 'I’m glad!', 'يسعدني ذلك!')],
+  replyKeys: ['gern', 'gerne', 'freut', 'bitte', 'kein problem', 'schön', 'toll', 'super', 'ja', 'danke', 'hoffe'],
+  thanks: L('Danke, {name}! Das ist echt lieb von dir.', 'Thanks, {name}! That’s really sweet of you.', 'شكرًا يا {name}! هذا لطف كبير منك.'),
+  thanksChips: [S('Bis bald!', 'See you soon!', 'إلى اللقاء قريبًا!'), S('Tschüss!', 'Bye!', 'باي!')],
+  bye: BYE,
+  end: END,
+  endChips: [S('Tschüss!', 'Bye!', 'باي!')],
+});
 
 const OWN_WEEKEND: Record<Friend, Line> = {
   lena: L('Schön! Ich gehe am Samstag ins Museum.', 'Nice! I’m going to a museum on Saturday.', 'جميل! سأذهب إلى المتحف يوم السبت.'),
@@ -114,7 +49,7 @@ const OWN_FOOD: Record<Friend, Line> = {
   jonas: L('Lecker! Ich esse am liebsten Falafel.', 'Yummy! My favourite is falafel.', 'لذيذ! طعامي المفضل الفلافل.'),
 };
 
-export const DE_TOPICS: Topic[] = [
+export const DE_TOPICS: FriendTopic[] = [
   {
     id: 'weather',
     ask: L('Schönes Wetter heute, oder? Gehst du spazieren?', 'Nice weather today, isn’t it? Are you going for a walk?', 'الطقس جميل اليوم، أليس كذلك؟ هل ستتمشى؟'),
@@ -127,14 +62,14 @@ export const DE_TOPICS: Topic[] = [
     ask: L('Was machst du am Wochenende?', 'What are you doing at the weekend?', 'ماذا ستفعل في عطلة نهاية الأسبوع؟'),
     chips: [S('Ich treffe Freunde.', 'I’m meeting friends.', 'سألتقي بأصدقاء.'), S('Ich ruhe mich aus.', 'I’m having a rest.', 'سأرتاح.')],
     keys: ['treffe', 'freunde', 'ruhe', 'ausruhen', 'einkaufen', 'kino', 'park', 'schlafe', 'arbeite', 'nichts', 'koche'],
-    react: (f) => OWN_WEEKEND[f],
+    react: (f) => OWN_WEEKEND[f as Friend],
   },
   {
     id: 'food',
     ask: L('Was isst du am liebsten?', 'What do you like eating most?', 'ما أكثر طعام تحب أن تأكله؟'),
     chips: [S('Ich esse gern Pizza.', 'I like eating pizza.', 'أحب أكل البيتزا.'), S('Ich esse am liebsten Döner.', 'My favourite is Döner.', 'طعامي المفضل الدونر.')],
     keys: ['esse', 'essen', 'lecker', 'liebsten'],
-    react: (f) => OWN_FOOD[f],
+    react: (f) => OWN_FOOD[f as Friend],
     remember: { id: 'food_named', slot: 'chatfood', slotRequired: true, next: 'f_food', step: 'answer', remember: { fact: 'favFood', from: 'slot' } },
   },
   {
@@ -207,81 +142,31 @@ const CALLBACKS: Record<string, Line> = {
   dream: L('Hey {name}! Und, wie läuft es mit deinem Traum?', 'Hey {name}! So, how’s your dream going?', 'أهلًا يا {name}! كيف يسير حلمك؟'),
 };
 export const DE_SMALLTALK_CALLBACKS = Object.keys(CALLBACKS);
-const HELLO = L('Hey {name}! Wie geht es dir?', 'Hey {name}! How are you?', 'أهلًا يا {name}! كيف حالك؟');
 
-/** each friend's facts, as the game pack defines them (FriendDef.factLines): said after a reaction once the friend reveals them */
-const FACT_LINES: Record<Friend, Record<string, Line>> = Object.fromEntries(DE_FRIENDS.map((f) => [f.id, f.factLines ?? {}])) as Record<Friend, Record<string, Line>>;
-
-/** a reaction, then a second line of the friend's: one turn */
-const cat = (a: Line, b: Line): Line => ({ ja: `${a.ja} ${b.ja}`, en: `${a.en} ${b.en}`, ar: `${a.ar} ${b.ar}` });
-const reactOf = (t: Topic, f: Friend): Line => (typeof t.react === 'function' ? t.react(f) : t.react);
-
-const greetSay = (): SayVariant[] => [...Object.entries(CALLBACKS).map(([k, l]) => say(l, { flag: `cb_${k}` })), say(HELLO)];
-const followSay = (f: Friend, r: Line): SayVariant[] => [...Object.entries(FACT_LINES[f]).map(([id, l]) => say(cat(r, l), { flag: `rev_${id}` })), say(r)];
-
-function topicNodes(f: Friend, t: Topic, others: string[]): SceneNode[] {
-  return [
-    node({
-      id: `g_${t.id}`,
-      emotion: 'happy',
-      say: greetSay(),
-      suggestions: [S('Hallo! Gut, danke!', 'Hi! Good, thanks!', 'أهلًا! بخير، شكرًا!'), S('Hey! Super, und dir?', 'Hey! Great, and you?', 'أهلًا! ممتاز، وأنت؟')],
-      intents: [
-        { id: 'hello', any: ['hallo', 'hey', 'hi', 'moin', 'servus', 'na', 'super', 'gut', 'danke'], next: `t_${t.id}`, step: 'greet' },
-        // an answer to the callback (「Ja, immer noch!」, 「Ja, gestern!」, 「Es geht voran」)
-        { id: 'cb', any: ['ja', 'nein', 'immer noch', 'gestern', 'heute', 'klar', 'voran', 'langsam', 'leider', 'noch nicht', 'viel'], next: `t_${t.id}`, step: 'greet' },
-        // the picker's other topics: the host enters those nodes directly (startNode); these keys keep the graph connected and are never typed
-        ...others.map((o): IntentDef => ({ id: `to_${o}`, any: [`#topic:${o}`], next: `g_${o}` })),
-      ],
-    }),
-    node({
-      id: `t_${t.id}`,
-      emotion: 'neutral',
-      say: [say(t.ask)],
-      suggestions: [...t.chips],
-      intents: [...(t.remember ? [t.remember] : []), { id: 'answer', any: [...t.keys, ...COMMON], next: `f_${t.id}`, step: 'answer' }, { id: 'unsure', any: UNSURE, next: `f_${t.id}` }],
-    }),
-    node({
-      id: `f_${t.id}`,
-      emotion: 'happy',
-      say: followSay(f, reactOf(t, f)),
-      suggestions: [S('Echt? Cool!', 'Really? Cool!', 'حقًا؟ رائع!'), S('Ich auch!', 'Me too!', 'وأنا أيضًا!')],
-      intents: [{ id: 'react', any: ['echt', 'cool', 'ich auch', 'toll', 'super', 'schön', 'interessant', 'wirklich', 'ja', 'genau', 'klar', 'gerne', 'gern', 'lecker'], next: 'close', step: 'react' }],
-    }),
-  ];
-}
-
-function smalltalk(f: Friend): Scenario {
-  const topics = DE_TOPICS.filter((t) => !t.only || t.only === f);
-  const ids = topics.map((t) => t.id);
-  const first = 'weather';
-  const nodes: SceneNode[] = topics.flatMap((t) => topicNodes(f, t, t.id === first ? ids.filter((i) => i !== first) : []));
-  nodes.push(
-    node({
-      id: 'close',
-      emotion: 'happy',
-      say: [say(L('Danke fürs Quatschen! Bis morgen!', 'Thanks for the chat! See you tomorrow!', 'شكرًا على الدردشة! أراك غدًا!'))],
-      suggestions: [S('Bis morgen!', 'See you tomorrow!', 'أراك غدًا!'), S('Tschüss!', 'Bye!', 'باي!')],
-      intents: [{ id: 'bye', any: BYE, next: 'end' }],
-    }),
-    node({ id: 'end', emotion: 'happy', say: [say(END)], end: true, suggestions: [S('Tschüss!', 'Bye!', 'باي!')], intents: [] }),
-  );
-  return {
-    id: `smalltalk_${f}`,
-    locationId: HOME[f],
-    characterId: f,
-    level: 'A1',
-    title: { en: 'Small talk', ar: 'دردشة' },
-    setup: { en: 'A chat with a friend. Say hello, answer the question of the day and react to what they say.', ar: 'دردشة مع صديق. قل مرحبًا وأجب عن سؤال اليوم وعلّق على ما يقوله.' },
-    minutes: 3,
-    steps: [
-      { id: 'greet', text: { en: 'Greet your friend', ar: 'حيِّ صديقك' } },
-      { id: 'answer', text: { en: 'Answer the question', ar: 'أجب عن السؤال' } },
-      { id: 'react', text: { en: 'React to the answer', ar: 'علّق على الرد' } },
-    ],
-    start: `g_${first}`,
-    nodes: asRecord(nodes),
-  };
-}
-
-export const DE_SMALLTALK: Scenario[] = DE_SMALLTALK_FRIENDS.map(smalltalk);
+export const DE_SMALLTALK = DE_SMALLTALK_FRIENDS.map((f) =>
+  buildSmalltalk(
+    {
+      home: { lena: 'berlin_wg', kofi: 'berlin_hof', jonas: 'berlin_cafe' },
+      hello: L('Hey {name}! Wie geht es dir?', 'Hey {name}! How are you?', 'أهلًا يا {name}! كيف حالك؟'),
+      callbacks: CALLBACKS,
+      greetChips: [S('Hallo! Gut, danke!', 'Hi! Good, thanks!', 'أهلًا! بخير، شكرًا!'), S('Hey! Super, und dir?', 'Hey! Great, and you?', 'أهلًا! ممتاز، وأنت؟')],
+      helloKeys: ['hallo', 'hey', 'hi', 'moin', 'servus', 'na', 'super', 'gut', 'danke'],
+      // an answer to the callback (「Ja, immer noch!」, 「Ja, gestern!」, 「Es geht voran」)
+      cbKeys: ['ja', 'nein', 'immer noch', 'gestern', 'heute', 'klar', 'voran', 'langsam', 'leider', 'noch nicht', 'viel'],
+      common: ['ja', 'nein', 'gern', 'gerne', 'nicht', 'gut', 'manchmal', 'oft', 'immer', 'weiß nicht', 'keine ahnung'],
+      unsure: ['weiß nicht', 'weiss nicht', 'keine ahnung', 'mal sehen', 'vielleicht'],
+      reactChips: [S('Echt? Cool!', 'Really? Cool!', 'حقًا؟ رائع!'), S('Ich auch!', 'Me too!', 'وأنا أيضًا!')],
+      reactKeys: ['echt', 'cool', 'ich auch', 'toll', 'super', 'schön', 'interessant', 'wirklich', 'ja', 'genau', 'klar', 'gerne', 'gern', 'lecker'],
+      close: L('Danke fürs Quatschen! Bis morgen!', 'Thanks for the chat! See you tomorrow!', 'شكرًا على الدردشة! أراك غدًا!'),
+      closeChips: [S('Bis morgen!', 'See you tomorrow!', 'أراك غدًا!'), S('Tschüss!', 'Bye!', 'باي!')],
+      bye: BYE,
+      end: END,
+      endChips: [S('Tschüss!', 'Bye!', 'باي!')],
+      topics: DE_TOPICS,
+      // each friend's facts, as the game pack defines them (FriendDef.factLines): said after a reaction once the friend reveals them
+      factLines: Object.fromEntries(DE_FRIENDS.map((x) => [x.id, x.factLines ?? {}])),
+      setup: { en: 'A chat with a friend. Say hello, answer the question of the day and react to what they say.', ar: 'دردشة مع صديق. قل مرحبًا وأجب عن سؤال اليوم وعلّق على ما يقوله.' },
+    },
+    f,
+  ),
+);

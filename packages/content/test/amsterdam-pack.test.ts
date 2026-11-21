@@ -27,9 +27,10 @@ describe('the Amsterdam pack', () => {
 
   it('is its own pack: euro and cents, Dutch, Amsterdam; nothing of Tokyo’s or Berlin’s', () => {
     expect(AMSTERDAM_PACK).toMatchObject({ id: 'nl', language: 'nl', district: 'amsterdam', currency: { code: 'EUR', minorPerMajor: 100, symbolPlacement: 'prefix' } });
-    expect(AMSTERDAM_PACK.release).toEqual({ lastChapter: 3, epilogue: 'b_nc3_close' });
+    expect(AMSTERDAM_PACK.release).toEqual({ lastChapter: 6, epilogue: 'b_nc6_close' });
     const others = new Set([...JP_PACK.scenarioMeta, ...BERLIN_PACK.scenarioMeta].map((m) => m.id));
-    for (const m of AMSTERDAM_PACK.scenarioMeta) expect(others.has(m.id), m.id).toBe(false);
+    // give_gift is the one id every language shares: the app starts the hand-over by it
+    for (const m of AMSTERDAM_PACK.scenarioMeta) if (m.id !== 'give_gift') expect(others.has(m.id), m.id).toBe(false);
     expect(AMSTERDAM_PACK.scenarioMeta.map((m) => m.id).sort()).toEqual(AMSTERDAM_SCENARIOS.map((s) => s.id).sort());
   });
 

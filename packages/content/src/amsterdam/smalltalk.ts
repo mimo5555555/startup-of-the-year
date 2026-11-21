@@ -26,6 +26,16 @@ export const AMSTERDAM_SHOP_TALK: Record<string, ShopTalk> = {
     hello: L('Hallo!', 'Hi!', 'أهلًا!'),
     ask: L('Zo, zeg het maar!', 'So, what will it be?', 'إذن، تفضّل، ماذا تريد؟'),
   },
+  ams_drogist: {
+    regular: L('Goedemiddag! Fijn u weer te zien. Kan ik u ergens mee helpen?', 'Good afternoon! Nice to see you again. Can I help you with anything?', 'مساء الخير! سعيدة برؤيتك مجددًا. هل أستطيع مساعدتك بشيء؟'),
+    hello: L('Goedemiddag!', 'Good afternoon!', 'مساء الخير!'),
+    ask: L('Zo, kan ik u ergens mee helpen?', 'So, can I help you with anything?', 'إذن، هل أستطيع مساعدتك بشيء؟'),
+  },
+  ams_kroeg: {
+    regular: L('Hé, onze vaste gast! Goedenavond! Wat mag het zijn?', 'Hey, our regular! Good evening! What can I get you?', 'أهلًا، زبوننا الدائم! مساء الخير! ماذا تشرب؟'),
+    hello: L('Goedenavond!', 'Good evening!', 'مساء الخير!'),
+    ask: L('Zo, wat mag het zijn?', 'So, what can I get you?', 'إذن، ماذا تشرب؟'),
+  },
   ams_gvb: {
     regular: L('Goedendag! Fijn u weer te zien. Waarmee kan ik u helpen?', 'Good day! Nice to see you again. How can I help you?', 'نهارك سعيد! سعيدة برؤيتك مجددًا. بماذا أستطيع مساعدتك؟'),
     hello: L('Goedendag!', 'Good day!', 'نهارك سعيد!'),

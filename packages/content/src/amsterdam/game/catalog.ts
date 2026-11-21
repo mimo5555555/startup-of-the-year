@@ -1,9 +1,12 @@
 // What Amsterdam's street sells (Dutch step 2): the menus of the five shops (by their conversations' slots), one owned thing (a tin of
 // stroopwafels, a present to take home) and the shops themselves. Prices in cents, BTW included.
 import type { ItemDef, MenuItem, ShopDef } from '@lw/game';
-import { AMSTERDAM_PRICES as P } from '../shops';
+import { AMSTERDAM_PRICES } from '../shops';
+import { DROGIST_PRICES, KROEG_PRICES } from '../places';
 
-const menu = (shop: string, slot: string, option: string, nl: string, en: string, ar: string, taxClass: string, tags: string[], giftable = false): MenuItem => ({
+const P: Record<string, number> = { ...AMSTERDAM_PRICES, ...DROGIST_PRICES, ...KROEG_PRICES };
+
+const menu = (shop: string, slot: string, option: string, nl: string, en: string, ar: string, taxClass: string, tags: string[], giftable?: boolean): MenuItem => ({
   id: `${shop}:${option}`,
   shop,
   slot,
@@ -12,7 +15,7 @@ const menu = (shop: string, slot: string, option: string, nl: string, en: string
   price: P[option]!,
   taxClass,
   tags,
-  ...(giftable ? { giftable } : {}),
+  ...(giftable !== undefined ? { giftable } : {}),
 });
 
 export const NL_MENU: MenuItem[] = [
@@ -33,6 +36,16 @@ export const NL_MENU: MenuItem[] = [
   menu('snackbar', 'snack', 'kaassouffle', 'kaassoufflé', 'Kaassoufflé', '«كاسوفليه»', 'food', ['food', 'meal']),
   menu('gvb', 'kaartje', 'uur', 'uurkaart', 'One-hour ticket', 'تذكرة لساعة', 'transport', ['transport']),
   menu('gvb', 'kaartje', 'dag', 'dagkaart', 'Day ticket', 'تذكرة يومية', 'transport', ['transport']),
+  // Chapter 4: the drogist (a remedy is not a present)
+  menu('drogist', 'klacht', 'keel', 'keelpastilles', 'Throat sweets', 'حلوى للحلق', 'standard', ['health'], false),
+  menu('drogist', 'klacht', 'hoofd', 'paracetamol', 'Paracetamol', 'باراسيتامول', 'standard', ['health'], false),
+  menu('drogist', 'klacht', 'verkouden', 'neusspray', 'Nasal spray', 'بخاخ للأنف', 'standard', ['health'], false),
+  menu('drogist', 'klacht', 'hoest', 'hoestsiroop', 'Cough syrup', 'شراب للسعال', 'standard', ['health'], false),
+  // Chapter 5: the brown café (drunk and eaten at the bar)
+  menu('bruincafe', 'kroeg', 'bier', 'biertje', 'Beer', 'بيرة', 'standard', ['drink', 'alcohol'], false),
+  menu('bruincafe', 'kroeg', 'spa', 'spa rood', 'Sparkling water', 'ماء فوّار', 'food', ['drink'], false),
+  menu('bruincafe', 'kroeg', 'cola', 'cola', 'Cola', 'كولا', 'food', ['drink'], false),
+  menu('bruincafe', 'kroegSnack', 'bitterballen', 'bitterballen', 'Bitterballen (eight)', '«بِترْبالن» (ثماني قطع)', 'food', ['food', 'meal'], false),
 ];
 
 /** a tin of stroopwafels from Jesse's stall: the present to take home (the dream 「Een cadeau voor thuis」) */
@@ -67,4 +80,7 @@ export const NL_SHOPS: ShopDef[] = [
   shop('gvb', 'ams_gvb', 'GVB', 'tram tickets', 'تذاكر الترام', 2, ['card']),
   shop('kaas', 'ams_kaas', 'Kaashandel Bakker', 'cheese shop', 'متجر باكر للأجبان', 3, ['cash', 'card']),
   shop('markt', 'ams_markt', 'Albert Cuypmarkt', 'market', 'سوق ألبرت كاوب', 3, ['cash', 'card'], ['ams_wafel_blik']),
+  shop('drogist', 'ams_drogist', 'De Drogist', 'chemist', 'محلّ «الدروخيست»', 4, ['cash', 'card']),
+  // the brown café takes cards only, like many in Amsterdam now
+  shop('bruincafe', 'ams_kroeg', 'Café ’t Hoekje', 'brown café', 'المقهى البنّي «تهوكيه»', 5, ['card']),
 ];

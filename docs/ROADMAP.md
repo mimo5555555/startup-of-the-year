@@ -313,18 +313,36 @@ game, a bigger city with better conversations, and the same game for German, Dut
     an e2e in the real UI (`tools/e2e/game/berlin-chapters.mjs`: a chat with Lena, the Apotheke, the Kneipe refusing a card, the
     Anmeldung).
 
+- **Dutch step 4: Amsterdam Chapters 4–6** (done): the story runs to Chapter 6 (*Goede vrienden*, *Uitgaan*, *Thuis in Amsterdam*),
+  whose closing is the new ending before Free Walk, as in Berlin.
+  * The chat of the day and the hand-over of a present are now one builder for every city (`@lw/content` friendtalk.ts:
+    `buildSmalltalk`, `buildGiveGift`); Berlin's are rebuilt on it unchanged, Amsterdam's are content only (amsterdam/social.ts). Sanne,
+    Daan and Noor chat in Dutch with je (nine topics each, three their own: drawing with Sanne, your favourite spot in the city with
+    Daan, an Arabic word for Noor), reveal a fact after the reaction and greet you with your hobby or favourite food. The gift sheet
+    finds things to give now that the Dutch `giftItem` / `giftFood` slots exist.
+  * Hang-outs at three hearts (amsterdam/hangouts.ts): pancakes on Sanne's houseboat, a bike ride through the Vondelpark with Daan
+    (hand signals), the birthday of Noor's mother (the circle of guests, congratulate everyone).
+  * Three places, each with a front on the north side of the canal (amsterdam/places.ts): the drogist (Ch 4, Mirjam: say what's wrong,
+    the remedy, 「Beterschap!」), the brown café ’t Hoekje (Ch 5, Joop: a drink, beer only for an adult, bitterballen, 「Proost!」,
+    「Mag ik afrekenen?」, cards only) and the gemeente (Ch 6, Ilse: the inschrijving, appointment, passport and rental contract,
+    address, floor, the BSN by post). They greet regulars and make small talk like the rest of the street. Six culture cards (the
+    drogist, pancakes, cycling rules, the Dutch birthday circle, the brown café, registering), three titles.
+  * 183 new words; 561 more Dutch lines recorded (1,236 in all, all checked), Mirjam, Joop and Ilse with voices of their own, the
+    hand-over in each friend's voice.
+  * Tests: every chat topic, the gift, the hang-outs and the three places through the engine (every chip EN/AR, typed routes, charges,
+    beer only for adults, cards only), the street (spawns, fronts, signs, labels), the pack at level 5, the voice lines, and an e2e in
+    the real UI (`tools/e2e/game/amsterdam-chapters.mjs`: a chat with Sanne, the drogist, ’t Hoekje refusing cash, the inschrijving;
+    EN and AR).
+
 ## Next
 
 1. **Listen to the German and Dutch voices** and adjust a character's pitch or pace in `voices-de.ts` / `voices-nl.ts` where needed
    (re-run `PIPER_PYTHON=… PIPER_MODELS=… node tools/voice/generate-piper.mjs <de|nl>`). Nathalie was trained on Flemish speech: if her
    accent jars in Amsterdam, a Netherlands-Dutch woman's voice from Piper's MLS model (CC BY 4.0, needs a credit) can replace it.
-2. **Dutch step 4: Amsterdam Chapters 4–6**, the way Berlin's were done: Sanne, Daan and Noor's chats of the day and a Dutch hand-over
-   of a present (the gift sheet in Amsterdam finds nothing to give until the Dutch `giftItem` / `giftFood` slots exist), hang-outs at
-   three hearts, a place per chapter (the drogist, a brown café, the gemeente for the BSN registration), the story and its voices.
-3. **Jobs for Berlin and Amsterdam**: the shift screen counts yen and matches kana (`components/game/shift/shiftLogic.ts`); made
+2. **Jobs for Berlin and Amsterdam**: the shift screen counts yen and matches kana (`components/game/shift/shiftLogic.ts`); made
    language-neutral (the pack's price markup and number parser, the target language's matching), Murat's Späti and Femke's café can
    hire the player.
-4. **A fourth language** (proposed): onboarding already shows Español and Русский as coming; the language layer, the pack, the
+3. **A fourth language** (proposed): onboarding already shows Español and Русский as coming; the language layer, the pack, the
    district and the voice pipeline are now proven twice, so a new city is mostly content.
 
 ## Other languages (German in Berlin first)

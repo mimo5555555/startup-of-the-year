@@ -36,5 +36,5 @@ export const AMSTERDAM_PACK: GamePack = {
   culture: NL_CULTURE,
   titles: NL_TITLES,
   ageProfiles: JP_AGE_PROFILES,
-  release: { lastChapter: 3, epilogue: NL_EPILOGUE },
+  release: { lastChapter: 6, epilogue: NL_EPILOGUE },
 };

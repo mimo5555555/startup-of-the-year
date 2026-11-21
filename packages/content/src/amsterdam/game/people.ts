@@ -59,6 +59,24 @@ export const NL_FRIENDS: FriendDef[] = [
 
 const scenario = (id: string, scenarioId: string, en: string, ar: string, ch = 1): Interaction => ({ id, kind: 'scenario', scenarioId, label: { en, ar }, ch });
 const gift = (who: string): Interaction => ({ id: `${who}_gift`, kind: 'gift', label: { en: 'Give a gift', ar: 'قدّم هدية' }, ch: 3 });
+/** a chat on any day (`smalltalk_<who>`, social.ts), once the first meeting is done; listed first, so it is what Talk does from then on */
+const talk = (who: string, met: string, ch = 1): Interaction => ({
+  id: `${who}_talk`,
+  kind: 'scenario',
+  scenarioId: `smalltalk_${who}`,
+  label: { en: 'Small talk', ar: 'دردشة' },
+  ch,
+  gate: { k: 'scenario', id: met, complete: true },
+});
+/** a hang-out (hangouts.ts) once the friend is at three hearts, from Chapter 4 */
+const hang = (who: string, scenarioId: string): Interaction => ({
+  id: `${who}_hang`,
+  kind: 'scenario',
+  scenarioId,
+  label: { en: 'Hang out', ar: 'اقضيا وقتًا معًا' },
+  ch: 4,
+  gate: { k: 'hearts', friend: who, atLeast: 3 },
+});
 
 export const NL_INTERACTIONS: Record<string, Interaction[]> = {
   femke: [scenario('femke_shop', 'ams_cafe', 'Order a coffee', 'اطلب قهوة')],
@@ -66,9 +84,13 @@ export const NL_INTERACTIONS: Record<string, Interaction[]> = {
   ingrid: [scenario('ingrid_shop', 'ams_gvb', 'Buy a ticket', 'اشترِ تذكرة', 2)],
   kees: [scenario('kees_shop', 'ams_kaas', 'Buy cheese', 'اشترِ جبنًا', 3)],
   jesse: [scenario('jesse_shop', 'ams_markt', 'Buy stroopwafels', 'اشترِ «ستروبفافل»', 3)],
-  sanne: [scenario('sanne_talk', 'ams_sanne', 'Talk', 'تحدّث'), gift('sanne')],
-  daan: [scenario('daan_talk', 'ams_daan', 'Talk', 'تحدّث', 2), gift('daan')],
-  noor: [scenario('noor_talk', 'ams_noor', 'Talk', 'تحدّث', 3), gift('noor')],
+  sanne: [talk('sanne', 'ams_sanne'), scenario('sanne_meet', 'ams_sanne', 'Our first chat', 'حديثنا الأول'), gift('sanne'), hang('sanne', 'hang_sanne_pannenkoek')],
+  daan: [talk('daan', 'ams_daan', 2), scenario('daan_meet', 'ams_daan', 'Our first chat', 'حديثنا الأول', 2), gift('daan'), hang('daan', 'hang_daan_vondelpark')],
+  noor: [talk('noor', 'ams_noor', 3), scenario('noor_meet', 'ams_noor', 'Our first chat', 'حديثنا الأول', 3), gift('noor'), hang('noor', 'hang_noor_verjaardag')],
+  // Chapters 4-6 (places.ts)
+  mirjam: [scenario('mirjam_shop', 'ams_drogist', 'Get something for a cold', 'اشترِ شيئًا لنزلة البرد', 4)],
+  joop: [scenario('joop_bar', 'ams_kroeg', 'An evening at the café', 'أمسية في المقهى', 5)],
+  ilse: [scenario('ilse_desk', 'ams_gemeente', 'Register your address', 'سجّل عنوانك', 6)],
 };
 
 const map = (shop: string, options: string[]): Record<string, string> => Object.fromEntries(options.map((o) => [o, `${shop}:${o}`]));
@@ -83,4 +105,25 @@ export const NL_SCENARIO_META: ScenarioMeta[] = [
   { id: 'ams_sanne', kind: 'talk', band: 'A1', register: 'casual', pay: 'none', real: true, place: 'ams_boot', friendId: 'sanne', culture: ['cc_gezellig'] },
   { id: 'ams_daan', kind: 'talk', band: 'A1', register: 'casual', pay: 'none', real: true, place: 'ams_straat', friendId: 'daan', culture: ['cc_fiets'] },
   { id: 'ams_noor', kind: 'talk', band: 'A1', register: 'casual', pay: 'none', real: true, place: 'ams_taalcafe', friendId: 'noor', culture: ['cc_je_u'] },
+  // a friend's chat on any day and the hand-over of a present (social.ts): hearts, not euros
+  ...(
+    [
+      ['sanne', 'ams_boot'],
+      ['daan', 'ams_straat'],
+      ['noor', 'ams_taalcafe'],
+    ] as const
+  ).map(([id, place]): ScenarioMeta => ({ id: `smalltalk_${id}`, kind: 'talk', band: 'A1', register: 'casual', pay: 'none', real: true, place, friendId: id })),
+  { id: 'give_gift', kind: 'friend', band: 'A1', register: 'casual', pay: 'none' },
+  // the hang-outs at three hearts (hangouts.ts): hearts, one every few days
+  ...(
+    [
+      ['hang_sanne_pannenkoek', 'sanne', 'ams_boot'],
+      ['hang_daan_vondelpark', 'daan', 'ams_straat'],
+      ['hang_noor_verjaardag', 'noor', 'ams_taalcafe'],
+    ] as const
+  ).map(([id, friendId, place]): ScenarioMeta => ({ id, kind: 'hangout', band: 'A1', register: 'casual', pay: 'none', real: true, heart: 3, place, friendId })),
+  // Chapters 4-6 (places.ts): the drogist and the brown café sell; the registration costs nothing
+  shopMeta('ams_drogist', 'ams_drogist', ['cc_drogist'], { shopId: 'drogist', itemSlot: 'klacht', payStep: 'pay', itemMap: map('drogist', ['keel', 'hoofd', 'verkouden', 'hoest']) }),
+  shopMeta('ams_kroeg', 'ams_kroeg', ['cc_bruin_cafe'], { shopId: 'bruincafe', itemSlot: 'kroeg', extraSlots: ['kroegSnack'], qtySlot: 'qty', payStep: 'pay', itemMap: { ...map('bruincafe', ['bier', 'spa', 'cola']), bitterballen: 'bruincafe:bitterballen' } }),
+  { id: 'ams_gemeente', kind: 'story', band: 'A2', register: 'polite', pay: 'none', real: true, place: 'ams_gemeente', culture: ['cc_inschrijven'] },
 ];

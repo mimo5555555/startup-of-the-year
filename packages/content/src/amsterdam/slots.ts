@@ -68,6 +68,53 @@ export const NL_SLOTS: Record<string, SlotOption[]> = {
     opt('books', 'lezen', ['lees', 'boeken', 'boek'], ['reading', 'books'], ['القراءة', 'الكتب']),
     opt('drawing', 'tekenen', ['teken', 'schilder', 'schilderen', 'kunst'], ['drawing', 'painting', 'art'], ['الرسم', 'أرسم']),
   ],
+  // a present handed to a friend (give_gift): the street's things as you hand them over (「Ik heb een stroopwafel voor je」); the ids are the
+  // shops' slot options, so the gift sheet finds the name of what was bought
+  giftItem: [opt('blik', 'een blik stroopwafels', ['blik', 'blikje', 'stroopwafels'], ['a tin of stroopwafels', 'tin'], ['علبة «ستروبفافل»'], { en: 'a tin of stroopwafels', ar: 'علبة «ستروبفافل»' })],
+  giftFood: [
+    opt('koffie', 'een koffie', ['koffie', 'koffietje'], ['a coffee', 'coffee'], ['قهوة'], { en: 'a coffee', ar: 'قهوة' }),
+    opt('verkeerd', 'een koffie verkeerd', ['koffie verkeerd', 'verkeerd'], ['a milky coffee', 'latte'], ['قهوة بالحليب'], { en: 'a milky coffee', ar: 'قهوة بالحليب' }),
+    opt('thee', 'een thee', ['thee', 'theetje'], ['a tea', 'tea'], ['شاي'], { en: 'a tea', ar: 'شاي' }),
+    opt('chocomel', 'een chocolademelk', ['chocolademelk', 'chocomel'], ['a hot chocolate', 'hot chocolate'], ['شوكولاتة ساخنة'], { en: 'a hot chocolate', ar: 'شوكولاتة ساخنة' }),
+    opt('appeltaart', 'een stuk appeltaart', ['appeltaart', 'taart'], ['a slice of apple pie', 'apple pie'], ['قطعة فطيرة تفاح'], { en: 'a slice of apple pie', ar: 'قطعة فطيرة تفاح' }),
+    opt('jong', 'een stuk jonge kaas', ['jonge kaas'], ['a piece of young cheese', 'young cheese'], ['قطعة جبن طري'], { en: 'a piece of young cheese', ar: 'قطعة جبن طري' }),
+    opt('belegen', 'een stuk belegen kaas', ['belegen kaas', 'belegen'], ['a piece of mature cheese', 'mature cheese'], ['قطعة جبن متوسط'], { en: 'a piece of mature cheese', ar: 'قطعة جبن متوسط' }),
+    opt('oud', 'een stuk oude kaas', ['oude kaas'], ['a piece of old cheese', 'old cheese'], ['قطعة جبن معتّق'], { en: 'a piece of old cheese', ar: 'قطعة جبن معتّق' }),
+    opt('geit', 'een stuk geitenkaas', ['geitenkaas'], ['a piece of goat cheese', 'goat cheese'], ['قطعة جبن الماعز'], { en: 'a piece of goat cheese', ar: 'قطعة جبن الماعز' }),
+    opt('gewoon', 'een stroopwafel', ['stroopwafel'], ['a stroopwafel', 'stroopwafel'], ['«ستروبفافل»'], { en: 'a stroopwafel', ar: '«ستروبفافل»' }),
+    opt('choco', 'een stroopwafel met chocolade', ['met chocolade'], ['a chocolate stroopwafel'], ['«ستروبفافل» بالشوكولاتة'], { en: 'a stroopwafel with chocolate', ar: '«ستروبفافل» بالشوكولاتة' }),
+    opt('patat', 'een patatje met', ['patatje', 'patat', 'friet'], ['fries', 'fries with mayo'], ['بطاطا مقلية'], { en: 'fries with mayonnaise', ar: 'بطاطا مقلية بالمايونيز' }),
+    opt('kroket', 'een kroket', ['kroket'], ['a kroket', 'croquette'], ['«كروكيت»'], { en: 'a kroket', ar: '«كروكيت»' }),
+    opt('frikandel', 'een frikandel', ['frikandel'], ['a frikandel'], ['«فريكاندل»'], { en: 'a frikandel', ar: '«فريكاندل»' }),
+    opt('kaassouffle', 'een kaassoufflé', ['kaassoufflé', 'kaassouffle', 'souffle'], ['a kaassoufflé'], ['«كاسوفليه»'], { en: 'a kaassoufflé', ar: '«كاسوفليه»' }),
+  ],
+  // a friend's 「Wat eet je het liefst?」: the favourite food is remembered (fact favFood) and quoted later (「Heb je deze week pizza gegeten?」)
+  chatfood: [
+    opt('pizza', 'pizza', [], ['pizza'], ['بيتزا']),
+    opt('patat', 'patat', ['friet', 'patatje'], ['fries', 'chips'], ['بطاطا مقلية']),
+    opt('stamppot', 'stamppot', [], ['stamppot', 'mash'], ['«ستامبوت» (هريس الخضار)']),
+    opt('pannenkoeken', 'pannenkoeken', ['pannenkoek', 'pannenkoekjes'], ['pancakes', 'pancake'], ['فطائر', 'بانكيك']),
+    opt('haring', 'haring', ['haringen', 'vis'], ['herring', 'fish'], ['رنجة', 'سمك']),
+    opt('kaas', 'kaas', ['kaasje'], ['cheese'], ['جبن']),
+    opt('rijst', 'rijst', [], ['rice'], ['أرز']),
+    opt('salade', 'salade', ['sla'], ['salad'], ['سلطة']),
+    opt('chocolade', 'chocolade', ['chocola'], ['chocolate'], ['شوكولاتة']),
+    opt('falafel', 'falafel', [], ['falafel'], ['فلافل']),
+  ],
+  // the drogist (places.ts): what hurts; each complaint has its remedy, which is what is sold
+  klacht: [
+    opt('keel', 'keelpijn', ['keel', 'zere keel', 'pijn in mijn keel'], ['sore throat', 'throat'], ['التهاب الحلق', 'الحلق']),
+    opt('hoofd', 'hoofdpijn', ['hoofd', 'koppijn'], ['headache', 'head'], ['صداع', 'الرأس']),
+    opt('verkouden', 'verkouden', ['verkoudheid', 'snotneus', 'neus', 'verstopt'], ['a cold', 'runny nose', 'nose'], ['زكام', 'الأنف'], { en: 'having a cold', ar: 'مصاب بالزكام' }),
+    opt('hoest', 'hoest', ['hoesten', 'hoestje'], ['cough'], ['سعال', 'كحة']),
+  ],
+  // the brown café (places.ts): a drink at the bar (beer for an adult) and bitterballen
+  kroeg: [
+    opt('bier', 'biertje', ['bier', 'pils', 'pilsje'], ['beer', 'a beer'], ['بيرة']),
+    opt('spa', 'spa rood', ['spa', 'bruiswater', 'water met bubbels', 'water'], ['sparkling water', 'water'], ['ماء فوّار', 'ماء'], { en: 'sparkling water', ar: 'ماء فوّار' }),
+    opt('cola', 'cola', ['colaatje'], ['cola', 'coke'], ['كولا']),
+  ],
+  kroegSnack: [opt('bitterballen', 'bitterballen', ['bitterbal', 'bitterballetjes', 'balletjes'], ['bitterballen', 'meatballs'], ['«بِترْبالن»', 'كرات لحم'])],
   payMethod: [
     opt('card', 'pinnen', ['pin', 'pinpas', 'met de kaart', 'kaart', 'pas', 'ik pin'], ['card', 'by card', 'debit card'], ['بطاقة', 'بالبطاقة']),
     opt('cash', 'contant', ['cash', 'met geld', 'contanten'], ['cash', 'in cash'], ['نقدًا', 'كاش']),

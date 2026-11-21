@@ -2,8 +2,9 @@
 // GVB service point, each under a narrow canal house with a gable (stepped, neck or cornice) and a hoist beam. In front of them the
 // pavement, a brick street with tram tracks, the red bike path and the quay with elms, bike racks and Daan with his bike. Then the
 // canal: houseboats along the quay (Sanne's is the green one), a little tour boat going by, a bridge across to the south quay where Noor
-// waits outside the language café. At the east end the street becomes the Albert Cuyp market (Jesse's stroopwafel stall). Units are
-// metres, +x east, +z south, the north fronts face +z.
+// waits outside the language café. At the east end the street becomes the Albert Cuyp market (Jesse's stroopwafel stall). Dutch step 4
+// adds three fronts to the north side: the gemeente's city desk at the west end (Ilse), the drogist (Mirjam) between the cheese shop
+// and the snack bar, and the brown café ’t Hoekje by the bridge (Joop). Units are metres, +x east, +z south, the north fronts face +z.
 import * as THREE from 'three';
 import { Batch, resetJitter } from './batch';
 import { createBuildCtx, makeShutter, type BuildCtx } from './buildctx';
@@ -18,6 +19,10 @@ export const AMSTERDAM_SHOPS: ShopBox[] = [
   { id: 'kaas', cx: -16, w: 8, d: 9, h: 4.8 },
   { id: 'snackbar', cx: 0, w: 8, d: 9, h: 4.6 },
   { id: 'gvb', cx: 16, w: 9, d: 10, h: 5.0 },
+  // Dutch step 4: the drogist (Chapter 4), the brown café (Chapter 5) and the gemeente (Chapter 6; no shop of the pack, so it never closes)
+  { id: 'drogist', cx: -8, w: 8, d: 9, h: 4.6 },
+  { id: 'bruincafe', cx: 7.75, w: 7.5, d: 9, h: 4.6 },
+  { id: 'gemeente', cx: -40.25, w: 11.5, d: 10, h: 5.0 },
 ];
 
 /** the canal's water between its two quay walls */
@@ -34,6 +39,10 @@ export const AMSTERDAM_SPAWNS: NpcSpawn[] = [
   { id: 'kees', x: -16, z: -12.2, face: 0, radius: 5.2, kind: 'scenario', y: 0.12, site: 'kaas' },
   { id: 'mo', x: 0, z: -12.0, face: 0, radius: 5.2, kind: 'scenario', y: 0.12, site: 'snackbar' },
   { id: 'ingrid', x: 16, z: -12.4, face: 0, radius: 5.4, kind: 'scenario', y: 0.12, site: 'gvb' },
+  // Dutch step 4: behind the drogist's counter, behind the brown café's bar, at the city desk
+  { id: 'mirjam', x: -8, z: -12.2, face: 0, radius: 5.2, kind: 'scenario', y: 0.12, site: 'drogist' },
+  { id: 'joop', x: 7.75, z: -12.0, face: 0, radius: 5.2, kind: 'scenario', y: 0.12, site: 'bruincafe' },
+  { id: 'ilse', x: -40.25, z: -12.4, face: 0, radius: 5.4, kind: 'scenario', y: 0.12, site: 'gemeente' },
   // behind the stroopwafel stall in the market street, facing the quay
   { id: 'jesse', x: 42, z: -4.3, face: 0, radius: 4.8, kind: 'scenario', site: 'markt' },
   // on the quay, their backs to the canal (facing the street, -z)
@@ -164,9 +173,42 @@ function buildAmsterdamFronts(ctx: BuildCtx): void {
   glow.boxB(gvb.cx - 3, 1.2, FRONT_Z - 0.98, 0.34, 0.2, 0.02, '#5fd35f');
   mapRect(shopRect(gvb), '#1b3d8f', 'GVB');
 
+  // the drogist: bright and white, shelves of little boxes and bottles
+  const drog = shop('drogist');
+  shopFrame(drog, { wall: '#f4f6f5', inner: '#ffffff', trim: '#2a9d8f', roof: '#dfe4e2', floor: '#cfd8d5', ceil: '#ffffff', openH: 3.2 });
+  hangSign('drogist', drog, 'De Drogist', 'verzorging · gezondheid', '#2a9d8f', '#ffffff', 3.2, 1.4, '#ffffff');
+  solid.boxB(drog.cx, 0.12, FRONT_Z - 2.3, 5.6, 0.95, 1.0, '#e8ecea'); // the counter
+  for (let r = 0; r < 4; r++) for (let i = 0; i < 8; i++) glow.boxB(drog.cx - 3.1 + i * 0.88, 0.5 + r * 0.6, FRONT_Z - 8.7, 0.62, 0.42, 0.06, pick(['#ffffff', '#e76f51', '#2a9d8f', '#f4a261', '#a8dadc', '#ffd166', '#e9c46a']));
+  mapRect(shopRect(drog), '#2a9d8f', 'Drogist');
+
+  // the brown café: dark wood, a bar with its taps, bottles glowing behind, warm low light
+  const bruin = shop('bruincafe');
+  shopFrame(bruin, { wall: '#3b2a20', inner: '#5a3a24', trim: '#2a1a10', roof: '#4a3428', floor: '#4a3020', ceil: '#6b4a33', openH: 3.1 });
+  hangSign('bruincafe', bruin, 'Café ’t Hoekje', 'bruin café', '#2a1a10', '#f2d38a', 3.1, 1.4, '#c9a227');
+  solid.boxB(bruin.cx, 0.12, FRONT_Z - 2.3, 5.4, 1.0, 1.0, '#6b4226'); // the bar
+  for (const dx of [-0.8, 0, 0.8]) solid.cyl(bruin.cx + dx, 1.12, FRONT_Z - 2.3, 0.05, 0.05, 0.45, '#c9a227', { seg: 6 }); // the taps
+  for (let r = 0; r < 2; r++) for (let i = 0; i < 9; i++) glow.cyl(bruin.cx - 2.6 + i * 0.65, 1.4 + r * 0.7, FRONT_Z - 8.6, 0.09, 0.09, 0.4, pick(['#7a4a1a', '#2f6b3a', '#c9a227', '#8a2a2a']), { seg: 6 });
+  glow.boxB(bruin.cx, 2.7, FRONT_Z - 5, 1.2, 0.12, 1.2, '#f2b55a'); // the lamp over the bar
+  mapRect(shopRect(bruin), '#5a3a24', '’t Hoekje');
+
+  // the gemeente's city desk: white and red, Amsterdam's three crosses, a desk, the number display, waiting chairs
+  const gem = shop('gemeente');
+  shopFrame(gem, { wall: '#ecece6', inner: '#f6f6f2', trim: '#e30613', roof: '#d8d8d2', floor: '#c4c6c8', ceil: '#fafaf8', openH: 3.5 });
+  hangSign('gemeente', gem, 'Gemeente Amsterdam', 'Stadsloket', '#e30613', '#ffffff', 3.5, 1.5, '#ffffff');
+  solid.boxB(gem.cx, 0.12, FRONT_Z - 2.3, 4.6, 0.9, 1.1, '#9aa0a6'); // the desk
+  glow.boxB(gem.cx + 1.2, 1.02, FRONT_Z - 2.5, 0.6, 0.4, 0.04, '#bcd4e6'); // the screen
+  glow.boxB(gem.cx - 3.6, 2.6, FRONT_Z - 9.6, 2.2, 0.8, 0.04, '#1a1a1a'); // the number display
+  for (let i = 0; i < 3; i++) glow.boxB(gem.cx - 4.2 + i * 0.6, 2.7, FRONT_Z - 9.55, 0.4, 0.55, 0.02, '#ff3b30');
+  for (let r = 0; r < 2; r++) for (let i = 0; i < 4; i++) solid.boxB(gem.cx + 0.6 + i * 1.0, 0.12, FRONT_Z - 6.2 - r * 1.6, 0.7, 0.45, 0.6, '#e30613');
+  // the three St Andrew's crosses of Amsterdam's arms, white on a black band beside the door
+  glow.boxB(gem.cx + gem.w / 2 + 0.45, 3.4, FRONT_Z + 0.08, 0.7, 1.9, 0.04, '#1a1a1a');
+  for (let k = 0; k < 3; k++)
+    for (const r of [0.785, -0.785]) glow.boxB(gem.cx + gem.w / 2 + 0.45, 3.55 + k * 0.55, FRONT_Z + 0.11, 0.42, 0.08, 0.02, '#ffffff', { rz: r });
+  mapRect(shopRect(gem), '#e30613', 'Gemeente');
+
   // the canal houses over the shops, and the narrow houses between them
   AMSTERDAM_SHOPS.forEach((s, i) => pand(ctx, s.cx - s.w / 2, s.cx + s.w / 2, FRONT_Z, s.d, s.h, 15 + (i % 2) * 1.5, pick(FACADE), 1, gables[i % 3]!));
-  const northGaps: Array<[number, number]> = [[-46, -40], [-40, -34.5], [-25.5, -20], [-12, -9], [-9, -4], [4, 8], [8, 11.5], [20.5, 26], [26, 31], [31, 36], [36, 41], [41, 47], [47, 53], [53, 60]];
+  const northGaps: Array<[number, number]> = [[-25.5, -20], [20.5, 26], [26, 31], [31, 36], [36, 41], [41, 47], [47, 53], [53, 60]];
   northGaps.forEach(([x0, x1], i) => {
     const top = 13.5 + ((i * 7) % 4) * 0.9;
     pand(ctx, x0, x1, FRONT_Z, 12, 0, top, pick(FACADE), 1, gables[(i + 1) % 3]!);
@@ -178,10 +220,10 @@ function buildAmsterdamFronts(ctx: BuildCtx): void {
     collide((x0 + x1) / 2, FRONT_Z - 6, x1 - x0, 12);
     occlude({ x0, x1, z0: FRONT_Z - 12, z1: FRONT_Z });
   });
-  // flowers in a window box on the house next to the café
-  for (let i = 0; i < 6; i++) solid.sphere(-37.8 + i * 0.4, 3.35, FRONT_Z + 0.32, 0.16, pick(['#e63946', '#ff8fab', '#ffd166', '#f77f00']), { ws: 6, hs: 5 });
-  solid.boxB(-36.8, 3.0, FRONT_Z + 0.3, 2.6, 0.3, 0.4, '#5b3a29');
-  pickAt('bloemen', -36.8, 3.3, FRONT_Z + 0.4, 1.0);
+  // flowers in a window box on the house between the café and the cheese shop
+  for (let i = 0; i < 6; i++) solid.sphere(-24.9 + i * 0.4, 3.35, FRONT_Z + 0.32, 0.16, pick(['#e63946', '#ff8fab', '#ffd166', '#f77f00']), { ws: 6, hs: 5 });
+  solid.boxB(-23.9, 3.0, FRONT_Z + 0.3, 2.6, 0.3, 0.4, '#5b3a29');
+  pickAt('bloemen', -23.9, 3.3, FRONT_Z + 0.4, 1.0);
 
   // ---------- the market street: Albert Cuyp's stalls, Jesse's first ----------
   const stall = (x: number, roof: string, goods: readonly string[]) => {

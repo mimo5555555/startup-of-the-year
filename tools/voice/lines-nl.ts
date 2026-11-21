@@ -2,7 +2,7 @@
 // Built from the content's own data, the way lines-de.ts builds Berlin's: the canal's conversations, the reactions, the story beats, the
 // friends' facts, the culture phrases, the notebook's starters and every dictionary word. A line with slot variables is recorded once per
 // option; a sentence with any other runtime variable ({name}, a price) is left to the device voice, its other sentences recorded.
-import { AMSTERDAM_PACK, AMSTERDAM_SCENARIOS, NL_LEXICON, NL_REACTIONS, NL_SLOTS, resolveLine, type Line, type Scenario, type Vars } from '@lw/content';
+import { AMSTERDAM_PACK, AMSTERDAM_SCENARIOS, NL_GIVE_GIFT, NL_LEXICON, NL_REACTIONS, NL_SLOTS, NL_SMALLTALK_FRIENDS, resolveLine, type Line, type Scenario, type Vars } from '@lw/content';
 import { euroTextNl } from '@lw/core';
 import { NARRATOR } from '../../apps/mobile/src/voice/voices';
 import { NL_VOICES } from '../../apps/mobile/src/voice/voices-nl';
@@ -72,6 +72,8 @@ export function voiceLinesNl(): VoiceLineNl[] {
   out.length = 0;
   seen.clear();
   for (const s of AMSTERDAM_SCENARIOS) addScenario(s);
+  // the hand-over of a present is one conversation each friend speaks in their own voice
+  for (const f of NL_SMALLTALK_FRIENDS) addScenario({ ...NL_GIVE_GIFT, characterId: f });
   for (const b of Object.values(AMSTERDAM_PACK.beats)) for (const l of b.lines) addLine(NL_VOICES[l.who] ? l.who : NARRATOR, l.line);
   for (const f of AMSTERDAM_PACK.friends) for (const l of Object.values(f.factLines ?? {})) addLine(NL_VOICES[f.id] ? f.id : NARRATOR, l);
   for (const c of AMSTERDAM_PACK.culture) addLine(NARRATOR, c.phrase);

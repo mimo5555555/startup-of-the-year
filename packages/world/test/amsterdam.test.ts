@@ -35,9 +35,12 @@ describe('the Amsterdam canal', () => {
   });
 
   it('names its open fronts as the Amsterdam pack names its shops; the market stall is a site of its own', () => {
-    expect(AMSTERDAM_SHOPS.map((s) => s.id)).toEqual(['cafe', 'kaas', 'snackbar', 'gvb']);
+    expect(AMSTERDAM_SHOPS.map((s) => s.id)).toEqual(['cafe', 'kaas', 'snackbar', 'gvb', 'drogist', 'bruincafe', 'gemeente']);
     const packShops = AMSTERDAM_PACK.shops.map((s) => s.id);
-    for (const s of AMSTERDAM_SHOPS) expect(packShops, s.id).toContain(s.id);
+    // the city desk is no shop: it never closes
+    for (const s of AMSTERDAM_SHOPS) if (s.id !== 'gemeente') expect(packShops, s.id).toContain(s.id);
+    // every shop of the pack has its place on the street: an open front, or a site of its own (the market stall)
+    for (const s of packShops) expect(AMSTERDAM_SHOPS.some((b) => b.id === s) || AMSTERDAM_SPAWNS.some((x) => x.site === s), s).toBe(true);
     expect(AMSTERDAM_SPAWNS.find((s) => s.id === 'jesse')?.site).toBe('markt');
     expect(packShops).toContain('markt');
   });
@@ -69,7 +72,7 @@ describe('the Amsterdam canal', () => {
     expect(city.shrine.busy()).toBe(false);
     expect(city.shrine.info()).toEqual({ meshes: 0, triangles: 0 });
     for (const id of ['konbini', 'school', 'ramen', 'station', 'bakery', 'spaeti', 'doener', 'ubahn', 'flohmarkt']) expect(city.built.has(id), id).toBe(false);
-    for (const label of ['Café', 'Kaas', 'Snackbar', 'GVB', 'Albert Cuyp', 'Gracht']) expect(city.mapRects.some((r) => r.label === label), label).toBe(true);
+    for (const label of ['Café', 'Kaas', 'Snackbar', 'GVB', 'Albert Cuyp', 'Gracht', 'Drogist', '’t Hoekje', 'Gemeente']) expect(city.mapRects.some((r) => r.label === label), label).toBe(true);
     expect(AMSTERDAM_DISTRICT.buildCity).toBeDefined();
   });
 

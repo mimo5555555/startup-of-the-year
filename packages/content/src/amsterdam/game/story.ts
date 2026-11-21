@@ -3,7 +3,8 @@
 import type { Beat, BeatLine, ChapterDef, ChapterOpen, CultureCard, DailyTemplate, DreamDef, DreamStep, TitleDef } from '@lw/game';
 
 const o = (kind: ChapterOpen['kind'], id: string): ChapterOpen => ({ kind, id });
-export const NL_EPILOGUE = 'b_nc3_close';
+/** the closing of the last chapter (6): the end of the story, then Free Walk */
+export const NL_EPILOGUE = 'b_nc6_close';
 
 const obj = (id: string, pred: ChapterDef['objectives'][number]['pred'], en: string, ar: string, more: Partial<ChapterDef['objectives'][number]> = {}) => ({ id, pred, text: { en, ar }, ...more });
 
@@ -48,12 +49,78 @@ export const NL_CHAPTERS: ChapterDef[] = [
     rewardTitle: 't_kaaskenner',
     rewardCulture: ['cc_proeven'],
     opens: [o('shop', 'kaas'), o('shop', 'markt'), o('place', 'ams_kaas'), o('place', 'ams_markt'), o('place', 'ams_taalcafe'), o('feature', 'gift'), o('interaction', 'sanne_gift'), o('interaction', 'daan_gift'), o('interaction', 'noor_gift')],
-    beats: { open: 'b_nc3_open', close: NL_EPILOGUE },
+    beats: { open: 'b_nc3_open', close: 'b_nc3_close' },
     objectives: [
       obj('nc3_1', { k: 'scenario', id: 'ams_noor', complete: true }, 'Meet Noor at the language café', 'قابل نور في مقهى اللغات', { pin: { friend: 'noor' } }),
       obj('nc3_2', { k: 'scenario', id: 'ams_kaas', steps: ['taste'] }, 'Taste the cheese before you buy', 'تذوّق الجبن قبل أن تشتري', { pin: { place: 'ams_kaas' } }),
       obj('nc3_3', { k: 'scenario', id: 'ams_markt', complete: true }, 'Buy stroopwafels at the market', 'اشترِ «ستروبفافل» من السوق', { pin: { place: 'ams_markt' } }),
       obj('nc3_4', { k: 'culture', n: 5 }, 'Collect 5 Amsterdam culture cards', 'اجمع 5 بطاقات ثقافية عن أمستردام'),
+    ],
+  },
+  {
+    n: 4,
+    title: { ja: 'Goede vrienden', en: 'Good friends', ar: 'أصدقاء طيّبون' },
+    minDays: 4,
+    reward: 4000,
+    rewardTitle: 't_goede_vriend',
+    opens: [o('shop', 'drogist'), o('place', 'ams_drogist'), o('interaction', 'mirjam_shop'), o('interaction', 'sanne_hang'), o('interaction', 'daan_hang'), o('interaction', 'noor_hang')],
+    beats: { open: 'b_nc4_open', close: 'b_nc4_close' },
+    objectives: [
+      obj('nc4_1', { k: 'all', of: [{ k: 'scenario', id: 'smalltalk_sanne', complete: true }, { k: 'scenario', id: 'smalltalk_daan', complete: true }, { k: 'scenario', id: 'smalltalk_noor', complete: true }] }, 'Have a chat with Sanne, Daan and Noor', 'دردش مع سانه ودان ونور', {
+        hint: { en: 'Talk to a friend: say hello, answer their question, react. One chat a day each counts.', ar: 'تحدّث مع صديق: قل مرحبًا وأجب عن سؤاله وعلّق. تُحتسب دردشة واحدة يوميًا مع كل منهم.' },
+        pin: { friend: 'daan' },
+      }),
+      obj('nc4_2', { k: 'gift', n: 1 }, 'Give a friend a present', 'قدّم هدية لصديق', {
+        hint: { en: 'Buy something they like (apple pie for Sanne?), then: Ik heb … voor je!', ar: 'اشترِ شيئًا يحبه (فطيرة تفاح لسانه؟) ثم قل: Ik heb … voor je!' },
+        pin: { friend: 'sanne' },
+      }),
+      obj('nc4_3', { k: 'scenario', id: 'ams_drogist', complete: true }, 'Get something for your cold at the drogist', 'اشترِ شيئًا لنزلة البرد من «الدروخيست»', {
+        hint: { en: 'Say what hurts: Ik heb keelpijn.', ar: 'قل ما يؤلمك: Ik heb keelpijn.' },
+        pin: { place: 'ams_drogist' },
+      }),
+      obj('nc4_4', { k: 'hearts_count', atLeast: 3, n: 1 }, 'Become close friends with someone (3 hearts)', 'كوّن صداقة قريبة مع أحدهم (3 قلوب)', {
+        hint: { en: 'Chat with the same friend on different days, and give a present they like.', ar: 'دردش مع الصديق نفسه في أيام مختلفة، وقدّم هدية يحبها.' },
+      }),
+    ],
+  },
+  {
+    n: 5,
+    title: { ja: 'Uitgaan', en: 'Going out', ar: 'الخروج' },
+    minDays: 5,
+    reward: 5000,
+    rewardTitle: 't_nachtuil',
+    opens: [o('shop', 'bruincafe'), o('place', 'ams_kroeg'), o('interaction', 'joop_bar')],
+    beats: { open: 'b_nc5_open', close: 'b_nc5_close' },
+    objectives: [
+      obj('nc5_1', { k: 'hangout', n: 1 }, 'Hang out with a friend', 'اقضِ وقتًا مع صديق', {
+        hint: { en: 'A friend at 3 hearts has time: pancakes with Sanne, a bike ride with Daan, a birthday with Noor.', ar: 'الصديق ذو القلوب الثلاثة لديه وقت: فطائر مع سانه، أو جولة بالدرّاجة مع دان، أو عيد ميلاد مع نور.' },
+      }),
+      obj('nc5_2', { k: 'scenario', id: 'ams_kroeg', complete: true }, 'An evening at the brown café: order, say Proost, pay', 'أمسية في المقهى البنّي: اطلب، قل «Proost»، ادفع', {
+        hint: { en: '’t Hoekje takes cards only. Mag ik afrekenen?', ar: '«تهوكيه» يقبل البطاقة فقط. Mag ik afrekenen?' },
+        pin: { place: 'ams_kroeg' },
+      }),
+      obj('nc5_3', { k: 'culture_said', n: 3 }, 'Say 3 Amsterdam phrases from your culture cards', 'قل 3 عبارات أمستردامية من بطاقاتك الثقافية'),
+      obj('nc5_4', { k: 'stars', atLeast: 2, n: 6 }, 'Get 2 stars in 6 different conversations', 'احصل على نجمتين في 6 محادثات مختلفة'),
+    ],
+  },
+  {
+    n: 6,
+    title: { ja: 'Thuis in Amsterdam', en: 'At home in Amsterdam', ar: 'في بيتي في أمستردام' },
+    minDays: 6,
+    reward: 6000,
+    rewardTitle: 't_amsterdammer',
+    opens: [o('place', 'ams_gemeente'), o('interaction', 'ilse_desk')],
+    beats: { open: 'b_nc6_open', close: NL_EPILOGUE },
+    objectives: [
+      obj('nc6_1', { k: 'scenario', id: 'ams_gemeente', complete: true }, 'Register at the gemeente for your BSN', 'سجّل في البلدية لتحصل على رقم الخدمة المدنية', {
+        hint: { en: 'Ilse wants your passport and your new address: Ik wil me inschrijven.', ar: 'إلسه تريد جواز سفرك وعنوانك الجديد: Ik wil me inschrijven.' },
+        pin: { place: 'ams_gemeente' },
+      }),
+      obj('nc6_2', { k: 'hearts_count', atLeast: 4, n: 1 }, 'Become best friends with someone (4 hearts)', 'كوّن صداقة متينة مع أحدهم (4 قلوب)'),
+      obj('nc6_3', { k: 'hangout', n: 3 }, 'Hang out 3 times with your friends', 'اقضِ وقتًا مع أصدقائك 3 مرات'),
+      obj('nc6_4', { k: 'words_known', n: 40 }, 'Know 40 words (reviewed at least once)', 'تعرّف على 40 كلمة (راجعتها مرة على الأقل)', {
+        hint: { en: 'Review the words in your notebook.', ar: 'راجع الكلمات في دفترك.' },
+      }),
     ],
   },
 ];
@@ -84,10 +151,34 @@ const BEATS: Beat[] = [
   beat('b_nc3_open', 'ams_markt', [
     B('sanne', 'Zaterdag gaan we naar de markt. En daarna kaas proeven bij Kees!', 'On Saturday we go to the market. And after that, cheese tasting at Kees’s!', 'يوم السبت نذهب إلى السوق. وبعدها تذوّق الجبن عند كيس!'),
   ]),
-  beat(NL_EPILOGUE, 'ams_boot', [
+  beat('b_nc3_close', 'ams_boot', [
     B('sanne', 'Wat een maand, {name}! Koffie, kaas, stroopwafels en de tram.', 'What a month, {name}! Coffee, cheese, stroopwafels and the tram.', 'يا له من شهر يا {name}! القهوة والجبن و«ستروبفافل» والترام.'),
     B('sanne', 'En nu heb je drie vrienden in Amsterdam.', 'And now you have three friends in Amsterdam.', 'والآن لديك ثلاثة أصدقاء في أمستردام.'),
-    B('sanne', 'Dit is pas het begin. Tot snel!', 'This is only the beginning. See you soon!', 'هذه مجرد البداية. إلى اللقاء قريبًا!'),
+  ]),
+  beat('b_nc4_open', 'ams_boot', [
+    B('sanne', 'Je klinkt verkouden, {name}! De drogist is hier om de hoek.', 'You sound like you have a cold, {name}! The chemist is just round the corner.', 'يبدو أنك مصاب بالزكام يا {name}! محلّ «الدروخيست» قريب، عند الناصية.'),
+    B('sanne', 'En daarna: koffie op de boot? Ik wil je beter leren kennen.', 'And afterwards: coffee on the boat? I’d like to get to know you better.', 'وبعدها: قهوة على القارب؟ أودّ أن أتعرّف عليك أكثر.'),
+  ]),
+  beat('b_nc4_close', 'ams_straat', [
+    B('daan', 'Hé {name}! Jij hoort nu bij de buurt.', 'Hey {name}! You belong to the neighbourhood now.', 'أهلًا يا {name}! أنت الآن من أهل الحيّ.'),
+    B('daan', 'Dit weekend doen we iets samen, oké?', 'This weekend we’ll do something together, okay?', 'في عطلة نهاية الأسبوع هذه سنفعل شيئًا معًا، اتفقنا؟'),
+  ]),
+  beat('b_nc5_open', 'ams_taalcafe', [
+    B('noor', 'Vanavond gaan we uit! Ken je café ’t Hoekje al?', 'Tonight we’re going out! Do you know the café ’t Hoekje yet?', 'الليلة نخرج! هل تعرف مقهى «تهوكيه»؟'),
+    B('noor', 'Joop heeft alleen pin. En vergeet niet: bij proost kijk je elkaar aan!', 'Joop only takes cards. And don’t forget: at proost you look each other in the eye!', 'يوب يقبل البطاقة فقط. ولا تنسَ: عند «proost» تنظران في عيني بعضكما!'),
+  ]),
+  beat('b_nc5_close', 'ams_boot', [
+    B('sanne', 'Nu ken je Amsterdam bij dag en bij nacht, {name}!', 'Now you know Amsterdam by day and by night, {name}!', 'الآن تعرف أمستردام في النهار والليل يا {name}!'),
+    B('sanne', 'Maar heb je je al ingeschreven? Zonder BSN gaat er in Nederland niets.', 'But have you registered yet? Nothing works in the Netherlands without a BSN.', 'لكن هل سجّلت بعد؟ لا شيء يسير في هولندا بلا رقم الخدمة المدنية.'),
+  ], { ask: 'diary' }),
+  beat('b_nc6_open', 'ams_gemeente', [
+    B('ilse', 'Goedemorgen. Stadsloket Zuid.', 'Good morning. City desk, South.', 'صباح الخير. مكتب خدمات البلدية، الجنوب.'),
+    B('ilse', 'Met een afspraak, uw paspoort en uw huurcontract gaat het heel snel.', 'With an appointment, your passport and your rental contract it all goes very quickly.', 'مع موعد وجواز سفرك وعقد الإيجار يسير كل شيء بسرعة.'),
+  ]),
+  beat(NL_EPILOGUE, 'ams_boot', [
+    B('sanne', 'Je bent ingeschreven, je hebt vrienden, je spreekt Nederlands. Nu ben je echt thuis in Amsterdam, {name}!', 'You’re registered, you have friends, you speak Dutch. Now you’re really at home in Amsterdam, {name}!', 'سجّلت، ولديك أصدقاء، وتتكلّم الهولندية. الآن أنت حقًا في بيتك في أمستردام يا {name}!'),
+    B('daan', 'Welkom thuis!', 'Welcome home!', 'أهلًا بك في بيتك!'),
+    B('noor', 'En dit is pas het begin. Tot snel!', 'And this is only the beginning. See you soon!', 'وهذه مجرد البداية. إلى اللقاء قريبًا!'),
   ]),
   beat('b_dream_step', 'ams_boot', [B('sanne', 'Goed zo! Je bent er bijna.', 'That’s it! You’re almost there.', 'هكذا! اقتربت.')]),
   beat('b_phone_fund', 'ams_boot', [B('sanne', 'Hier, een beetje geld van mij. Je kunt het!', 'Here, a little money from me. You can do it!', 'خذ، قليل من المال مني. ستنجح!')]),
@@ -147,6 +238,9 @@ export const NL_TITLES: TitleDef[] = [
   title('t_nieuw_in_amsterdam', 'Nieuw in Amsterdam', 'New in Amsterdam', 'جديد في أمستردام', { kind: 'chapter', n: 1 }),
   title('t_buurtgenoot', 'Buurtgenoot', 'Neighbour', 'ابن الحيّ', { kind: 'chapter', n: 2 }),
   title('t_kaaskenner', 'Kaaskenner', 'Cheese expert', 'خبير الأجبان', { kind: 'chapter', n: 3 }),
+  title('t_goede_vriend', 'Goede vriend', 'Good friend', 'صديق طيّب', { kind: 'chapter', n: 4 }),
+  title('t_nachtuil', 'Nachtuil', 'Night owl', 'بومة الليل', { kind: 'chapter', n: 5 }),
+  title('t_amsterdammer', 'Amsterdammer', 'Amsterdammer', 'أمستردامي', { kind: 'chapter', n: 6 }),
   title('t_dream_gift', 'Gulle gever', 'Generous giver', 'كريم العطاء', { kind: 'dream', id: 'gift' }),
   title('t_dream_friends', 'Vriend voor het leven', 'Friend for life', 'صديق العمر', { kind: 'dream', id: 'friends' }),
 ];
@@ -181,6 +275,25 @@ export const NL_CULTURE: CultureCard[] = [
   card('cc_je_u', { on: 'talk_start', ids: ['noor'] }, ['Hoe heet jij?', 'What’s your name? (to a friend)', 'ما اسمك؟ (لصديق)'],
     'Dutch has two yous: u for staff, officials and older people, je for friends and people your age. Amsterdam says je quickly, but with u you are never wrong.',
     'في الهولندية صيغتان للمخاطَب: u للموظفين والمسؤولين وكبار السن، وje للأصدقاء ومن في سنّك. أهل أمستردام ينتقلون إلى je بسرعة، لكنك مع u لا تخطئ أبدًا.'),
+  // Chapters 4-6
+  card('cc_drogist', { on: 'scenario_done', ids: ['ams_drogist'] }, ['Beterschap!', 'Get well soon!', 'أتمنى لك الشفاء العاجل!'],
+    'For a headache or a cold the Dutch go to the drogist: paracetamol, throat sweets, nasal spray, without a prescription. The apotheek is for medicine a doctor prescribes. And everyone wishes you Beterschap.',
+    'للصداع أو الزكام يذهب الهولنديون إلى «الدروخيست»: باراسيتامول وحلوى للحلق وبخاخ للأنف بلا وصفة. أما الصيدلية فللأدوية التي يصفها الطبيب. والجميع يتمنى لك «Beterschap».', { say: true }),
+  card('cc_pannenkoek', { on: 'scenario_done', ids: ['hang_sanne_pannenkoek'] }, ['Met stroop, graag!', 'With syrup, please!', 'مع الشراب الحلو من فضلك!'],
+    'Dutch pancakes are big and thin and eaten for dinner as often as for dessert: with apple, bacon or cheese baked in, and stroop (thick syrup) or powdered sugar on top.',
+    'الفطائر الهولندية كبيرة ورقيقة وتؤكل عشاءً بقدر ما تؤكل حلوى: يُخبز فيها التفاح أو اللحم المقدّد أو الجبن، ويوضع فوقها شراب «ستروب» الكثيف أو السكر الناعم.', { say: true }),
+  card('cc_fietsregels', { on: 'scenario_done', ids: ['hang_daan_vondelpark'] }, ['Ik steek mijn hand uit.', 'I stick my hand out.', 'أمدّ يدي.'],
+    'On a Dutch bike you stick your hand out before you turn, keep to the red bike path, never ride on the pavement, and turn your lights on after dark: riding without a light costs a fine.',
+    'على الدرّاجة في هولندا تمدّ يدك قبل الانعطاف، وتلتزم بممر الدرّاجات الأحمر، ولا تركب على الرصيف أبدًا، وتشغّل الأضواء بعد حلول الظلام: الركوب بلا ضوء غرامته مالية.', { say: true }),
+  card('cc_verjaardag', { on: 'scenario_done', ids: ['hang_noor_verjaardag'] }, ['Gefeliciteerd met je moeder!', 'Congratulations on your mother!', 'مبروك على والدتك!'],
+    'A Dutch birthday is often a circle (kringverjaardag): the guests sit in a ring, and you congratulate not only the one whose birthday it is but everyone in the family: Gefeliciteerd met je moeder!',
+    'عيد الميلاد الهولندي كثيرًا ما يكون دائرة: يجلس الضيوف في حلقة، وتهنّئ ليس صاحب العيد وحده بل كل أفراد العائلة: «مبروك على والدتك!».', { say: true }),
+  card('cc_bruin_cafe', { on: 'intent', ids: ['ams_kroeg:proost'] }, ['Proost!', 'Cheers!', 'في صحتك!'],
+    'A bruin café (brown café) is an old Amsterdam pub with dark wood and walls browned by years of smoke: gezellig, bitterballen with mustard. When glasses clink, say Proost and look each other in the eye. Many cafés now take only cards.',
+    'المقهى البنّي حانة قديمة في أمستردام، خشبها داكن وجدرانها بُنّية من دخان السنين: «خيزيليخ»، و«بِترْبالن» بالخردل. عند قرع الكؤوس قل «Proost» وانظرا في عيني بعضكما. وكثير من المقاهي اليوم تقبل البطاقة فقط.', { say: true, adultOnly: true }),
+  card('cc_inschrijven', { on: 'scenario_done', ids: ['ams_gemeente'] }, ['Ik wil me inschrijven.', 'I’d like to register.', 'أودّ التسجيل.'],
+    'Everyone who comes to live in the Netherlands registers at the gemeente (the town hall) and gets a BSN, the citizen service number, needed for work, a bank account and the doctor. Book an appointment online and bring your passport and rental contract.',
+    'كل من يأتي للعيش في هولندا يسجّل في البلدية ويحصل على رقم الخدمة المدنية (BSN)، وهو ضروري للعمل وفتح حساب مصرفي والطبيب. احجز موعدًا على الإنترنت وأحضر جواز سفرك وعقد الإيجار.', { say: true }),
 ];
 
 export const NL_DAILY: DailyTemplate[] = [

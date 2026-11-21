@@ -344,6 +344,15 @@ describe('Dutch voice lines (Amsterdam)', () => {
     expect(has('femke', 'Hallo! Bent u nieuw hier? Welkom in Amsterdam!')).toBe(true);
     expect(has('daan', 'Ik ben fietskoerier.')).toBe(true);
     expect(has('narrator', 'stroopwafel')).toBe(true);
+    // Chapters 4–6: the drogist, the brown café, the gemeente, the friends' chats, presents and hang-outs
+    expect(has('mirjam', 'Goedemiddag! Kan ik u ergens mee helpen?')).toBe(true);
+    expect(has('mirjam', 'Wat vervelend. Ik raad keelpastilles aan. Wilt u die?')).toBe(true);
+    expect(has('joop', 'Alstublieft! Proost!')).toBe(true);
+    expect(has('joop', 'Hier kunt u alleen pinnen.')).toBe(true);
+    expect(has('ilse', 'Goedemorgen. Heeft u een afspraak?')).toBe(true);
+    expect(has('noor', 'Hoe gaat het met je Nederlands?')).toBe(true);
+    for (const f of ['sanne', 'daan', 'noor']) expect(has(f, 'Echt? Wat leuk! Heel erg bedankt!'), f).toBe(true);
+    expect(has('sanne', 'Top! Kun je de melk en de eieren pakken?')).toBe(true);
   });
 
   it('reads prices and letters the way a Dutch speaker says them', () => {
@@ -355,8 +364,8 @@ describe('Dutch voice lines (Amsterdam)', () => {
   it('gives every Amsterdam character a voice of their own, men and women apart, the narrator in Netherlands Dutch', () => {
     const sig = Object.values(NL_VOICES).map((v) => `${v.model}:${v.pitch}:${v.speed}`);
     expect(new Set(sig).size).toBe(sig.length);
-    for (const w of ['femke', 'ingrid', 'sanne', 'noor']) expect(NL_VOICES[w]!.model, w).toBe('nl_BE-nathalie-medium');
-    for (const m of ['kees', 'daan', 'jesse', 'mo']) expect(NL_VOICES[m]!.model, m).toMatch(/^nl_NL-/);
+    for (const w of ['femke', 'ingrid', 'sanne', 'noor', 'mirjam', 'ilse']) expect(NL_VOICES[w]!.model, w).toBe('nl_BE-nathalie-medium');
+    for (const m of ['kees', 'daan', 'jesse', 'mo', 'joop']) expect(NL_VOICES[m]!.model, m).toMatch(/^nl_NL-/);
     expect(NL_VOICES[NARRATOR]!.model).toMatch(/^nl_NL-/);
   });
 });

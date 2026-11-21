@@ -21,6 +21,9 @@ export const NL_VOICES: Record<string, NlVoice> = {
   daan: { model: 'nl_NL-pim-medium', pitch: 1.04, speed: 1.06 }, // 30, the bike courier
   jesse: { model: 'nl_NL-ronnie-medium', pitch: 1.06, speed: 1.06 }, // 24, the stroopwafel baker
   mo: { model: 'nl_NL-ronnie-medium', pitch: 0.94, speed: 1.0 }, // 42, the snack bar owner
+  mirjam: { model: 'nl_BE-nathalie-medium', pitch: 0.97, speed: 0.98 }, // 45, the drogist: kind and practical
+  ilse: { model: 'nl_BE-nathalie-medium', pitch: 1.01, speed: 0.94 }, // 38, the gemeente's desk: careful and clear
+  joop: { model: 'nl_NL-pim-medium', pitch: 0.86, speed: 0.95 }, // 62, the brown café's landlord
   [NARRATOR]: { model: 'nl_NL-ronnie-medium', pitch: 1.0, speed: 0.95 },
 };
 

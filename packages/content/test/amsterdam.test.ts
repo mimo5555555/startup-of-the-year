@@ -48,7 +48,7 @@ describe('Amsterdam content', () => {
   });
 
   it('every character has a conversation at its place; ids are never Tokyo’s or Berlin’s', () => {
-    expect(AMSTERDAM_CHARACTERS.map((c) => c.id)).toEqual(['femke', 'kees', 'jesse', 'mo', 'ingrid', 'sanne', 'daan', 'noor']);
+    expect(AMSTERDAM_CHARACTERS.map((c) => c.id)).toEqual(['femke', 'kees', 'jesse', 'mo', 'ingrid', 'sanne', 'daan', 'noor', 'mirjam', 'joop', 'ilse']);
     const others = new Set([...CHARACTERS, ...BERLIN_CHARACTERS].map((c) => c.id));
     const otherScenarios = new Set(BERLIN_SCENARIOS.map((s) => s.id));
     for (const c of AMSTERDAM_CHARACTERS) {
