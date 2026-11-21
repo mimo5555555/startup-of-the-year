@@ -59,6 +59,24 @@ export const DE_FRIENDS: FriendDef[] = [
 
 const scenario = (id: string, scenarioId: string, en: string, ar: string, ch = 1): Interaction => ({ id, kind: 'scenario', scenarioId, label: { en, ar }, ch });
 const gift = (who: string): Interaction => ({ id: `${who}_gift`, kind: 'gift', label: { en: 'Give a gift', ar: 'قدّم هدية' }, ch: 3 });
+/** a chat on any day (`smalltalk_<who>`, social.ts), once the first meeting is done; listed first, so it is what Talk does from then on */
+const talk = (who: string, met: string, ch = 1): Interaction => ({
+  id: `${who}_talk`,
+  kind: 'scenario',
+  scenarioId: `smalltalk_${who}`,
+  label: { en: 'Small talk', ar: 'دردشة' },
+  ch,
+  gate: { k: 'scenario', id: met, complete: true },
+});
+/** a hang-out (hangouts.ts) once the friend is at three hearts, from Chapter 4 */
+const hang = (who: string, scenarioId: string): Interaction => ({
+  id: `${who}_hang`,
+  kind: 'scenario',
+  scenarioId,
+  label: { en: 'Hang out', ar: 'اقضيا وقتًا معًا' },
+  ch: 4,
+  gate: { k: 'hearts', friend: who, atLeast: 3 },
+});
 
 /** characterId -> what you can do with them (the first open one is what Talk does) */
 export const DE_INTERACTIONS: Record<string, Interaction[]> = {
@@ -67,9 +85,13 @@ export const DE_INTERACTIONS: Record<string, Interaction[]> = {
   emre: [scenario('emre_shop', 'berlin_doener', 'Order lunch', 'اطلب الغداء', 2)],
   sabine: [scenario('sabine_shop', 'berlin_ubahn', 'Buy a ticket', 'اشترِ تذكرة', 2)],
   greta: [scenario('greta_shop', 'berlin_flohmarkt', 'Look at her stall', 'تفرّج على كشكها', 3)],
-  lena: [scenario('lena_talk', 'berlin_lena', 'Talk', 'تحدّث'), gift('lena')],
-  kofi: [scenario('kofi_talk', 'berlin_kofi', 'Talk', 'تحدّث', 2), gift('kofi')],
-  jonas: [scenario('jonas_talk', 'berlin_jonas', 'Talk', 'تحدّث', 3), gift('jonas')],
+  // Chapters 4-6 (places.ts)
+  anke: [scenario('anke_shop', 'berlin_apotheke', 'Get something for a cold', 'اشترِ شيئًا لنزلة البرد', 4)],
+  uwe: [scenario('uwe_bar', 'berlin_kneipe', 'An evening at the bar', 'أمسية في الحانة', 5)],
+  krause: [scenario('krause_desk', 'berlin_buergeramt', 'Register your address', 'سجّل عنوانك', 6)],
+  lena: [talk('lena', 'berlin_lena'), scenario('lena_meet', 'berlin_lena', 'Our first chat', 'حديثنا الأول'), gift('lena'), hang('lena', 'hang_lena_backen')],
+  kofi: [talk('kofi', 'berlin_kofi', 2), scenario('kofi_meet', 'berlin_kofi', 'Our first chat', 'حديثنا الأول', 2), gift('kofi'), hang('kofi', 'hang_kofi_rad')],
+  jonas: [talk('jonas', 'berlin_jonas', 3), scenario('jonas_meet', 'berlin_jonas', 'Our first chat', 'حديثنا الأول', 3), gift('jonas'), hang('jonas', 'hang_jonas_spiel')],
 };
 
 const itemMap = (slot: string, options: string[], shop: string): Record<string, string> => Object.fromEntries(options.map((o) => [o, `${shop}:${o}`]));
@@ -145,4 +167,48 @@ export const DE_SCENARIO_META: ScenarioMeta[] = [
   { id: 'berlin_lena', kind: 'talk', band: 'A1', register: 'casual', pay: 'none', real: true, place: 'berlin_wg', friendId: 'lena', culture: ['cc_sie_du'] },
   { id: 'berlin_kofi', kind: 'talk', band: 'A1', register: 'casual', pay: 'none', real: true, place: 'berlin_hof', friendId: 'kofi' },
   { id: 'berlin_jonas', kind: 'talk', band: 'A1', register: 'casual', pay: 'none', real: true, place: 'berlin_cafe', friendId: 'jonas', culture: ['cc_tandem'] },
+  // a friend's chat on any day and the hand-over of a present (social.ts): hearts, not euros
+  ...(['lena', 'kofi', 'jonas'] as const).map(
+    (id, i): ScenarioMeta => ({ id: `smalltalk_${id}`, kind: 'talk', band: 'A1', register: 'casual', pay: 'none', real: true, place: ['berlin_wg', 'berlin_hof', 'berlin_cafe'][i], friendId: id }),
+  ),
+  { id: 'give_gift', kind: 'friend', band: 'A1', register: 'casual', pay: 'none' },
+  // Chapters 4-6 (places.ts): the Apotheke and the Kneipe sell; the Anmeldung costs nothing
+  {
+    id: 'berlin_apotheke',
+    kind: 'shop',
+    band: 'A1',
+    register: 'polite',
+    pay: 'full',
+    real: true,
+    place: 'berlin_apotheke',
+    culture: ['cc_apotheke'],
+    shop: { shopId: 'apotheke', itemSlot: 'beschwerde', payStep: 'pay', itemMap: itemMap('beschwerde', ['hals', 'kopf', 'schnupfen', 'husten'], 'apotheke') },
+  },
+  {
+    id: 'berlin_kneipe',
+    kind: 'shop',
+    band: 'A1',
+    register: 'polite',
+    pay: 'full',
+    real: true,
+    place: 'berlin_kneipe',
+    culture: ['cc_prost', 'cc_trinkgeld'],
+    shop: {
+      shopId: 'kneipe',
+      itemSlot: 'kneipe',
+      extraSlots: ['kneipeSnack'],
+      qtySlot: 'qty',
+      payStep: 'pay',
+      itemMap: { ...itemMap('kneipe', ['bier', 'spezi', 'schorle', 'cola'], 'kneipe'), ...itemMap('kneipeSnack', ['bulette'], 'kneipe') },
+    },
+  },
+  { id: 'berlin_buergeramt', kind: 'story', band: 'A2', register: 'polite', pay: 'none', real: true, place: 'berlin_buergeramt', culture: ['cc_anmeldung'] },
+  // the hang-outs at three hearts (hangouts.ts): hearts, one every few days
+  ...(
+    [
+      ['hang_lena_backen', 'lena', 'berlin_wg'],
+      ['hang_kofi_rad', 'kofi', 'berlin_hof'],
+      ['hang_jonas_spiel', 'jonas', 'berlin_cafe'],
+    ] as const
+  ).map(([id, friendId, place]): ScenarioMeta => ({ id, kind: 'hangout', band: 'A1', register: 'casual', pay: 'none', real: true, heart: 3, place, friendId })),
 ];

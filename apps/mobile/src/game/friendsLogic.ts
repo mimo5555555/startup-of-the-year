@@ -6,7 +6,8 @@
 // The host contract is the one written at the top of `content/src/tokyo/scenarios-social.ts`:
 //   small talk  startNode `g_<topic>`, facts.topic, flags `casual`, `cb_<key>` (+ `cbc_<key>`), `rev_<factId>` (+ `revc_<factId>`)
 //   gift        flags `gift_<reaction>` (+ `giftc_`), `dl_<id>` (+ `dlc_`), var `gift`, intents give_item / give_food / give_bare
-import { slotOption, type Vars } from '@lw/content';
+import type { SlotOption, Vars } from '@lw/content';
+import { SLOTS } from '../target';
 import {
   BALANCE,
   emptyFriend,
@@ -63,6 +64,8 @@ const GIVE_GIFT = 'give_gift';
 const GIVE_INTENTS = ['give_item', 'give_food', 'give_bare'];
 
 const defOf = (pack: GamePack, id: string): FriendDef | undefined => pack.friends.find((f) => f.id === id);
+/** an option of the language being learned's slot (Tokyo's, Berlin's or Amsterdam's): the gift's name, the remembered hobby or food */
+const slotOption = (slot: string, id: string): SlotOption | undefined => SLOTS[slot]?.find((o) => o.id === id);
 const tagsOf = (pack: GamePack, itemId: string): string[] => giftInfo(pack, itemId)?.tags ?? [];
 
 const friendOf = (state: GameState, id: string): FriendState => state.friends[id] ?? emptyFriend(state.clock.dayIndex);

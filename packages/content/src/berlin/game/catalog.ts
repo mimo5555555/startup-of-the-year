@@ -6,8 +6,9 @@ import { DOENER_PRICES } from '../doener';
 import { FLOHMARKT_PRICES } from '../flohmarkt';
 import { SPAETI_PRICES } from '../spaeti';
 import { TICKET_PRICES } from '../ubahn';
+import { APOTHEKE_PRICES, KNEIPE_PRICES } from '../places';
 
-const menu = (shop: string, slot: string, option: string, de: string, en: string, ar: string, price: number, taxClass: string, tags: string[], giftable = false): MenuItem => ({
+const menu = (shop: string, slot: string, option: string, de: string, en: string, ar: string, price: number, taxClass: string, tags: string[], giftable?: boolean): MenuItem => ({
   id: `${shop}:${option}`,
   shop,
   slot,
@@ -16,7 +17,7 @@ const menu = (shop: string, slot: string, option: string, de: string, en: string
   price,
   taxClass,
   tags,
-  ...(giftable ? { giftable } : {}),
+  ...(giftable !== undefined ? { giftable } : {}),
 });
 
 export const DE_MENU: MenuItem[] = [
@@ -39,6 +40,17 @@ export const DE_MENU: MenuItem[] = [
   menu('flohmarkt', 'floh', 'platte', 'Schallplatte', 'Vinyl record', 'أسطوانة', FLOHMARKT_PRICES.platte!, 'standard', ['music', 'vintage'], true),
   menu('flohmarkt', 'floh', 'jacke', 'Jacke', 'Vintage jacket', 'سترة قديمة', FLOHMARKT_PRICES.jacke!, 'standard', ['fashion', 'vintage'], true),
   menu('flohmarkt', 'floh', 'kamera', 'Kamera', 'Old camera', 'كاميرا قديمة', FLOHMARKT_PRICES.kamera!, 'standard', ['tech', 'vintage'], true),
+  // Chapter 4: the Apotheke (a remedy is not a present)
+  menu('apotheke', 'beschwerde', 'hals', 'Halstabletten', 'Throat lozenges', 'أقراص للحلق', APOTHEKE_PRICES.hals!, 'standard', ['health'], false),
+  menu('apotheke', 'beschwerde', 'kopf', 'Kopfschmerztabletten', 'Headache tablets', 'أقراص للصداع', APOTHEKE_PRICES.kopf!, 'standard', ['health'], false),
+  menu('apotheke', 'beschwerde', 'schnupfen', 'Nasenspray', 'Nasal spray', 'بخاخ للأنف', APOTHEKE_PRICES.schnupfen!, 'standard', ['health'], false),
+  menu('apotheke', 'beschwerde', 'husten', 'Hustensaft', 'Cough syrup', 'شراب للسعال', APOTHEKE_PRICES.husten!, 'standard', ['health'], false),
+  // Chapter 5: the Kneipe (drunk and eaten at the bar)
+  menu('kneipe', 'kneipe', 'bier', 'Bier', 'Beer', 'بيرة', KNEIPE_PRICES.bier!, 'standard', ['drink', 'alcohol'], false),
+  menu('kneipe', 'kneipe', 'spezi', 'Spezi', 'Spezi (cola and orange)', 'سبيتسي', KNEIPE_PRICES.spezi!, 'food', ['drink'], false),
+  menu('kneipe', 'kneipe', 'schorle', 'Apfelschorle', 'Apple spritzer', 'عصير تفاح بالصودا', KNEIPE_PRICES.schorle!, 'food', ['drink'], false),
+  menu('kneipe', 'kneipe', 'cola', 'Cola', 'Cola', 'كولا', KNEIPE_PRICES.cola!, 'food', ['drink'], false),
+  menu('kneipe', 'kneipeSnack', 'bulette', 'Bulette', 'Bulette (meatball)', 'بوليته (كرة لحم)', KNEIPE_PRICES.bulette!, 'food', ['food', 'meal'], false),
 ];
 
 /** the bike Kofi told you about: second-hand from Greta's stall, faster through the streets */
@@ -75,4 +87,7 @@ export const DE_SHOPS: ShopDef[] = [
   shop('ubahn', 'berlin_ubahn', 'BVG', 'U-Bahn ticket counter', 'شبّاك تذاكر المترو', 2, ['cash', 'card'], sellsOf('ubahn')),
   // a flea market stall takes cash only
   shop('flohmarkt', 'berlin_flohmarkt', 'Flohmarkt im Mauerpark', 'flea market', 'سوق البرغوث في «ماورپارك»', 3, ['cash'], [...sellsOf('flohmarkt'), 'bike_used']),
+  shop('apotheke', 'berlin_apotheke', 'Apotheke am Kiez', 'pharmacy', 'صيدلية الحيّ', 4, ['cash', 'card'], sellsOf('apotheke')),
+  // the corner Kneipe takes cash only, like many in Berlin
+  shop('kneipe', 'berlin_kneipe', 'Zum Eck', 'corner pub', 'حانة الناصية', 5, ['cash'], sellsOf('kneipe')),
 ];

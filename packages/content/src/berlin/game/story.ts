@@ -1,10 +1,13 @@
-// Berlin's story, Chapters 1-3 (German step 2): arriving in the Kiez, getting around it, and a Sunday at the Mauerpark flea market; the
-// beats (German lines, every word in the German dictionary), two dreams, the titles, the culture cards, the daily goals and the word tags.
+// Berlin's story, Chapters 1-6: arriving in the Kiez, getting around it, a Sunday at the Mauerpark flea market (German step 2); then
+// good friends and a cold (the Apotheke), going out (hang-outs, the Kneipe) and arriving for real (the Anmeldung at the Bürgeramt) (German
+// step 5). The beats (German lines, every word in the German dictionary), two dreams, the titles, the culture cards, the daily goals and
+// the word tags.
 import type { Beat, BeatLine, ChapterDef, ChapterOpen, CultureCard, DailyTemplate, DreamDef, DreamStep, TitleDef } from '@lw/game';
 
 const o = (kind: ChapterOpen['kind'], id: string): ChapterOpen => ({ kind, id });
 
-export const DE_EPILOGUE = 'b_bc3_close';
+/** the closing of the last chapter (6): the end of the story, then Free Walk */
+export const DE_EPILOGUE = 'b_bc6_close';
 
 export const DE_CHAPTERS: ChapterDef[] = [
   {
@@ -92,7 +95,7 @@ export const DE_CHAPTERS: ChapterDef[] = [
     rewardTitle: 't_flohmarkt',
     rewardCulture: ['cc_bargeld'],
     opens: [o('shop', 'flohmarkt'), o('place', 'berlin_flohmarkt'), o('place', 'berlin_cafe'), o('feature', 'gift'), o('interaction', 'lena_gift'), o('interaction', 'kofi_gift'), o('interaction', 'jonas_gift')],
-    beats: { open: 'b_bc3_open', close: DE_EPILOGUE },
+    beats: { open: 'b_bc3_open', close: 'b_bc3_close' },
     objectives: [
       {
         id: 'bc3_1',
@@ -117,6 +120,119 @@ export const DE_CHAPTERS: ChapterDef[] = [
         id: 'bc3_4',
         pred: { k: 'stars', atLeast: 2, n: 4 },
         text: { en: 'Get 2 stars in 4 different shop conversations', ar: 'احصل على نجمتين في 4 محادثات متاجر مختلفة' },
+      },
+    ],
+  },
+  {
+    n: 4,
+    title: { ja: 'Gute Freunde', en: 'Good friends', ar: 'أصدقاء طيّبون' },
+    minDays: 4,
+    reward: 4000,
+    rewardTitle: 't_gute_freunde',
+    opens: [
+      o('shop', 'apotheke'),
+      o('place', 'berlin_apotheke'),
+      o('interaction', 'anke_shop'),
+      o('interaction', 'lena_hang'),
+      o('interaction', 'kofi_hang'),
+      o('interaction', 'jonas_hang'),
+    ],
+    beats: { open: 'b_bc4_open', close: 'b_bc4_close' },
+    objectives: [
+      {
+        id: 'bc4_1',
+        pred: { k: 'all', of: [{ k: 'scenario', id: 'smalltalk_lena', complete: true }, { k: 'scenario', id: 'smalltalk_kofi', complete: true }, { k: 'scenario', id: 'smalltalk_jonas', complete: true }] },
+        text: { en: 'Have a chat with Lena, Kofi and Jonas', ar: 'دردش مع لينا وكوفي ويوناس' },
+        hint: { en: 'Talk to a friend: say hello, answer their question, react. One chat a day each counts.', ar: 'تحدّث مع صديق: قل مرحبًا وأجب عن سؤاله وعلّق. تُحتسب دردشة واحدة يوميًا مع كل منهم.' },
+        pin: { friend: 'kofi' },
+      },
+      {
+        id: 'bc4_2',
+        pred: { k: 'gift', n: 1 },
+        text: { en: 'Give a friend a present', ar: 'قدّم هدية لصديق' },
+        hint: { en: 'Buy something they like (a Pfannkuchen for Lena?), then: Ich habe … für dich!', ar: 'اشترِ شيئًا يحبه (دونات للينا؟) ثم قل: Ich habe … für dich!' },
+        pin: { friend: 'lena' },
+      },
+      {
+        id: 'bc4_3',
+        pred: { k: 'scenario', id: 'berlin_apotheke', complete: true },
+        text: { en: 'Get something for your cold at the Apotheke', ar: 'اشترِ شيئًا لنزلة البرد من الصيدلية' },
+        hint: { en: 'Say what hurts: Ich habe Halsschmerzen.', ar: 'قل ما يؤلمك: Ich habe Halsschmerzen.' },
+        pin: { place: 'berlin_apotheke' },
+      },
+      {
+        id: 'bc4_4',
+        pred: { k: 'hearts_count', atLeast: 3, n: 1 },
+        text: { en: 'Become close friends with someone (3 hearts)', ar: 'كوّن صداقة قريبة مع أحدهم (3 قلوب)' },
+        hint: { en: 'Chat with the same friend on different days, and give a present they like.', ar: 'دردش مع الصديق نفسه في أيام مختلفة، وقدّم هدية يحبها.' },
+      },
+    ],
+  },
+  {
+    n: 5,
+    title: { ja: 'Ausgehen', en: 'Going out', ar: 'الخروج' },
+    minDays: 5,
+    reward: 5000,
+    rewardTitle: 't_nachteule',
+    opens: [o('shop', 'kneipe'), o('place', 'berlin_kneipe'), o('interaction', 'uwe_bar')],
+    beats: { open: 'b_bc5_open', close: 'b_bc5_close' },
+    objectives: [
+      {
+        id: 'bc5_1',
+        pred: { k: 'hangout', n: 1 },
+        text: { en: 'Hang out with a friend', ar: 'اقضِ وقتًا مع صديق' },
+        hint: { en: 'A friend at 3 hearts has time: cake with Lena, a bike with Kofi, a game with Jonas.', ar: 'الصديق ذو القلوب الثلاثة لديه وقت: كعكة مع لينا، أو درّاجة مع كوفي، أو لعبة مع يوناس.' },
+      },
+      {
+        id: 'bc5_2',
+        pred: { k: 'scenario', id: 'berlin_kneipe', complete: true },
+        text: { en: 'An evening at the Kneipe: order, say Prost, pay', ar: 'أمسية في الحانة: اطلب، قل «Prost»، ادفع' },
+        hint: { en: 'Zum Eck takes cash only. Zahlen, bitte!', ar: 'حانة «تسوم إك» تقبل النقد فقط. Zahlen, bitte!' },
+        pin: { place: 'berlin_kneipe' },
+      },
+      {
+        id: 'bc5_3',
+        pred: { k: 'culture_said', n: 3 },
+        text: { en: 'Say 3 Berlin phrases from your culture cards', ar: 'قل 3 عبارات برلينية من بطاقاتك الثقافية' },
+      },
+      {
+        id: 'bc5_4',
+        pred: { k: 'stars', atLeast: 2, n: 6 },
+        text: { en: 'Get 2 stars in 6 different conversations', ar: 'احصل على نجمتين في 6 محادثات مختلفة' },
+      },
+    ],
+  },
+  {
+    n: 6,
+    title: { ja: 'Angekommen', en: 'Arrived', ar: 'وصلت' },
+    minDays: 6,
+    reward: 6000,
+    rewardTitle: 't_angekommen',
+    opens: [o('place', 'berlin_buergeramt'), o('interaction', 'krause_desk')],
+    beats: { open: 'b_bc6_open', close: DE_EPILOGUE },
+    objectives: [
+      {
+        id: 'bc6_1',
+        pred: { k: 'scenario', id: 'berlin_buergeramt', complete: true },
+        text: { en: 'Register your address at the Bürgeramt (the Anmeldung)', ar: 'سجّل عنوانك في مكتب شؤون المواطنين («الأنميلدونغ»)' },
+        hint: { en: 'Herr Krause wants your passport and your new address: Ich möchte mich anmelden.', ar: 'السيد كراوزه يريد جواز سفرك وعنوانك الجديد: Ich möchte mich anmelden.' },
+        pin: { place: 'berlin_buergeramt' },
+      },
+      {
+        id: 'bc6_2',
+        pred: { k: 'hearts_count', atLeast: 4, n: 1 },
+        text: { en: 'Become best friends with someone (4 hearts)', ar: 'كوّن صداقة متينة مع أحدهم (4 قلوب)' },
+      },
+      {
+        id: 'bc6_3',
+        pred: { k: 'hangout', n: 3 },
+        text: { en: 'Hang out 3 times with your friends', ar: 'اقضِ وقتًا مع أصدقائك 3 مرات' },
+      },
+      {
+        id: 'bc6_4',
+        pred: { k: 'words_known', n: 40 },
+        text: { en: 'Know 40 words (reviewed at least once)', ar: 'تعرّف على 40 كلمة (راجعتها مرة على الأقل)' },
+        hint: { en: 'Review the words in your notebook.', ar: 'راجع الكلمات في دفترك.' },
       },
     ],
   },
@@ -149,10 +265,34 @@ const BEATS: Beat[] = [
     B('lena', 'Am Sonntag ist fast alles zu. Aber der Flohmarkt im Mauerpark ist offen!', 'On Sundays almost everything is closed. But the flea market in Mauerpark is open!', 'يوم الأحد يكون كل شيء تقريبًا مغلقًا. لكن سوق البرغوث في «ماورپارك» مفتوح!'),
     B('lena', 'Komm, wir gehen zusammen!', 'Come on, let’s go together!', 'تعال، لنذهب معًا!'),
   ]),
-  beat(DE_EPILOGUE, 'berlin_wg', [
+  beat('b_bc3_close', 'berlin_wg', [
     B('lena', 'Was für ein Monat, {name}! Bäckerei, Späti, Döner, U-Bahn und Flohmarkt.', 'What a month, {name}! Bakery, Späti, Döner, U-Bahn and flea market.', 'يا له من شهر يا {name}! المخبز و«الشبيتي» والدونر والمترو وسوق البرغوث.'),
     B('lena', 'Und jetzt hast du drei Freunde in Berlin.', 'And now you have three friends in Berlin.', 'والآن لديك ثلاثة أصدقاء في برلين.'),
-    B('lena', 'Das ist erst der Anfang. Bis bald!', 'This is only the beginning. See you soon!', 'هذه مجرد البداية. إلى اللقاء قريبًا!'),
+  ]),
+  beat('b_bc4_open', 'berlin_wg', [
+    B('lena', 'Du klingst erkältet, {name}! Die Apotheke ist gleich um die Ecke.', 'You sound like you have a cold, {name}! The pharmacy is just round the corner.', 'يبدو أنك مصاب بالزكام يا {name}! الصيدلية قريبة، عند الناصية.'),
+    B('lena', 'Und danach: Kaffee in der Küche? Ich möchte dich besser kennenlernen.', 'And afterwards: coffee in the kitchen? I’d like to get to know you better.', 'وبعدها: قهوة في المطبخ؟ أودّ أن أتعرّف عليك أكثر.'),
+  ]),
+  beat('b_bc4_close', 'berlin_hof', [
+    B('kofi', 'Hey {name}! Du gehörst jetzt zum Hof.', 'Hey {name}! You belong to the courtyard now.', 'أهلًا يا {name}! أنت الآن من أهل الفناء.'),
+    B('kofi', 'Am Wochenende machen wir was zusammen, okay?', 'At the weekend we’ll do something together, okay?', 'في عطلة نهاية الأسبوع سنفعل شيئًا معًا، اتفقنا؟'),
+  ]),
+  beat('b_bc5_open', 'berlin_cafe', [
+    B('jonas', 'Heute Abend gehen wir aus! Kennst du schon das Zum Eck?', 'Tonight we’re going out! Do you know Zum Eck yet?', 'الليلة نخرج! هل تعرف حانة «تسوم إك»؟'),
+    B('jonas', 'Uwe nimmt nur Bargeld. Und vergiss nicht: Prost mit Augenkontakt!', 'Uwe only takes cash. And don’t forget: Prost with eye contact!', 'أوفه يقبل النقد فقط. ولا تنسَ: «Prost» مع النظر في العينين!'),
+  ]),
+  beat('b_bc5_close', 'berlin_wg', [
+    B('lena', 'Jetzt kennst du Berlin am Tag und in der Nacht, {name}!', 'Now you know Berlin by day and by night, {name}!', 'الآن تعرف برلين في النهار والليل يا {name}!'),
+    B('lena', 'Aber hast du dich schon angemeldet? Ohne Meldebescheinigung geht in Deutschland nichts.', 'But have you registered yet? Nothing works in Germany without the certificate.', 'لكن هل سجّلت عنوانك بعد؟ لا شيء يسير في ألمانيا بلا شهادة التسجيل.'),
+  ], { ask: 'diary' }),
+  beat('b_bc6_open', 'berlin_buergeramt', [
+    B('krause', 'Guten Tag. Bürgeramt Kreuzberg.', 'Good afternoon. Bürgeramt Kreuzberg.', 'مساء الخير. مكتب شؤون المواطنين في كرويتسبرغ.'),
+    B('krause', 'Mit Termin, Pass und Formular geht alles ganz schnell.', 'With an appointment, a passport and the form, it all goes very quickly.', 'مع موعد وجواز سفر واستمارة يسير كل شيء بسرعة.'),
+  ]),
+  beat(DE_EPILOGUE, 'berlin_wg', [
+    B('lena', 'Du bist angemeldet, du hast Freunde, du sprichst Deutsch. Jetzt bist du wirklich angekommen, {name}!', 'You’re registered, you have friends, you speak German. Now you’ve really arrived, {name}!', 'سجّلت عنوانك، ولديك أصدقاء، وتتكلّم الألمانية. الآن وصلت حقًا يا {name}!'),
+    B('kofi', 'Willkommen zu Hause!', 'Welcome home!', 'أهلًا بك في بيتك!'),
+    B('jonas', 'Und das ist erst der Anfang. Bis bald!', 'And this is only the beginning. See you soon!', 'وهذه مجرد البداية. إلى اللقاء قريبًا!'),
   ]),
   // the beats the game plays by name
   beat('b_dream_step', 'berlin_wg', [B('lena', 'Gut so! Du bist fast da.', 'That’s it! You’re almost there.', 'هكذا! اقتربت.')]),
@@ -214,6 +354,9 @@ export const DE_TITLES: TitleDef[] = [
   title('t_neu_in_berlin', 'Neu in Berlin', 'New in Berlin', 'جديد في برلين', { kind: 'chapter', n: 1 }),
   title('t_kiez', 'Kiezkenner', 'Knows the Kiez', 'يعرف الحيّ', { kind: 'chapter', n: 2 }),
   title('t_flohmarkt', 'Flohmarkt-Profi', 'Flea-market pro', 'محترف سوق البرغوث', { kind: 'chapter', n: 3 }),
+  title('t_gute_freunde', 'Guter Freund', 'Good friend', 'صديق طيّب', { kind: 'chapter', n: 4 }),
+  title('t_nachteule', 'Nachteule', 'Night owl', 'بومة الليل', { kind: 'chapter', n: 5 }),
+  title('t_angekommen', 'Angekommen', 'Arrived', 'وصلت', { kind: 'chapter', n: 6 }),
   title('t_dream_bike', 'Radfahrer', 'Cyclist', 'راكب درّاجة', { kind: 'dream', id: 'bike' }),
   title('t_dream_friends', 'Freund fürs Leben', 'Friend for life', 'صديق العمر', { kind: 'dream', id: 'friends' }),
 ];
@@ -285,6 +428,55 @@ export const DE_CULTURE: CultureCard[] = [
     ['Sollen wir üben?', 'Shall we practise?', 'هل نتدرّب؟'],
     'A Sprach-Tandem is two people who teach each other their languages, half the time in each. Berlin has hundreds of them every week, in cafés, libraries and online.',
     'تبادل اللغة لقاء بين شخصين يعلّم كل منهما الآخر لغته، نصف الوقت لكل لغة. في برلين مئات اللقاءات كل أسبوع في المقاهي والمكتبات وعلى الإنترنت.',
+    { say: true },
+  ),
+  // Chapters 4-6
+  card(
+    'cc_apotheke',
+    { on: 'scenario_done', ids: ['berlin_apotheke'] },
+    ['Gute Besserung!', 'Get well soon!', 'أتمنى لك الشفاء العاجل!'],
+    'In Germany even a headache tablet is sold only at the Apotheke, the shop with the red A. At night and on Sundays one pharmacy in each area stays open (the Notdienst); every pharmacy’s door says which.',
+    'في ألمانيا حتى أقراص الصداع لا تُباع إلا في الصيدلية، المحل ذي حرف A الأحمر. وفي الليل وأيام الأحد تبقى صيدلية واحدة مفتوحة في كل حيّ (صيدلية المناوبة)؛ وعلى باب كل صيدلية عنوانها.',
+    { say: true },
+  ),
+  card(
+    'cc_kaffee_kuchen',
+    { on: 'scenario_done', ids: ['hang_lena_backen'] },
+    ['Kaffee und Kuchen?', 'Coffee and cake?', 'قهوة وكعك؟'],
+    'Kaffee und Kuchen is a German afternoon ritual, above all on Sundays around three o’clock: a pot of coffee, a homemade cake, family or friends at the table.',
+    'القهوة والكعك طقس ألماني بعد الظهر، خاصة أيام الأحد نحو الساعة الثالثة: إبريق قهوة، وكعكة من صنع البيت، والعائلة أو الأصدقاء حول الطاولة.',
+    { say: true },
+  ),
+  card(
+    'cc_brettspiel',
+    { on: 'scenario_done', ids: ['hang_jonas_spiel'] },
+    ['Du bist dran!', 'It’s your turn!', 'دورك!'],
+    'Germany loves board games: there is a prize for the game of the year (Spiel des Jahres), and Mensch ärgere dich nicht (Do not get annoyed!) has been played in families for over a hundred years.',
+    'ألمانيا تحب ألعاب الطاولة: هناك جائزة للعبة العام (Spiel des Jahres)، ولعبة «Mensch ärgere dich nicht» (لا تنزعج!) تُلعب في العائلات منذ أكثر من مئة عام.',
+    { say: true },
+  ),
+  card(
+    'cc_prost',
+    { on: 'intent', ids: ['berlin_kneipe:prost'] },
+    ['Prost!', 'Cheers!', 'في صحتك!'],
+    'When glasses clink, look the other person in the eye and say Prost (or Zum Wohl). Not looking, the joke goes, means seven years of bad luck. A Kneipe is a simple corner pub: beer, a Bulette, often cash only.',
+    'عند قرع الكؤوس انظر في عيني الآخر وقل «Prost» (أو «Zum Wohl»). وتقول النكتة إن عدم النظر يجلب سبع سنوات من سوء الحظ. و«الكنايبه» حانة بسيطة على الناصية: بيرة و«بوليته»، وغالبًا نقدًا فقط.',
+    { say: true, adultOnly: true },
+  ),
+  card(
+    'cc_trinkgeld',
+    { on: 'payment', ids: ['kneipe'] },
+    ['Stimmt so!', 'Keep the change!', 'احتفظ بالباقي!'],
+    'Tips (Trinkgeld) in Germany are said, not left on the table: round the bill up when you pay and say Stimmt so (keep the change). About five to ten per cent in bars and restaurants.',
+    'الإكرامية في ألمانيا تُقال ولا تُترك على الطاولة: قرّب المبلغ إلى الأعلى عند الدفع وقل «Stimmt so» (احتفظ بالباقي). نحو خمسة إلى عشرة بالمئة في الحانات والمطاعم.',
+    { say: true },
+  ),
+  card(
+    'cc_anmeldung',
+    { on: 'scenario_done', ids: ['berlin_buergeramt'] },
+    ['Ich möchte mich anmelden.', 'I’d like to register my address.', 'أودّ تسجيل عنواني.'],
+    'Everyone who moves into a flat in Germany registers the address at the Bürgeramt within two weeks (the Anmeldung). In Berlin appointments are booked online, often weeks ahead; bring your passport and the form from your landlord. The certificate you get is needed for a bank account, a phone contract and much more.',
+    'كل من يسكن في شقة في ألمانيا يسجّل عنوانه في مكتب شؤون المواطنين خلال أسبوعين («الأنميلدونغ»). في برلين تُحجز المواعيد على الإنترنت، وغالبًا قبل أسابيع؛ أحضر جواز سفرك والاستمارة من المؤجّر. والشهادة التي تحصل عليها ضرورية لفتح حساب مصرفي وعقد هاتف وأمور كثيرة.',
     { say: true },
   ),
 ];

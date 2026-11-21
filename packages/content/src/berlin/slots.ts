@@ -78,6 +78,57 @@ export const DE_SLOTS: Record<string, SlotOption[]> = {
     opt('books', 'Lesen', ['lese', 'bucher', 'buch'], ['reading', 'books'], ['القراءة', 'الكتب']),
     opt('drawing', 'Zeichnen', ['zeichne', 'male', 'malen', 'kunst'], ['drawing', 'painting', 'art'], ['الرسم', 'أرسم']),
   ],
+  // a present handed to a friend (give_gift): the street's things in the accusative, as you hand them over (「Ich habe eine Brezel für
+  // dich」); the ids are the shops' slot options, so the gift sheet finds the name of what was bought
+  giftItem: [
+    opt('lampe', 'eine Lampe', ['leuchte'], ['lamp', 'a lamp'], ['مصباح']),
+    opt('platte', 'eine Schallplatte', ['platte', 'vinyl'], ['record', 'a record', 'vinyl'], ['أسطوانة']),
+    opt('jacke', 'eine Jacke', [], ['jacket', 'a jacket'], ['سترة']),
+    opt('kamera', 'eine Kamera', ['fotoapparat'], ['camera', 'a camera'], ['كاميرا']),
+  ],
+  giftFood: [
+    opt('broetchen', 'ein Brötchen', ['schrippe'], ['roll', 'a roll'], ['خبز صغير']),
+    opt('brezel', 'eine Brezel', [], ['pretzel', 'a pretzel'], ['بريتزل']),
+    opt('croissant', 'ein Croissant', [], ['croissant', 'a croissant'], ['كرواسون']),
+    opt('pfannkuchen', 'einen Pfannkuchen', ['berliner'], ['doughnut', 'a doughnut'], ['دونات']),
+    opt('kaffee', 'einen Kaffee', [], ['coffee', 'a coffee'], ['قهوة']),
+    opt('kakao', 'einen Kakao', [], ['hot chocolate', 'cocoa'], ['كاكاو']),
+    opt('clubmate', 'eine Club-Mate', ['mate', 'club mate'], ['club-mate', 'mate'], ['كلوب ماتيه']),
+    opt('wasser', 'ein Wasser', [], ['water', 'a water'], ['ماء']),
+    opt('schorle', 'eine Apfelschorle', ['schorle'], ['apple spritzer', 'spritzer'], ['عصير تفاح بالصودا']),
+    opt('doener', 'einen Döner', ['doner', 'kebab'], ['doner', 'kebab'], ['دونر']),
+    opt('duerum', 'einen Dürüm', ['durum', 'wrap'], ['durum', 'wrap'], ['دوروم']),
+    opt('falafel', 'eine Falafel', [], ['falafel'], ['فلافل']),
+  ],
+  // a friend's 「Was isst du am liebsten?」: the favourite food is remembered (fact favFood) and quoted later (「Hast du diese Woche
+  // Pizza gegessen?」)
+  chatfood: [
+    opt('pizza', 'Pizza', [], ['pizza'], ['بيتزا']),
+    opt('doener', 'Döner', ['doner', 'kebab'], ['doner', 'kebab'], ['دونر']),
+    opt('pasta', 'Pasta', ['nudeln', 'spaghetti'], ['pasta', 'noodles', 'spaghetti'], ['معكرونة']),
+    opt('currywurst', 'Currywurst', ['wurst'], ['currywurst', 'sausage'], ['كاري فورست']),
+    opt('kuchen', 'Kuchen', ['torte'], ['cake'], ['كعك', 'كيك']),
+    opt('sushi', 'Sushi', [], ['sushi'], ['سوشي']),
+    opt('falafel', 'Falafel', [], ['falafel'], ['فلافل']),
+    opt('reis', 'Reis', [], ['rice'], ['أرز', 'رز']),
+    opt('salat', 'Salat', [], ['salad'], ['سلطة']),
+    opt('schokolade', 'Schokolade', [], ['chocolate'], ['شوكولاتة']),
+  ],
+  // the Apotheke (places.ts): what hurts; each complaint has its remedy, which is what is sold
+  beschwerde: [
+    opt('hals', 'Halsschmerzen', ['hals', 'halsweh', 'halsschmerz'], ['sore throat', 'throat'], ['التهاب الحلق', 'الحلق']),
+    opt('kopf', 'Kopfschmerzen', ['kopf', 'kopfweh'], ['headache', 'head'], ['صداع', 'الرأس']),
+    opt('schnupfen', 'Schnupfen', ['nase', 'erkältet', 'erkaltet', 'erkältung', 'verschnupft'], ['runny nose', 'a cold', 'nose'], ['زكام', 'الأنف']),
+    opt('husten', 'Husten', ['huste'], ['cough'], ['سعال', 'كحة']),
+  ],
+  // the Kneipe (places.ts): a drink at the bar (beer for an adult) and a Bulette, Berlin's meatball
+  kneipe: [
+    opt('bier', 'Bier', ['pils', 'helles', 'bierchen'], ['beer', 'a beer'], ['بيرة']),
+    opt('spezi', 'Spezi', ['cola mix', 'colamix'], ['spezi', 'cola and orange'], ['سبيتسي']),
+    opt('schorle', 'Apfelschorle', ['schorle', 'apfelsaft'], ['apple spritzer', 'apple juice'], ['عصير تفاح بالصودا']),
+    opt('cola', 'Cola', ['coke'], ['cola', 'coke'], ['كولا']),
+  ],
+  kneipeSnack: [opt('bulette', 'Bulette', ['buletten', 'frikadelle', 'fleischpflanzerl'], ['bulette', 'meatball'], ['بوليته', 'كرة لحم'])],
   // how you pay (read by the game's charge, like Tokyo's payMethod): a card or cash
   payMethod: [
     opt('card', 'Karte', ['kreditkarte', 'ec karte', 'girokarte', 'mit karte'], ['card', 'by card', 'credit card'], ['بطاقة', 'بالبطاقة']),

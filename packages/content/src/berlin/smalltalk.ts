@@ -27,6 +27,16 @@ export const BERLIN_SHOP_TALK: Record<string, ShopTalk> = {
     hello: L('Guten Tag!', 'Good afternoon!', 'مساء الخير!'),
     ask: L('So, wie kann ich Ihnen helfen?', 'So, how can I help you?', 'إذن، كيف أستطيع مساعدتك؟'),
   },
+  berlin_apotheke: {
+    regular: L('Guten Tag! Schön, Sie wiederzusehen. Was kann ich für Sie tun?', 'Good afternoon! Nice to see you again. What can I do for you?', 'مساء الخير! سعيدة برؤيتك مجددًا. ماذا أستطيع أن أفعل لك؟'),
+    hello: L('Guten Tag!', 'Good afternoon!', 'مساء الخير!'),
+    ask: L('So, was kann ich für Sie tun?', 'So, what can I do for you?', 'إذن، ماذا أستطيع أن أفعل لك؟'),
+  },
+  berlin_kneipe: {
+    regular: L('Ah, unser Stammgast! Guten Abend! Was darf es sein?', 'Ah, our regular! Good evening! What can I get you?', 'آه، زبوننا الدائم! مساء الخير! ماذا تشرب؟'),
+    hello: L('Guten Abend!', 'Good evening!', 'مساء الخير!'),
+    ask: L('So, was darf es sein?', 'So, what can I get you?', 'إذن، ماذا تشرب؟'),
+  },
   berlin_flohmarkt: {
     regular: L('Ah, Sie sind wieder da! Schauen Sie ruhig.', 'Ah, you are back! Have a look around.', 'آه، عدت! تفضّل وانظر براحتك.'),
     hello: L('Hallo!', 'Hello!', 'أهلًا!'),

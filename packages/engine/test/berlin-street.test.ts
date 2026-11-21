@@ -113,10 +113,13 @@ function walk(id: string, l1: L1, mk: () => Partial<SessionOptions>) {
 const SHOPS = ['berlin_bakery', 'berlin_spaeti', 'berlin_doener', 'berlin_ubahn', 'berlin_flohmarkt'];
 
 describe('the Berlin street: every chip is understood', () => {
+  // the street of German step 2; the friends' chats, gifts and hang-outs and the places of Chapters 4-6 have their own tests
+  // (berlin-friends.test.ts, berlin-places.test.ts)
+  const STREET = [...SHOPS, 'berlin_lena', 'berlin_kofi', 'berlin_jonas'];
   it('has the five shops and the three friends', () => {
-    expect(BERLIN_SCENARIOS.map((s) => s.id)).toEqual([...SHOPS, 'berlin_lena', 'berlin_kofi', 'berlin_jonas']);
+    expect(BERLIN_SCENARIOS.map((s) => s.id)).toEqual(expect.arrayContaining(STREET));
   });
-  for (const sc of BERLIN_SCENARIOS) {
+  for (const sc of BERLIN_SCENARIOS.filter((x) => STREET.includes(x.id))) {
     const shop = SHOPS.includes(sc.id);
     const modes: Array<[string, () => Partial<SessionOptions>]> = shop
       ? [

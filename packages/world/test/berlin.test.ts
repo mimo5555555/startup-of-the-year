@@ -6,7 +6,7 @@ import { BERLIN_DISTRICT, BERLIN_SHOPS, BERLIN_SPAWNS, buildBerlinCity } from '.
 import { TOKYO_DISTRICT } from '../src/district';
 import { resolveCircle } from '../src/collision';
 import type { City } from '../src/city';
-import { BERLIN_SIGNS, DE_LEXICON } from '@lw/content';
+import { BERLIN_CHARACTERS, BERLIN_PACK, BERLIN_SIGNS, DE_LEXICON } from '@lw/content';
 
 beforeAll(installFakeDom);
 
@@ -20,11 +20,14 @@ describe('the Berlin street', () => {
 
   it('builds every site a Berlin character stands at', () => {
     for (const s of BERLIN_SPAWNS) expect(city.built.has(s.site!), `${s.id} at ${s.site}`).toBe(true);
-    expect(BERLIN_SPAWNS.map((s) => s.id).sort()).toEqual(['emre', 'greta', 'jana', 'jonas', 'kofi', 'lena', 'murat', 'sabine']);
+    expect(BERLIN_SPAWNS.map((s) => s.id).sort()).toEqual(BERLIN_CHARACTERS.map((c) => c.id).sort());
   });
 
   it('names its open fronts as the Berlin pack names its shops; the flea market is a site of its own', () => {
-    expect(BERLIN_SHOPS.map((s) => s.id)).toEqual(['bakery', 'spaeti', 'doener', 'ubahn']);
+    expect(BERLIN_SHOPS.map((s) => s.id)).toEqual(['bakery', 'spaeti', 'doener', 'ubahn', 'apotheke', 'buergeramt']);
+    // every shop of the pack has its place on the street: an open front, or a site of its own (the flea market, the Kneipe)
+    for (const s of BERLIN_PACK.shops) expect(BERLIN_SHOPS.some((b) => b.id === s.id) || BERLIN_SPAWNS.some((x) => x.site === s.id), s.id).toBe(true);
+    expect(BERLIN_SPAWNS.find((s) => s.id === 'uwe')?.site).toBe('kneipe');
     expect(BERLIN_SPAWNS.find((s) => s.id === 'greta')?.site).toBe('flohmarkt');
   });
 

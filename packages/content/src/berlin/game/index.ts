@@ -37,5 +37,5 @@ export const BERLIN_PACK: GamePack = {
   titles: DE_TITLES,
   ageProfiles: JP_AGE_PROFILES,
   // Chapters 1-3 are played, then Free Walk
-  release: { lastChapter: 3, epilogue: DE_EPILOGUE },
+  release: { lastChapter: 6, epilogue: DE_EPILOGUE },
 };

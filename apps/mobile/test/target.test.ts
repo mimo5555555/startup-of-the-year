@@ -96,6 +96,25 @@ describe('learning German', () => {
     expect(ja.menuIds({ friends: true, phoneIcon: false })).toEqual({ play: ['quests', 'friends', 'wallet', 'lessons'], study: ['vocab', 'theatre', 'stats', 'settings'] });
   });
 
+  it('Berlin’s friends: a chat of the day at a German topic, a callback naming the hobby in German, presents named in German', async () => {
+    putSaved('lw.target', 'de');
+    const { planFriendConvo, handOverOption, giftChoices, pickCallback } = await import('../src/game/friendsLogic');
+    const { BERLIN_PACK, berlinScenarioById } = await import('@lw/content');
+    const { createGameState, emptyFriend } = await import('@lw/game');
+    const st = createGameState(BERLIN_PACK, Date.UTC(2030, 0, 1));
+    const sc = berlinScenarioById('smalltalk_lena')!;
+    const plan = planFriendConvo(BERLIN_PACK, st, { scenarioId: 'smalltalk_lena', characterId: 'lena' }, { nodeIds: Object.keys(sc.nodes), interests: ['food'], rng: () => 0.3 })!;
+    expect(plan.kind).toBe('talk');
+    expect(plan.startNode && sc.nodes[plan.startNode]).toBeTruthy();
+    const f = { ...emptyFriend(0), ap: 9999, facts: { hobby: 'cooking', favFood: 'currywurst' } };
+    const cb = pickCallback(f, 5, 3)!;
+    expect(Object.values(cb.vars)[0]?.ja).toMatch(/^(Kochen|Currywurst)$/);
+    expect(handOverOption(BERLIN_PACK, 'bakery:brezel')?.ja).toBe('eine Brezel');
+    expect(handOverOption(BERLIN_PACK, 'flohmarkt:platte')?.ja).toBe('eine Schallplatte');
+    const owned = { ...st, owned: { ...st.owned, 'bakery:pfannkuchen': { ...(st.owned['bakery:pfannkuchen'] ?? {}), qty: 1 } } } as typeof st;
+    expect(giftChoices(BERLIN_PACK, owned).map((c) => c.itemId)).toContain('bakery:pfannkuchen');
+  });
+
   it('a choice saves the target and the UI language, then restarts', async () => {
     const reload = vi.fn();
     vi.stubGlobal('location', { reload });

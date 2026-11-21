@@ -55,7 +55,7 @@ describe('Berlin content', () => {
   });
 
   it('every character has her or his conversation, at its place; ids are unique and never Tokyo’s', () => {
-    expect(BERLIN_CHARACTERS.map((c) => c.id)).toEqual(['jana', 'murat', 'emre', 'sabine', 'greta', 'lena', 'kofi', 'jonas']);
+    expect(BERLIN_CHARACTERS.map((c) => c.id)).toEqual(['jana', 'murat', 'emre', 'sabine', 'greta', 'lena', 'kofi', 'jonas', 'anke', 'uwe', 'krause']);
     for (const c of BERLIN_CHARACTERS) {
       const sc = BERLIN_SCENARIOS.find((s) => s.id === c.scenarioId);
       expect(sc?.characterId, c.id).toBe(c.id);

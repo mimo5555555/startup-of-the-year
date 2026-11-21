@@ -406,6 +406,13 @@ export function createConvoGame(deps: ConvoGameDeps): ConvoGame {
   if (meta?.twist && twistFor(state.clock.dayIndex, scenarioId, plays)) flags.twist = true;
   // what the player may order: an adult may have a beer at the izakaya; a younger player is told 「お酒は二十歳からです」
   if (meta?.kind === 'shop') flags[pack.ageProfiles[deps.view().profile.age].ageFloor >= 18 ? 'adult' : 'minor'] = true;
+  // a shop that takes cash only (Berlin's flea market and Kneipe) or cards only (Amsterdam's GVB desk): the conversation refuses the other
+  // kindly (`cashOnly`, `pinOnly`) instead of the till turning the payment down as if the money were short
+  const payShop = shopMeta ? pack.shops.find((x) => x.id === shopMeta.shopId) : undefined;
+  if (payShop?.pay.length) {
+    if (!payShop.pay.includes('card')) flags.cashOnly = true;
+    if (!payShop.pay.includes('cash')) flags.pinOnly = true;
+  }
   // a returning customer: the regular's greeting, and on every other visit the shopkeeper asks about the last thing you bought
   Object.assign(flags, regularFlags(pack, state, meta, Date.now(), deps.view()));
   if (deps.friend) Object.assign(flags, deps.friend.flags);

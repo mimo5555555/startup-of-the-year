@@ -1,7 +1,9 @@
 // Berlin (German step 3): one street in Kreuzberg. North side: the open fronts of Bäckerei Krüger, the Späti, the Döner stand and the
-// BVG ticket counter, each under four floors of Altbau. South side: the WG's front door (Lena), the courtyard gate (Kofi) and the café
-// (Jonas); at the east end, Mauerpark with the Sunday flea market (Greta's stall). Linden trees, a Litfaß column, the blue U sign, bike
-// stands, old street lamps; no overhead wires, no vending machines. Units are metres, +x east, +z south, the north fronts face +z.
+// BVG ticket counter, each under four floors of Altbau; from German step 5 also the Bürgeramt at the west end (the Anmeldung, Herr
+// Krause) and the Apotheke with its red A east of the BVG (Frau Weber). South side: the WG's front door (Lena), the courtyard gate
+// (Kofi), the café (Jonas) and, at the corner by the park, the Kneipe 「Zum Eck」 (Uwe); at the east end, Mauerpark with the Sunday flea
+// market (Greta's stall). Linden trees, a Litfaß column, the blue U sign, bike stands, old street lamps; no overhead wires, no vending
+// machines. Units are metres, +x east, +z south, the north fronts face +z.
 import * as THREE from 'three';
 import { Batch, resetJitter } from './batch';
 import { createBuildCtx, makeShutter, type BuildCtx } from './buildctx';
@@ -16,6 +18,9 @@ export const BERLIN_SHOPS: ShopBox[] = [
   { id: 'spaeti', cx: -13, w: 10, d: 9, h: 5.0 },
   { id: 'doener', cx: 1, w: 10, d: 9, h: 5.0 },
   { id: 'ubahn', cx: 17, w: 12, d: 10, h: 5.4 },
+  // German step 5: the Apotheke (Chapter 4) and the Bürgeramt (Chapter 6; no shop of the pack, so it never closes)
+  { id: 'apotheke', cx: 34, w: 10, d: 9, h: 5.0 },
+  { id: 'buergeramt', cx: -40, w: 12, d: 10, h: 5.4 },
 ];
 
 const SOUTH_Z = 9.7; // the front plane of the south side
@@ -33,6 +38,10 @@ export const BERLIN_SPAWNS: NpcSpawn[] = [
   { id: 'jonas', x: 15.6, z: 8.3, face: Math.PI, radius: 4.6, kind: 'scenario', site: 'berlin_cafe' },
   // behind her table at the flea market, facing the path
   { id: 'greta', x: 40, z: 13.7, face: Math.PI, radius: 4.8, kind: 'scenario', site: 'flohmarkt' },
+  // German step 5: behind the Apotheke's counter, at the Bürgeramt's desk, in the Kneipe's doorway at the corner
+  { id: 'anke', x: 34, z: -12.2, face: 0, radius: 5.2, kind: 'scenario', y: 0.28, site: 'apotheke' },
+  { id: 'krause', x: -40, z: -12.4, face: 0, radius: 5.4, kind: 'scenario', y: 0.28, site: 'buergeramt' },
+  { id: 'uwe', x: 24.6, z: 9.0, face: Math.PI, radius: 4.6, kind: 'scenario', site: 'kneipe' },
 ];
 
 const WALKERS: WalkerDef[] = [
@@ -132,9 +141,31 @@ function buildBerlinFronts(ctx: BuildCtx): void {
   for (let i = 0; i < 9; i++) glow.boxB(ubahn.cx - 3 + i * 0.75, 2.2 + (i % 3) * 0.5, FRONT_Z - 9.26, 0.7, 0.06, 0.02, pick(['#55a822', '#e44c16', '#f0d722', '#2e76b6', '#8c6dab', '#b1662c']));
   mapRect(shopRect(ubahn), '#f0d722', 'BVG');
 
+  // the Apotheke: white and green inside, the red A over the door, little boxes on every shelf
+  const apo = shop('apotheke');
+  shopFrame(apo, { wall: '#f4f4ef', inner: '#ffffff', trim: '#c8102e', roof: '#dcdcd6', floor: '#cfd6cf', ceil: '#ffffff', openH: 3.3 });
+  hangSign('apotheke', apo, 'Apotheke', 'am Kiez', '#c8102e', '#ffffff', 3.3, 1.5, '#ffffff');
+  solid.boxB(apo.cx, 0.12, FRONT_Z - 2.3, 6.5, 0.95, 1.0, '#e8ece8'); // the counter
+  glow.boxB(apo.cx - 2.2, 1.07, FRONT_Z - 2.3, 0.5, 0.35, 0.3, '#2e8b57'); // the till's screen
+  for (let r = 0; r < 4; r++) for (let i = 0; i < 10; i++) glow.boxB(apo.cx - 4 + i * 0.85, 0.5 + r * 0.6, FRONT_Z - 8.7, 0.6, 0.42, 0.06, pick(['#ffffff', '#e63946', '#2a9d8f', '#f4a261', '#a8dadc', '#ffd166']));
+  signPlane('A', { bg: '#c8102e', fg: '#ffffff', round: 10 }, { x: apo.cx + apo.w / 2 + 0.45, y: 3.9, z: FRONT_Z + 0.6, w: 0.8, h: 0.9 });
+  solid.boxB(apo.cx + apo.w / 2 + 0.45, 3.4, FRONT_Z + 0.3, 0.06, 0.06, 0.6, '#3a3a3a');
+  mapRect(shopRect(apo), '#c8102e', 'Apotheke');
+
+  // the Bürgeramt: grey, a desk, the number display, rows of waiting chairs
+  const amt = shop('buergeramt');
+  shopFrame(amt, { wall: '#d6d6d0', inner: '#eeeeea', trim: '#2f3e4e', roof: '#c4c4be', floor: '#b9bcc0', ceil: '#f4f4f2', openH: 3.6 });
+  hangSign('buergeramt', amt, 'Bürgeramt', 'Kreuzberg', '#2f3e4e', '#ffffff', 3.6, 1.6, '#c9a227');
+  solid.boxB(amt.cx, 0.12, FRONT_Z - 2.3, 4.5, 0.9, 1.1, '#8a8f96'); // the desk
+  glow.boxB(amt.cx + 1.2, 1.02, FRONT_Z - 2.5, 0.6, 0.4, 0.04, '#9fb4c8'); // the screen
+  glow.boxB(amt.cx - 3.5, 2.6, FRONT_Z - 9.6, 2.2, 0.8, 0.04, '#1a1a1a'); // the number display
+  for (let i = 0; i < 3; i++) glow.boxB(amt.cx - 4.1 + i * 0.6, 2.7, FRONT_Z - 9.55, 0.4, 0.55, 0.02, '#ff3b30');
+  for (let r = 0; r < 2; r++) for (let i = 0; i < 4; i++) solid.boxB(amt.cx + 0.5 + i * 1.0, 0.12, FRONT_Z - 6.2 - r * 1.6, 0.7, 0.45, 0.6, '#4a6fa5');
+  mapRect(shopRect(amt), '#5a6b7a', 'Bürgeramt');
+
   // the Altbau over the shops, and the houses between them
   for (const s of BERLIN_SHOPS) altbau(ctx, s.cx - s.w / 2, s.cx + s.w / 2, FRONT_Z, s.d, s.h, 17, pick(PLASTER), 1);
-  const northGaps: Array<[number, number]> = [[-46, -34], [-22, -18], [-8, -4], [6, 11], [23, 60]];
+  const northGaps: Array<[number, number]> = [[-22, -18], [-8, -4], [6, 11], [23, 29], [39, 60]];
   for (const [x0, x1] of northGaps) {
     altbau(ctx, x0, x1, FRONT_Z, 12, 0, 17, pick(PLASTER), 1);
     for (let x = x0 + 1.5; x + 1 < x1; x += 4) {
@@ -145,8 +176,8 @@ function buildBerlinFronts(ctx: BuildCtx): void {
     occlude({ x0, x1, z0: FRONT_Z - 12, z1: FRONT_Z });
   }
 
-  // ---------- south side: the WG, the courtyard gate, the café ----------
-  const south: Array<[number, number]> = [[-46, -28], [-28, -14], [-14, 6], [6, 28]];
+  // ---------- south side: the WG, the courtyard gate, the café, the Kneipe at the corner ----------
+  const south: Array<[number, number]> = [[-46, -28], [-28, -14], [-14, 6], [6, 21], [21, 28]];
   for (const [x0, x1] of south) altbau(ctx, x0, x1, SOUTH_Z, 12, 0, 16.5, pick(PLASTER), -1);
   collide(-9, SOUTH_Z + 6, 74, 12);
   occlude({ x0: -46, x1: 28, z0: SOUTH_Z, z1: SOUTH_Z + 12 });
@@ -174,6 +205,14 @@ function buildBerlinFronts(ctx: BuildCtx): void {
     collide(tx, 7.4, 1.8, 0.9);
   }
   markBuilt('berlin_cafe');
+  // the Kneipe 「Zum Eck」: a dark wooden front, small warm windows, its sign hanging out over the pavement, a door Uwe stands in
+  solid.boxB(24.5, 0, SOUTH_Z - 0.06, 6.6, 3.2, 0.14, '#3b2a20');
+  for (const wx of [22.4, 26.6]) glow.boxB(wx, 0.9, SOUTH_Z - 0.15, 1.5, 1.3, 0.03, '#f2b55a');
+  glow.boxB(24.6, 0, SOUTH_Z - 0.15, 1.2, 2.4, 0.03, '#5a3a24');
+  signPlane('Zum Eck', { bg: '#1f3b2c', fg: '#f2d38a', round: 8 }, { x: 24.5, y: 3.6, z: SOUTH_Z - 0.6, w: 2.6, h: 0.7, ry: Math.PI, pickId: 'kneipe_sign' });
+  solid.boxB(24.5, 3.95, SOUTH_Z - 0.35, 0.06, 0.06, 0.6, '#2a2a2a');
+  markBuilt('kneipe');
+  mapRect({ x0: 21.2, x1: 27.8, z0: SOUTH_Z, z1: SOUTH_Z + 2 }, '#3b2a20', 'Zum Eck');
 
   // ---------- Mauerpark: the Sunday flea market ----------
   signPlane('Mauerpark · Flohmarkt', { bg: '#3f5a3c', fg: '#ffffff', round: 8 }, { x: 33, y: 2.4, z: SOUTH_Z + 0.1, w: 3.6, h: 0.7, ry: Math.PI, pickId: 'flohmarkt_sign' });
@@ -286,7 +325,8 @@ export function buildBerlinCity(): City {
     solid.cyl(x, 0.01, z, 0.75, 0.75, 0.04, '#7a6a55', { seg: 12 });
     collide(x, z, 0.5, 0.5);
   };
-  for (const x of [-40, -33, -20.5, -6, 13.5, 24, 33]) linden(x, -6.4);
+  // in the gaps between the fronts, so no tree hides a shop (the Bürgeramt at -46..-34, the Apotheke at 29..39)
+  for (const x of [-45.5, -33, -20.5, -6, 13.5, 24, 40.5]) linden(x, -6.4);
   for (const x of [-38, -30, -11, 5, 22]) linden(x, 6.5);
   pickAt('linde', -11, 2.2, 6.5, 1.0);
 
