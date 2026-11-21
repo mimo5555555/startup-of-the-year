@@ -7,6 +7,8 @@ import { CUSTOMER, NARRATOR, VOICE_CREDITS, VOICE_SPEAKERS } from '../src/voice/
 import { voiceLines } from '../../../tools/voice/lines';
 import { readingDe, voiceLinesDe } from '../../../tools/voice/lines-de';
 import { DE_VOICES } from '../src/voice/voices-de';
+import { readingNl, voiceLinesNl } from '../../../tools/voice/lines-nl';
+import { NL_VOICES } from '../src/voice/voices-nl';
 
 /** An audio element that plays (or fails) when the test says so. */
 class FakeAudio implements AudioLike {
@@ -310,3 +312,44 @@ describe('German voice lines (Berlin)', () => {
   });
 });
 
+
+describe('Dutch voice lines (Amsterdam)', () => {
+  const lines = voiceLinesNl();
+  it('collects every Amsterdam line for a voice that exists, never a line with a runtime variable', () => {
+    expect(lines.length).toBeGreaterThan(500);
+    for (const l of lines) {
+      expect(NL_VOICES[l.voice], l.voice).toBeDefined();
+      expect(l.text, l.text).not.toMatch(/[{}…]/);
+    }
+    const has = (voice: string, text: string) => lines.some((l) => l.voice === voice && l.text === text);
+    expect(has('femke', 'Goedemorgen! Wat mag het zijn?')).toBe(true);
+    expect(has('narrator', 'Een koffie verkeerd, graag.')).toBe(true);
+    // a priced line: its sentence without the price is recorded, the price is not
+    expect(has('femke', 'Pinnen of contant?')).toBe(true);
+    expect(lines.some((l) => /€/.test(l.text))).toBe(false);
+    // a slot line, once per option
+    expect(has('sanne', 'Wat leuk! Egypte wil ik ook eens zien. Wat doe je graag in je vrije tijd?')).toBe(true);
+    // the regulars and the small talk, in the shopkeeper's voice
+    expect(has('kees', 'Ah, u weer! Goedemiddag! Kan ik u helpen?')).toBe(true);
+    expect(has('mo', 'Hallo! Brr, koud vandaag! Houdt u van de winter?')).toBe(true);
+    expect(has('narrator', 'Nee, ik heb het koud.')).toBe(true);
+    // the beats, the friends' facts, the dictionary
+    expect(has('femke', 'Hallo! Bent u nieuw hier? Welkom in Amsterdam!')).toBe(true);
+    expect(has('daan', 'Ik ben fietskoerier.')).toBe(true);
+    expect(has('narrator', 'stroopwafel')).toBe(true);
+  });
+
+  it('reads prices and letters the way a Dutch speaker says them', () => {
+    expect(readingNl('Dat is dan € 2,50.')).toBe('Dat is dan twee euro vijftig.');
+    expect(readingNl('Een dagkaart kost € 9,50.')).toBe('Een dagkaart kost negen euro vijftig.');
+    expect(readingNl('De GVB is hier.')).toBe('De G V B is hier.');
+  });
+
+  it('gives every Amsterdam character a voice of their own, men and women apart, the narrator in Netherlands Dutch', () => {
+    const sig = Object.values(NL_VOICES).map((v) => `${v.model}:${v.pitch}:${v.speed}`);
+    expect(new Set(sig).size).toBe(sig.length);
+    for (const w of ['femke', 'ingrid', 'sanne', 'noor']) expect(NL_VOICES[w]!.model, w).toBe('nl_BE-nathalie-medium');
+    for (const m of ['kees', 'daan', 'jesse', 'mo']) expect(NL_VOICES[m]!.model, m).toMatch(/^nl_NL-/);
+    expect(NL_VOICES[NARRATOR]!.model).toMatch(/^nl_NL-/);
+  });
+});

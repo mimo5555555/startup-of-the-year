@@ -285,13 +285,23 @@ game, a bigger city with better conversations, and the same game for German, Dut
     shops), the app's Dutch switch, and an e2e in the real UI, EN and AR (`tools/e2e/game/amsterdam.mjs`: Sanne, a café order charged
     exactly € 8,30, recordings playing, back to Japanese with its save untouched).
 
+- **Dutch step 3: Amsterdam's regulars and small talk** (done): as Berlin's, on the flags the app already sets. From the second visit
+  the shopkeepers greet a regular (「Hé, daar bent u weer!」, 「Ah, u weer!」); on some visits they talk about the season or the weekend
+  (「Eindelijk lente! Houdt u van de lente?」, 「Hoe was uw weekend?」), answered with a chip or in your own words, then back to the
+  shop's question. Everything stays with u. The mechanics are now shared by both cities (`@lw/content` shoptalk.ts, `withShopTalk`);
+  40 new words; 167 more lines recorded (676 Dutch recordings, all checked). Tests: every shop and topic through the engine (chips and
+  own words, an order still an order), the app's flags have Dutch lines on any day of the year, the voice lines, and the e2e (a
+  small-talk visit and a regular's return at Femke's, EN and AR).
+
 ## Next
 
 1. **Listen to the German and Dutch voices** and adjust a character's pitch or pace in `voices-de.ts` / `voices-nl.ts` where needed
    (re-run `PIPER_PYTHON=… PIPER_MODELS=… node tools/voice/generate-piper.mjs <de|nl>`). Nathalie was trained on Flemish speech: if her
    accent jars in Amsterdam, a Netherlands-Dutch woman's voice from Piper's MLS model (CC BY 4.0, needs a credit) can replace it.
-2. **Dutch step 3: Amsterdam's regulars and small talk**, as Berlin's (German step 4): the shopkeepers greet a regular and talk about
-   the season or the weekend (the app already sets the flags; the Dutch lines are missing).
+2. **Berlin and Amsterdam beyond Chapter 3** (proposed): Tokyo has eight chapters, both European cities stop at an epilogue after three.
+   Chapters 4–6 each: a new place or two on the street, the friends' hang-outs and a home visit, a job, more culture cards.
+3. **A fourth language** (proposed): onboarding already shows Español and Русский as coming; the language layer, the pack, the
+   district and the voice pipeline are now proven twice, so a new city is mostly content.
 
 ## Other languages (German in Berlin first)
 

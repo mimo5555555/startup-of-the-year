@@ -28,7 +28,7 @@ describe('Amsterdam content', () => {
 
   it('a Dutch line keeps its spaces; a price reads the Dutch way', () => {
     const cafe = AMSTERDAM_SCENARIOS.find((s) => s.id === 'ams_cafe')!;
-    expect(resolveLine(cafe.nodes.start!.say[0]!.line, NL_LEXICON).written).toBe('Goedemorgen! Wat mag het zijn?');
+    expect(resolveLine(cafe.nodes.start!.say.at(-1)!.line, NL_LEXICON).written).toBe('Goedemorgen! Wat mag het zijn?');
     const pay = resolveLine(cafe.nodes.pay!.say[0]!.line, NL_LEXICON, { total: { ja: '€ 6,80', raw: true } });
     expect(pay.written).toBe('Dat is dan € 6,80. Pinnen of contant?');
   });

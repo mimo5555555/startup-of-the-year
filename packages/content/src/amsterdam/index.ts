@@ -3,10 +3,12 @@ export { NL_LEXICON, NL_WORDS } from './lexicon';
 export { NL_SLOTS } from './slots';
 export { AMSTERDAM_PRICES, AMS_CAFE, AMS_GVB, AMS_KAAS, AMS_MARKT, AMS_SNACKBAR, FEMKE, INGRID, JESSE, KEES, MO } from './shops';
 export { DAAN, DAAN_MEET, NL_REACTIONS, NOOR, NOOR_MEET, SANNE, SANNE_MEET } from './friends';
+export { AMSTERDAM_SHOP_TALK, AMSTERDAM_TALK_TOPICS, withAmsterdamTalk } from './smalltalk';
 
 import type { Character, Scenario, SignDef } from '../types';
 import { AMS_CAFE, AMS_GVB, AMS_KAAS, AMS_MARKT, AMS_SNACKBAR, FEMKE, INGRID, JESSE, KEES, MO } from './shops';
 import { DAAN, DAAN_MEET, NOOR, NOOR_MEET, SANNE, SANNE_MEET } from './friends';
+import { withAmsterdamTalk } from './smalltalk';
 
 /** things on the Amsterdam street to tap and read (the world's pick id -> the dictionary word), like Tokyo's and Berlin's signs */
 export const AMSTERDAM_SIGNS: SignDef[] = [
@@ -28,8 +30,8 @@ export const AMSTERDAM_SIGNS: SignDef[] = [
   { id: 'prullenbak', lex: 'Prullenbak' },
 ];
 
-/** the street's shops, then the friends' first meetings */
-export const AMSTERDAM_SCENARIOS: Scenario[] = [AMS_CAFE, AMS_KAAS, AMS_MARKT, AMS_SNACKBAR, AMS_GVB, SANNE_MEET, DAAN_MEET, NOOR_MEET];
+/** the street's shops (with their regulars' greetings and small talk, `smalltalk.ts`), then the friends' first meetings */
+export const AMSTERDAM_SCENARIOS: Scenario[] = [...[AMS_CAFE, AMS_KAAS, AMS_MARKT, AMS_SNACKBAR, AMS_GVB].map(withAmsterdamTalk), SANNE_MEET, DAAN_MEET, NOOR_MEET];
 export const AMSTERDAM_CHARACTERS: Character[] = [FEMKE, KEES, JESSE, MO, INGRID, SANNE, DAAN, NOOR];
 export const amsterdamScenarioById = (id: string): Scenario | undefined => AMSTERDAM_SCENARIOS.find((s) => s.id === id);
 export const amsterdamCharacterById = (id: string): Character | undefined => AMSTERDAM_CHARACTERS.find((c) => c.id === id);

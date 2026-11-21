@@ -2,9 +2,10 @@
 //   onboarding: pick the UI language, then "Nederlands · Dutch in Amsterdam" -> the app restarts in Dutch (its own saves) and onboarding
 //   goes on in the UI language just picked -> Femke's welcome beat on the canal -> Sanne at her houseboat, typed: Ik heet Sam, Ik kom uit
 //   Egypte, Ik kook graag (she says them back) -> Femke's café, typed: Een koffie verkeerd, graag / Ja, een stuk appeltaart, graag / Nee,
-//   zonder, dank u (Dat is dan € 8,30) / Pinnen, graag -> exactly €8.30 charged -> a sign read on the street (Gracht) -> Settings: back to
-//   Japanese -> Tokyo, its save untouched, the Dutch save kept. After every step: no horizontal scroll, no console error, the wallet = its
-//   ledger.
+//   zonder, dank u (Dat is dan € 8,30) / Pinnen, graag -> exactly €8.30 charged -> Femke again on a small-talk visit (the season or the
+//   weekend; the yes chip, a reply, back to 「Zo, wat mag het zijn?」) and on a plain return (「Hé, daar bent u weer!」) -> Settings: back
+//   to Japanese -> Tokyo, its save untouched, the Dutch save kept. After every step: no horizontal scroll, no console error, the wallet =
+//   its ledger.
 // Usage: BASE=http://127.0.0.1:5173/ node tools/e2e/game/amsterdam.mjs [--ar]
 import assert from 'node:assert/strict';
 import { assertNoConsoleErrors, assertNoHScroll, liveGame, skipBeats, start } from './_common.mjs';
@@ -139,6 +140,44 @@ if (Object.keys(manifest.entries ?? {}).length > 0) {
   assert.ok(!voice.missed.some((x) => x.startsWith('Goedemorgen! Wat mag het zijn')), 'Femke’s greeting is recorded');
 }
 step(`voices: ${voice.recorded} lines from recordings, ${voice.fallback} by the device voice`);
+
+// Femke knows you now (Dutch step 3): a visit with small talk (the third in turn), then a plain return (the fourth)
+const setVisits = (n) =>
+  page.evaluate((count) => {
+    const lw = window.__lw;
+    const g0 = lw.getGame();
+    lw.useGame.getState().setGame({ ...g0, runs: { ...g0.runs, ams_cafe: { ...g0.runs.ams_cafe, count } } });
+  }, n);
+const chips = () => page.locator('.sg').evaluateAll((els) => els.map((e) => e.innerText.split('\n')[0]));
+await setVisits(2);
+await talkTo('femke');
+const remark = await lastLine();
+assert.ok(remark.startsWith('Goedemorgen! ') && remark !== 'Goedemorgen! Wat mag het zijn?' && remark.endsWith('?'), `Femke makes small talk (${remark})`);
+const cs = await chips();
+assert.ok(/^(Ja|Heel leuk)/.test(cs[0]), `the yes chip is on top (${cs.join(' | ')})`);
+await t.shot('smalltalk');
+const m = await page.locator('.msg.char').count();
+await page.locator('.sg').first().click();
+await page.waitForFunction((k) => document.querySelectorAll('.msg.char').length > k && !document.querySelector('.bubble.typing'), m, { timeout: 40000 });
+await t.sleep(250);
+const talkReply = await lastLine();
+assert.ok(talkReply.endsWith('Zo, wat mag het zijn?'), `a reply, then back to the café (${talkReply})`);
+assert.ok(!(await chips()).includes(cs[0]), 'answered: the small talk chips are gone');
+assert.ok((await type('Een thee, graag.')).startsWith('Komt eraan.'), 'the order after the small talk');
+await type('Nee, dank u.');
+await type('Pinnen, graag.');
+await finishConvo();
+await check('after the small talk');
+step(`small talk: 「${remark}」 → ${cs[0]} → 「${talkReply}」; a tea bought`);
+await setVisits(3);
+await talkTo('femke');
+assert.equal(await lastLine(), 'Hé, daar bent u weer! Goedemorgen! Wat mag het zijn?', 'a regular is greeted as one');
+await type('Een thee, graag.');
+await type('Nee, dank u.');
+await type('Pinnen, graag.');
+await finishConvo();
+await check('after the return');
+step('a plain return: 「Hé, daar bent u weer!」, a tea bought');
 
 // back to Japanese: Tokyo, and the Japanese save is still there
 await settle();

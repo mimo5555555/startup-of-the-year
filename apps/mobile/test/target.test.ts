@@ -165,6 +165,27 @@ describe('learning Dutch', () => {
     expect(saved('lw.v1.state')).toBeNull();
   });
 
+  it('an Amsterdam regular gets the regular’s flag and small talk Amsterdam has lines for, in every shop, any day of the year', async () => {
+    putSaved('lw.target', 'nl');
+    const { regularFlags } = await import('../src/game/regulars');
+    const { AMSTERDAM_PACK, AMSTERDAM_TALK_TOPICS, AMSTERDAM_SHOP_TALK } = await import('@lw/content');
+    const { createGameState } = await import('@lw/game');
+    const base = createGameState(AMSTERDAM_PACK, Date.UTC(2030, 0, 1));
+    const shops = AMSTERDAM_PACK.scenarioMeta.filter((m) => m.kind === 'shop');
+    expect(shops.map((m) => m.id).sort()).toEqual(Object.keys(AMSTERDAM_SHOP_TALK).sort());
+    for (const meta of shops) {
+      expect(regularFlags(AMSTERDAM_PACK, base, meta)).toEqual({});
+      for (let plays = 1; plays <= 9; plays++) {
+        for (let day = 0; day < 365; day += 13) {
+          const state = { ...base, chapter: { ...base.chapter, n: 3 }, runs: { [meta.id]: { ...(base.runs[meta.id] ?? {}), count: plays } as never } };
+          const flags = regularFlags(AMSTERDAM_PACK, state, meta, Date.UTC(2030, 0, 1) + day * 86_400_000);
+          expect(flags.regular, `${meta.id} ${plays}`).toBe(true);
+          for (const f of Object.keys(flags).filter((k) => k.startsWith('talk_'))) expect(AMSTERDAM_TALK_TOPICS[f.slice(5)], `${meta.id} ${f}`).toBeDefined();
+        }
+      }
+    }
+  });
+
   it('keeps Tokyo’s lessons and Mini-theatre out of Amsterdam’s menu, and offers all three languages', async () => {
     putSaved('lw.target', 'nl');
     const nl = await import('../src/game/worldSync');
