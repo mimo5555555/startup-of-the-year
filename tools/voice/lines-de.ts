@@ -2,7 +2,7 @@
 // Built from the content's own data: the street's conversations (with the regulars' greetings and the small talk), the reactions, the
 // story beats, the friends' facts, the culture phrases and every dictionary word. A line with slot variables ({floh}) is recorded once
 // per option; a sentence with any other runtime variable ({name}, a price) is left to the device voice, its other sentences recorded.
-import { BERLIN_PACK, BERLIN_SCENARIOS, DE_LEXICON, DE_REACTIONS, DE_SLOTS, resolveLine, type Line, type Scenario, type Vars } from '@lw/content';
+import { BERLIN_PACK, BERLIN_SCENARIOS, DE_GIVE_GIFT, DE_LEXICON, DE_REACTIONS, DE_SLOTS, DE_SMALLTALK_FRIENDS, resolveLine, type Line, type Scenario, type Vars } from '@lw/content';
 import { euroText } from '@lw/core';
 import { NARRATOR } from '../../apps/mobile/src/voice/voices';
 import { DE_VOICES } from '../../apps/mobile/src/voice/voices-de';
@@ -70,6 +70,8 @@ export function voiceLinesDe(): VoiceLineDe[] {
   out.length = 0;
   seen.clear();
   for (const s of BERLIN_SCENARIOS) addScenario(s);
+  // the hand-over of a present is played with whichever friend receives it: each of them says its lines
+  for (const f of DE_SMALLTALK_FRIENDS) addScenario({ ...DE_GIVE_GIFT, characterId: f });
   for (const b of Object.values(BERLIN_PACK.beats)) for (const l of b.lines) addLine(DE_VOICES[l.who] ? l.who : NARRATOR, l.line);
   for (const f of BERLIN_PACK.friends) for (const l of Object.values(f.factLines ?? {})) addLine(DE_VOICES[f.id] ? f.id : NARRATOR, l);
   for (const c of BERLIN_PACK.culture) addLine(NARRATOR, c.phrase);

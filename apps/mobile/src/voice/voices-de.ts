@@ -20,6 +20,10 @@ export const DE_VOICES: Record<string, DeVoice> = {
   emre: { model: 'thorsten-high', pitch: 1.02, speed: 1.08 }, // 29, fast Döner cook
   kofi: { model: 'thorsten-high', pitch: 0.89, speed: 1.0 }, // 33, easy-going neighbour
   jonas: { model: 'thorsten-high', pitch: 1.06, speed: 1.02 }, // 27, the language-exchange partner
+  // German step 5
+  anke: { model: 'kerstin-low', pitch: 0.99, speed: 0.97 }, // 48, calm pharmacist
+  uwe: { model: 'thorsten-high', pitch: 0.86, speed: 0.97 }, // 58, gruff Kneipe landlord
+  krause: { model: 'thorsten-high', pitch: 0.97, speed: 0.92 }, // 55, formal clerk at the Bürgeramt
   [NARRATOR]: { model: 'thorsten-high', pitch: 1.0, speed: 0.95 },
 };
 

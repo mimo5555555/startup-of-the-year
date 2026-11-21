@@ -37,7 +37,7 @@ export const DE_GIVE_GIFT: Scenario = {
   level: 'A1',
   title: { en: 'Give a gift', ar: 'قدّم هدية' },
   setup: {
-    en: 'Hand your friend a present. Say what it is: 「Ich habe … für dich」.',
+    en: 'Hand your friend a present. Say what it is: Ich habe … für dich.',
     ar: 'قدّم لصديقك هدية. قل ما هي: «Ich habe … für dich».',
   },
   minutes: 1,

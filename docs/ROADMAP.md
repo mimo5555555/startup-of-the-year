@@ -293,14 +293,38 @@ game, a bigger city with better conversations, and the same game for German, Dut
   own words, an order still an order), the app's flags have Dutch lines on any day of the year, the voice lines, and the e2e (a
   small-talk visit and a regular's return at Femke's, EN and AR).
 
+- **German step 5: Berlin Chapters 4–6** (done): the story runs to Chapter 6 (*Gute Freunde*, *Ausgehen*, *Angekommen*), whose
+  closing is the new ending before Free Walk.
+  * The friends after the first meeting (`@lw/content` berlin/social.ts, hangouts.ts): a chat of the day with Lena, Kofi and Jonas
+    (`smalltalk_<friend>`, nine topics each, three their own; a fact revealed after the reaction; the greeting quoting a remembered
+    hobby, favourite food or the dream; the food and the sport remembered from your words), a German hand-over of a present
+    (`give_gift`), and a hang-out at three hearts (Sunday cake with Lena, a flat tyre with Kofi, *Mensch ärgere dich nicht* with Jonas).
+    Gifts were broken outside Tokyo (the app started Tokyo's Japanese hand-over); the app now names gifts and callbacks from the slots
+    of the language learned.
+  * Three places, each with a front on the street: the Apotheke (Ch 4: say what hurts, the remedy, 「Gute Besserung!」), the Kneipe
+    「Zum Eck」 (Ch 5: a drink, beer only for an adult, a Bulette, 「Prost!」, 「Zahlen, bitte!」, cash only) and the Bürgeramt (Ch 6: the
+    Anmeldung, appointment, papers, address). Their people (Frau Weber, Uwe, Herr Krause) greet regulars and make small talk like the
+    rest of the street. Six culture cards (Apotheke, Kaffee und Kuchen, board games, Prost, Trinkgeld, Anmeldung), three titles.
+  * The app now sets `cashOnly` / `pinOnly` from the shop's payment methods: the conversations refused the wrong method kindly, but the
+    flags were never set, so a card at a cash-only stall was turned down at the till as if the money were short.
+  * 610 more German lines recorded (1,321 in all), the new people with voices of their own, the hand-over in each friend's voice.
+  * Tests: every chat topic, the gift, the hang-outs and the three places through the engine (every chip EN/AR, typed routes, charges,
+    beer only for adults, cash only), the app's friend planner in German, the street (spawns, fronts, signs), the pack at level 5, and
+    an e2e in the real UI (`tools/e2e/game/berlin-chapters.mjs`: a chat with Lena, the Apotheke, the Kneipe refusing a card, the
+    Anmeldung).
+
 ## Next
 
 1. **Listen to the German and Dutch voices** and adjust a character's pitch or pace in `voices-de.ts` / `voices-nl.ts` where needed
    (re-run `PIPER_PYTHON=… PIPER_MODELS=… node tools/voice/generate-piper.mjs <de|nl>`). Nathalie was trained on Flemish speech: if her
    accent jars in Amsterdam, a Netherlands-Dutch woman's voice from Piper's MLS model (CC BY 4.0, needs a credit) can replace it.
-2. **Berlin and Amsterdam beyond Chapter 3** (proposed): Tokyo has eight chapters, both European cities stop at an epilogue after three.
-   Chapters 4–6 each: a new place or two on the street, the friends' hang-outs and a home visit, a job, more culture cards.
-3. **A fourth language** (proposed): onboarding already shows Español and Русский as coming; the language layer, the pack, the
+2. **Dutch step 4: Amsterdam Chapters 4–6**, the way Berlin's were done: Sanne, Daan and Noor's chats of the day and a Dutch hand-over
+   of a present (the gift sheet in Amsterdam finds nothing to give until the Dutch `giftItem` / `giftFood` slots exist), hang-outs at
+   three hearts, a place per chapter (the drogist, a brown café, the gemeente for the BSN registration), the story and its voices.
+3. **Jobs for Berlin and Amsterdam**: the shift screen counts yen and matches kana (`components/game/shift/shiftLogic.ts`); made
+   language-neutral (the pack's price markup and number parser, the target language's matching), Murat's Späti and Femke's café can
+   hire the player.
+4. **A fourth language** (proposed): onboarding already shows Español and Русский as coming; the language layer, the pack, the
    district and the voice pipeline are now proven twice, so a new city is mostly content.
 
 ## Other languages (German in Berlin first)

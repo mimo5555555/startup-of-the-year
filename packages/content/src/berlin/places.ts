@@ -117,9 +117,9 @@ export const UWE: Character = person({
   id: 'uwe',
   name: { ja: 'Uwe Schulz', reading: 'Uwe Schulz', en: 'Uwe Schulz', ar: 'أوفه شولتس' },
   age: 58,
-  job: { en: 'Landlord of the Kneipe 「Zum Eck」', ar: 'صاحب حانة «تسوم إك»' },
+  job: { en: 'Landlord of the Kneipe “Zum Eck”', ar: 'صاحب حانة «تسوم إك»' },
   bio: {
-    en: 'Has stood behind the bar of 「Zum Eck」 for thirty years. Cash only, Buletten made by his wife, and football on the old TV.',
+    en: 'Has stood behind the bar of “Zum Eck” for thirty years. Cash only, Buletten made by his wife, and football on the old TV.',
     ar: 'يقف خلف بار «تسوم إك» منذ ثلاثين عامًا. النقد فقط، وكرات اللحم من صنع زوجته، وكرة القدم على التلفاز القديم.',
   },
   personality: { en: 'Gruff, kind underneath, Berliner through and through', ar: 'فظّ ظاهريًا، طيّب في داخله، برليني حتى النخاع' },
@@ -138,7 +138,7 @@ export const KNEIPE: Scenario = {
   level: 'A1',
   title: { en: 'An evening at the Kneipe', ar: 'أمسية في الحانة' },
   setup: {
-    en: 'The corner Kneipe 「Zum Eck」. Order a drink, maybe a Bulette, say Prost, ask for the bill and pay (cash only!).',
+    en: 'The corner Kneipe “Zum Eck”. Order a drink, maybe a Bulette, say Prost, ask for the bill and pay (cash only!).',
     ar: 'حانة الناصية «تسوم إك». اطلب مشروبًا، وربما «بوليته»، وقل «Prost»، واطلب الحساب وادفع (نقدًا فقط!).',
   },
   minutes: 4,

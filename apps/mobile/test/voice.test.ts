@@ -298,6 +298,13 @@ describe('German voice lines (Berlin)', () => {
     expect(has('lena', 'Was ist dein Traum hier in Berlin?')).toBe(true);
     expect(has('kofi', 'Ich repariere Fahrräder.')).toBe(true);
     expect(has('narrator', 'Brötchen')).toBe(true);
+    // German step 5: the places of Chapters 4-6 in their people's voices, the friends' chats, a present handed to any of the three
+    expect(has('anke', 'Guten Tag! Was kann ich für Sie tun?')).toBe(true);
+    expect(has('uwe', 'Bitte schön! Prost!')).toBe(true);
+    expect(has('krause', 'Guten Tag. Haben Sie einen Termin?')).toBe(true);
+    expect(has('jonas', 'Wie läuft es mit dem Deutsch?')).toBe(true);
+    for (const f of ['lena', 'kofi', 'jonas']) expect(has(f, 'Echt? Wie toll! Vielen Dank!'), f).toBe(true);
+    expect(has('lena', 'Es ist Sonntag! Ich backe einen Apfelkuchen. Hilfst du mir?')).toBe(true);
   });
 
   it('reads prices and letters the way a German says them', () => {
