@@ -25,6 +25,7 @@ export { JP_LANGUAGE, parseNumbers, parseJaNumber, setSpeechNormalizer, yenToJa 
 export * from './shifttalk';
 export * from './berlin';
 export * from './amsterdam';
+export * from './madrid';
 
 export const CITY_ID = 'tokyo';
 export * from './tokyo/media/theatre';

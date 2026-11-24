@@ -8,8 +8,8 @@ const VAR = /^\{(\w+)\}$/;
 const ASCII_RAW = /^[A-Za-z0-9@#_.,+-]+$/;
 /** Latin letters (with the accented ones) */
 const LATIN = /[A-Za-z\u00c0-\u024f]/;
-/** punctuation of Latin-script text, split off a word's edges (an apostrophe inside a word stays: geht's) */
-const LATIN_PUNCT = PUNCT_CHARS + '„“”":;–';
+/** punctuation of Latin-script text, split off a word's edges (an apostrophe inside a word stays: geht's); Spanish opens with ¿ and ¡ */
+const LATIN_PUNCT = PUNCT_CHARS + '„“”":;–¿¡«»';
 
 /** Split trailing/leading punctuation off a piece so authors can write `ですか？`. */
 function splitPunct(piece: string, punct = PUNCT_CHARS): string[] {

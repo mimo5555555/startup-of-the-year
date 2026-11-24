@@ -1,6 +1,7 @@
 export * from './kana';
 export * from './german';
 export * from './dutch';
+export * from './spanish';
 export * from './storage';
 export * from './srs';
 export * from './progress';

@@ -427,8 +427,59 @@ const nlUWithFriend = formalWithFriend(U_TO_JE, (m) => ({
   ar: `«${m}» هي صيغة u المهذبة. صديقك يخاطبك بـ je، فتبدو u بعيدة قليلًا. وهي ليست خطأ.`,
 }));
 
+// ---------- Spanish (usted and tú) ----------
+
+/**
+ * The tú forms a learner says to staff and their usted forms. Spanish drops the pronoun, so only forms that can only be tú count (「¿Me
+ * pones un café?」, 「¿Tienes pan?」, 「tú」); a bare 「tiene」 could be "he has", so usted is found only by its pronoun.
+ */
+const TU_TO_USTED: Array<[RegExp, string]> = [
+  [deWord('me pones'), 'me pone'],
+  [deWord('me das'), 'me da'],
+  [deWord('puedes'), 'puede'],
+  [deWord('tienes'), 'tiene'],
+  [deWord('quieres'), 'quiere'],
+  [deWord('sabes'), 'sabe'],
+  [deWord('eres'), 'es'],
+  [deWord('estás'), 'está'],
+  [deWord('tú'), 'usted'],
+  [deWord('ti'), 'usted'],
+];
+/** usted with its verb, so the tú form is whole Spanish (「¿Puede usted…?」 → 「¿Puedes…?」, never 「¿Puede tú…?」); then usted alone */
+const USTED_TO_TU: Array<[RegExp, string]> = [
+  [deWord('puede usted'), 'puedes'],
+  [deWord('usted puede'), 'tú puedes'],
+  [deWord('tiene usted'), 'tienes'],
+  [deWord('usted tiene'), 'tú tienes'],
+  [deWord('quiere usted'), 'quieres'],
+  [deWord('usted quiere'), 'tú quieres'],
+  [deWord('es usted'), 'eres'],
+  [deWord('usted es'), 'tú eres'],
+  [deWord('está usted'), 'estás'],
+  [deWord('usted está'), 'tú estás'],
+  [deWord('usted'), 'tú'],
+];
+/**
+ * tú in a polite setting (an older shopkeeper, an office): a soft note, never a mistake. Madrid says tú in bars and to most staff of its
+ * own age; usted is the safe choice with older people and officials. A casual setting (the bar, the churrería) gets no note at all.
+ */
+const esInformal = informalWithStaff(TU_TO_USTED, (m, better) => ({
+  en: `「${m}」 is the informal tú. In Madrid tú is normal in bars and with young staff, but with an older shopkeeper or at an office usted is more polite: 「${better}」.`,
+  ar: `«${m}» هي صيغة tú غير الرسمية. في مدريد تُقال tú عادةً في المقاهي ومع الموظفين الشباب، لكن مع صاحب متجر كبير في السن أو في مكتب رسمي تكون usted أكثر تهذيبًا: «${better}».`,
+}));
+const esTuWithStaff: Rule = (turn, ctx) => esInformal(turn, ctx).map((c) => ({ ...c, soft: true }));
+const esUstedWithFriend = formalWithFriend(USTED_TO_TU, (m) => ({
+  en: `「${m}」 is the polite usted. Your friend says tú to you, so usted sounds a little distant. It is not wrong.`,
+  ar: `«${m}» هي صيغة usted المهذبة. صديقك يخاطبك بـ tú، فتبدو usted بعيدة قليلًا. وهي ليست خطأ.`,
+}));
+
 /** the rules of each target language; a language without its own rules gets no corrections, only its scores */
-const RULES_BY_LANGUAGE: Record<string, Rule[]> = { ja: RULES, de: [deDuWithStaff, deSieWithFriend], nl: [nlJeWithStaff, nlUWithFriend] };
+const RULES_BY_LANGUAGE: Record<string, Rule[]> = {
+  ja: RULES,
+  de: [deDuWithStaff, deSieWithFriend],
+  nl: [nlJeWithStaff, nlUWithFriend],
+  es: [esTuWithStaff, esUstedWithFriend],
+};
 
 const clamp = (n: number, lo = 0, hi = 100) => Math.max(lo, Math.min(hi, Math.round(n)));
 

@@ -356,13 +356,39 @@ game, a bigger city with better conversations, and the same game for German, Dut
     boss's offer, a shift answered in digits, words, a sentence and tiles, shifts at rank 4 until notes and split bills came up, the
     boss's refusal of a third shift; EN and AR in both cities).
 
+- **Spanish step 1: Madrid in Spanish** (done): the fourth language, chosen over Russian (Latin script, so the German and Dutch
+  pipeline carries over), in Lavapiés.
+  * Spanish text (`@lw/core` spanish.ts): matching with and without accents and ñ (café = cafe, España = espana), ll as y and v as b
+    for a learner's spelling, keys from the start of a word (「un」 never in 「algún」). Numbers are phrases in Spanish, read and written
+    both ways (treinta y cinco, ciento uno, dos mil quinientos, veintiún euros; the articles un and una alone are no number, uno is).
+    A price is one number however it is said: 「tres euros con cincuenta」, 「tres euros cincuenta」, 「tres con cincuenta」, 「tres
+    cincuenta」, 「3,50 €」. 「Me llamo / Soy / Mi nombre es …」 (never 「soy estudiante」 or 「soy de …」), 「Soy de …」, 「Vengo de …」.
+  * The engine's `ES` target language (`@lw/engine` spanish.ts): Spanish vs English/Arabic input, global intents (más despacio, otra
+    vez, gracias, hasta luego, hola, perdona, …). Feedback the Madrid way: tú is normal in bars and with young staff, so tú gets only a
+    soft note, and only where usted is expected (an older shopkeeper, the Metro office), with the usted form (「¿Tienes …?」 →
+    「¿Tiene …?」); usted with a friend a soft one, its verb rewritten too (「¿Puede usted …?」 → 「¿Puedes …?」). Only forms that can
+    only be tú count, since Spanish drops the pronoun.
+  * Madrid in Spanish (`@lw/content` madrid/): Bar El Rincón (Lola says tú: 「¿Qué te pongo?」, a café con leche and a tostada con
+    tomate; a plain café is a café con leche, a café solo is not), the panadería (Carmen says usted: a barra, what a napolitana is,
+    magdalenas), the fruit stall at the mercado (a kilo of oranges in one breath, or the fruit first and 「¿Cuánto le pongo?」; priced
+    by the half kilo), the churrería (churros or porras, what porras are, a chocolate to dip them in) and the Metro (a single ticket or
+    ten journeys, 「valide en los tornos」); con tarjeta or en efectivo, and cash-only stalls (`cashOnly`) refuse the card kindly.
+    Three friends who say tú: Lucía your flatmate, Javi from the third floor (「¿Eres del Madrid o del Atleti?」), Nadia at the
+    language exchange, who practises Arabic. 「¡Mucho gusto!」 throughout, so nothing has to guess the player's gender.
+  * The tokenizer splits ¿ ¡ « » off Latin-script words.
+  * Tests: core spanish (every number 0–3000 and every price read back), content madrid (every word in the dictionary, ¿ ¡, accents),
+    engine madrid (every chip of the eight conversations with and without the game's hooks, cash only, EN and AR; a typed route through
+    each shop with its charge; the friends; Spanish vs English; tú and usted).
+
 ## Next
 
-1. **Listen to the German and Dutch voices** and adjust a character's pitch or pace in `voices-de.ts` / `voices-nl.ts` where needed
+1. **Spanish step 2: Madrid in the app**: the Madrid game pack (euro economy at the Spanish minimum wage, the catalog, the people,
+   Chapters 1–3 with beats, culture cards, titles, a dream and the daily goals), Spanish as the fourth learning language (the target
+   switch, onboarding and Settings), a Lavapiés street in 3D, and recorded Spanish voices (Piper's es_ES models).
+2. **Spanish steps 3–5**: regulars and small talk, the friends' chats, gifts and hang-outs, Chapters 4–6, a job.
+3. **Listen to the German and Dutch voices** and adjust a character's pitch or pace in `voices-de.ts` / `voices-nl.ts` where needed
    (re-run `PIPER_PYTHON=… PIPER_MODELS=… node tools/voice/generate-piper.mjs <de|nl>`). Nathalie was trained on Flemish speech: if her
    accent jars in Amsterdam, a Netherlands-Dutch woman's voice from Piper's MLS model (CC BY 4.0, needs a credit) can replace it.
-2. **A fourth language** (proposed): onboarding already shows Español and Русский as coming; the language layer, the pack, the
-   district and the voice pipeline are now proven twice, so a new city is mostly content.
 
 ## Other languages (German in Berlin first)
 
