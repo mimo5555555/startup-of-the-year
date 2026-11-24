@@ -22,6 +22,7 @@ export { VIEWING_MINOR_TEXT } from './tokyo/scenarios-home';
 export { CLOTHES_COLOURS, DENIM_COLOURS } from './tokyo/game/items';
 export { JP_LANGUAGE, parseNumbers, parseJaNumber, setSpeechNormalizer, yenToJa } from './tokyo/game/jp-language';
 
+export * from './shifttalk';
 export * from './berlin';
 export * from './amsterdam';
 

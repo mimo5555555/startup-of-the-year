@@ -58,6 +58,8 @@ export const NL_FRIENDS: FriendDef[] = [
 ];
 
 const scenario = (id: string, scenarioId: string, en: string, ar: string, ch = 1): Interaction => ({ id, kind: 'scenario', scenarioId, label: { en, ar }, ch });
+/** a shift behind the counter (jobs.ts), from the chapter that opens the job */
+const shift = (who: string, jobId: string, ch: number): Interaction => ({ id: `${who}_shift`, kind: 'shift', jobId, label: { en: 'Work a shift', ar: 'اعمل وردية' }, ch });
 const gift = (who: string): Interaction => ({ id: `${who}_gift`, kind: 'gift', label: { en: 'Give a gift', ar: 'قدّم هدية' }, ch: 3 });
 /** a chat on any day (`smalltalk_<who>`, social.ts), once the first meeting is done; listed first, so it is what Talk does from then on */
 const talk = (who: string, met: string, ch = 1): Interaction => ({
@@ -79,7 +81,7 @@ const hang = (who: string, scenarioId: string): Interaction => ({
 });
 
 export const NL_INTERACTIONS: Record<string, Interaction[]> = {
-  femke: [scenario('femke_shop', 'ams_cafe', 'Order a coffee', 'اطلب قهوة')],
+  femke: [scenario('femke_shop', 'ams_cafe', 'Order a coffee', 'اطلب قهوة'), shift('femke', 'job_ams_cafe', 2)],
   mo: [scenario('mo_shop', 'ams_snackbar', 'Order a snack', 'اطلب وجبة خفيفة', 2)],
   ingrid: [scenario('ingrid_shop', 'ams_gvb', 'Buy a ticket', 'اشترِ تذكرة', 2)],
   kees: [scenario('kees_shop', 'ams_kaas', 'Buy cheese', 'اشترِ جبنًا', 3)],
@@ -126,4 +128,6 @@ export const NL_SCENARIO_META: ScenarioMeta[] = [
   shopMeta('ams_drogist', 'ams_drogist', ['cc_drogist'], { shopId: 'drogist', itemSlot: 'klacht', payStep: 'pay', itemMap: map('drogist', ['keel', 'hoofd', 'verkouden', 'hoest']) }),
   shopMeta('ams_kroeg', 'ams_kroeg', ['cc_bruin_cafe'], { shopId: 'bruincafe', itemSlot: 'kroeg', extraSlots: ['kroegSnack'], qtySlot: 'qty', payStep: 'pay', itemMap: { ...map('bruincafe', ['bier', 'spa', 'cola']), bitterballen: 'bruincafe:bitterballen' } }),
   { id: 'ams_gemeente', kind: 'story', band: 'A2', register: 'polite', pay: 'none', real: true, place: 'ams_gemeente', culture: ['cc_inschrijven'] },
+  // Femke hires you (jobs.ts): a normal conversation with the boss that opens the café shift and pays once
+  { id: 'jobintro_ams_cafe', kind: 'jobintro', band: 'A1', register: 'polite', pay: 'full', real: true, place: 'ams_cafe', culture: ['cc_je_u'] },
 ];

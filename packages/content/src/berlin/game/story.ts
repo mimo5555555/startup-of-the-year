@@ -56,7 +56,16 @@ export const DE_CHAPTERS: ChapterDef[] = [
     reward: 3000,
     rewardTitle: 't_kiez',
     rewardCulture: ['cc_mit_allem'],
-    opens: [o('shop', 'doener'), o('shop', 'ubahn'), o('place', 'berlin_doener'), o('place', 'berlin_ubahn'), o('place', 'berlin_hof'), o('feature', 'friends')],
+    opens: [
+      o('shop', 'doener'),
+      o('shop', 'ubahn'),
+      o('place', 'berlin_doener'),
+      o('place', 'berlin_ubahn'),
+      o('place', 'berlin_hof'),
+      o('feature', 'friends'),
+      o('job', 'job_spaeti'),
+      o('interaction', 'murat_shift'),
+    ],
     beats: { open: 'b_bc2_open', close: 'b_bc2_close' },
     objectives: [
       {
@@ -84,6 +93,13 @@ export const DE_CHAPTERS: ChapterDef[] = [
         id: 'bc2_4',
         pred: { k: 'purchases', n: 4 },
         text: { en: 'Buy 4 things by talking in German', ar: 'اشترِ 4 أشياء بالحديث بالألمانية' },
+      },
+      {
+        id: 'bc2_5',
+        pred: { k: 'shift', job: 'job_spaeti', n: 1, minAcc: 0.6 },
+        text: { en: 'Work your first shift at the Späti (all 5 customers)', ar: 'اعمل أول وردية في «الشبيتي» (الزبائن الخمسة جميعهم)' },
+        hint: { en: 'Murat needs help at the till in the evenings. Talk to him at the Späti.', ar: 'يحتاج مراد إلى مساعدة عند الصندوق في المساء. تحدّث معه في «الشبيتي».' },
+        pin: { place: 'berlin_spaeti' },
       },
     ],
   },
@@ -488,6 +504,7 @@ export const DE_DAILY: DailyTemplate[] = [
   { id: 'g_buy', slot: 'do', counter: 'purchase', target: 1, requires: { chapter: 1 }, text: { en: 'Buy something in German', ar: 'اشترِ شيئًا باللغة الألمانية' } },
   { id: 'g_friend', slot: 'do', counter: 'friend_contact', target: 1, requires: { chapter: 2, friends: true }, text: { en: 'Spend time with a friend', ar: 'اقضِ وقتًا مع صديق' } },
   { id: 'g_place', slot: 'do', counter: 'places_distinct', target: 2, text: { en: 'Talk to people in 2 different places', ar: 'تحدّث مع أشخاص في مكانين مختلفين' } },
+  { id: 'g_shift', slot: 'do', counter: 'shift_good', target: 1, requires: { job: true }, text: { en: 'Finish a shift', ar: 'أنهِ وردية' } },
   { id: 'g_review8', slot: 'review', counter: 'review_checked', target: 8, requires: { vocabCards: true }, text: { en: 'Review 8 words that are due', ar: 'راجع 8 كلمات مستحقة' } },
   { id: 'g_culture', slot: 'review', counter: 'culture_new', target: 1, requires: { unseenCulture: true }, text: { en: 'Learn one new thing about Berlin', ar: 'تعلّم شيئًا جديدًا عن برلين' } },
 ];

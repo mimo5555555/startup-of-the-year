@@ -39,6 +39,13 @@ describe('Dutch numbers and prices', () => {
     expect(parseDutchNumbers('€ 2,50 graag').numbers).toEqual([2.5]);
     expect(parseDutchNumbers('vijftig cent').numbers).toEqual([0.5]);
     expect(parseDutchNumbers('Twee stroopwafels en een koffie').numbers).toEqual([2]);
+    // the article before euro is one: the change said back
+    expect(parseDutchNumbers('U krijgt een euro vijftig terug.').numbers).toEqual([1.5]);
+    expect(parseDutchNumbers('één euro vijftig').numbers).toEqual([1.5]);
+    // € first, whatever the size of the amount; a point groups thousands
+    expect(parseDutchNumbers('Dat is dan € 10,40.').numbers).toEqual([10.4]);
+    expect(parseDutchNumbers('€ 1.234,56').numbers).toEqual([1234.56]);
+    expect(parseDutchNumbers('€12').numbers).toEqual([12]);
   });
 
   it('writes and says a price in euro, the Dutch way (€ first)', () => {

@@ -1,9 +1,10 @@
-// Pure logic of the Shift screen (agent 4D, docs/GAME_DESIGN.md §9): carts, the total and the change in Japanese, answer checking,
-// tile and choice sets, and turning what the player did into a `ShiftResult`. No React here, so the rules are tested on their own.
-import { parseNumbers, tokenize, yenToJa, type Token } from '@lw/content';
-import { normJa, romajiAsKana } from '@lw/core';
+// Pure logic of the Shift screen (agent 4D, docs/GAME_DESIGN.md §9): carts, the total and the change in the language being learned
+// (`SHIFT_TALK`: Japanese at the konbini, German at Murat's Späti, Dutch at Femke's café), answer checking, tile and choice sets, and
+// turning what the player did into a `ShiftResult`. No React here, so the rules are tested on their own.
+import { SHIFT_TALK, nearAmounts as near, tokenize, type ShiftTalk, type Token } from '@lw/content';
 import {
   BALANCE,
+  yenFormat,
   type GamePack,
   type JobDef,
   type MenuItem,
@@ -14,7 +15,11 @@ import {
   type ShiftResult,
   type ShiftTaskResult,
 } from '@lw/game';
-import { LEXICON } from '../../../target';
+import { PACK } from '../../../game/pack';
+import { LEXICON, TARGET } from '../../../target';
+
+/** how the shift is said in the language being learned */
+export const TALK: ShiftTalk = SHIFT_TALK[TARGET];
 
 /** How an answer is given: typed (or spoken), built from tiles, or picked from three. */
 export type AnswerMode = 'type' | 'tiles' | 'pick';
@@ -35,17 +40,17 @@ export const TABLES = [1, 2, 3, 4, 5, 6] as const;
 /** The most of one item a cart holds: a customer never asks for more than three. */
 export const MAX_QTY = 9;
 
-/** An amount that stays left-to-right inside an Arabic sentence: ¥860 as a bidi isolate (the digits stay Latin). */
-export const yenLtr = (n: number): string => `\u2066¥${n.toLocaleString('en-US')}\u2069`;
+/** An amount in the pack's money that stays left-to-right inside an Arabic sentence: ¥860 or 3,50 € as a bidi isolate (the digits stay Latin). */
+export const yenLtr = (n: number): string => `\u2066${yenFormat(n, PACK.currency)}\u2069`;
 
 // ---------------------------------------------------------------------------------------------------------------
 // The goods and the order
 // ---------------------------------------------------------------------------------------------------------------
 
-/** The menu of the job's shop, cheapest last: what the item grid shows (the very goods and prices of the shop). */
+/** The menu of the job's shop: what the item grid shows (the very goods and prices of the shop, every slot of it). */
 export function menuFor(pack: GamePack, job: JobDef): MenuItem[] {
   const shops = new Set(pack.shops.filter((s) => s.placeId === job.place || s.id === job.place).map((s) => s.id));
-  return pack.menu.filter((m) => shops.has(m.shop) && m.slot === 'item');
+  return pack.menu.filter((m) => shops.has(m.shop));
 }
 
 /** The menu id a task item names: a full id or a bare option of the job's shop. */
@@ -108,7 +113,7 @@ export const cartTotal = (menu: MenuItem[], cart: Cart): number =>
   Object.entries(cart).reduce((s, [id, q]) => s + (menu.find((m) => m.id === id)?.price ?? 0) * q, 0);
 
 // ---------------------------------------------------------------------------------------------------------------
-// The total and the change, in Japanese
+// The total and the change, in the language being learned
 // ---------------------------------------------------------------------------------------------------------------
 
 /** The change owed, when the customer pays with a note (undefined otherwise or when the note does not cover the total). */
@@ -118,51 +123,27 @@ export function changeOf(c: ShiftCustomer): number | undefined {
   return back > 0 ? back : undefined;
 }
 
-/** 三百|二十|円 as markup. */
-export const amountMarkup = (n: number): string => yenToJa(n).markup;
-/** The staff's sentence for a total: 三百二十円です。 */
-export const totalPhrase = (n: number): string => `${amountMarkup(n)}|です|。`;
-/** The staff's sentence for the change: お釣りは三百十円です。 */
-export const changePhrase = (n: number): string => `お釣り|は|${amountMarkup(n)}|です|。`;
+/** An amount as markup: 三百|二十|円, 「3,50 €」 or 「€ 3,50」. */
+export const amountMarkup = (n: number): string => TALK.amount(n);
+/** The staff's sentence for a total: 三百二十円です。 / Das macht 3,20 €. / Dat is dan € 3,20. */
+export const totalPhrase = (n: number): string => TALK.total(n);
+/** The staff's sentence for the change: お釣りは三百十円です。 / Sie bekommen 1,50 € zurück. / U krijgt € 1,50 terug. */
+export const changePhrase = (n: number): string => TALK.change(n);
 
-/** The pieces of a markup phrase that are words (no punctuation), in order. */
-export const piecesOf = (markup: string): string[] => markup.split('|').filter((p) => p && !/^[。、？！.,?!]+$/.test(p));
+/** The pieces of a phrase that are words (no punctuation), in order: the tiles (a German or Dutch price is one). */
+export const piecesOf = (markup: string): string[] => TALK.pieces(markup);
 
 /**
- * Whether a typed or spoken answer says `expected` yen: digits (320, ¥320), kanji (三百二十円) or kana, romaji included. It has to name
- * exactly one amount, so a list of prices does not pass by containing the right one.
+ * Whether a typed or spoken answer says the `expected` amount (yen, or cents): digits (320, ¥320, 3,50), words (三百二十円, drei Euro
+ * fünfzig) or kana, romaji included. It has to name exactly one amount, so a list of prices does not pass by containing the right one.
  */
-export function amountSaid(text: string, expected: number): boolean {
-  const tries = [text, romajiAsKana(text)].filter((x): x is string => !!x && x.trim().length > 0);
-  return tries.some((t) => {
-    const found = parseNumbers(t).numbers;
-    return found.length === 1 && found[0] === expected;
-  });
-}
+export const amountSaid = (text: string, expected: number): boolean => TALK.amountSaid(text, expected);
 
-/** The two accepted forms of a thanks phrase for matching: the text up to the first sentence mark, folded to kana. */
-const core = (markup: string): string => normJa(markup.replace(/\|/g, '').split(/[。！？]/)[0] ?? '');
+/** A typed or spoken staff phrase: it contains one of the accepted phrases (script-insensitive and romaji in Japanese, any case and umlauts in German and Dutch). */
+export const thanksSaid = (text: string, accepted: string[]): boolean => TALK.thanksSaid(text, accepted);
 
-/** A typed or spoken staff phrase: it contains one of the accepted phrases (script-insensitive, romaji included). */
-export function thanksSaid(text: string, accepted: string[]): boolean {
-  const said = [normJa(text), romajiAsKana(text) ? normJa(romajiAsKana(text)!) : ''].filter(Boolean);
-  return accepted.some((a) => {
-    const want = core(a);
-    return want.length > 0 && said.some((s) => s.includes(want));
-  });
-}
-
-/** Two wrong totals near the right one (multiples of 10, positive, different from each other and from it). */
-export function nearAmounts(n: number): [number, number] {
-  const offsets = [100, -100, 50, -50, 150, 30, -30, 200];
-  const out: number[] = [];
-  for (const o of offsets) {
-    const v = n + o;
-    if (v >= 10 && v !== n && !out.includes(v)) out.push(v);
-    if (out.length === 2) break;
-  }
-  return [out[0] ?? n + 10, out[1] ?? n + 20];
-}
+/** Two wrong totals near the right one (positive, different from each other and from it). */
+export const nearAmounts = (n: number): [number, number] => near(n);
 
 // ---------------------------------------------------------------------------------------------------------------
 // Tiles and choices (seeded: the same screen always shuffles the same way)
@@ -196,19 +177,14 @@ export function tilePool(targetMarkup: string, distractors: string[], rng: () =>
   return shuffled([...target, ...extra], rng);
 }
 
-/** Two number words that are not part of the right amount, for the tile pool of a total or a change. */
-export function amountDistractors(n: number): string[] {
-  const own = new Set(piecesOf(amountMarkup(n)));
-  const out: string[] = [];
-  for (const v of [...nearAmounts(n), n + 300, n + 1000]) {
-    for (const p of piecesOf(amountMarkup(v))) if (p !== '円' && !own.has(p) && !out.includes(p)) out.push(p);
-  }
-  // small amounts share most of their words with the near ones: fall back to plain digits that are not in the answer
-  for (const d of ['五', '三', '七', '四', '二', '八', '六', '九']) if (out.length < 2 && !own.has(d) && !out.includes(d)) out.push(d);
-  return out.slice(0, 2);
-}
+/** Two wrong pieces for the tile pool of a total or a change: number words not in the right amount (Japanese), or two near amounts. */
+export const amountDistractors = (n: number): string[] => TALK.amountDistractors(n);
 
-export const tilesCorrect = (placed: string[], targetMarkup: string): boolean => placed.join('') === piecesOf(targetMarkup).join('');
+/** The tiles, in order, are the phrase (Japanese pieces join without a space, German and Dutch words with one). */
+export const tilesCorrect = (placed: string[], targetMarkup: string): boolean => {
+  const sep = TALK.id === 'ja' ? '' : ' ';
+  return placed.join(sep) === piecesOf(targetMarkup).join(sep);
+};
 
 /** Three sentences to pick from: the right one and two near ones, shuffled. */
 export function choicesFor(rightMarkup: string, wrongMarkups: string[], rng: () => number): string[] {
@@ -216,7 +192,7 @@ export function choicesFor(rightMarkup: string, wrongMarkups: string[], rng: () 
 }
 
 /** Wrong sentences for a thanks answer: other things a worker says at a counter. */
-export const THANKS_WRONG = ['いらっしゃいませ|。', 'どういたしまして|。', 'すみません|。', 'いただきます|。'];
+export const THANKS_WRONG = TALK.thanksWrong;
 export const thanksWrong = (seed: number): string[] => shuffled(THANKS_WRONG, seeded(seed + 3)).slice(0, 2);
 
 // ---------------------------------------------------------------------------------------------------------------
@@ -250,7 +226,7 @@ export const HELP_CAP: Record<'tiles' | 'pick', ShiftInput> = {
 
 const SILENT_MODES = ['read-and-type', 'type-only'];
 
-/** No Japanese voice to listen to: the player turned listening off, the audio mode is read-and-type / type-only, or auto-speak is off. */
+/** No voice to listen to: the player turned listening off, the audio mode is read-and-type / type-only, or auto-speak is off. */
 export function voiceOff(a: { listenPref?: string; lastMode?: string }, autoSpeak: boolean): boolean {
   return !autoSpeak || a.listenPref === 'off' || SILENT_MODES.includes(a.lastMode ?? '');
 }

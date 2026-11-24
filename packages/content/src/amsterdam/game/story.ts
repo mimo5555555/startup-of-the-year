@@ -32,13 +32,26 @@ export const NL_CHAPTERS: ChapterDef[] = [
     reward: 3000,
     rewardTitle: 't_buurtgenoot',
     rewardCulture: ['cc_patatje'],
-    opens: [o('shop', 'snackbar'), o('shop', 'gvb'), o('place', 'ams_snackbar'), o('place', 'ams_gvb'), o('place', 'ams_straat'), o('feature', 'friends')],
+    opens: [
+      o('shop', 'snackbar'),
+      o('shop', 'gvb'),
+      o('place', 'ams_snackbar'),
+      o('place', 'ams_gvb'),
+      o('place', 'ams_straat'),
+      o('feature', 'friends'),
+      o('job', 'job_ams_cafe'),
+      o('interaction', 'femke_shift'),
+    ],
     beats: { open: 'b_nc2_open', close: 'b_nc2_close' },
     objectives: [
       obj('nc2_1', { k: 'scenario', id: 'ams_daan', complete: true }, 'Meet Daan, your neighbour down the street', 'تعرّف على دان، جارك في الشارع', { pin: { friend: 'daan' } }),
       obj('nc2_2', { k: 'scenario', id: 'ams_snackbar', complete: true }, 'Order a snack at the snack bar', 'اطلب وجبة خفيفة في محل الوجبات السريعة', { pin: { place: 'ams_snackbar' } }),
       obj('nc2_3', { k: 'scenario', id: 'ams_gvb', complete: true }, 'Buy a tram ticket at the GVB desk', 'اشترِ تذكرة ترام من مكتب «خي في بي»', { pin: { place: 'ams_gvb' } }),
       obj('nc2_4', { k: 'purchases', n: 4 }, 'Buy 4 things by talking in Dutch', 'اشترِ 4 أشياء بالحديث بالهولندية'),
+      obj('nc2_5', { k: 'shift', job: 'job_ams_cafe', n: 1, minAcc: 0.6 }, 'Work your first shift at the café (all 5 guests)', 'اعمل أول وردية في المقهى (الضيوف الخمسة جميعهم)', {
+        hint: { en: 'It’s busy at Café De Gracht. Talk to Femke there.', ar: 'مقهى «دي خراخت» مزدحم. تحدّث مع فيمكه هناك.' },
+        pin: { place: 'ams_cafe' },
+      }),
     ],
   },
   {
@@ -303,6 +316,7 @@ export const NL_DAILY: DailyTemplate[] = [
   { id: 'g_buy', slot: 'do', counter: 'purchase', target: 1, requires: { chapter: 1 }, text: { en: 'Buy something in Dutch', ar: 'اشترِ شيئًا باللغة الهولندية' } },
   { id: 'g_friend', slot: 'do', counter: 'friend_contact', target: 1, requires: { chapter: 2, friends: true }, text: { en: 'Spend time with a friend', ar: 'اقضِ وقتًا مع صديق' } },
   { id: 'g_place', slot: 'do', counter: 'places_distinct', target: 2, text: { en: 'Talk to people in 2 different places', ar: 'تحدّث مع أشخاص في مكانين مختلفين' } },
+  { id: 'g_shift', slot: 'do', counter: 'shift_good', target: 1, requires: { job: true }, text: { en: 'Finish a shift', ar: 'أنهِ وردية' } },
   { id: 'g_review8', slot: 'review', counter: 'review_checked', target: 8, requires: { vocabCards: true }, text: { en: 'Review 8 words that are due', ar: 'راجع 8 كلمات مستحقة' } },
   { id: 'g_culture', slot: 'review', counter: 'culture_new', target: 1, requires: { unseenCulture: true }, text: { en: 'Learn one new thing about Amsterdam', ar: 'تعلّم شيئًا جديدًا عن أمستردام' } },
 ];

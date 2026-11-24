@@ -98,9 +98,12 @@ export function parseGermanNumberWord(word: string): number | null {
   return parse(w);
 }
 
+/** an amount in digits: 2, 2,50, 2.50, 1.234 or 1.234,56 (a point before three digits groups thousands) */
+const DIGITS = /^(?:\d{1,3}(?:\.\d{3})+|\d+)(?:[.,]\d{1,2})?$/;
+
 /**
  * Every number in a German utterance, in order: digits (2, 2,50, 2.50) and words (zwei, einundzwanzig). A price said in words
- * counts as one number: 「zwei Euro fünfzig」 → 2.5, 「fünfzig Cent」 → 0.5. The text comes back as it was.
+ * counts as one number: 「zwei Euro fünfzig」 → 2.5, 「ein Euro fünfzig」 → 1.5, 「fünfzig Cent」 → 0.5. The text comes back as it was.
  */
 export function parseGermanNumbers(text: string): { text: string; numbers: number[] } {
   const words = text
@@ -113,9 +116,11 @@ export function parseGermanNumbers(text: string): { text: string; numbers: numbe
   const numbers: number[] = [];
   for (let i = 0; i < words.length; i++) {
     const w = words[i]!;
-    const v = /^\d+(?:[.,]\d{1,2})?$/.test(w) ? Number(w.replace(',', '.')) : parseGermanNumberWord(w);
-    if (v === null || Number.isNaN(v)) continue;
     const next = words[i + 1];
+    // an article before a price is one: 「ein Euro fünfzig」, 「einen Euro zurück」
+    const article = next === 'euro' && /^ein(?:e|en|em)?$/.test(w) ? 1 : null;
+    const v = article ?? (DIGITS.test(w) ? Number(w.replace(/\.(?=\d{3}(?:\D|$))/g, '').replace(',', '.')) : parseGermanNumberWord(w));
+    if (v === null || Number.isNaN(v)) continue;
     if (next === 'cent') {
       numbers.push(v / 100);
       i++;

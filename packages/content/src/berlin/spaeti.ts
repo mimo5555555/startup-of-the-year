@@ -4,7 +4,8 @@ import { L, S, asRecord, node, say } from '../tokyo/dsl';
 import { PAY_CHIPS, payIntents, saleDone, shortOfMoney } from './common';
 
 /** cents, by slot option; the price on the shelf includes the bottle's Pfand (25 cents) */
-export const SPAETI_PRICES: Record<string, number> = { clubmate: 205, wasser: 125, schorle: 175 };
+/** cents, the Pfand (25 cents a bottle) included; the cola joined for the shifts behind the till (jobs for Berlin) */
+export const SPAETI_PRICES: Record<string, number> = { clubmate: 205, wasser: 125, schorle: 175, cola: 175 };
 
 export const MURAT: Character = {
   id: 'murat',

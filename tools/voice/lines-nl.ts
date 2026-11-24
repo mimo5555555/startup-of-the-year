@@ -1,8 +1,9 @@
 // Every static Dutch line the app can speak in Amsterdam, with the voice that speaks it (tools/voice/generate-piper.mjs nl records them).
 // Built from the content's own data, the way lines-de.ts builds Berlin's: the canal's conversations, the reactions, the story beats, the
-// friends' facts, the culture phrases, the notebook's starters and every dictionary word. A line with slot variables is recorded once per
+// friends' facts, the culture phrases, the café's shift (guests and the staff's sentences), the notebook's starters and every dictionary word. A line with slot variables is recorded once per
 // option; a sentence with any other runtime variable ({name}, a price) is left to the device voice, its other sentences recorded.
-import { AMSTERDAM_PACK, AMSTERDAM_SCENARIOS, NL_GIVE_GIFT, NL_LEXICON, NL_REACTIONS, NL_SLOTS, NL_SMALLTALK_FRIENDS, resolveLine, type Line, type Scenario, type Vars } from '@lw/content';
+import { AMSTERDAM_PACK, AMSTERDAM_SCENARIOS, NL_GIVE_GIFT, NL_LEXICON, NL_REACTIONS, NL_SHIFT_TALK, NL_SLOTS, NL_SMALLTALK_FRIENDS, customerVoice, resolveLine, type Line, type Scenario, type ShiftTalk, type Vars } from '@lw/content';
+import type { GamePack } from '@lw/game';
 import { euroTextNl } from '@lw/core';
 import { NARRATOR } from '../../apps/mobile/src/voice/voices';
 import { NL_VOICES } from '../../apps/mobile/src/voice/voices-nl';
@@ -68,6 +69,28 @@ function addScenario(s: Scenario) {
 /** the notebook's first five (apps/mobile/src/store.ts NL_STARTERS) */
 export const NL_STARTER_LINES = ['Hallo!', 'Goedemorgen!', 'Graag.', 'Dank u wel!', 'Doei!'];
 
+/**
+ * The shifts behind the counter (jobs): each customer's order in their own voice, and the staff's sentences the screen plays in the
+ * narrator's (the total or the two bills, the change, the thanks the tiles teach, the welcome).
+ */
+function addShifts(pack: GamePack, talk: ShiftTalk) {
+  for (const job of pack.jobs) {
+    const shops = new Set(pack.shops.filter((s) => s.placeId === job.place || s.id === job.place).map((s) => s.id));
+    const price = (id: string): number => pack.menu.find((m) => m.id === id && shops.has(m.shop))?.price ?? 0;
+    for (const a of job.archetypes) {
+      addLine(customerVoice(talk.id, a.id), a.line);
+      if (a.task.kind !== 'order') continue;
+      const lines = a.task.items.map((i) => price(i.menu) * i.qty);
+      const total = lines.reduce((s, x) => s + x, 0);
+      const split = (a.task.toggles ?? []).includes('split') && lines.length > 1;
+      for (const n of split ? [lines[0]!, total - lines[0]!] : [total]) add(NARRATOR, talk.total(n));
+      if (a.change) add(NARRATOR, talk.change(a.change.paid - total));
+      add(NARRATOR, a.thanks[0]!);
+    }
+  }
+  add(NARRATOR, talk.welcome);
+}
+
 export function voiceLinesNl(): VoiceLineNl[] {
   out.length = 0;
   seen.clear();
@@ -77,6 +100,7 @@ export function voiceLinesNl(): VoiceLineNl[] {
   for (const b of Object.values(AMSTERDAM_PACK.beats)) for (const l of b.lines) addLine(NL_VOICES[l.who] ? l.who : NARRATOR, l.line);
   for (const f of AMSTERDAM_PACK.friends) for (const l of Object.values(f.factLines ?? {})) addLine(NL_VOICES[f.id] ? f.id : NARRATOR, l);
   for (const c of AMSTERDAM_PACK.culture) addLine(NARRATOR, c.phrase);
+  addShifts(AMSTERDAM_PACK, NL_SHIFT_TALK);
   for (const s of NL_STARTER_LINES) add(NARRATOR, s);
   for (const e of NL_LEXICON.all()) add(NARRATOR, e.s);
   return out;

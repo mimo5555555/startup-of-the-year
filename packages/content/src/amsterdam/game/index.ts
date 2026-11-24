@@ -4,6 +4,7 @@ import { JP_AGE_PROFILES } from '../../tokyo/game/economy';
 import { NL_ITEMS, NL_MENU, NL_SHOPS } from './catalog';
 import { EUR_NL, NL_ECONOMY, NL_LANGUAGE, NL_RULES, NL_TAX } from './economy';
 import { NL_FRIENDS, NL_INTERACTIONS, NL_SCENARIO_META } from './people';
+import { NL_JOBS } from './jobs';
 import { NL_BEATS, NL_CHAPTERS, NL_CULTURE, NL_DAILY, NL_DREAMS, NL_EPILOGUE, NL_TITLES, NL_WORD_TAGS } from './story';
 
 export { EUR_NL, NL_LANGUAGE } from './economy';
@@ -23,7 +24,7 @@ export const AMSTERDAM_PACK: GamePack = {
   items: NL_ITEMS,
   shops: NL_SHOPS,
   fares: {},
-  jobs: [],
+  jobs: NL_JOBS,
   chapters: NL_CHAPTERS,
   dreams: NL_DREAMS,
   daily: NL_DAILY,

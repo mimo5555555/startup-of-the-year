@@ -1,8 +1,9 @@
 // Every static German line the app can speak in Berlin, with the voice that speaks it (tools/voice/generate-piper.mjs de records them).
 // Built from the content's own data: the street's conversations (with the regulars' greetings and the small talk), the reactions, the
-// story beats, the friends' facts, the culture phrases and every dictionary word. A line with slot variables ({floh}) is recorded once
+// story beats, the friends' facts, the culture phrases, the Späti's shift (customers and the staff's sentences) and every dictionary word. A line with slot variables ({floh}) is recorded once
 // per option; a sentence with any other runtime variable ({name}, a price) is left to the device voice, its other sentences recorded.
-import { BERLIN_PACK, BERLIN_SCENARIOS, DE_GIVE_GIFT, DE_LEXICON, DE_REACTIONS, DE_SLOTS, DE_SMALLTALK_FRIENDS, resolveLine, type Line, type Scenario, type Vars } from '@lw/content';
+import { BERLIN_PACK, BERLIN_SCENARIOS, DE_GIVE_GIFT, DE_LEXICON, DE_REACTIONS, DE_SHIFT_TALK, DE_SLOTS, DE_SMALLTALK_FRIENDS, customerVoice, resolveLine, type Line, type Scenario, type ShiftTalk, type Vars } from '@lw/content';
+import type { GamePack } from '@lw/game';
 import { euroText } from '@lw/core';
 import { NARRATOR } from '../../apps/mobile/src/voice/voices';
 import { DE_VOICES } from '../../apps/mobile/src/voice/voices-de';
@@ -66,6 +67,28 @@ function addScenario(s: Scenario) {
   for (const r of Object.values(DE_REACTIONS) as Line[]) addLine(who, r);
 }
 
+/**
+ * The shifts behind the counter (jobs): each customer's order in their own voice, and the staff's sentences the screen plays in the
+ * narrator's (the total or the two bills, the change, the thanks the tiles teach, the welcome).
+ */
+function addShifts(pack: GamePack, talk: ShiftTalk) {
+  for (const job of pack.jobs) {
+    const shops = new Set(pack.shops.filter((s) => s.placeId === job.place || s.id === job.place).map((s) => s.id));
+    const price = (id: string): number => pack.menu.find((m) => m.id === id && shops.has(m.shop))?.price ?? 0;
+    for (const a of job.archetypes) {
+      addLine(customerVoice(talk.id, a.id), a.line);
+      if (a.task.kind !== 'order') continue;
+      const lines = a.task.items.map((i) => price(i.menu) * i.qty);
+      const total = lines.reduce((s, x) => s + x, 0);
+      const split = (a.task.toggles ?? []).includes('split') && lines.length > 1;
+      for (const n of split ? [lines[0]!, total - lines[0]!] : [total]) add(NARRATOR, talk.total(n));
+      if (a.change) add(NARRATOR, talk.change(a.change.paid - total));
+      add(NARRATOR, a.thanks[0]!);
+    }
+  }
+  add(NARRATOR, talk.welcome);
+}
+
 export function voiceLinesDe(): VoiceLineDe[] {
   out.length = 0;
   seen.clear();
@@ -75,6 +98,7 @@ export function voiceLinesDe(): VoiceLineDe[] {
   for (const b of Object.values(BERLIN_PACK.beats)) for (const l of b.lines) addLine(DE_VOICES[l.who] ? l.who : NARRATOR, l.line);
   for (const f of BERLIN_PACK.friends) for (const l of Object.values(f.factLines ?? {})) addLine(DE_VOICES[f.id] ? f.id : NARRATOR, l);
   for (const c of BERLIN_PACK.culture) addLine(NARRATOR, c.phrase);
+  addShifts(BERLIN_PACK, DE_SHIFT_TALK);
   // the notebook's starters and every word (the word sheet and the review cards say a word by its surface)
   for (const s of ['Hallo!', 'Guten Morgen!', 'Bitte.', 'Danke!', 'Tschüss!']) add(NARRATOR, s);
   for (const e of DE_LEXICON.all()) add(NARRATOR, e.s);

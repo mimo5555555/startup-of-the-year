@@ -103,6 +103,9 @@ export function parseDutchNumberWord(word: string): number | null {
   return parse(w);
 }
 
+/** an amount in digits: 2, 2,50, 2.50, 1.234 or 1.234,56 (a point before three digits groups thousands) */
+const DIGITS = /^(?:\d{1,3}(?:\.\d{3})+|\d+)(?:[.,]\d{1,2})?$/;
+
 /**
  * Every number in a Dutch utterance, in order: digits (2, 2,50, 2.50) and words (twee, eenentwintig, één). A price said in words counts
  * as one number: 「twee euro vijftig」 → 2.5, 「vijftig cent」 → 0.5. The text comes back as it was.
@@ -111,7 +114,8 @@ export function parseDutchNumbers(text: string): { text: string; numbers: number
   const words = text
     .normalize('NFKC')
     .toLowerCase()
-    .replace(/€\s*(\d)/g, '$1 euro ')
+    // 「€ 10,40」 is 「10,40 euro」 (the whole amount moves, not its first digit)
+    .replace(/€\s*(\d[\d.,]*\d|\d)/g, '$1 euro ')
     .replace(/(\d)\s*€/g, '$1 euro')
     .split(/[^\p{L}\p{N}\p{M},.]+/u)
     .map((w) => w.replace(/^[,.]+|[,.]+$/g, ''))
@@ -119,9 +123,11 @@ export function parseDutchNumbers(text: string): { text: string; numbers: number
   const numbers: number[] = [];
   for (let i = 0; i < words.length; i++) {
     const w = words[i]!;
-    const v = /^\d+(?:[.,]\d{1,2})?$/.test(w) ? Number(w.replace(',', '.')) : parseDutchNumberWord(w);
-    if (v === null || Number.isNaN(v)) continue;
     const next = words[i + 1];
+    // the article before a price is one: 「een euro vijftig」 (één, written with or without its accents)
+    const article = next === 'euro' && w === 'een' ? 1 : null;
+    const v = article ?? (DIGITS.test(w) ? Number(w.replace(/\.(?=\d{3}(?:\D|$))/g, '').replace(',', '.')) : parseDutchNumberWord(w));
+    if (v === null || Number.isNaN(v)) continue;
     if (next === 'cent') {
       numbers.push(v / 100);
       i++;

@@ -1,8 +1,10 @@
-// The Shift screen (agent 4D, docs/GAME_DESIGN.md §9): you on the staff side of the konbini counter. Five customers: listen (text hidden by
-// default), take the order from the item grid, say the total, say thanks. No timer anywhere. The result is one `shift_done` event; the
-// reducer pays it (`applyShift`), so what this screen shows is what the wallet got. Leaving mid-shift is a quit (paid x0.6 from 2 customers).
+// The Shift screen (agent 4D, docs/GAME_DESIGN.md §9): you on the staff side of the counter (the konbini, Murat's Späti, Femke's café...).
+// Five customers: listen (text hidden by default), take the order from the item grid, say the total, say thanks, in the language being
+// learned. No timer anywhere. The result is one `shift_done` event; the reducer pays it (`applyShift`), so what this screen shows is what
+// the wallet got. Leaving mid-shift is a quit (paid x0.6 from 2 customers).
 import { useEffect, useMemo, useRef, useState } from 'react';
 
+import { customerVoice } from '@lw/content';
 import { uid } from '@lw/core';
 import {
   BALANCE,
@@ -35,6 +37,7 @@ import { deskAnswerOf, deskPhrase, deskPickOk, deskSaid, deskWrong, isDesk } fro
 import { IntroGate, JobCard, QuitSheet, RefuseCard, ResultCard, type ResultData } from '../components/game/shift/ShiftCards';
 import {
   NO_FLAGS,
+  TALK,
   amountDistractors,
   amountSaid,
   assistOf,
@@ -70,10 +73,13 @@ import { useT } from '../hooks';
 import { tts } from '../services';
 import { useStore } from '../store';
 import { useUi } from '../ui';
-import { CUSTOMER } from '../voice/voices';
-import { scenarioById } from '../target';
+import { TARGET, scenarioById } from '../target';
 
-const JOB_DEFAULT = 'job_konbini';
+/** the voice a customer speaks in (Tokyo's one customer voice; a woman's or a man's in Berlin and Amsterdam) */
+const voiceOf = (c: ShiftCustomer): string => customerVoice(TARGET, c.templateId);
+
+/** a job's customers name a table (the café): the order pad takes a table number too */
+const usesTables = (job: JobDef): boolean => job.archetypes.some((a) => a.task.kind === 'order' && (a.task.toggles ?? []).some((t) => /^table:?\d+$/.test(t)));
 
 type Stage = 'order' | 'total' | 'change' | 'thanks' | 'verdict' | 'done';
 
@@ -106,13 +112,12 @@ interface Play {
 
 type Phase = { t: 'card' } | { t: 'play'; play: Play } | { t: 'result'; data: ResultData };
 
-const fmt = (n: number): string => n.toLocaleString('en-US');
-
 export function Shift() {
   const { t } = useT();
   const go = useStore((s) => s.go);
   const args = useUi((s) => s.args.shift);
-  const job = PACK.jobs.find((j) => j.id === (args?.jobId ?? JOB_DEFAULT));
+  // the pack's first job when none is named (the konbini in Tokyo)
+  const job = PACK.jobs.find((j) => j.id === (args?.jobId ?? PACK.jobs[0]?.id));
   if (!job || job.archetypes.length === 0) {
     return (
       <Shell title={t('jobs.start')} onBack={() => go('world')}>
@@ -149,7 +154,7 @@ function ShiftJob({ job }: { job: JobDef }) {
   useEffect(() => {
     if (!play || stage !== 'order' || noVoice || play.cant) return;
     const c = play.plan.customers[play.i];
-    if (c) sayMarkup(c.line.ja, false, CUSTOMER);
+    if (c) sayMarkup(c.line.ja, false, voiceOf(c));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [customerIdx, play ? 1 : 0]);
 
@@ -284,7 +289,7 @@ function ShiftJob({ job }: { job: JobDef }) {
   const track = play ? play.tracks[play.i]! : null;
   const want = customer ? wantedOf(customer, menu) : null;
   const flagIds = flagsFor(job.place);
-  const isCafe = job.place === 'cafe';
+  const isCafe = usesTables(job);
   /** the correct answer of a desk customer, in words ("Platform 2", "10:20", "¥170", "Right") */
   const deskText = (c: ShiftCustomer): string => {
     const a = deskAnswerOf(c);
@@ -319,7 +324,7 @@ function ShiftJob({ job }: { job: JobDef }) {
     return back_ !== undefined ? { kind: 'change', amount: back_ } : undefined;
   };
   const totalMarkup = (c: ShiftCustomer): { markup: string; gloss?: string } =>
-    isDesk(c) ? { markup: deskPhrase(c) ?? '' } : { markup: totalPhrase(firstTotal(c)), gloss: `¥${fmt(firstTotal(c))}` };
+    isDesk(c) ? { markup: deskPhrase(c) ?? '' } : { markup: totalPhrase(firstTotal(c)), gloss: yenLtr(firstTotal(c)) };
 
   const confirmOrder = () =>
     patch((p) => {
@@ -380,7 +385,7 @@ function ShiftJob({ job }: { job: JobDef }) {
             totalPart: null,
             verdict: {
               markup: second.kind === 'split' ? totalPhrase(second.amount) : changePhrase(second.amount),
-              gloss: `¥${fmt(second.amount)}`,
+              gloss: yenLtr(second.amount),
               next: 'thanks',
             },
           };
@@ -419,6 +424,8 @@ function ShiftJob({ job }: { job: JobDef }) {
   };
 
   // ---------------- answer specs ----------------
+  /** the example in the answer box: 1,234 or 千二百三十四円 / 12,34 or zwölf Euro vierunddreißig (never anyone's answer) */
+  const totalExample = TALK.example ? t('jobs.placeholderTotalOf', TALK.example) : t('jobs.placeholderTotal');
   const spec: AnswerSpec | null = useMemo(() => {
     if (!play || !customer) return null;
     const seed = play.plan.seed + play.i * 31;
@@ -446,7 +453,7 @@ function ShiftJob({ job }: { job: JobDef }) {
         wrong: [totalPhrase(a), totalPhrase(b)],
         distractors: amountDistractors(total),
         check: (text) => amountSaid(text, total),
-        placeholder: t('jobs.placeholderTotal'),
+        placeholder: totalExample,
         prompt: isSplit(customer) ? t('jobs.splitFirst') : t('jobs.totalPrompt'),
         seed,
       };
@@ -461,12 +468,13 @@ function ShiftJob({ job }: { job: JobDef }) {
         wrong: second?.kind === 'split' ? [totalPhrase(a), totalPhrase(b)] : [changePhrase(a), changePhrase(b)],
         distractors: amountDistractors(back_),
         check: (text) => amountSaid(text, back_),
-        placeholder: t('jobs.placeholderTotal'),
+        placeholder: totalExample,
         prompt:
           second?.kind === 'split'
             ? t('jobs.splitSecond')
             : t('jobs.changePrompt', {
                 paid: yenLtr(customer.change?.paid ?? 1000),
+                word: TALK.changeWord,
               }),
         seed,
       };
@@ -478,7 +486,7 @@ function ShiftJob({ job }: { job: JobDef }) {
         wrong: thanksWrong(seed),
         distractors: customer.tiles ?? [],
         check: (text) => thanksSaid(text, customer.thanks),
-        placeholder: t('jobs.placeholderThanks'),
+        placeholder: TALK.placeholderThanks ?? t('jobs.placeholderThanks'),
         prompt: isCafe ? t('jobs.thanksPromptCafe') : isDesk(customer) ? t('jobs.thanksPromptDesk') : t('jobs.thanksPrompt'),
         seed,
       };
@@ -558,7 +566,7 @@ function ShiftJob({ job }: { job: JobDef }) {
             good={js?.good ?? 0}
             mult={mult}
             waivedShifts={shiftAssistWaived(game, jobId) && (js?.shifts ?? 0) < BALANCE.shift.assistWaivedShifts}
-            how={job.place === 'cafe' ? 'jobs.howItWorksCafe' : job.place === 'station' ? 'jobs.howItWorksStation' : 'jobs.howItWorks'}
+            how={isCafe ? 'jobs.howItWorksCafe' : job.place === 'station' ? 'jobs.howItWorksStation' : 'jobs.howItWorks'}
             wage={job.wage}
             onStart={start}
             onBack={back}
@@ -611,13 +619,13 @@ function ShiftJob({ job }: { job: JobDef }) {
           cant={p.cant}
           ordering={p.stage === 'order'}
           desk={isDesk(customer!)}
-          onListen={(slow) => sayMarkup(customer!.line.ja, slow, CUSTOMER)}
+          onListen={(slow) => sayMarkup(customer!.line.ja, slow, voiceOf(customer!))}
           onAssist={(kind) =>
             patch((q) => patchTrack(q, (tr) => (kind === 'text' ? { ...tr, assistText: true } : { ...tr, assistTrans: true })))
           }
           onCant={() => patch((q) => ({ ...q, cant: true }))}
           onGreet={() => {
-            sayMarkup('いらっしゃいませ');
+            sayMarkup(TALK.welcome);
             patch((q) => patchTrack(q, (tr) => ({ ...tr, greeted: true })));
           }}
         />

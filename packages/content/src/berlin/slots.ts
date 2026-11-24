@@ -33,6 +33,7 @@ export const DE_SLOTS: Record<string, SlotOption[]> = {
     opt('clubmate', 'Club-Mate', ['club mate', 'clubmate', 'mate'], ['club-mate', 'mate'], ['كلوب ماتيه', 'ماتيه']),
     opt('wasser', 'Wasser', ['mineralwasser', 'sprudel', 'sprudelwasser'], ['water', 'a water', 'sparkling water'], ['ماء', 'مياه']),
     opt('schorle', 'Apfelschorle', ['apfelschorlen', 'schorle', 'apfelsaft'], ['apple spritzer', 'apple juice', 'spritzer'], ['عصير تفاح بالصودا', 'عصير تفاح']),
+    opt('cola', 'Cola', ['colas', 'coca cola', 'coca-cola', 'cola zero', 'coke'], ['cola', 'coke', 'a cola'], ['كولا']),
   ],
   doener: [
     opt('doener', 'Döner', ['doner', 'doener', 'kebab', 'döner kebab', 'dönerkebab'], ['doner', 'döner', 'kebab', 'doner kebab'], ['دونر', 'كباب']),
@@ -96,6 +97,7 @@ export const DE_SLOTS: Record<string, SlotOption[]> = {
     opt('clubmate', 'eine Club-Mate', ['mate', 'club mate'], ['club-mate', 'mate'], ['كلوب ماتيه']),
     opt('wasser', 'ein Wasser', [], ['water', 'a water'], ['ماء']),
     opt('schorle', 'eine Apfelschorle', ['schorle'], ['apple spritzer', 'spritzer'], ['عصير تفاح بالصودا']),
+    opt('cola', 'eine Cola', [], ['cola', 'coke'], ['كولا']),
     opt('doener', 'einen Döner', ['doner', 'kebab'], ['doner', 'kebab'], ['دونر']),
     opt('duerum', 'einen Dürüm', ['durum', 'wrap'], ['durum', 'wrap'], ['دوروم']),
     opt('falafel', 'eine Falafel', [], ['falafel'], ['فلافل']),

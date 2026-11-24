@@ -4,6 +4,7 @@ import { JP_AGE_PROFILES } from '../../tokyo/game/economy';
 import { DE_ITEMS, DE_MENU, DE_SHOPS } from './catalog';
 import { DE_ECONOMY, DE_LANGUAGE, DE_RULES, DE_TAX, EUR } from './economy';
 import { DE_FRIENDS, DE_INTERACTIONS, DE_SCENARIO_META } from './people';
+import { DE_JOBS } from './jobs';
 import { DE_BEATS, DE_CHAPTERS, DE_CULTURE, DE_DAILY, DE_DREAMS, DE_EPILOGUE, DE_TITLES, DE_WORD_TAGS } from './story';
 
 export { DE_LANGUAGE, EUR } from './economy';
@@ -23,7 +24,7 @@ export const BERLIN_PACK: GamePack = {
   items: DE_ITEMS,
   shops: DE_SHOPS,
   fares: {},
-  jobs: [],
+  jobs: DE_JOBS,
   chapters: DE_CHAPTERS,
   dreams: DE_DREAMS,
   daily: DE_DAILY,

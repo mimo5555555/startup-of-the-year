@@ -44,6 +44,13 @@ describe('German numbers and prices', () => {
     expect(parseGermanNumbers('fünfzig Cent').numbers).toEqual([0.5]);
     expect(parseGermanNumbers('drei Euro').numbers).toEqual([3]);
     expect(parseGermanNumbers('Zwei Brötchen und eine Brezel').numbers).toEqual([2]);
+    // an article before Euro is one: the change said back, and euroText's own reading of 1,50 €
+    expect(parseGermanNumbers('Sie bekommen einen Euro fünfzig zurück.').numbers).toEqual([1.5]);
+    expect(parseGermanNumbers('ein Euro fünfzig').numbers).toEqual([1.5]);
+    expect(parseGermanNumbers('Ein Wasser, bitte.').numbers).toEqual([]);
+    // a point groups thousands
+    expect(parseGermanNumbers('1.234,56 €').numbers).toEqual([1234.56]);
+    expect(parseGermanNumbers('2.50').numbers).toEqual([2.5]);
   });
 
   it('writes and says a price in euro', () => {

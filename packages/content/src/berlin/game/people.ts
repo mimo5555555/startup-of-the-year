@@ -58,6 +58,8 @@ export const DE_FRIENDS: FriendDef[] = [
 ];
 
 const scenario = (id: string, scenarioId: string, en: string, ar: string, ch = 1): Interaction => ({ id, kind: 'scenario', scenarioId, label: { en, ar }, ch });
+/** a shift behind the counter (jobs.ts), from the chapter that opens the job */
+const shift = (who: string, jobId: string, ch: number): Interaction => ({ id: `${who}_shift`, kind: 'shift', jobId, label: { en: 'Work a shift', ar: 'اعمل وردية' }, ch });
 const gift = (who: string): Interaction => ({ id: `${who}_gift`, kind: 'gift', label: { en: 'Give a gift', ar: 'قدّم هدية' }, ch: 3 });
 /** a chat on any day (`smalltalk_<who>`, social.ts), once the first meeting is done; listed first, so it is what Talk does from then on */
 const talk = (who: string, met: string, ch = 1): Interaction => ({
@@ -81,7 +83,7 @@ const hang = (who: string, scenarioId: string): Interaction => ({
 /** characterId -> what you can do with them (the first open one is what Talk does) */
 export const DE_INTERACTIONS: Record<string, Interaction[]> = {
   jana: [scenario('jana_shop', 'berlin_bakery', 'Buy breakfast', 'اشترِ الفطور')],
-  murat: [scenario('murat_shop', 'berlin_spaeti', 'Buy a drink', 'اشترِ مشروبًا')],
+  murat: [scenario('murat_shop', 'berlin_spaeti', 'Buy a drink', 'اشترِ مشروبًا'), shift('murat', 'job_spaeti', 2)],
   emre: [scenario('emre_shop', 'berlin_doener', 'Order lunch', 'اطلب الغداء', 2)],
   sabine: [scenario('sabine_shop', 'berlin_ubahn', 'Buy a ticket', 'اشترِ تذكرة', 2)],
   greta: [scenario('greta_shop', 'berlin_flohmarkt', 'Look at her stall', 'تفرّج على كشكها', 3)],
@@ -124,8 +126,10 @@ export const DE_SCENARIO_META: ScenarioMeta[] = [
     real: true,
     place: 'berlin_spaeti',
     culture: ['cc_pfand'],
-    shop: { shopId: 'spaeti', itemSlot: 'spaeti', qtySlot: 'qty', payStep: 'pay', itemMap: itemMap('spaeti', ['clubmate', 'wasser', 'schorle'], 'spaeti') },
+    shop: { shopId: 'spaeti', itemSlot: 'spaeti', qtySlot: 'qty', payStep: 'pay', itemMap: itemMap('spaeti', ['clubmate', 'wasser', 'schorle', 'cola'], 'spaeti') },
   },
+  // Murat hires you (jobs.ts): a normal conversation with the boss that opens the Späti shift and pays once
+  { id: 'jobintro_spaeti', kind: 'jobintro', band: 'A1', register: 'polite', pay: 'full', real: true, place: 'berlin_spaeti', culture: ['cc_sie_du'] },
   {
     id: 'berlin_doener',
     kind: 'shop',

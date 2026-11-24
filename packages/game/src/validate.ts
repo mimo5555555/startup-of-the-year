@@ -489,7 +489,9 @@ function level3(pack: GamePack, out: Out): void {
 
   // jobs
   pack.jobs.forEach((j, i) => {
-    if (!pack.friends.some((f) => f.id === j.boss)) add(out, 3, 'job', `jobs[${i}].boss`, `job ${j.id} has boss "${j.boss}", who is not a friend`, 'warn');
+    // the boss is someone the player meets: a friend (Tokyo's bosses are) or a shopkeeper the pack lists things to do with (Murat, Femke)
+    if (!pack.friends.some((f) => f.id === j.boss) && !pack.interactions[j.boss]?.length)
+      add(out, 3, 'job', `jobs[${i}].boss`, `job ${j.id} has boss "${j.boss}", who is neither a friend nor anyone the player can talk to`, 'warn');
     if (!known(j.bonus.itemId)) add(out, 3, 'job', `jobs[${i}].bonus.itemId`, `job ${j.id} grants unknown item "${j.bonus.itemId}"`);
     j.archetypes.forEach((a, ai) => {
       if (a.task.kind === 'order') a.task.items.forEach((it, k) => !(menuIds.has(it.menu) || menuOptions.has(it.menu)) && add(out, 3, 'job', `jobs[${i}].archetypes[${ai}].task.items[${k}]`, `customer ${a.id} orders unknown menu item "${it.menu}"`));

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { LEXICON, SCENARIOS, resolveLine } from '@lw/content';
+import { LEXICON, SCENARIOS, customerVoice, resolveLine } from '@lw/content';
 import { NullTts, collectAudioReport } from '@lw/engine';
 import { splitSentences, voiceEntryKey, voiceTextKey, type VoiceManifest } from '../src/voice/key';
 import { RecordedVoiceTts, withRecordedVoices, type AudioLike } from '../src/voice/RecordedVoiceTts';
@@ -305,6 +305,14 @@ describe('German voice lines (Berlin)', () => {
     expect(has('jonas', 'Wie läuft es mit dem Deutsch?')).toBe(true);
     for (const f of ['lena', 'kofi', 'jonas']) expect(has(f, 'Echt? Wie toll! Vielen Dank!'), f).toBe(true);
     expect(has('lena', 'Es ist Sonntag! Ich backe einen Apfelkuchen. Hilfst du mir?')).toBe(true);
+    // the Späti's shift: Murat's offer, each customer in their voice, the staff's sentences in the narrator's
+    expect(has('murat', 'Hallo! Ich brauche abends Hilfe an der Kasse. Möchten Sie hier arbeiten?')).toBe(true);
+    expect(has(customerVoice('de', 'sp_mate'), 'Eine Club-Mate, bitte.')).toBe(true);
+    expect(has(customerVoice('de', 'sp_note'), 'Eine Club-Mate und eine Cola, bitte. Hier sind fünf Euro.')).toBe(true);
+    expect(has('narrator', 'Das macht 2,05 €.')).toBe(true);
+    expect(has('narrator', 'Sie bekommen 1,20 € zurück.')).toBe(true);
+    expect(has('narrator', 'Danke schön! Schönen Abend noch!')).toBe(true);
+    expect(has('narrator', 'Hallo!')).toBe(true);
   });
 
   it('reads prices and letters the way a German says them', () => {
@@ -333,7 +341,8 @@ describe('Dutch voice lines (Amsterdam)', () => {
     expect(has('narrator', 'Een koffie verkeerd, graag.')).toBe(true);
     // a priced line: its sentence without the price is recorded, the price is not
     expect(has('femke', 'Pinnen of contant?')).toBe(true);
-    expect(lines.some((l) => /€/.test(l.text))).toBe(false);
+    // a price is recorded only in a fixed sentence of the shift (the conversations' prices are the device's)
+    for (const l of lines.filter((x) => /€/.test(x.text))) expect(l.text, l.text).toMatch(/^(Dat is dan|U krijgt) € [\d.,]+( terug)?\.$/);
     // a slot line, once per option
     expect(has('sanne', 'Wat leuk! Egypte wil ik ook eens zien. Wat doe je graag in je vrije tijd?')).toBe(true);
     // the regulars and the small talk, in the shopkeeper's voice
@@ -353,19 +362,29 @@ describe('Dutch voice lines (Amsterdam)', () => {
     expect(has('noor', 'Hoe gaat het met je Nederlands?')).toBe(true);
     for (const f of ['sanne', 'daan', 'noor']) expect(has(f, 'Echt? Wat leuk! Heel erg bedankt!'), f).toBe(true);
     expect(has('sanne', 'Top! Kun je de melk en de eieren pakken?')).toBe(true);
+    // the café's shift: Femke's offer, each guest in their voice, the staff's sentences in the narrator's
+    expect(has('femke', 'Hallo! Het is zo druk vandaag. Wilt u mij helpen in het café?')).toBe(true);
+    expect(has(customerVoice('nl', 'cf_koffie'), 'Een koffie, graag.')).toBe(true);
+    expect(has(customerVoice('nl', 'cf_split'), 'Een koffie en een thee, graag. We betalen apart.')).toBe(true);
+    expect(has('narrator', 'Dat is dan € 3,00.')).toBe(true);
+    expect(has('narrator', 'Dat is dan € 2,80.')).toBe(true);
+    expect(has('narrator', 'U krijgt € 2,70 terug.')).toBe(true);
+    expect(has('narrator', 'Dank u wel! Fijne dag nog!')).toBe(true);
+    expect(has('narrator', 'Hallo, welkom!')).toBe(true);
   });
 
   it('reads prices and letters the way a Dutch speaker says them', () => {
     expect(readingNl('Dat is dan € 2,50.')).toBe('Dat is dan twee euro vijftig.');
     expect(readingNl('Een dagkaart kost € 9,50.')).toBe('Een dagkaart kost negen euro vijftig.');
     expect(readingNl('De GVB is hier.')).toBe('De G V B is hier.');
+    expect(readingNl('Dat is dan € 10,40.')).toBe('Dat is dan tien euro veertig.');
   });
 
   it('gives every Amsterdam character a voice of their own, men and women apart, the narrator in Netherlands Dutch', () => {
     const sig = Object.values(NL_VOICES).map((v) => `${v.model}:${v.pitch}:${v.speed}`);
     expect(new Set(sig).size).toBe(sig.length);
-    for (const w of ['femke', 'ingrid', 'sanne', 'noor', 'mirjam', 'ilse']) expect(NL_VOICES[w]!.model, w).toBe('nl_BE-nathalie-medium');
-    for (const m of ['kees', 'daan', 'jesse', 'mo', 'joop']) expect(NL_VOICES[m]!.model, m).toMatch(/^nl_NL-/);
+    for (const w of ['femke', 'ingrid', 'sanne', 'noor', 'mirjam', 'ilse', 'customer']) expect(NL_VOICES[w]!.model, w).toBe('nl_BE-nathalie-medium');
+    for (const m of ['kees', 'daan', 'jesse', 'mo', 'joop', 'customer_m']) expect(NL_VOICES[m]!.model, m).toMatch(/^nl_NL-/);
     expect(NL_VOICES[NARRATOR]!.model).toMatch(/^nl_NL-/);
   });
 });

@@ -9,10 +9,10 @@ import { useStore } from '../../../store';
 import { useT } from '../../../hooks';
 import { useUi } from '../../../ui';
 import { Ja, JaTappable } from './ShiftParts';
-import { yenLtr } from './shiftLogic';
+import { TALK, yenLtr } from './shiftLogic';
 import { BAND_LINES, RANK_JA, RANK_UP, REFUSE, RETRY } from './shiftLines';
 
-/** A boss line: Japanese (tappable words) with the translation under it. */
+/** A boss line: the language being learned (tappable words) with the translation under it. */
 export function BossLine({ line }: { line: { ja: string; en: string; ar: string } }) {
   const { lang } = useT();
   return (
@@ -27,7 +27,7 @@ export function BossLine({ line }: { line: { ja: string; en: string; ar: string 
 
 export const rankLabel = (t: ReturnType<typeof useT>['t'], rank: number) => t(`jobs.rank${Math.max(0, Math.min(4, rank))}` as 'jobs.rank0');
 
-/** The rank as Japanese with its reading, and the UI-language name. */
+/** The rank in the language being learned, and the UI-language name. */
 export function RankName({ rank }: { rank: number }) {
   const { t } = useT();
   const r = RANK_JA[Math.max(0, Math.min(4, rank))]!;
@@ -68,7 +68,7 @@ export function JobCard({ jobName, helping, rank, good, mult, waivedShifts, how 
           <h2>{jobName}</h2>
           {helping && (
             <span className="pill" data-helping>
-              <Ja markup="お手伝い" size="sm" /> {t('jobs.helping')}
+              <Ja markup={TALK.helping} size="sm" /> {t('jobs.helping')}
             </span>
           )}
         </div>
@@ -100,7 +100,7 @@ export function JobCard({ jobName, helping, rank, good, mult, waivedShifts, how 
         </p>
       )}
       <p className="sh-note" data-wage={wage}>
-        <bdi dir="ltr">¥{wage.toLocaleString('en-US')}/h</bdi>
+        <bdi dir="ltr">{yenLtr(wage)}/h</bdi>
       </p>
       <button type="button" className="btn primary wide" data-act="start-shift" onClick={onStart}>
         {t('jobs.start')}

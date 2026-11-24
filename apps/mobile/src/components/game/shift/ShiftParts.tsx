@@ -26,12 +26,13 @@ import {
   type FlagId,
   type Flags,
   type Track,
+  TALK,
 } from './shiftLogic';
-import { LEXICON, TARGET_LOCALE } from '../../../target';
+import { LEXICON, TARGET_HTML_LANG, TARGET_LOCALE } from '../../../target';
 
 const tokensOf = (markup: string): Token[] => tokenize(markup, LEXICON).tokens;
 
-/** Japanese markup as words with the player's furigana and romaji settings. */
+/** Markup in the language being learned as words (Japanese with the player's furigana and romaji settings). */
 export function Ja({ markup, size = 'md' }: { markup: string; size?: 'sm' | 'md' | 'lg' | 'xl' }) {
   const tokens = useMemo(() => tokensOf(markup), [markup]);
   return <JaLabel tokens={tokens} size={size} />;
@@ -95,7 +96,7 @@ export interface BubbleProps {
   track: Track;
   /** assist factors do not apply: the buttons carry no penalty */
   waived: boolean;
-  /** there is no Japanese voice (or the player said so): the text is shown from the start */
+  /** there is no voice (or the player said so): the text is shown from the start */
   textByDefault: boolean;
   cant: boolean;
   onListen(slow: boolean): void;
@@ -218,21 +219,21 @@ export interface OrderPadProps {
   onConfirm(): void;
 }
 
-/** The Japanese word and the label key of each switch. */
+/** The word (in the language being learned) and the label key of each switch. */
 const FLAG_META: Record<FlagId, { ja: string; key: 'jobs.heat' | 'jobs.noBag' | 'jobs.hot' | 'jobs.iced' }> = {
-  heat: { ja: '温めて', key: 'jobs.heat' },
-  nobag: { ja: '袋', key: 'jobs.noBag' },
-  hot: { ja: 'ホット', key: 'jobs.hot' },
-  iced: { ja: 'アイス', key: 'jobs.iced' },
+  heat: { ja: TALK.flagWords.heat ?? '温めて', key: 'jobs.heat' },
+  nobag: { ja: TALK.flagWords.nobag ?? '袋', key: 'jobs.noBag' },
+  hot: { ja: TALK.flagWords.hot ?? 'ホット', key: 'jobs.hot' },
+  iced: { ja: TALK.flagWords.iced ?? 'アイス', key: 'jobs.iced' },
 };
 
-/** Every good of the shop with its Japanese name and price: tap to add one, the minus takes one back; the switches of the counter and (café) the table. */
+/** Every good of the shop with its name (in the language being learned) and price: tap to add one, the minus takes one back; the switches of the counter and (café) the table. */
 export function OrderPad({ menu, cart, flags, flagIds, table, onAdd, onRemove, onFlag, onTable, onConfirm }: OrderPadProps) {
   const { t, lang } = useT();
   const count = Object.values(cart).reduce((a, b) => a + b, 0);
   return (
     <section className="sh-order" aria-label={t('jobs.stepOrder')} data-order>
-      <p className="sh-prompt">{table !== undefined ? t('jobs.orderPromptCafe') : t('jobs.orderPrompt')}</p>
+      <p className="sh-prompt">{table === undefined ? t('jobs.orderPrompt') : flagIds.length ? t('jobs.orderPromptCafe') : t('jobs.orderPromptTable')}</p>
       <ul className="sh-grid">
         {menu.map((m) => {
           const qty = cart[m.id] ?? 0;
@@ -410,7 +411,7 @@ export function AnswerBox({ spec, onDone }: { spec: AnswerSpec; onDone(ok: boole
             spellCheck={false}
             enterKeyHint="send"
             dir="ltr"
-            lang="ja"
+            lang={TARGET_HTML_LANG}
             aria-label={spec.prompt}
           />
           <button

@@ -30,6 +30,7 @@ export const DE_MENU: MenuItem[] = [
   menu('spaeti', 'spaeti', 'clubmate', 'Club-Mate', 'Club-Mate', 'كلوب ماتيه', SPAETI_PRICES.clubmate!, 'food', ['drink']),
   menu('spaeti', 'spaeti', 'wasser', 'Wasser', 'Water', 'ماء', SPAETI_PRICES.wasser!, 'food', ['drink']),
   menu('spaeti', 'spaeti', 'schorle', 'Apfelschorle', 'Apple spritzer', 'عصير تفاح بالصودا', SPAETI_PRICES.schorle!, 'food', ['drink', 'sweet'], true),
+  menu('spaeti', 'spaeti', 'cola', 'Cola', 'Cola', 'كولا', SPAETI_PRICES.cola!, 'food', ['drink']),
   menu('doener', 'doener', 'doener', 'Döner', 'Döner kebab', 'دونر', DOENER_PRICES.doener!, 'food', ['food', 'meal']),
   menu('doener', 'doener', 'duerum', 'Dürüm', 'Dürüm wrap', 'دوروم', DOENER_PRICES.duerum!, 'food', ['food', 'meal']),
   menu('doener', 'doener', 'falafel', 'Falafel', 'Falafel', 'فلافل', DOENER_PRICES.falafel!, 'food', ['food', 'meal']),

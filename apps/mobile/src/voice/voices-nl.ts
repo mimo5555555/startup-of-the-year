@@ -24,6 +24,9 @@ export const NL_VOICES: Record<string, NlVoice> = {
   mirjam: { model: 'nl_BE-nathalie-medium', pitch: 0.97, speed: 0.98 }, // 45, the drogist: kind and practical
   ilse: { model: 'nl_BE-nathalie-medium', pitch: 1.01, speed: 0.94 }, // 38, the gemeente's desk: careful and clear
   joop: { model: 'nl_NL-pim-medium', pitch: 0.86, speed: 0.95 }, // 62, the brown café's landlord
+  // the café's guests on a shift behind the counter (customerVoice in @lw/content picks one per guest)
+  customer: { model: 'nl_BE-nathalie-medium', pitch: 1.04, speed: 1.0 },
+  customer_m: { model: 'nl_NL-ronnie-medium', pitch: 0.97, speed: 1.03 },
   [NARRATOR]: { model: 'nl_NL-ronnie-medium', pitch: 1.0, speed: 0.95 },
 };
 

@@ -11,6 +11,7 @@ export { BERLIN_SHOP_TALK, BERLIN_TALK_TOPICS, withBerlinTalk } from './smalltal
 export { DE_GIVE_GIFT, DE_SMALLTALK, DE_SMALLTALK_CALLBACKS, DE_SMALLTALK_FRIENDS, DE_TOPICS } from './social';
 export { DE_HANGOUTS, HANG_JONAS, HANG_KOFI, HANG_LENA } from './hangouts';
 export { ANKE, APOTHEKE, APOTHEKE_PRICES, BUERGERAMT, DE_PLACES, KNEIPE, KNEIPE_PRICES, KRAUSE, UWE } from './places';
+export { JOBINTRO_SPAETI } from './jobs';
 
 import type { Character, Scenario, SignDef } from '../types';
 import { BAKERY, JANA } from './bakery';
@@ -23,6 +24,7 @@ import { withBerlinTalk } from './smalltalk';
 import { DE_GIVE_GIFT, DE_SMALLTALK } from './social';
 import { DE_HANGOUTS } from './hangouts';
 import { ANKE, APOTHEKE, BUERGERAMT, KNEIPE, KRAUSE, UWE } from './places';
+import { JOBINTRO_SPAETI } from './jobs';
 
 /** things on the Berlin street to tap and read (the world's pick id -> the dictionary word), like Tokyo's signs */
 export const BERLIN_SIGNS: SignDef[] = [
@@ -47,8 +49,18 @@ export const BERLIN_SIGNS: SignDef[] = [
 ];
 
 /** the street's shops (with their regulars' greetings and small talk, `smalltalk.ts`), the friends' first meetings, then their chats and the
- * hand-over of a present (`social.ts`), the hang-outs at three hearts (`hangouts.ts`) */
-export const BERLIN_SCENARIOS: Scenario[] = [...[BAKERY, SPAETI, DOENER, UBAHN, FLOHMARKT, APOTHEKE, KNEIPE].map(withBerlinTalk), BUERGERAMT, LENA_MEET, KOFI_MEET, JONAS_MEET, ...DE_SMALLTALK, DE_GIVE_GIFT, ...DE_HANGOUTS];
+ * hand-over of a present (`social.ts`), the hang-outs at three hearts (`hangouts.ts`), and Murat's job offer (`jobs.ts`) */
+export const BERLIN_SCENARIOS: Scenario[] = [
+  ...[BAKERY, SPAETI, DOENER, UBAHN, FLOHMARKT, APOTHEKE, KNEIPE].map(withBerlinTalk),
+  BUERGERAMT,
+  LENA_MEET,
+  KOFI_MEET,
+  JONAS_MEET,
+  ...DE_SMALLTALK,
+  DE_GIVE_GIFT,
+  ...DE_HANGOUTS,
+  JOBINTRO_SPAETI,
+];
 export const BERLIN_CHARACTERS: Character[] = [JANA, MURAT, EMRE, SABINE, GRETA, LENA, KOFI, JONAS, ANKE, UWE, KRAUSE];
 export const berlinScenarioById = (id: string): Scenario | undefined => BERLIN_SCENARIOS.find((s) => s.id === id);
 export const berlinCharacterById = (id: string): Character | undefined => BERLIN_CHARACTERS.find((c) => c.id === id);

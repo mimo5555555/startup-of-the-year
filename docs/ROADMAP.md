@@ -333,16 +333,35 @@ game, a bigger city with better conversations, and the same game for German, Dut
     beer only for adults, cards only), the street (spawns, fronts, signs, labels), the pack at level 5, the voice lines, and an e2e in
     the real UI (`tools/e2e/game/amsterdam-chapters.mjs`: a chat with Sanne, the drogist, ’t Hoekje refusing cash, the inschrijving;
     EN and AR).
+- **Jobs in Berlin and Amsterdam** (done): the Shift screen works in every language being learned, and Murat's Späti and Femke's café
+  hire the player from Chapter 2.
+  * The shift's language is one table per language (`@lw/content` shifttalk.ts, `SHIFT_TALK`): how a total and the change are said
+    (「Das macht 3,80 €.」, 「Sie bekommen 1,20 € zurück.」; 「Dat is dan € 7,50.」, 「U krijgt € 2,70 terug.」), how a typed or spoken
+    amount (digits or words) and thanks (any letter case, umlauts typed or not) are checked, the tiles (a German or Dutch price is one
+    tile, two near amounts the wrong ones), the wrong chips, the welcome, the example in the answer box (never anyone's answer), the
+    boss's lines and the ranks (Neuling … rechte Hand; nieuweling … rechterhand). Japanese is the konbini's word for word. Money shows
+    in the pack's currency (13,90 €/h, € 14,40/h); a job with tables gets the table picker whatever its place.
+  * Murat's offer (berlin/jobs.ts): Sie, then 「Wir duzen uns hier, okay?」, then 「Hallo!」 and 「Danke schön! Schönen Abend noch!」.
+    Thirteen customers (berlin/game/jobs.ts): one kind, two kinds, a customer who changes their mind, a 5/10/20-euro note and the
+    change; every price includes the Pfand. A Cola joined the Späti (its conversation, the goods, the gift sheet).
+  * Femke's offer (amsterdam/jobs.ts): u, then 「Zeg maar je, hoor!」. Fourteen guests (amsterdam/game/jobs.ts): one kind, two kinds,
+    the table, separate bills (「We betalen apart」: two totals) and notes.
+  * Chapter 2 opens each job and asks for a first shift; the daily goals include a shift. The minimum wage of each country (the pack's
+    reference wage). A job's boss can be a shopkeeper now (the pack check asked for a friend).
+  * The number readers: 「ein(en) Euro fünfzig」 and 「een euro vijftig」 are 1,50 (they read 50 euros), 「€ 10,40」 is 10,40 (it read
+    1 and 0,40), and a point groups thousands (1.234,56).
+  * 63 new words; 139 more lines recorded (68 German, 71 Dutch): the customers in a woman's and a man's voice, the staff's sentences.
+  * Tests: every customer's cart, totals, change and bills heard back in digits, words and the staff's own sentence; the thanks; the
+    tiles; the dictionary; the pack at level 5; the voice lines; and an e2e in the real UI (`tools/e2e/game/jobs-eu.mjs [--nl]`: the
+    boss's offer, a shift answered in digits, words, a sentence and tiles, shifts at rank 4 until notes and split bills came up, the
+    boss's refusal of a third shift; EN and AR in both cities).
 
 ## Next
 
 1. **Listen to the German and Dutch voices** and adjust a character's pitch or pace in `voices-de.ts` / `voices-nl.ts` where needed
    (re-run `PIPER_PYTHON=… PIPER_MODELS=… node tools/voice/generate-piper.mjs <de|nl>`). Nathalie was trained on Flemish speech: if her
    accent jars in Amsterdam, a Netherlands-Dutch woman's voice from Piper's MLS model (CC BY 4.0, needs a credit) can replace it.
-2. **Jobs for Berlin and Amsterdam**: the shift screen counts yen and matches kana (`components/game/shift/shiftLogic.ts`); made
-   language-neutral (the pack's price markup and number parser, the target language's matching), Murat's Späti and Femke's café can
-   hire the player.
-3. **A fourth language** (proposed): onboarding already shows Español and Русский as coming; the language layer, the pack, the
+2. **A fourth language** (proposed): onboarding already shows Español and Русский as coming; the language layer, the pack, the
    district and the voice pipeline are now proven twice, so a new city is mostly content.
 
 ## Other languages (German in Berlin first)

@@ -24,6 +24,9 @@ export const DE_VOICES: Record<string, DeVoice> = {
   anke: { model: 'kerstin-low', pitch: 0.99, speed: 0.97 }, // 48, calm pharmacist
   uwe: { model: 'thorsten-high', pitch: 0.86, speed: 0.97 }, // 58, gruff Kneipe landlord
   krause: { model: 'thorsten-high', pitch: 0.97, speed: 0.92 }, // 55, formal clerk at the Bürgeramt
+  // the Späti's customers on a shift behind the till (customerVoice in @lw/content picks one per customer)
+  customer: { model: 'kerstin-low', pitch: 1.03, speed: 1.0 },
+  customer_m: { model: 'thorsten-high', pitch: 0.98, speed: 1.04 },
   [NARRATOR]: { model: 'thorsten-high', pitch: 1.0, speed: 0.95 },
 };
 
