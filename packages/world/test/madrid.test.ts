@@ -34,9 +34,9 @@ describe('the Madrid street', () => {
     expect(MADRID_SPAWNS.map((s) => s.id).sort()).toEqual(MADRID_CHARACTERS.map((c) => c.id).sort());
   });
 
-  it('names its open fronts as the Madrid pack names its shops, every one of them', () => {
-    expect(MADRID_SHOPS.map((s) => s.id)).toEqual(['bar', 'panaderia', 'churreria', 'metro', 'mercado']);
-    expect(MADRID_PACK.shops.map((s) => s.id).sort()).toEqual(MADRID_SHOPS.map((s) => s.id).sort());
+  it('names its open fronts as the Madrid pack names its shops, every one of them (the citizens’ office sells nothing)', () => {
+    expect(MADRID_SHOPS.map((s) => s.id)).toEqual(['bar', 'panaderia', 'churreria', 'metro', 'mercado', 'farmacia', 'taberna', 'padron']);
+    expect(MADRID_PACK.shops.map((s) => s.id).sort()).toEqual(MADRID_SHOPS.map((s) => s.id).filter((id) => id !== 'padron').sort());
     // the shops do not overlap
     const spans = MADRID_SHOPS.map((s) => [s.cx - s.w / 2, s.cx + s.w / 2] as const).sort((a, b) => a[0] - b[0]);
     for (let i = 1; i < spans.length; i++) expect(spans[i]![0], `${i}`).toBeGreaterThanOrEqual(spans[i - 1]![1]);

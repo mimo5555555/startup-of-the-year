@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { LEXICON, SCENARIOS, customerVoice, resolveLine } from '@lw/content';
+import { customerVoice, LEXICON, MADRID_CHARACTERS, resolveLine, SCENARIOS } from '@lw/content';
 import { NullTts, collectAudioReport } from '@lw/engine';
 import { splitSentences, voiceEntryKey, voiceTextKey, type VoiceManifest } from '../src/voice/key';
 import { RecordedVoiceTts, withRecordedVoices, type AudioLike } from '../src/voice/RecordedVoiceTts';
@@ -436,8 +436,22 @@ describe('Spanish voice lines (Madrid)', () => {
   it('gives every Madrid character a voice of their own: the women Sharvard’s woman, the men davefx or Sharvard’s man', () => {
     const sig = Object.values(ES_VOICES).map((v) => `${v.model}#${v.speaker ?? ''}:${v.pitch}:${v.speed}`);
     expect(new Set(sig).size).toBe(sig.length);
-    for (const w of ['lola', 'carmen', 'marisa', 'lucia', 'nadia', 'customer']) expect(ES_VOICES[w], w).toMatchObject({ model: 'es_ES-sharvard-medium', speaker: 1 });
+    for (const w of ['lola', 'carmen', 'marisa', 'lucia', 'nadia', 'customer', 'pilar', 'concha']) expect(ES_VOICES[w], w).toMatchObject({ model: 'es_ES-sharvard-medium', speaker: 1 });
     for (const m of ['andres', 'rafa', 'narrator']) expect(ES_VOICES[m]!.model, m).toBe('es_ES-davefx-medium');
-    for (const m of ['javi', 'customer_m']) expect(ES_VOICES[m], m).toMatchObject({ model: 'es_ES-sharvard-medium', speaker: 0 });
+    for (const m of ['javi', 'customer_m', 'manolo']) expect(ES_VOICES[m], m).toMatchObject({ model: 'es_ES-sharvard-medium', speaker: 0 });
+    // every character of the street speaks in a recorded voice of their own
+    for (const c of MADRID_CHARACTERS) expect(ES_VOICES[c.id], c.id).toBeDefined();
+  });
+
+  it('records Chapters 4-6: the hang-outs in the friends’ voices, the new places in their staff’s', () => {
+    const has = (voice: string, text: string) => lines.some((l) => l.voice === voice && l.text === text);
+    expect(has('lucia', 'Pregunta importante: ¿tortilla con cebolla o sin cebolla?')).toBe(true);
+    expect(has('javi', '¡Corre, corre! ¡Gol! ¡Gol del Atleti!')).toBe(true);
+    expect(has('nadia', 'Mira, el estanque y las barcas. ¡Qué bonito!')).toBe(true);
+    expect(has('pilar', 'Buenos días. ¿Qué le pasa?')).toBe(true);
+    expect(has('manolo', 'Aquí tienes, con su tapa: unas aceitunas. ¿Quieres una ración?')).toBe(true);
+    expect(has('concha', 'Buenos días. ¿Tiene cita previa?')).toBe(true);
+    expect(has('concha', 'Con cita previa, su pasaporte y su contrato de alquiler, es muy rápido.')).toBe(true);
+    expect(has('narrator', 'Quiero empadronarme.')).toBe(true);
   });
 });

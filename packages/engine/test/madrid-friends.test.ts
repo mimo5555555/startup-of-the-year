@@ -1,6 +1,7 @@
 // Madrid's friends after the first meeting (Spanish step 3), through the real engine: the chat of the day (`smalltalk_<friend>`) at every
 // topic the app can enter, every chip understood to the end; a revealed fact after the reaction; the greeting's callbacks answered; the
-// favourite food and the sport remembered from your own words; and the hand-over of a present (`give_gift`) naming what it is.
+// favourite food and the sport remembered from your own words; and the hand-over of a present (`give_gift`) naming what it is. Spanish
+// step 4: the three hang-outs at three hearts (Lucía's tortilla, the match with Javi, the Retiro with Nadia).
 import { describe, expect, it } from 'vitest';
 import { ES_GIVE_GIFT, ES_SLOTS, ES_SMALLTALK, ES_SMALLTALK_FRIENDS, MADRID_PACK, madridCharacterById, madridScenarioById, type L1, type Vars } from '@lw/content';
 import { ConversationSession, ES, classifyInput, evaluateSession, type SessionGameHooks, type SessionOptions, type SubmitResult } from '../src';
@@ -179,9 +180,61 @@ describe('a present for a friend (give_gift)', () => {
   it('is offered from Chapter 3 to every friend, after the chat of the day and the first meeting', () => {
     for (const f of ES_SMALLTALK_FRIENDS) {
       const its = MADRID_PACK.interactions[f]!;
-      expect(its.map((x) => x.id)).toEqual([`${f}_talk`, `${f}_meet`, `${f}_gift`]);
+      expect(its.map((x) => x.id)).toEqual([`${f}_talk`, `${f}_meet`, `${f}_gift`, `${f}_hang`]);
       expect(its[0]).toMatchObject({ scenarioId: `smalltalk_${f}`, gate: { k: 'scenario', complete: true } });
       expect(its[2]).toMatchObject({ kind: 'gift', ch: 3 });
+    }
+  });
+});
+
+describe('hang-outs at three hearts', () => {
+  const HANG: Array<[string, string, string[]]> = [
+    ['hang_lucia_tortilla', 'lucia', ['¡Sí, claro! Te ayudo.', 'Vale, pelo las patatas.', 'Sin cebolla, por favor.', '¡Uno, dos, tres!', '¡Qué rica, Lucía!']],
+    ['hang_javi_partido', 'javi', ['¡Claro que sí! ¿A qué hora?', 'Un refresco, por favor.', '¡Gol! ¡Vamos!', '¡Venga, árbitro!', '¡Me ha encantado!']],
+    ['hang_nadia_retiro', 'nadia', ['¡Sí, vamos al Retiro!', '¡Qué bonito!', 'Perdone, ¿nos puede hacer una foto, por favor?', 'De chocolate, por favor.', 'Me gusta mucho la gente.']],
+  ];
+  for (const [id, who, typed] of HANG) {
+    it(`${id}: every chip is understood to the end, EN and AR`, () => {
+      for (const l1 of ['en', 'ar'] as const) {
+        const { problems, nodes } = walk(() => open(id, who, { l1 }));
+        expect(problems, `${id} ${l1}`).toEqual([]);
+        for (const n of Object.values(madridScenarioById(id)!.nodes)) if (!n.end) expect(nodes.has(n.id), `${id}: ${n.id}`).toBe(true);
+      }
+    });
+    it(`${id}: typed in your own words, it ends with every step done`, () => {
+      const s = open(id, who);
+      let r: SubmitResult | undefined;
+      for (const line of typed) {
+        r = say(s, line);
+        expect(r.learner.matched, `${id}: "${line}"`).toBe(true);
+      }
+      expect(r!.ended).toBe(true);
+      expect([...s.stepsDone].sort()).toEqual(madridScenarioById(id)!.steps.map((x) => x.id).sort());
+    });
+  }
+  it('Lucía’s onion question: with onion and without lead to their own lines', () => {
+    const con = open('hang_lucia_tortilla', 'lucia');
+    say(con, '¡Sí, claro!');
+    say(con, 'Vale, pelo las patatas.');
+    say(con, 'Con cebolla, claro.');
+    expect(last(con)).toBe('¡Eso es! Con cebolla está más jugosa. Ahora, ¡dale la vuelta con el plato!');
+    const sin = open('hang_lucia_tortilla', 'lucia');
+    say(sin, '¡Sí, claro!');
+    say(sin, 'Vale, pelo las patatas.');
+    say(sin, 'Sin cebolla.');
+    expect(last(sin)).toBe('¡Uy, como Javi! Vale, sin cebolla. Ahora, ¡dale la vuelta con el plato!');
+  });
+  it('asking the stranger with usted gets no note, even with a friend at your side', () => {
+    const s = open('hang_nadia_retiro', 'nadia');
+    say(s, '¡Sí, me encanta el Retiro!');
+    say(s, 'Sí, es muy bonito.');
+    say(s, 'Perdone, ¿nos puede hacer una foto?');
+    expect(evaluateSession(s, { register: 'casual', friend: true }).corrections).toEqual([]);
+  });
+  it('is a hang-out of the pack at three hearts, listed from Chapter 4', () => {
+    for (const [id, who] of HANG) {
+      expect(MADRID_PACK.scenarioMeta.find((m) => m.id === id)).toMatchObject({ kind: 'hangout', heart: 3, friendId: who, pay: 'none' });
+      expect(MADRID_PACK.interactions[who]!.find((x) => x.scenarioId === id)).toMatchObject({ ch: 4, gate: { k: 'hearts', friend: who, atLeast: 3 } });
     }
   });
 });

@@ -3,7 +3,9 @@
 // ochre, terracotta or cream, with French windows, little wrought-iron balconies, green shutters and a cornice. In front of them the
 // pavement and a narrow cobbled street; then the plaza: plane trees, benches, a fountain, the black Fernandine street lamps, Javi in the
 // middle. On the south side, the portal of your flat (Lucía waits at the door) and the language-exchange bar with its terraza (Nadia).
-// Units are metres, +x east, +z south, the north fronts face +z.
+// Spanish step 4 adds three fronts to the north side: the citizens' office of the Ayuntamiento at the west end (Concha, the padrón; Madrid's
+// crimson flag with its seven stars at the kerb), and east of the market the farmacia with its green cross (Pilar) and Taberna El
+// Farolillo with its blue-and-white tiles (Manolo). Units are metres, +x east, +z south, the north fronts face +z.
 import * as THREE from 'three';
 import { Batch, resetJitter } from './batch';
 import { createBuildCtx, makeShutter, type BuildCtx } from './buildctx';
@@ -19,6 +21,11 @@ export const MADRID_SHOPS: ShopBox[] = [
   { id: 'churreria', cx: -6, w: 8, d: 9, h: 4.6 },
   { id: 'metro', cx: 6, w: 9, d: 10, h: 5.0 },
   { id: 'mercado', cx: 21, w: 12, d: 10, h: 5.4 },
+  // Spanish step 4: the farmacia (Chapter 4), the taberna (Chapter 5) and the citizens' office (Chapter 6; no shop of the pack, so it never
+  // closes)
+  { id: 'farmacia', cx: 30.5, w: 7, d: 9, h: 4.6 },
+  { id: 'taberna', cx: 38.5, w: 9, d: 9, h: 4.6 },
+  { id: 'padron', cx: -40.25, w: 11.5, d: 10, h: 5.0 },
 ];
 
 const SOUTH_Z = 18.6; // the front plane of the south side
@@ -34,6 +41,10 @@ export const MADRID_SPAWNS: NpcSpawn[] = [
   { id: 'rafa', x: -6, z: -12.0, face: 0, radius: 5.2, kind: 'scenario', y: 0.12, site: 'churreria' },
   { id: 'marisa', x: 6, z: -12.4, face: 0, radius: 5.4, kind: 'scenario', y: 0.12, site: 'metro' },
   { id: 'andres', x: 21, z: -12.4, face: 0, radius: 5.4, kind: 'scenario', y: 0.12, site: 'mercado' },
+  // Spanish step 4: behind the farmacia's counter, behind the taberna's bar, at the citizens' office desk
+  { id: 'pilar', x: 30.5, z: -12.2, face: 0, radius: 5.2, kind: 'scenario', y: 0.12, site: 'farmacia' },
+  { id: 'manolo', x: 38.5, z: -12.0, face: 0, radius: 5.2, kind: 'scenario', y: 0.12, site: 'taberna' },
+  { id: 'concha', x: -40.25, z: -12.4, face: 0, radius: 5.4, kind: 'scenario', y: 0.12, site: 'padron' },
   // in the plaza, facing the street (-z)
   { id: 'javi', x: -4, z: 6, face: Math.PI, radius: 4.6, kind: 'scenario', site: 'plaza' },
   // on the south side: Lucía at the portal of your building, Nadia at the language-exchange bar
@@ -168,9 +179,53 @@ function buildMadridFronts(ctx: BuildCtx): void {
   for (const dx of [-3.4, 0, 3.4]) solid.boxB(mer.cx + dx, 0.12, FRONT_Z - 7.0, 2.8, 0.85, 1.2, pick(['#7a5a3a', '#8a6a4a']));
   mapRect(shopRect(mer), '#8a5a3c', 'Mercado');
 
+  // the farmacia: white and green, shelves of little boxes, the green cross lit on a bracket beside the door
+  const far = shop('farmacia');
+  shopFrame(far, { wall: '#f4f7f4', inner: '#ffffff', trim: '#1f8a4c', roof: '#dfe6df', floor: '#d3dbd5', ceil: '#ffffff', openH: 3.2 });
+  hangSign('farmacia', far, 'Farmacia', 'Lda. Pilar Domínguez', '#1f8a4c', '#ffffff', 3.2, 1.4, '#ffffff');
+  solid.boxB(far.cx, 0.12, FRONT_Z - 2.3, 5.0, 0.95, 1.0, '#e8ecea'); // the counter
+  for (let r = 0; r < 4; r++) for (let i = 0; i < 6; i++) glow.boxB(far.cx - 2.5 + i * 1.0, 0.5 + r * 0.6, FRONT_Z - 8.7, 0.7, 0.42, 0.06, pick(['#ffffff', '#2e9e5b', '#a8dadc', '#ffd166', '#e76f51', '#f4f7f4']));
+  const crossX = far.cx + far.w / 2 - 0.5;
+  solid.boxB(crossX, 3.7, FRONT_Z + 0.25, 0.08, 0.08, 0.5, '#3a3a3a'); // the bracket
+  glow.boxB(crossX, 3.3, FRONT_Z + 0.55, 0.3, 0.9, 0.08, '#2ecc71');
+  glow.boxB(crossX, 3.6, FRONT_Z + 0.55, 0.9, 0.3, 0.08, '#2ecc71');
+  pickAt('cruz', crossX, 3.75, FRONT_Z + 0.55, 0.7);
+  mapRect(shopRect(far), '#1f8a4c', 'Farmacia');
+
+  // the taberna: dark wood and a zinc bar, a tap, little plates of tapas, barrels for tables, blue-and-white tiles round the door
+  const tab = shop('taberna');
+  shopFrame(tab, { wall: '#7b2d26', inner: '#f3e7cf', trim: '#2b2b2b', roof: '#5e221d', floor: '#8a6a4a', ceil: '#efe2c8', openH: 3.1 });
+  hangSign('taberna', tab, 'Taberna El Farolillo', 'tapas · raciones', '#2b2b2b', '#f6e7c8', 3.1, 1.4, '#d4a24c');
+  solid.boxB(tab.cx, 0.12, FRONT_Z - 2.3, 6.6, 1.0, 1.0, '#5a3420'); // the bar
+  solid.boxB(tab.cx, 1.12, FRONT_Z - 2.3, 6.6, 0.05, 1.05, '#b9bec4'); // its zinc top
+  solid.cyl(tab.cx + 0.6, 1.17, FRONT_Z - 2.3, 0.05, 0.05, 0.45, '#c9a227', { seg: 6 }); // the tap
+  for (let i = 0; i < 4; i++) solid.cyl(tab.cx - 2.4 + i * 0.6, 1.17, FRONT_Z - 2.25, 0.18, 0.18, 0.05, '#f2e6cf', { seg: 10 }); // little plates
+  for (const dx of [-3.0, 3.0]) solid.cyl(tab.cx + dx, 0.12, FRONT_Z - 7.4, 0.45, 0.45, 1.0, '#6b4226', { seg: 12 }); // barrels as tables
+  for (let i = 0; i < 6; i++) glow.boxB(tab.cx + tab.w / 2 - 0.3, 0.3 + i * 0.45, FRONT_Z + 0.06, 0.4, 0.4, 0.02, i % 2 ? '#1f4e9a' : '#f6efe2');
+  glow.boxB(tab.cx - 3.0, 2.2, FRONT_Z - 8.7, 1.4, 1.0, 0.03, '#1f1f1f'); // the chalkboard
+  mapRect(shopRect(tab), '#7b2d26', 'Taberna');
+
+  // the citizens' office of the Ayuntamiento: white and crimson, a desk, the number display, waiting chairs; Madrid's flag at the kerb
+  const pad = shop('padron');
+  shopFrame(pad, { wall: '#eef0f2', inner: '#f7f8f9', trim: '#9b1b30', roof: '#d8dbde', floor: '#c4c6c8', ceil: '#fafafa', openH: 3.5 });
+  hangSign('padron', pad, 'Ayuntamiento de Madrid', 'Atención al Ciudadano', '#9b1b30', '#ffffff', 3.5, 1.5, '#ffffff');
+  solid.boxB(pad.cx, 0.12, FRONT_Z - 2.3, 4.6, 0.9, 1.1, '#9aa0a6'); // the desk
+  glow.boxB(pad.cx + 1.2, 1.02, FRONT_Z - 2.5, 0.6, 0.4, 0.04, '#bcd4e6'); // the screen
+  glow.boxB(pad.cx - 3.6, 2.6, FRONT_Z - 9.6, 2.2, 0.8, 0.04, '#1a1a1a'); // the number display
+  for (let i = 0; i < 3; i++) glow.boxB(pad.cx - 4.2 + i * 0.6, 2.7, FRONT_Z - 9.55, 0.4, 0.55, 0.02, '#ff3b30');
+  for (let r = 0; r < 2; r++) for (let i = 0; i < 4; i++) solid.boxB(pad.cx + 0.6 + i * 1.0, 0.12, FRONT_Z - 6.2 - r * 1.6, 0.7, 0.45, 0.6, '#1f4e9a');
+  const flagX = pad.cx + 4.2;
+  solid.cyl(flagX, 0, -5.9, 0.05, 0.05, 3.4, '#9a9a9a', { seg: 6 });
+  glow.boxB(flagX + 0.5, 2.55, -5.9, 0.95, 0.65, 0.03, '#9b1b30');
+  for (const [dx, dy] of [[-0.2, 0.5], [0.2, 0.5], [-0.3, 0.32], [0, 0.32], [0.3, 0.32], [-0.2, 0.14], [0.2, 0.14]] as const)
+    glow.boxB(flagX + 0.5 + dx, 2.55 + dy - 0.04, -5.87, 0.08, 0.08, 0.02, '#ffffff', { rz: Math.PI / 4 });
+  pickAt('bandera', flagX + 0.5, 2.9, -5.9, 0.7);
+  collide(flagX, -5.9, 0.3, 0.3);
+  mapRect(shopRect(pad), '#9b1b30', 'Ayuntamiento');
+
   // the blocks over the shops, and the blocks between them
   MADRID_SHOPS.forEach((s) => edificio(ctx, s.cx - s.w / 2, s.cx + s.w / 2, FRONT_Z, s.d, s.h, 15 + Math.floor(R() * 3) * 1.2, pick(FACADE), 1, R));
-  const northGaps: Array<[number, number]> = [[-46, -34.5], [-25.5, -22], [-14, -10], [-2, 1.5], [10.5, 15], [27, 33], [33, 40], [40, 46]];
+  const northGaps: Array<[number, number]> = [[-25.5, -22], [-14, -10], [-2, 1.5], [10.5, 15], [43, 46]];
   northGaps.forEach(([x0, x1]) => {
     edificio(ctx, x0, x1, FRONT_Z, 12, 0, 14 + Math.floor(R() * 3) * 1.1, pick(FACADE), 1, R);
     // the street door of the block

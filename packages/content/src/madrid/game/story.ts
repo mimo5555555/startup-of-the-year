@@ -1,10 +1,12 @@
-// Madrid's story, Chapters 1-3 (Spanish step 2): arriving in Lavapiés, getting to know the barrio, and a Saturday at the market; the beats
-// (Spanish lines, every word in the Spanish dictionary), two dreams, titles, culture cards, daily goals, tags. Nothing in it guesses the
-// player's gender: no bienvenido / bienvenida, no encantado / encantada from the player.
+// Madrid's story, Chapters 1-3 (Spanish step 2): arriving in Lavapiés, getting to know the barrio, and a Saturday at the market; Chapters
+// 4-6 (Spanish step 4): good friends (their chats, a present, the farmacia, the hang-outs), going out for tapas, and getting on the padrón,
+// whose closing is the ending before Free Walk. The beats (Spanish lines, every word in the Spanish dictionary), two dreams, titles,
+// culture cards, daily goals, tags. Nothing in it guesses the player's gender: no bienvenido / bienvenida, no encantado / encantada, no
+// madrileño / madrileña (the titles are Buena gente, Alma de la fiesta, Gato de Madrid).
 import type { Beat, BeatLine, ChapterDef, ChapterOpen, CultureCard, DailyTemplate, DreamDef, DreamStep, TitleDef } from '@lw/game';
 
 const o = (kind: ChapterOpen['kind'], id: string): ChapterOpen => ({ kind, id });
-export const ES_EPILOGUE = 'b_ec3_close';
+export const ES_EPILOGUE = 'b_ec6_close';
 
 const obj = (id: string, pred: ChapterDef['objectives'][number]['pred'], en: string, ar: string, more: Partial<ChapterDef['objectives'][number]> = {}) => ({ id, pred, text: { en, ar }, ...more });
 
@@ -49,12 +51,78 @@ export const ES_CHAPTERS: ChapterDef[] = [
     rewardTitle: 't_buen_ojo',
     rewardCulture: ['cc_ultimo'],
     opens: [o('shop', 'mercado'), o('place', 'mad_mercado'), o('place', 'mad_intercambio'), o('feature', 'gift'), o('interaction', 'lucia_gift'), o('interaction', 'javi_gift'), o('interaction', 'nadia_gift')],
-    beats: { open: 'b_ec3_open', close: ES_EPILOGUE },
+    beats: { open: 'b_ec3_open', close: 'b_ec3_close' },
     objectives: [
       obj('ec3_1', { k: 'scenario', id: 'mad_nadia', complete: true }, 'Meet Nadia at the language exchange', 'قابل نادية في لقاء تبادل اللغة', { pin: { friend: 'nadia' } }),
       obj('ec3_2', { k: 'scenario', id: 'mad_mercado', steps: ['weight'] }, 'Buy fruit at the market by the kilo', 'اشترِ فاكهة من السوق بالكيلو', { pin: { place: 'mad_mercado' } }),
       obj('ec3_3', { k: 'scenario', id: 'mad_panaderia', complete: true }, 'Buy bread at Carmen’s panadería', 'اشترِ خبزًا من مخبز كارمن', { pin: { place: 'mad_panaderia' } }),
       obj('ec3_4', { k: 'culture', n: 5 }, 'Collect 5 Madrid culture cards', 'اجمع 5 بطاقات ثقافية عن مدريد'),
+    ],
+  },
+  {
+    n: 4,
+    title: { ja: 'Buenos amigos', en: 'Good friends', ar: 'أصدقاء طيّبون' },
+    minDays: 4,
+    reward: 4000,
+    rewardTitle: 't_buena_gente',
+    opens: [o('shop', 'farmacia'), o('place', 'mad_farmacia'), o('interaction', 'pilar_shop'), o('interaction', 'lucia_hang'), o('interaction', 'javi_hang'), o('interaction', 'nadia_hang')],
+    beats: { open: 'b_ec4_open', close: 'b_ec4_close' },
+    objectives: [
+      obj('ec4_1', { k: 'all', of: [{ k: 'scenario', id: 'smalltalk_lucia', complete: true }, { k: 'scenario', id: 'smalltalk_javi', complete: true }, { k: 'scenario', id: 'smalltalk_nadia', complete: true }] }, 'Have a chat with Lucía, Javi and Nadia', 'دردش مع لوسيا وخافي ونادية', {
+        hint: { en: 'Talk to a friend: say hello, answer their question, react. One chat a day each counts.', ar: 'تحدّث مع صديق: قل مرحبًا وأجب عن سؤاله وعلّق. تُحتسب دردشة واحدة يوميًا مع كل منهم.' },
+        pin: { friend: 'javi' },
+      }),
+      obj('ec4_2', { k: 'gift', n: 1 }, 'Give a friend a present', 'قدّم هدية لصديق', {
+        hint: { en: 'Buy something they like (a napolitana for Lucía?), then: Tengo … para ti.', ar: 'اشترِ شيئًا يحبه («نابوليتانا» للوسيا؟) ثم قل: Tengo … para ti.' },
+        pin: { friend: 'lucia' },
+      }),
+      obj('ec4_3', { k: 'scenario', id: 'mad_farmacia', complete: true }, 'Get something for your cold at the farmacia', 'اشترِ شيئًا لنزلة البرد من الصيدلية', {
+        hint: { en: 'Say what hurts: Me duele la garganta.', ar: 'قل ما يؤلمك: Me duele la garganta.' },
+        pin: { place: 'mad_farmacia' },
+      }),
+      obj('ec4_4', { k: 'hearts_count', atLeast: 3, n: 1 }, 'Become close friends with someone (3 hearts)', 'كوّن صداقة قريبة مع أحدهم (3 قلوب)', {
+        hint: { en: 'Chat with the same friend on different days, and give a present they like.', ar: 'دردش مع الصديق نفسه في أيام مختلفة، وقدّم هدية يحبها.' },
+      }),
+    ],
+  },
+  {
+    n: 5,
+    title: { ja: 'De tapas', en: 'Out for tapas', ar: 'نخرج لتناول «التاباس»' },
+    minDays: 5,
+    reward: 5000,
+    rewardTitle: 't_alma_fiesta',
+    opens: [o('shop', 'taberna'), o('place', 'mad_taberna'), o('interaction', 'manolo_bar')],
+    beats: { open: 'b_ec5_open', close: 'b_ec5_close' },
+    objectives: [
+      obj('ec5_1', { k: 'hangout', n: 1 }, 'Hang out with a friend', 'اقضِ وقتًا مع صديق', {
+        hint: { en: 'A friend at 3 hearts has time: a tortilla with Lucía, the match with Javi, the Retiro with Nadia.', ar: 'الصديق ذو القلوب الثلاثة لديه وقت: «تورتيا» مع لوسيا، أو المباراة مع خافي، أو «الريتيرو» مع نادية.' },
+      }),
+      obj('ec5_2', { k: 'scenario', id: 'mad_taberna', complete: true }, 'An evening at the taberna: order, say ¡Salud!, pay', 'أمسية في الحانة: اطلب، قل «¡Salud!»، ادفع', {
+        hint: { en: 'Every drink comes with a free tapa. At the end: ¿Me cobras?', ar: 'كل مشروب يأتي معه طبق صغير مجاني. وفي النهاية: ¿Me cobras?' },
+        pin: { place: 'mad_taberna' },
+      }),
+      obj('ec5_3', { k: 'culture_said', n: 3 }, 'Say 3 Madrid phrases from your culture cards', 'قل 3 عبارات مدريدية من بطاقاتك الثقافية'),
+      obj('ec5_4', { k: 'stars', atLeast: 2, n: 6 }, 'Get 2 stars in 6 different conversations', 'احصل على نجمتين في 6 محادثات مختلفة'),
+    ],
+  },
+  {
+    n: 6,
+    title: { ja: 'Mi casa en Madrid', en: 'My home in Madrid', ar: 'بيتي في مدريد' },
+    minDays: 6,
+    reward: 6000,
+    rewardTitle: 't_gato',
+    opens: [o('place', 'mad_padron'), o('interaction', 'concha_desk')],
+    beats: { open: 'b_ec6_open', close: ES_EPILOGUE },
+    objectives: [
+      obj('ec6_1', { k: 'scenario', id: 'mad_padron', complete: true }, 'Get on the padrón at the citizens’ office', 'سجّل في سجل السكان في مكتب خدمة المواطنين', {
+        hint: { en: 'Concha wants your passport, your rental contract and your address: Quiero empadronarme.', ar: 'كونتشا تريد جواز سفرك وعقد الإيجار وعنوانك: Quiero empadronarme.' },
+        pin: { place: 'mad_padron' },
+      }),
+      obj('ec6_2', { k: 'hearts_count', atLeast: 4, n: 1 }, 'Become best friends with someone (4 hearts)', 'كوّن صداقة متينة مع أحدهم (4 قلوب)'),
+      obj('ec6_3', { k: 'hangout', n: 3 }, 'Hang out 3 times with your friends', 'اقضِ وقتًا مع أصدقائك 3 مرات'),
+      obj('ec6_4', { k: 'words_known', n: 40 }, 'Know 40 words (reviewed at least once)', 'تعرّف على 40 كلمة (راجعتها مرة على الأقل)', {
+        hint: { en: 'Review the words in your notebook.', ar: 'راجع الكلمات في دفترك.' },
+      }),
     ],
   },
 ];
@@ -85,10 +153,34 @@ const BEATS: Beat[] = [
   beat('b_ec3_open', 'mad_mercado', [
     B('lucia', 'El sábado vamos al mercado. ¡Las fresas de Andrés son las mejores!', 'On Saturday we go to the market. Andrés’s strawberries are the best!', 'يوم السبت نذهب إلى السوق. فراولة أندريس هي الأفضل!'),
   ]),
-  beat(ES_EPILOGUE, 'mad_piso', [
+  beat('b_ec3_close', 'mad_piso', [
     B('lucia', '¡Qué mes, {name}! El café, los churros, el mercado y el metro.', 'What a month, {name}! Coffee, churros, the market and the Metro.', 'يا له من شهر يا {name}! القهوة و«التشوروس» والسوق والمترو.'),
     B('lucia', 'Y ahora tienes tres amigos en Madrid.', 'And now you have three friends in Madrid.', 'والآن لديك ثلاثة أصدقاء في مدريد.'),
-    B('lucia', 'Esto es solo el principio. ¡Hasta pronto!', 'This is only the beginning. See you soon!', 'هذه مجرد البداية. إلى اللقاء قريبًا!'),
+  ]),
+  beat('b_ec4_open', 'mad_piso', [
+    B('lucia', '¡Uy, {name}, qué tos! La farmacia está aquí al lado.', 'Oh, {name}, what a cough! The pharmacy is right next door.', 'أوه يا {name}، يا له من سعال! الصيدلية هنا بجانبنا.'),
+    B('lucia', 'Y después, ¿un café en casa? Quiero conocerte mejor.', 'And afterwards, a coffee at home? I’d like to get to know you better.', 'وبعدها، قهوة في البيت؟ أودّ أن أتعرّف عليك أكثر.'),
+  ]),
+  beat('b_ec4_close', 'mad_plaza', [
+    B('javi', '¡Hola, {name}! Ya eres parte del barrio.', 'Hi, {name}! You’re part of the neighbourhood now.', 'أهلًا يا {name}! أنت الآن جزء من الحيّ.'),
+    B('javi', 'Este fin de semana hacemos algo juntos, ¿vale?', 'This weekend we’ll do something together, okay?', 'في عطلة نهاية الأسبوع هذه سنفعل شيئًا معًا، اتفقنا؟'),
+  ]),
+  beat('b_ec5_open', 'mad_intercambio', [
+    B('nadia', '¡Esta noche salimos! ¿Conoces la Taberna El Farolillo?', 'Tonight we’re going out! Do you know Taberna El Farolillo?', 'الليلة نخرج! هل تعرف حانة «إل فاروليو»؟'),
+    B('nadia', 'Con cada bebida te ponen una tapa gratis. ¡Y Manolo tiene las mejores bravas!', 'With every drink they give you a free tapa. And Manolo has the best bravas!', 'مع كل مشروب يقدّمون لك طبقًا صغيرًا مجانًا. ولدى مانولو أفضل «برافاس»!'),
+  ]),
+  beat('b_ec5_close', 'mad_piso', [
+    B('lucia', '¡Ya conoces Madrid de día y de noche, {name}!', 'Now you know Madrid by day and by night, {name}!', 'الآن تعرف مدريد في النهار والليل يا {name}!'),
+    B('lucia', 'Pero, ¿ya te has empadronado? Sin el padrón no puedes ir al centro de salud.', 'But have you registered on the padrón yet? Without it you can’t go to the health centre.', 'لكن هل سجّلت في سجل السكان بعد؟ بدونه لا تستطيع الذهاب إلى المركز الصحي.'),
+  ], { ask: 'diary' }),
+  beat('b_ec6_open', 'mad_padron', [
+    B('concha', 'Buenos días. Oficina de Atención al Ciudadano.', 'Good morning. Citizens’ office.', 'صباح الخير. مكتب خدمة المواطنين.'),
+    B('concha', 'Con cita previa, su pasaporte y su contrato de alquiler, es muy rápido.', 'With an appointment, your passport and your rental contract, it’s very quick.', 'مع موعد مسبق وجواز سفرك وعقد الإيجار، يتمّ الأمر بسرعة كبيرة.'),
+  ]),
+  beat(ES_EPILOGUE, 'mad_piso', [
+    B('lucia', 'Ya tienes el padrón, tienes amigos y hablas español. ¡Ahora Madrid es tu casa, {name}!', 'You’re on the padrón, you have friends and you speak Spanish. Now Madrid is your home, {name}!', 'سجّلت في سجل السكان، ولديك أصدقاء، وتتكلّم الإسبانية. الآن مدريد بيتك يا {name}!'),
+    B('javi', '¡Esta es tu casa!', 'This is your home!', 'هذا بيتك!'),
+    B('nadia', 'Y esto es solo el principio. ¡Hasta pronto!', 'And this is only the beginning. See you soon!', 'وهذه مجرد البداية. إلى اللقاء قريبًا!'),
   ]),
   beat('b_dream_step', 'mad_piso', [B('lucia', '¡Muy bien! Ya casi está.', 'That’s it! You’re nearly there.', 'هكذا! اقتربت.')]),
   beat('b_phone_fund', 'mad_piso', [B('lucia', 'Toma, un poco de dinero. ¡Tú puedes!', 'Here, a little money. You can do it!', 'خذ، قليل من المال. ستنجح!')]),
@@ -148,6 +240,9 @@ export const ES_TITLES: TitleDef[] = [
   title('t_hola_madrid', 'Hola, Madrid', 'Hello, Madrid', 'مرحبًا يا مدريد', { kind: 'chapter', n: 1 }),
   title('t_del_barrio', 'Del barrio', 'From the neighbourhood', 'ابن الحيّ', { kind: 'chapter', n: 2 }),
   title('t_buen_ojo', 'Buen ojo', 'A good eye', 'عين خبيرة', { kind: 'chapter', n: 3 }),
+  title('t_buena_gente', 'Buena gente', 'A good soul', 'طيّب القلب', { kind: 'chapter', n: 4 }),
+  title('t_alma_fiesta', 'Alma de la fiesta', 'Life and soul of the party', 'روح الحفلة', { kind: 'chapter', n: 5 }),
+  title('t_gato', 'Gato de Madrid', 'A Madrid “cat” (what born Madrileños call themselves)', '«قطّ» مدريدي (لقب أبناء مدريد)', { kind: 'chapter', n: 6 }),
   title('t_dream_gift', 'Corazón generoso', 'Generous heart', 'قلب كريم', { kind: 'dream', id: 'gift' }),
   title('t_dream_friends', 'Amistad para siempre', 'Friends forever', 'صداقة إلى الأبد', { kind: 'dream', id: 'friends' }),
 ];
@@ -185,6 +280,25 @@ export const ES_CULTURE: CultureCard[] = [
   card('cc_horarios', { on: 'scenario_done', ids: ['mad_javi'] }, ['¡Hasta luego!', 'See you later!', 'إلى اللقاء!'],
     'Madrid eats late: lunch at two or three, dinner at nine or ten, and a match or a night out starts even later. 「¡Hasta luego!」 is the everyday goodbye, even when you will not see the person later.',
     'مدريد تأكل متأخرة: الغداء في الثانية أو الثالثة، والعشاء في التاسعة أو العاشرة، والمباراة أو السهرة تبدأ أبعد من ذلك. و«¡Hasta luego!» هي تحية الوداع اليومية، حتى لو لن ترى الشخص لاحقًا.', { say: true }),
+  // Spanish step 4: Chapters 4-6
+  card('cc_farmacia', { on: 'scenario_done', ids: ['mad_farmacia'] }, ['¡Que se mejore!', 'Get well soon!', 'أتمنى لك الشفاء العاجل!'],
+    'Spanish pharmacies, with their green cross, are where people go first: the pharmacist advises on a sore throat or a cold. Some medicines sold in supermarkets elsewhere are only sold here, and there is always one open at night, the farmacia de guardia.',
+    'الصيدليات الإسبانية، بصليبها الأخضر، هي أول ما يقصده الناس: الصيدلي ينصح في التهاب الحلق أو الزكام. بعض الأدوية التي تُباع في المتاجر في بلدان أخرى لا تُباع هنا إلا في الصيدلية، وهناك دائمًا صيدلية مفتوحة ليلًا: «صيدلية المناوبة».', { say: true }),
+  card('cc_tortilla', { on: 'scenario_done', ids: ['hang_lucia_tortilla'] }, ['¿Con cebolla o sin cebolla?', 'With onion or without?', 'بالبصل أم بدونه؟'],
+    'The tortilla de patatas, a thick omelette of potatoes and eggs, is everywhere in Spain, and so is the great debate: with onion or without? Everyone has an opinion and every family its recipe. Flipping it with a plate takes courage.',
+    '«تورتيا» البطاطا، عجّة سميكة من البطاطا والبيض، موجودة في كل مكان في إسبانيا، ومعها الجدل الكبير: بالبصل أم بدونه؟ لكلٍّ رأيه، ولكل عائلة وصفتها. وقلبها بالصحن يحتاج إلى شجاعة.', { say: true }),
+  card('cc_partido', { on: 'scenario_done', ids: ['hang_javi_partido'] }, ['¡Gol!', 'Goal!', 'هدف!'],
+    'Many Spaniards watch the big matches at the bar, with friends and neighbours: the bar is full, everyone argues with the referee, and strangers celebrate a goal together.',
+    'كثير من الإسبان يشاهدون المباريات الكبيرة في البار مع الأصدقاء والجيران: البار ممتلئ، والجميع يجادل الحكم، والغرباء يحتفلون بالهدف معًا.', { say: true }),
+  card('cc_retiro', { on: 'scenario_done', ids: ['hang_nadia_retiro'] }, ['Perdone, ¿nos puede hacer una foto?', 'Excuse me, could you take a photo of us?', 'عفوًا، هل يمكنك أن تلتقط لنا صورة؟'],
+    'El Retiro is Madrid’s great park, once a royal garden: rowing boats on the lake, a glass palace, musicians on Sundays. To ask a stranger a favour, 「Perdone」 and usted are the polite way, even in a city that says tú to everyone.',
+    '«الريتيرو» حديقة مدريد الكبرى، وكانت حديقة ملكية: قوارب على البحيرة، وقصر من زجاج، وموسيقيون أيام الأحد. ولتطلب خدمة من غريب، «Perdone» وصيغة usted هما الطريقة المهذبة، حتى في مدينة تخاطب الجميع بـ tú.', { say: true }),
+  card('cc_tapas', { on: 'intent', ids: ['mad_taberna:salud'] }, ['¡Salud!', 'Cheers!', 'في صحتك!'],
+    'In many Madrid bars a small tapa comes free with your drink: olives, crisps, a bit of tortilla. A ración is a bigger plate to share. You usually pay at the end: 「¿Me cobras?」 or 「La cuenta, por favor」. Mosto, grape juice, is the classic drink without alcohol.',
+    'في كثير من بارات مدريد يأتي مع مشروبك طبق صغير مجاني («تابا»): زيتون، رقائق بطاطا، قطعة «تورتيا». و«الراثيون» طبق أكبر للمشاركة. وعادةً تدفع في النهاية: «¿Me cobras?» أو «La cuenta, por favor». و«الموستو»، عصير العنب، هو المشروب الكلاسيكي بلا كحول.', { say: true }),
+  card('cc_padron', { on: 'scenario_done', ids: ['mad_padron'] }, ['Quiero empadronarme.', 'I’d like to register on the padrón.', 'أودّ التسجيل في سجل السكان.'],
+    'Everyone who lives in Spain registers their address with the town hall: the padrón. You need it for the health card, for school and for many other papers. Book a cita previa online and bring your passport and your rental contract.',
+    'كل من يسكن في إسبانيا يسجّل عنوانه لدى البلدية: «البادرون» (سجل السكان). تحتاجه لبطاقة الصحة وللمدرسة ولكثير من الأوراق الأخرى. احجز موعدًا مسبقًا عبر الإنترنت وأحضر جواز سفرك وعقد الإيجار.', { say: true }),
 ];
 
 export const ES_DAILY: DailyTemplate[] = [

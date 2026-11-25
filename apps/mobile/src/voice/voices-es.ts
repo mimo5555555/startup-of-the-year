@@ -26,6 +26,10 @@ export const ES_VOICES: Record<string, EsVoice> = {
   andres: { model: 'es_ES-davefx-medium', pitch: 0.92, speed: 0.98 }, // 55, the fruit seller
   rafa: { model: 'es_ES-davefx-medium', pitch: 1.03, speed: 1.05 }, // 35, the churrero, always joking
   javi: { model: 'es_ES-sharvard-medium', speaker: M, pitch: 1.03, speed: 1.04 }, // 29, the neighbour on the third floor
+  // Spanish step 4: the farmacia, the taberna, the citizens' office
+  pilar: { model: 'es_ES-sharvard-medium', speaker: F, pitch: 0.94, speed: 0.96 }, // 58, the pharmacist: calm and careful
+  manolo: { model: 'es_ES-sharvard-medium', speaker: M, pitch: 0.9, speed: 1.06 }, // 61, the taberna's waiter: quick and cheeky
+  concha: { model: 'es_ES-sharvard-medium', speaker: F, pitch: 0.97, speed: 1.0 }, // 52, the clerk: friendly and precise
   // customers of a shift behind a counter (customerVoice in @lw/content picks one per customer)
   customer: { model: 'es_ES-sharvard-medium', speaker: F, pitch: 1.07, speed: 1.0 },
   customer_m: { model: 'es_ES-sharvard-medium', speaker: M, pitch: 0.96, speed: 1.02 },

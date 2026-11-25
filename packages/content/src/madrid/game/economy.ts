@@ -8,8 +8,8 @@ export const EUR_ES: CurrencyDef = { code: 'EUR', symbol: '€', minorPerMajor: 
 /** €9.25 an hour (about the Spanish minimum wage: the reference wage), €30 to start with (Lucía hands it over with the keys), a big ticket from €50 */
 export const ES_ECONOMY: EconomyDef = { refWage: 925, incomeScale: 925 / 1150, startCash: 3000, walletCap: 9_999_999, bigTicket: 5000 };
 
-/** Prices include IVA: 21 % standard, 10 % for food, drinks without alcohol, bars and public transport. */
-export const ES_TAX: TaxRegime = { inclusive: true, rates: { standard: 0.21, food: 0.1, transport: 0.1 }, takeOutRate: 0.1, eatInRate: 0.1 };
+/** Prices include IVA: 21 % standard (a beer too), 10 % for food, drinks without alcohol, bars and public transport, 4 % for medicines. */
+export const ES_TAX: TaxRegime = { inclusive: true, rates: { standard: 0.21, food: 0.1, transport: 0.1, medicine: 0.04 }, takeOutRate: 0.1, eatInRate: 0.1 };
 
 /** No haggling in Madrid's shops (the Rastro, later, is another story); a small tip, the coins of the change; shoes stay on at home. */
 export const ES_RULES: PackRules = { negotiation: {}, haggling: false, shoesOff: false, tipping: 'small', pointsCard: false, deliveryFee: 0 };

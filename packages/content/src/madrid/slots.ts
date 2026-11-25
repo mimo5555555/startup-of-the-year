@@ -116,6 +116,23 @@ export const ES_SLOTS: Record<string, SlotOption[]> = {
     opt('falafel', 'falafel', [], ['falafel'], ['فلافل']),
     opt('cuscus', 'cuscús', ['cuscus', 'couscous'], ['couscous'], ['كسكس']),
   ],
+  // the farmacia (places.ts): what hurts; each complaint has its remedy, which is what is sold
+  sintoma: [
+    opt('garganta', 'garganta', ['me duele la garganta', 'dolor de garganta', 'la garganta'], ['sore throat', 'throat'], ['الحلق', 'التهاب الحلق'], { en: 'sore throat', ar: 'ألم الحلق' }),
+    opt('cabeza', 'cabeza', ['dolor de cabeza', 'me duele la cabeza', 'jaqueca'], ['headache', 'head'], ['صداع', 'الرأس'], { en: 'headache', ar: 'صداع' }),
+    opt('tos', 'tos', ['toso', 'tengo tos'], ['cough'], ['سعال', 'كحة'], { en: 'cough', ar: 'سعال' }),
+    opt('resfriado', 'resfriado', ['resfriada', 'constipado', 'constipada', 'mocos', 'nariz', 'gripe', 'congestion'], ['cold', 'a cold', 'runny nose'], ['زكام', 'نزلة برد'], { en: 'a cold', ar: 'زكام' }),
+  ],
+  // the taberna (places.ts): a caña only for an adult; a mosto (grape juice) or a soft drink for anyone; a ración to share
+  taberna: [
+    opt('cana', 'caña', ['cana', 'canas', 'cerveza', 'birra'], ['beer', 'a small beer', 'a beer'], ['بيرة'], { en: 'a small beer (caña)', ar: 'بيرة صغيرة' }),
+    opt('mosto', 'mosto', ['un mosto', 'zumo de uva'], ['grape juice'], ['عصير عنب'], { en: 'grape juice (mosto)', ar: 'عصير عنب' }),
+    opt('refresco', 'refresco', ['refresco de limon', 'limon', 'coca cola', 'cola', 'fanta'], ['soft drink', 'soda', 'lemon soda'], ['مشروب غازي'], { en: 'soft drink', ar: 'مشروب غازي' }),
+  ],
+  racion: [
+    opt('bravas', 'patatas bravas', ['bravas', 'patatas', 'racion de bravas'], ['patatas bravas', 'spicy potatoes', 'fried potatoes'], ['بطاطا برافاس', 'بطاطا حارة'], { en: 'patatas bravas (spicy fried potatoes)', ar: '«بطاطا برافاس» (بطاطا مقلية حارّة)' }),
+    opt('croquetas', 'ración de croquetas', ['croquetas', 'croqueta', 'racion de croquetas'], ['croquettes', 'croquetas'], ['كروكيت'], { en: 'a plate of croquetas', ar: 'طبق كروكيت' }),
+  ],
   payMethod: [
     opt('card', 'con tarjeta', ['tarjeta', 'con la tarjeta', 'contactless', 'datafono'], ['card', 'by card', 'credit card'], ['بطاقة', 'بالبطاقة']),
     opt('cash', 'en efectivo', ['efectivo', 'en metalico', 'metalico', 'cash'], ['cash', 'in cash'], ['نقدًا', 'كاش']),

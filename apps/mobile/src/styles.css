@@ -385,6 +385,10 @@ html[lang='ar'] .label {
   display: inline;
   padding: 0;
 }
+/* an opening mark (¡ ¿ « 「) and the word after it: never split across lines */
+.glue {
+  white-space: nowrap;
+}
 .ja-sm {
   font-size: 16px;
 }

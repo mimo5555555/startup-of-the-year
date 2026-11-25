@@ -84,8 +84,22 @@ const SHOPS = ['mad_bar', 'mad_panaderia', 'mad_mercado', 'mad_churreria', 'mad_
 const MEETS = ['mad_lucia', 'mad_javi', 'mad_nadia'];
 
 describe('the Madrid street: every chip is understood', () => {
-  it('has the five shops and the three friends (their chats and the gift after, madrid-friends.test.ts), and Japanese stays the default language', () => {
-    expect(MADRID_SCENARIOS.map((s) => s.id)).toEqual([...SHOPS, ...MEETS, 'smalltalk_lucia', 'smalltalk_javi', 'smalltalk_nadia', 'give_gift']);
+  it('has the five shops and the three friends (their chats, the gift, the hang-outs and the places of Chapters 4-6 after), and Japanese stays the default language', () => {
+    expect(MADRID_SCENARIOS.map((s) => s.id)).toEqual([
+      ...SHOPS,
+      ...MEETS,
+      'smalltalk_lucia',
+      'smalltalk_javi',
+      'smalltalk_nadia',
+      'give_gift',
+      // Spanish step 4 (madrid-friends.test.ts, madrid-places.test.ts)
+      'hang_lucia_tortilla',
+      'hang_javi_partido',
+      'hang_nadia_retiro',
+      'mad_farmacia',
+      'mad_taberna',
+      'mad_padron',
+    ]);
     expect(targetLanguage().id).toBe('ja');
   });
   for (const sc of MADRID_SCENARIOS.filter((x) => SHOPS.includes(x.id) || MEETS.includes(x.id))) {
@@ -252,9 +266,9 @@ describe('Spanish or not, tú and usted', () => {
 
 describe('regulars and small talk (Spanish step 3)', () => {
   const first = (s: ConversationSession) => s.turns[0]!.line.written;
-  const TU = ['mad_bar', 'mad_churreria'];
-  it('every shop has a regular’s greeting and small talk; the friends have none', () => {
-    expect(Object.keys(MADRID_SHOP_TALK).sort()).toEqual([...SHOPS].sort());
+  const TU = ['mad_bar', 'mad_churreria', 'mad_taberna'];
+  it('every shop has a regular’s greeting and small talk (the farmacia and the taberna of Spanish step 4 too); the friends have none', () => {
+    expect(Object.keys(MADRID_SHOP_TALK).sort()).toEqual([...SHOPS, 'mad_farmacia', 'mad_taberna'].sort());
   });
   for (const [id, shop] of Object.entries(MADRID_SHOP_TALK)) {
     const topics = TU.includes(id) ? MADRID_TALK_TOPICS_TU : MADRID_TALK_TOPICS;

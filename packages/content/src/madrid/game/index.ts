@@ -1,4 +1,5 @@
-// The Madrid (Spanish) game pack, Chapters 1-3 (Spanish step 2). Every table is Madrid's own; the age profiles are the game's.
+// The Madrid (Spanish) game pack, Chapters 1-3 (Spanish step 2) and 4-6 (Spanish step 4). Every table is Madrid's own; the age profiles
+// are the game's.
 import type { GamePack } from '@lw/game';
 import { JP_AGE_PROFILES } from '../../tokyo/game/economy';
 import { ES_ITEMS, ES_MENU, ES_SHOPS } from './catalog';
@@ -36,6 +37,6 @@ export const MADRID_PACK: GamePack = {
   culture: ES_CULTURE,
   titles: ES_TITLES,
   ageProfiles: JP_AGE_PROFILES,
-  // Chapters 1-3 are played, then Free Walk
-  release: { lastChapter: 3, epilogue: ES_EPILOGUE },
+  // Chapters 1-6 are played, then Free Walk
+  release: { lastChapter: 6, epilogue: ES_EPILOGUE },
 };

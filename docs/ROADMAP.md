@@ -429,10 +429,34 @@ game, a bigger city with better conversations, and the same game for German, Dut
     voice lines, and the e2e (`tools/e2e/game/madrid.mjs`: small talk and a regular's return at Lola's, Lucía's chat, Andrés's olive oil
     at the mercado given to Lucía; EN and AR).
 
+- **Spanish step 4: Madrid Chapters 4–6** (done): the story runs to Chapter 6 (*Buenos amigos*, *De tapas*, *Mi casa en Madrid*), whose
+  closing is the new ending before Free Walk, as in Berlin and Amsterdam.
+  * Hang-outs at three hearts (madrid/hangouts.ts): Sunday's tortilla de patatas with Lucía (peel, the great question 「¿con cebolla o
+    sin cebolla?」, each answer with its own line, flip it with the plate, taste), the Atleti match with Javi at Lola's bar (a soft drink,
+    「¡Gol!」, groaning at the referee), and a walk in the Retiro with Nadia (the lake, asking a stranger for a photo with usted, an ice
+    cream, what you like about Madrid).
+  * Three places on the north side (madrid/places.ts): the farmacia (Ch 4, Pilar, usted: 「Me duele la garganta」, the remedy for each
+    complaint, how often to take it, 「¡Que se mejore!」; medicines at 4 % IVA), Taberna El Farolillo (Ch 5, Manolo, tú: a caña only for an
+    adult, a mosto or a soft drink for anyone, the free tapa, a ración of bravas or croquetas, 「¡Salud!」, 「¿Me cobras?」) and the
+    citizens' office of the Ayuntamiento (Ch 6, Concha, usted: the padrón with cita previa, passport and rental contract, the address
+    with its floor and door, the certificate). The farmacia and the taberna greet regulars and make small talk like the rest of the
+    street (the taberna with tú). Their fronts: the green cross, the taberna's blue-and-white tiles, Madrid's crimson flag with seven
+    stars at the kerb; five new signs to read. Six culture cards (the farmacia, the tortilla debate, football at the bar, the Retiro,
+    tapas, the padrón), three titles that guess no gender (Buena gente, Alma de la fiesta, Gato de Madrid).
+  * Opening marks stay with their word: a tappable word is a button, which a line could break before, so 「¡dale」 could end a line on
+    「¡」. An opening mark (¡ ¿ « „ “ ‘ ( [ and Japanese 「 『 （) and the word after it are now kept together, in every language.
+  * 150 new words (585 in all); 343 more Spanish lines recorded (1,360 in all, all checked), Pilar, Manolo and Concha with voices of
+    their own.
+  * Tests: the three places through the engine (every chip EN/AR with and without the game's hooks, an adult and a younger player, a
+    regular with small talk; typed routes with their exact charges; the caña only for an adult; tú to the pharmacist gets the usted
+    note), the hang-outs (every chip, typed routes, both onion answers, usted with a stranger gets no note), the pack at level 5, the
+    street (fronts, spawns, signs), the voice lines, and an e2e in the real UI (`tools/e2e/game/madrid-chapters.mjs`: the farmacia 6,50 €,
+    Lucía's tortilla, the taberna 7,50 € in cash, the padrón; EN and AR).
+
 ## Next
 
-1. **Spanish steps 4–5**: hang-outs at three hearts, new places and Chapters 4–6 (as Amsterdam's step 4), then a job (Rafa's churrería
-   or Lola's bar, with the Shift screen's Spanish table).
+1. **Spanish step 5: a job in Madrid** (Rafa's churrería or Lola's bar), with the Shift screen's Spanish table (「Son 4,30 €.」,
+   「Le devuelvo 0,70 €.」, aprendiz … mano derecha) and its customers in a woman's and a man's voice.
 2. **Listen to the voices** and adjust a character's pitch or pace in `voices-de.ts` / `voices-nl.ts` / `voices-es.ts` where needed
    (re-run `PIPER_PYTHON=… PIPER_MODELS=… node tools/voice/generate-piper.mjs <de|nl|es>`). Nathalie was trained on Flemish speech: if
    her accent jars in Amsterdam, a Netherlands-Dutch woman's voice from Piper's MLS model (CC BY 4.0, needs a credit) can replace it.

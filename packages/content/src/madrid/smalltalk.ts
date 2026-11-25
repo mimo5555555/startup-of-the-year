@@ -1,8 +1,8 @@
 // Madrid's shopkeepers know you (Spanish step 3), as Berlin's and Amsterdam's do: from the second visit they greet you as a regular (flag
 // `regular`), and on some visits they make small talk about the season or the weekend (flag `talk_<topic>`, the flags the app sets for
 // every city). You answer yes or no (a chip, or your own words), they reply and go back to the shop's own question. Each shop keeps its
-// register: Lola at the bar and Rafa at the churrería say tú (「¿Te gusta el verano?」), Carmen, Andrés and Marisa say usted (「¿Le gusta el
-// verano?」). The learner's answers need neither.
+// register: Lola at the bar, Rafa at the churrería and Manolo at the taberna say tú (「¿Te gusta el verano?」); Carmen, Andrés, Marisa and
+// Pilar at the farmacia say usted (「¿Le gusta el verano?」). The learner's answers need neither.
 import type { Line, Scenario } from '../types';
 import { L, S } from '../tokyo/dsl';
 import { withShopTalk, type ShopTalk, type TalkTopic } from '../shoptalk';
@@ -33,10 +33,21 @@ export const MADRID_SHOP_TALK: Record<string, ShopTalk> = {
     hello: L('Buenos días.', 'Good morning.', 'صباح الخير.'),
     ask: L('Bueno, ¿en qué puedo ayudarle?', 'So, how can I help you?', 'إذن، كيف أستطيع مساعدتك؟'),
   },
+  // Spanish step 4: the farmacia (usted) and the taberna (tú)
+  mad_farmacia: {
+    regular: L('Buenos días. ¿Otra vez por aquí? ¿Qué le pasa hoy?', 'Good morning. Back again? What’s the matter today?', 'صباح الخير. هنا مجددًا؟ ما بك اليوم؟'),
+    hello: L('Buenos días.', 'Good morning.', 'صباح الخير.'),
+    ask: L('Bueno, ¿qué le pasa?', 'So, what’s the matter?', 'إذن، ما بك؟'),
+  },
+  mad_taberna: {
+    regular: L('¡Buenas! ¡Ya eres de la casa! ¿Qué va a ser?', 'Evening! You’re one of the regulars now! What’ll it be?', 'أهلًا! أصبحت من أهل البيت! ماذا ستطلب؟'),
+    hello: L('¡Buenas!', 'Evening!', 'أهلًا!'),
+    ask: L('Bueno, ¿qué va a ser?', 'So, what’ll it be?', 'إذن، ماذا ستطلب؟'),
+  },
 };
 
 /** the shops that say tú; the others say usted */
-const TU = new Set(['mad_bar', 'mad_churreria']);
+const TU = new Set(['mad_bar', 'mad_churreria', 'mad_taberna']);
 
 const LIKE_YES = ['si', 'me encanta', 'me gusta', 'encanta', 'claro', 'por supuesto', 'mucho', 'muchisimo', 'precioso', 'bonito', 'genial'];
 const LIKE_NO = ['no', 'no mucho', 'no me gusta', 'no tanto', 'demasiado', 'mucho calor', 'mucho frio', 'tengo frio', 'tengo calor', 'odio'];

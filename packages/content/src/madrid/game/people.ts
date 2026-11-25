@@ -1,5 +1,6 @@
 // Madrid's people in the game (Spanish step 2): the three friends (tú from the first word), what you can do with each character, and
-// the game's view of every conversation (kind, register, what it sells and for which menu ids). The bar and the churrería say tú.
+// the game's view of every conversation (kind, register, what it sells and for which menu ids). The bar, the churrería and the taberna
+// say tú. Spanish step 4: the hang-outs at three hearts and the places of Chapters 4-6.
 import type { FriendDef, Interaction, ScenarioMeta } from '@lw/game';
 import { L } from '../../tokyo/dsl';
 
@@ -69,6 +70,16 @@ const talk = (who: string, met: string, ch = 1): Interaction => ({
   gate: { k: 'scenario', id: met, complete: true },
 });
 
+/** a hang-out (hangouts.ts) once the friend is at three hearts, from Chapter 4 */
+const hang = (who: string, scenarioId: string): Interaction => ({
+  id: `${who}_hang`,
+  kind: 'scenario',
+  scenarioId,
+  label: { en: 'Hang out', ar: 'اقضيا وقتًا معًا' },
+  ch: 4,
+  gate: { k: 'hearts', friend: who, atLeast: 3 },
+});
+
 /** characterId -> what you can do with them (the first open one is what Talk does) */
 export const ES_INTERACTIONS: Record<string, Interaction[]> = {
   lola: [scenario('lola_shop', 'mad_bar', 'Order breakfast', 'اطلب الفطور')],
@@ -76,9 +87,13 @@ export const ES_INTERACTIONS: Record<string, Interaction[]> = {
   rafa: [scenario('rafa_shop', 'mad_churreria', 'Order churros', 'اطلب «تشوروس»', 2)],
   marisa: [scenario('marisa_shop', 'mad_metro', 'Buy a ticket', 'اشترِ تذكرة', 2)],
   andres: [scenario('andres_shop', 'mad_mercado', 'Buy fruit', 'اشترِ فاكهة', 3)],
-  lucia: [talk('lucia', 'mad_lucia'), scenario('lucia_meet', 'mad_lucia', 'Our first chat', 'حديثنا الأول'), gift('lucia')],
-  javi: [talk('javi', 'mad_javi', 2), scenario('javi_meet', 'mad_javi', 'Our first chat', 'حديثنا الأول', 2), gift('javi')],
-  nadia: [talk('nadia', 'mad_nadia', 3), scenario('nadia_meet', 'mad_nadia', 'Our first chat', 'حديثنا الأول', 3), gift('nadia')],
+  lucia: [talk('lucia', 'mad_lucia'), scenario('lucia_meet', 'mad_lucia', 'Our first chat', 'حديثنا الأول'), gift('lucia'), hang('lucia', 'hang_lucia_tortilla')],
+  javi: [talk('javi', 'mad_javi', 2), scenario('javi_meet', 'mad_javi', 'Our first chat', 'حديثنا الأول', 2), gift('javi'), hang('javi', 'hang_javi_partido')],
+  nadia: [talk('nadia', 'mad_nadia', 3), scenario('nadia_meet', 'mad_nadia', 'Our first chat', 'حديثنا الأول', 3), gift('nadia'), hang('nadia', 'hang_nadia_retiro')],
+  // Chapters 4-6 (places.ts)
+  pilar: [scenario('pilar_shop', 'mad_farmacia', 'Get something for a cold', 'اشترِ شيئًا لنزلة البرد', 4)],
+  manolo: [scenario('manolo_bar', 'mad_taberna', 'An evening at the taberna', 'أمسية في الحانة', 5)],
+  concha: [scenario('concha_desk', 'mad_padron', 'Get on the padrón', 'سجّل في سجل السكان', 6)],
 };
 
 const map = (shop: string, options: string[]): Record<string, string> => Object.fromEntries(options.map((o) => [o, `${shop}:${o}`]));
@@ -102,4 +117,16 @@ export const ES_SCENARIO_META: ScenarioMeta[] = [
     ] as const
   ).map(([id, place]): ScenarioMeta => ({ id: `smalltalk_${id}`, kind: 'talk', band: 'A1', register: 'casual', pay: 'none', real: true, place, friendId: id })),
   { id: 'give_gift', kind: 'friend', band: 'A1', register: 'casual', pay: 'none' },
+  // the hang-outs at three hearts (hangouts.ts): hearts, one every few days
+  ...(
+    [
+      ['hang_lucia_tortilla', 'lucia', 'mad_piso'],
+      ['hang_javi_partido', 'javi', 'mad_bar'],
+      ['hang_nadia_retiro', 'nadia', 'mad_plaza'],
+    ] as const
+  ).map(([id, friendId, place]): ScenarioMeta => ({ id, kind: 'hangout', band: 'A1', register: 'casual', pay: 'none', real: true, heart: 3, place, friendId })),
+  // Chapters 4-6 (places.ts): the farmacia and the taberna sell; the padrón costs nothing
+  shopMeta('mad_farmacia', 'polite', ['cc_farmacia'], { shopId: 'farmacia', itemSlot: 'sintoma', payStep: 'pay', itemMap: map('farmacia', ['garganta', 'cabeza', 'tos', 'resfriado']) }),
+  shopMeta('mad_taberna', 'casual', ['cc_tapas'], { shopId: 'taberna', itemSlot: 'taberna', extraSlots: ['racion'], qtySlot: 'qty', payStep: 'pay', itemMap: map('taberna', ['cana', 'mosto', 'refresco', 'bravas', 'croquetas']) }),
+  { id: 'mad_padron', kind: 'story', band: 'A2', register: 'polite', pay: 'none', real: true, place: 'mad_padron', culture: ['cc_padron'] },
 ];
