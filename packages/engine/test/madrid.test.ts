@@ -9,7 +9,7 @@ import { ConversationSession, ES, classifyInput, evaluateSession, isSpanish, tar
 
 const QTY: Record<string, number> = { one: 1, two: 2, three: 3, four: 4 };
 /** the item slots, in the order the first one is counted (by `qty`, or the fruit by `peso`: half kilos) */
-const ITEM_SLOTS = ['bar', 'pan', 'fruta', 'churros', 'billete', 'barComida', 'dulce', 'churroBebida'];
+const ITEM_SLOTS = ['bar', 'pan', 'fruta', 'churros', 'billete', 'barComida', 'dulce', 'churroBebida', 'aceite'];
 
 function till(cents: number) {
   const log = { charges: [] as Array<{ cents: number; slots: Record<string, string> }> };
@@ -155,6 +155,8 @@ describe('the shops, typed', () => {
     const c = till(10_000);
     const s = open('mad_mercado', 'en', { game: c.hooks, flags: { priced: true } });
     expect(say(s, 'Un kilo de naranjas, por favor.').learner.intentId).toBe('pick_weighed');
+    expect(last(s)).toBe('Aquí tiene. ¿Algo más? Tengo un aceite de oliva buenísimo.');
+    say(s, 'No, nada más.');
     expect(last(s)).toBe('Son 1,90 €. ¿Con tarjeta o en efectivo?');
     say(s, 'Con tarjeta.');
     const p = till(10_000);
@@ -163,9 +165,10 @@ describe('the shops, typed', () => {
     say(t, 'Fresas, por favor.');
     expect(last(t)).toBe('Muy bien. ¿Cuánto le pongo?');
     say(t, 'Dos kilos.');
+    say(t, 'Sí, una lata de aceite de oliva.');
     say(t, 'Efectivo.');
     expect(c.log.charges.map((x) => x.cents)).toEqual([190]);
-    expect(p.log.charges).toEqual([{ cents: 4 * 175, slots: expect.objectContaining({ fruta: 'fresas', peso: 'four' }) }]);
+    expect(p.log.charges).toEqual([{ cents: 4 * 175 + 850, slots: expect.objectContaining({ fruta: 'fresas', peso: 'four', aceite: 'aceite' }) }]);
   });
 
   it('the churrería: 「¿Qué son las porras?」 explained, porras and a chocolate; a cash-only stall refuses the card kindly', () => {

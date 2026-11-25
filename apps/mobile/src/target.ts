@@ -1,4 +1,5 @@
-// The language being learned (German step 3, Dutch step 2): Japanese in Tokyo (the default), German in Berlin or Dutch in Amsterdam.
+// The language being learned (German step 3, Dutch step 2, Spanish step 2): Japanese in Tokyo (the default), German in Berlin, Dutch in
+// Amsterdam or Spanish in Madrid.
 // It is read once, before any store loads, from `lw.target`; changing it saves the choice and reloads the app, so every module sees
 // one language for the whole run. Each language keeps its own saves (profile, notebook, game), so switching never touches another's.
 //
@@ -14,6 +15,11 @@ import {
   CHARACTERS as JA_CHARACTERS,
   DE_LEXICON,
   DE_SLOTS,
+  ES_LEXICON,
+  ES_SLOTS,
+  MADRID_CHARACTERS,
+  MADRID_SCENARIOS,
+  MADRID_SIGNS,
   LEXICON as JA_LEXICON,
   NL_LEXICON,
   NL_SLOTS,
@@ -28,13 +34,13 @@ import {
   type SlotOption,
   type Token,
 } from '@lw/content';
-import { DE, JA, NL, setTargetLanguage, type TargetLanguage } from '@lw/engine';
+import { DE, ES, JA, NL, setTargetLanguage, type TargetLanguage } from '@lw/engine';
 
-export type Target = 'ja' | 'de' | 'nl';
+export type Target = 'ja' | 'de' | 'nl' | 'es';
 /** the languages one can learn, in the pickers' order */
-export const TARGETS: readonly Target[] = ['ja', 'de', 'nl'];
+export const TARGETS: readonly Target[] = ['ja', 'de', 'nl', 'es'];
 /** each language's name in itself, on the pickers and the microphone's switch */
-export const TARGET_NAMES: Record<Target, string> = { ja: '日本語', de: 'Deutsch', nl: 'Nederlands' };
+export const TARGET_NAMES: Record<Target, string> = { ja: '日本語', de: 'Deutsch', nl: 'Nederlands', es: 'Español' };
 export const TARGET_KEY = 'lw.target';
 /** the UI language picked during onboarding, carried over the reload into the other language's first run */
 export const PENDING_UI_KEY = 'lw.target.ui';
@@ -42,7 +48,7 @@ export const PENDING_UI_KEY = 'lw.target.ui';
 function readTarget(): Target {
   try {
     const v = globalThis.localStorage?.getItem(TARGET_KEY);
-    return v === 'de' || v === 'nl' ? v : 'ja';
+    return v === 'de' || v === 'nl' || v === 'es' ? v : 'ja';
   } catch {
     return 'ja';
   }
@@ -52,12 +58,13 @@ export const TARGET: Target = readTarget();
 export const IS_JAPANESE = TARGET === 'ja';
 export const IS_GERMAN = TARGET === 'de';
 export const IS_DUTCH = TARGET === 'nl';
+export const IS_SPANISH = TARGET === 'es';
 
 interface TargetSetup {
   /** the engine's view of the language: matching, numbers, reactions */
   tl: TargetLanguage;
   /** BCP-47 (speech recognition and the browser voice) */
-  locale: 'ja-JP' | 'de-DE' | 'nl-NL';
+  locale: 'ja-JP' | 'de-DE' | 'nl-NL' | 'es-ES';
   /** prefix of the main store (profile, notebook, settings): Japanese keeps the one it always had */
   storePrefix: string;
   /** where the recorded lines are (public/) */
@@ -73,6 +80,7 @@ const SETUP: Record<Target, () => TargetSetup> = {
   ja: () => ({ tl: JA, locale: 'ja-JP', storePrefix: 'lw.v1.', voiceBase: 'voice/', lexicon: JA_LEXICON, scenarios: JA_SCENARIOS, characters: JA_CHARACTERS, slots: JA_SLOTS, signs: JA_SIGNS }),
   de: () => ({ tl: DE, locale: 'de-DE', storePrefix: 'lw.de.v1.', voiceBase: 'voice-de/', lexicon: DE_LEXICON, scenarios: BERLIN_SCENARIOS, characters: BERLIN_CHARACTERS, slots: DE_SLOTS, signs: BERLIN_SIGNS }),
   nl: () => ({ tl: NL, locale: 'nl-NL', storePrefix: 'lw.nl.v1.', voiceBase: 'voice-nl/', lexicon: NL_LEXICON, scenarios: AMSTERDAM_SCENARIOS, characters: AMSTERDAM_CHARACTERS, slots: NL_SLOTS, signs: AMSTERDAM_SIGNS }),
+  es: () => ({ tl: ES, locale: 'es-ES', storePrefix: 'lw.es.v1.', voiceBase: 'voice-es/', lexicon: ES_LEXICON, scenarios: MADRID_SCENARIOS, characters: MADRID_CHARACTERS, slots: ES_SLOTS, signs: MADRID_SIGNS }),
 };
 const S = SETUP[TARGET]();
 
@@ -94,7 +102,7 @@ export const SLOTS: Record<string, SlotOption[]> = S.slots;
 export const SIGNS: typeof JA_SIGNS = S.signs;
 export const scenarioById = (id: string): Scenario | undefined => SCENARIOS.find((s) => s.id === id);
 
-/** Free text into tokens: Japanese by the dictionary's longest match, German and Dutch word by word. */
+/** Free text into tokens: Japanese by the dictionary's longest match, German, Dutch and Spanish word by word. */
 export const segmentFree = (text: string, lex: Lexicon = LEXICON, maxLen?: number): Token[] => (IS_JAPANESE ? jaSegmentFree(text, lex, maxLen) : segmentWords(text, lex));
 
 /** Saves the choice and restarts the app in that language (its own saves load). */

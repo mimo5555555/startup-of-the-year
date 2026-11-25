@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { AMSTERDAM_DISTRICT, BERLIN_DISTRICT, TokyoWorld } from '@lw/world';
+import { AMSTERDAM_DISTRICT, BERLIN_DISTRICT, MADRID_DISTRICT, TokyoWorld } from '@lw/world';
 import { levelProgress } from '@lw/core';
 import { WorldCtx, useT } from '../hooks';
 import { useStore } from '../store';
@@ -126,7 +126,7 @@ export function WorldScreen() {
         quality: mode === 'auto' ? 'auto' : mode,
         labels: npcLabels(useStore.getState().uiLang),
         // learning German or Dutch: Berlin's or Amsterdam's street instead of Tokyo's
-        ...(TARGET === 'de' ? { district: BERLIN_DISTRICT } : TARGET === 'nl' ? { district: AMSTERDAM_DISTRICT } : {}),
+        ...(TARGET === 'de' ? { district: BERLIN_DISTRICT } : TARGET === 'nl' ? { district: AMSTERDAM_DISTRICT } : TARGET === 'es' ? { district: MADRID_DISTRICT } : {}),
       });
       w.start();
       setWorld(w);

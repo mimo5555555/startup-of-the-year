@@ -96,10 +96,25 @@ const TO_DUTCH: Array<[string, string]> = [
   ['اليابان', 'هولندا'],
   ['طوكيو', 'أمستردام'],
 ];
-const SWAPS = { ja: null, de: TO_GERMAN, nl: TO_DUTCH }[TARGET];
+const TO_SPANISH: Array<[string, string]> = [
+  ['Japanese', 'Spanish'],
+  ['Japan', 'Spain'],
+  ['Tokyo', 'Madrid'],
+  ['日本語', 'Español'],
+  ['こんにちは', 'Hola'],
+  ['باليابانية', 'بالإسبانية'],
+  ['اليابانية', 'الإسبانية'],
+  ['الياباني', 'الإسباني'],
+  ['يابانيًا', 'إسبانيًا'],
+  ['يابانية', 'إسبانية'],
+  ['ياباني', 'إسباني'],
+  ['اليابان', 'إسبانيا'],
+  ['طوكيو', 'مدريد'],
+];
+const SWAPS = { ja: null, de: TO_GERMAN, nl: TO_DUTCH, es: TO_SPANISH }[TARGET];
 const forTarget = (s: string): string => (SWAPS ? SWAPS.reduce((acc, [a, b]) => acc.replaceAll(a, b), s) : s);
 
-/** cents as the language being learned writes them: German 3000 -> 30,00 €, Dutch 3000 -> € 30,00 */
+/** cents as the language being learned writes them: German and Spanish 3000 -> 30,00 €, Dutch 3000 -> € 30,00 */
 const euros = (cents: number): string => {
   const neg = cents < 0;
   const c = Math.abs(Math.round(cents));
@@ -109,7 +124,7 @@ const euros = (cents: number): string => {
 };
 
 /** strings that name the languages one can learn: they say what they say whichever language is being learned */
-const OWN_WORDS = new Set<string>(['app.tagline.ja', 'app.tagline.de', 'app.tagline.nl', 'ob.learn.ja', 'ob.learn.de', 'ob.learn.nl', 'ob.learn.title', 'ob.learn.note', 'st.learn']);
+const OWN_WORDS = new Set<string>(['app.tagline.ja', 'app.tagline.de', 'app.tagline.nl', 'app.tagline.es', 'ob.learn.ja', 'ob.learn.de', 'ob.learn.nl', 'ob.learn.es', 'ob.learn.title', 'ob.learn.note', 'st.learn']);
 
 export function translate(lang: UiLang, key: StringKey, vars?: Record<string, string | number>): string {
   const raw = STRINGS[lang][key] ?? STRINGS.en[key] ?? key;

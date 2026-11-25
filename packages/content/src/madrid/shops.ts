@@ -1,6 +1,6 @@
 // Madrid's street in Spanish (Spanish step 1), in Lavapiés: five shops. Bar El Rincón (Lola says tú, as Madrid's bars do: 「¿Qué te
 // pongo?」, a café con leche and a tostada con tomate), the panadería (Carmen, who says usted: a barra de pan, a napolitana, magdalenas),
-// the fruit stall at the mercado (Andrés: a kilo of oranges, half a kilo of strawberries), the churrería (Rafa: churros or porras, a
+// the fruit stall at the mercado (Andrés: a kilo of oranges, half a kilo of strawberries, and his olive oil), the churrería (Rafa: churros or porras, a
 // chocolate to dip them in) and the Metro ticket office (Marisa: a single ticket or ten journeys, then 「valide en los tornos」).
 import type { AvatarSpec, Character, IntentDef, Scenario } from '../types';
 import { L, S, asRecord, node, say } from '../tokyo/dsl';
@@ -10,7 +10,7 @@ import { PAY_CHIPS_ES, askToPayEs, payIntentsEs, saleDoneEs, shortOfMoneyEs } fr
 export const MADRID_PRICES: Record<string, number> = {
   cafe: 180, cortado: 160, solo: 140, zumo: 280, tostada: 250, tortilla: 300,
   barra: 110, napolitana: 150, cruasan: 130, magdalenas: 250,
-  naranjas: 95, tomates: 120, fresas: 175, platanos: 110,
+  naranjas: 95, tomates: 120, fresas: 175, platanos: 110, aceite: 850,
   churros: 250, porras: 280, chocolate: 220,
   sencillo: 150, diez: 1220,
 };
@@ -173,7 +173,7 @@ const pickWeighed: IntentDef = {
   slotRequired: true,
   alsoSlots: ['fruta'],
   all: [FRUITS],
-  next: 'pay',
+  next: 'extra',
   step: 'fruit',
   request: true,
   boost: 5,
@@ -181,7 +181,7 @@ const pickWeighed: IntentDef = {
 };
 const pickFruit: IntentDef = { id: 'pick', slot: 'fruta', slotRequired: true, next: 'weight', step: 'fruit', request: true, ideal: L('Naranjas, por favor.', 'Oranges, please.', 'برتقال من فضلك.') };
 export const MAD_MERCADO = shop('mad_mercado', 'andres', 'A1', ['Fruit at the market', 'فاكهة من السوق'],
-  ['The fruit stall at the neighbourhood market. Choose some fruit, say how much (a kilo, half a kilo) and pay.', 'كشك الفاكهة في سوق الحيّ. اختر فاكهة، وقل الكمية (كيلو، نصف كيلو)، ثم ادفع.'],
+  ['The fruit stall at the neighbourhood market. Choose some fruit, say how much (a kilo, half a kilo), maybe take some of Andrés’s olive oil, and pay.', 'كشك الفاكهة في سوق الحيّ. اختر فاكهة، وقل الكمية (كيلو، نصف كيلو)، وربما خذ من زيت زيتون أندريس، ثم ادفع.'],
   [['fruit', 'Choose some fruit', 'اختر فاكهة'], ['weight', 'Say how much', 'قل الكمية'], ['pay', 'Pay', 'ادفع']],
   asRecord([
     node({
@@ -206,9 +206,19 @@ export const MAD_MERCADO = shop('mad_mercado', 'andres', 'A1', ['Fruit at the ma
       id: 'weight',
       say: [say(L('Muy bien. ¿Cuánto le pongo?', 'Very good. How much shall I give you?', 'حسنًا. كم أعطيك؟'))],
       suggestions: [S('Un kilo, por favor.', 'A kilo, please.', 'كيلو من فضلك.'), S('Medio kilo, por favor.', 'Half a kilo, please.', 'نصف كيلو من فضلك.'), S('Dos kilos, por favor.', 'Two kilos, please.', 'كيلوان من فضلك.')],
-      intents: [{ id: 'weigh', slot: 'peso', slotRequired: true, next: 'pay', step: 'weight', request: true, ideal: L('Un kilo, por favor.', 'A kilo, please.', 'كيلو من فضلك.') }],
+      intents: [{ id: 'weigh', slot: 'peso', slotRequired: true, next: 'extra', step: 'weight', request: true, ideal: L('Un kilo, por favor.', 'A kilo, please.', 'كيلو من فضلك.') }],
     }),
-    node({ id: 'pay', step: 'weight', say: askToPayEs(), suggestions: PAY_CHIPS_ES, intents: payIntentsEs('bye') }),
+    node({
+      id: 'extra',
+      step: 'weight',
+      say: [say(L('Aquí tiene. ¿Algo más? Tengo un aceite de oliva buenísimo.', 'Here you are. Anything else? I have a wonderful olive oil.', 'تفضّل. شيء آخر؟ عندي زيت زيتون رائع.'))],
+      suggestions: [S('Sí, una lata de aceite, por favor.', 'Yes, a tin of oil, please.', 'نعم، علبة زيت من فضلك.'), S('No, nada más, gracias.', 'No, nothing else, thanks.', 'لا، لا شيء آخر، شكرًا.')],
+      intents: [
+        { id: 'oil', slot: 'aceite', slotRequired: true, next: 'pay', request: true, ideal: L('Sí, una lata de aceite, por favor.', 'Yes, a tin of oil, please.', 'نعم، علبة زيت من فضلك.') },
+        { id: 'no_more', any: ['no', 'nada mas', 'nada', 'eso es todo', 'ya esta'], next: 'pay' },
+      ],
+    }),
+    node({ id: 'pay', say: askToPayEs(), suggestions: PAY_CHIPS_ES, intents: payIntentsEs('bye') }),
     saleDoneEs(L('¡Gracias! ¡Hasta la próxima!', 'Thanks! Until next time!', 'شكرًا! إلى المرة القادمة!')),
     shortOfMoneyEs(),
   ]),

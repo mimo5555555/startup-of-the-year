@@ -9,6 +9,8 @@ import { readingDe, voiceLinesDe } from '../../../tools/voice/lines-de';
 import { DE_VOICES } from '../src/voice/voices-de';
 import { readingNl, voiceLinesNl } from '../../../tools/voice/lines-nl';
 import { NL_VOICES } from '../src/voice/voices-nl';
+import { readingEs, voiceLinesEs } from '../../../tools/voice/lines-es';
+import { ES_VOICES } from '../src/voice/voices-es';
 
 /** An audio element that plays (or fails) when the test says so. */
 class FakeAudio implements AudioLike {
@@ -386,5 +388,46 @@ describe('Dutch voice lines (Amsterdam)', () => {
     for (const w of ['femke', 'ingrid', 'sanne', 'noor', 'mirjam', 'ilse', 'customer']) expect(NL_VOICES[w]!.model, w).toBe('nl_BE-nathalie-medium');
     for (const m of ['kees', 'daan', 'jesse', 'mo', 'joop', 'customer_m']) expect(NL_VOICES[m]!.model, m).toMatch(/^nl_NL-/);
     expect(NL_VOICES[NARRATOR]!.model).toMatch(/^nl_NL-/);
+  });
+});
+
+describe('Spanish voice lines (Madrid)', () => {
+  const lines = voiceLinesEs();
+  it('collects every Madrid line for a voice that exists, never a line with a runtime variable', () => {
+    expect(lines.length).toBeGreaterThan(400);
+    for (const l of lines) {
+      expect(ES_VOICES[l.voice], l.voice).toBeDefined();
+      expect(l.text, l.text).not.toMatch(/[{}…]/);
+    }
+    const has = (voice: string, text: string) => lines.some((l) => l.voice === voice && l.text === text);
+    expect(has('lola', '¡Buenos días! ¿Qué te pongo?')).toBe(true);
+    expect(has('narrator', 'Un café con leche, por favor.')).toBe(true);
+    // a priced line: its sentence without the price is recorded, the price is not
+    expect(has('lola', '¿Con tarjeta o en efectivo?')).toBe(true);
+    expect(lines.some((l) => /€/.test(l.text) && l.voice !== 'narrator')).toBe(false);
+    expect(has('carmen', 'Buenos días. ¿Qué desea?')).toBe(true);
+    expect(has('andres', 'Aquí tiene. ¿Algo más? Tengo un aceite de oliva buenísimo.')).toBe(true);
+    expect(has('rafa', '¡Que aproveche!')).toBe(true);
+    expect(has('marisa', 'Aquí tiene su tarjeta. Recuerde validarla en los tornos. ¡Buen viaje!')).toBe(true);
+    // the friends, the beats, the facts, the culture phrases, the dictionary
+    expect(has('lucia', '¿Cuál es tu sueño aquí en Madrid?')).toBe(true);
+    expect(has('javi', 'Toco la guitarra en el balcón.')).toBe(true);
+    expect(has('nadia', 'Mi familia es de Tánger.')).toBe(true);
+    expect(has('narrator', '¿Quién es el último?')).toBe(true);
+    expect(has('narrator', 'churros')).toBe(true);
+    expect(has('narrator', '¡Hasta luego!')).toBe(true);
+  });
+
+  it('reads prices the way Madrid says them', () => {
+    expect(readingEs('Son 2,50 €.')).toBe('Son dos euros con cincuenta.');
+    expect(readingEs('Son 12,20 €.')).toBe('Son doce euros con veinte.');
+  });
+
+  it('gives every Madrid character a voice of their own: the women Sharvard’s woman, the men davefx or Sharvard’s man', () => {
+    const sig = Object.values(ES_VOICES).map((v) => `${v.model}#${v.speaker ?? ''}:${v.pitch}:${v.speed}`);
+    expect(new Set(sig).size).toBe(sig.length);
+    for (const w of ['lola', 'carmen', 'marisa', 'lucia', 'nadia', 'customer']) expect(ES_VOICES[w], w).toMatchObject({ model: 'es_ES-sharvard-medium', speaker: 1 });
+    for (const m of ['andres', 'rafa', 'narrator']) expect(ES_VOICES[m]!.model, m).toBe('es_ES-davefx-medium');
+    for (const m of ['javi', 'customer_m']) expect(ES_VOICES[m], m).toMatchObject({ model: 'es_ES-sharvard-medium', speaker: 0 });
   });
 });

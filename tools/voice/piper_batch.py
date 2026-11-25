@@ -1,5 +1,6 @@
-# Synthesizes a batch of German or Dutch lines with Piper (tools/voice/generate-piper.mjs writes the batch and turns the WAVs into MP3s).
-#   python piper_batch.py <models dir> <jobs.json>      jobs: [{"model", "text", "speed", "wav"}]
+# Synthesizes a batch of German, Dutch or Spanish lines with Piper (tools/voice/generate-piper.mjs writes the batch and turns the WAVs into
+# MP3s).
+#   python piper_batch.py <models dir> <jobs.json>      jobs: [{"model", "text", "speed", "wav", "speaker"?}]
 # Each model loads once; a job whose WAV exists is skipped (the run is resumable).
 import json
 import os
@@ -24,7 +25,9 @@ for job in jobs:
         voice = voices[job["model"]] = PiperVoice.load(path)
     tmp = job["wav"] + ".tmp"
     with wave.open(tmp, "wb") as w:
-        voice.synthesize_wav(job["text"], w, syn_config=SynthesisConfig(length_scale=1.0 / job["speed"]))
+        # a model with several speakers (Sharvard: 0 the man, 1 the woman) is told which one
+        extra = {"speaker_id": job["speaker"]} if "speaker" in job else {}
+        voice.synthesize_wav(job["text"], w, syn_config=SynthesisConfig(length_scale=1.0 / job["speed"], **extra))
     os.replace(tmp, job["wav"])
     done += 1
     if done % 50 == 0:

@@ -36,6 +36,8 @@ export const ES_SLOTS: Record<string, SlotOption[]> = {
     opt('fresas', 'fresas', ['fresa'], ['strawberries', 'strawberry'], ['فراولة']),
     opt('platanos', 'plátanos', ['platano', 'banana', 'bananas'], ['bananas', 'banana'], ['موز']),
   ],
+  // Andrés's olive oil, a present to take home (the dream 「Un regalo de Madrid」)
+  aceite: [opt('aceite', 'lata de aceite', ['aceite', 'aceite de oliva', 'una lata'], ['olive oil', 'a tin of olive oil', 'oil'], ['زيت زيتون', 'علبة زيت'], { en: 'tin of olive oil', ar: 'علبة زيت زيتون' })],
   // the fruit is priced by the half kilo: half a kilo is one, a kilo two, two kilos four
   peso: [
     opt('one', 'medio kilo', ['medio', '500 gramos', 'quinientos gramos'], ['half a kilo', 'half kilo', '500 grams'], ['نصف كيلو', '500 غرام'], { en: 'half a kilo', ar: 'نصف كيلو' }),

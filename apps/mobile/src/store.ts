@@ -217,8 +217,17 @@ const NL_STARTERS = [
   { ja: 'Doei!', en: 'Bye!', ar: 'باي!' },
 ];
 
+/** Spanish's first five: the greetings every Madrid conversation opens and closes with */
+const ES_STARTERS = [
+  { ja: '¡Hola!', en: 'Hello!', ar: 'مرحبًا!' },
+  { ja: '¡Buenos días!', en: 'Good morning!', ar: 'صباح الخير!' },
+  { ja: 'Por favor.', en: 'Please.', ar: 'من فضلك.' },
+  { ja: '¡Gracias!', en: 'Thanks!', ar: 'شكرًا!' },
+  { ja: '¡Hasta luego!', en: 'See you later!', ar: 'إلى اللقاء!' },
+];
+
 function starterWords(): Array<Omit<VocabItem, 'id' | 'savedAt' | 'card'>> {
-  return { ja: GREETINGS.cards.slice(0, 5), de: DE_STARTERS, nl: NL_STARTERS }[TARGET].map((c) => {
+  return { ja: GREETINGS.cards.slice(0, 5), de: DE_STARTERS, nl: NL_STARTERS, es: ES_STARTERS }[TARGET].map((c) => {
     const tok = tokenize(c.ja, LEXICON).tokens;
     return {
       kind: 'phrase' as const,

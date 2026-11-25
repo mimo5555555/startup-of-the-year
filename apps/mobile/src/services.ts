@@ -4,9 +4,8 @@ import { RecordedVoiceTts, withRecordedVoices } from './voice/RecordedVoiceTts';
 import { TARGET_LOCALE, VOICE_BASE } from './target';
 
 // One speech stack for the whole app. Native builds replace these with on-device engines.
-// A line plays from its recorded file when there is one (Japanese: public/voice, VOICEVOX; German: public/voice-de and
-// Dutch: public/voice-nl, Piper), else the
-// device voice of the language says it.
+// A line plays from its recorded file when there is one (Japanese: public/voice, VOICEVOX; German: public/voice-de, Dutch:
+// public/voice-nl and Spanish: public/voice-es, Piper), else the device voice of the language says it.
 export const tts = new RecordedVoiceTts(new WebSpeechTts({ locale: TARGET_LOCALE }), { base: VOICE_BASE });
 export const stt = new WebSpeechStt();
 // the e2e scripts read how many lines found a recording

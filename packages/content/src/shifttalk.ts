@@ -2,13 +2,28 @@
 // the change are said, how a typed or spoken amount or thanks is checked, the wrong chips, the welcome, the boss's lines and the rank
 // names. Japanese is the konbini's, word for word as it always was. German and Dutch write a price as one piece (「3,50 €」, 「€ 3,50」):
 // the tiles of 「Das macht 3,50 €.」 are Das, macht and the amount, with two near amounts as the wrong tiles.
-import { deContains, deMatchForms, euroText, euroTextNl, nlContains, nlMatchForms, normJa, parseDutchNumbers, parseGermanNumbers, romajiAsKana } from '@lw/core';
+import {
+  deContains,
+  deMatchForms,
+  esContains,
+  esMatchForms,
+  euroText,
+  euroTextEs,
+  euroTextNl,
+  nlContains,
+  nlMatchForms,
+  normJa,
+  parseDutchNumbers,
+  parseGermanNumbers,
+  parseSpanishNumbers,
+  romajiAsKana,
+} from '@lw/core';
 import type { Line } from './types';
 import { L } from './tokyo/dsl';
 import { parseNumbers, yenToJa } from './tokyo/game/jp-language';
 
 export type ShiftBand = 'perfect' | 'nice' | 'almost' | 'retry';
-export type ShiftLangId = 'ja' | 'de' | 'nl';
+export type ShiftLangId = 'ja' | 'de' | 'nl' | 'es';
 
 export interface ShiftTalk {
   id: ShiftLangId;
@@ -157,7 +172,7 @@ export function latinPieces(markup: string): string[] {
 const firstSentence = (markup: string): string => markup.replace(/\|/g, ' ').split(/[.!?]/)[0] ?? '';
 
 function latinTalk(o: {
-  id: 'de' | 'nl';
+  id: 'de' | 'nl' | 'es';
   amount(n: number): string;
   total(a: string): string;
   change(a: string): string;
@@ -271,7 +286,51 @@ export const NL_SHIFT_TALK: ShiftTalk = latinTalk({
   },
 });
 
-export const SHIFT_TALK: Record<ShiftLangId, ShiftTalk> = { ja: JA_SHIFT_TALK, de: DE_SHIFT_TALK, nl: NL_SHIFT_TALK };
+/**
+ * Madrid: a boss who says tú to the staff, as Madrid does. No line guesses the player's gender: the ranks are nouns that fit anyone
+ * (aprendiz, profesional, estrella, mano derecha) and nothing is 「listo / lista」.
+ */
+export const ES_SHIFT_TALK: ShiftTalk = latinTalk({
+  id: 'es',
+  amount: (n) => euroTextEs(Math.max(0, Math.round(n))).written,
+  total: (a) => `Son ${a}.`,
+  change: (a) => `Le devuelvo ${a}.`,
+  numbers: (text) => parseSpanishNumbers(text).numbers,
+  fold: (text) => esMatchForms(text).folded,
+  contains: esContains,
+  rest: {
+    thanksWrong: ['¡Buenas noches!', '¡Perdón!', '¡Que aproveche!', 'De nada.'],
+    welcome: '¡Hola, buenos días!',
+    example: { digits: '12,34', words: 'doce euros con treinta y cuatro' },
+    placeholderThanks: '¡Muchas gracias!',
+    changeWord: 'el cambio',
+    helping: 'ayudar',
+    ranks: [
+      { ja: 'aprendiz', reading: '' },
+      { ja: 'profesional', reading: '' },
+      { ja: 'de confianza', reading: '' },
+      { ja: 'estrella', reading: '' },
+      { ja: 'mano derecha', reading: '' },
+    ],
+    refuse: L('Ya está bien por hoy. ¡Descansa!', 'That’s enough for today. Get some rest!', 'يكفي لهذا اليوم. ارتح!'),
+    retry: L('No pasa nada. Lo intentamos otra vez.', 'No problem. Let’s try again.', 'لا مشكلة. لنحاول مرة أخرى.'),
+    bands: {
+      perfect: L('¡Perfecto!', 'Perfect!', 'ممتاز!'),
+      nice: L('¡Muy bien!', 'Very good!', 'جيد جدًا!'),
+      almost: L('¡Casi! Un poco más.', 'Almost! A little more.', 'تقريبًا! قليلًا بعد.'),
+      retry: L('No pasa nada. Lo intentamos otra vez.', 'No problem. Let’s try again.', 'لا مشكلة. لنحاول مرة أخرى.'),
+    },
+    rankUp: [
+      null,
+      L('¡Ya eres profesional! Te subo el sueldo.', 'You’re a professional now! I’m raising your wage.', 'أصبحت محترفًا الآن! سأرفع أجرك.'),
+      L('¡Ya eres de confianza! Te subo el sueldo.', 'I can count on you now! I’m raising your wage.', 'أصبحت محلّ ثقة الآن! سأرفع أجرك.'),
+      L('¡Eres una estrella! Te subo el sueldo.', 'You’re a star! I’m raising your wage.', 'أنت نجم! سأرفع أجرك.'),
+      L('¡Ahora eres mi mano derecha! Te subo el sueldo.', 'You’re my right hand now! I’m raising your wage.', 'أصبحت يدي اليمنى الآن! سأرفع أجرك.'),
+    ],
+  },
+});
+
+export const SHIFT_TALK: Record<ShiftLangId, ShiftTalk> = { ja: JA_SHIFT_TALK, de: DE_SHIFT_TALK, nl: NL_SHIFT_TALK, es: ES_SHIFT_TALK };
 
 /**
  * The recorded voice of a customer: Tokyo's one customer voice; in Berlin and Amsterdam a woman's or a man's, fixed per customer

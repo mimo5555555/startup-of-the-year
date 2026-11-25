@@ -55,7 +55,7 @@ export function Onboarding() {
     blip('tap');
   };
 
-  const cast = { ja: ['yuki', 'kenji', 'mio'], de: ['jana', 'lena', 'emre'], nl: ['femke', 'sanne', 'mo'] }[TARGET].map((id) => CHARACTERS.find((c) => c.id === id)!);
+  const cast = { ja: ['yuki', 'kenji', 'mio'], de: ['jana', 'lena', 'emre'], nl: ['femke', 'sanne', 'mo'], es: ['lola', 'lucia', 'rafa'] }[TARGET].map((id) => CHARACTERS.find((c) => c.id === id)!);
 
   return (
     <div className="onb">
@@ -99,7 +99,7 @@ export function Onboarding() {
             </div>
             <p className="muted small">{t('ob.learn.note')}</p>
             <div className="soon">
-              {['Español', 'Русский'].map((l) => (
+              {['Русский'].map((l) => (
                 <span key={l} className="chip dim">
                   {l}
                 </span>

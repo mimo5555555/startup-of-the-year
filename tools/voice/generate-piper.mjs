@@ -1,8 +1,9 @@
-// Records every static line of Berlin (de) or Amsterdam (nl) with Piper into apps/mobile/public/voice-<lang>/<hash>.mp3 + manifest.json,
+// Records every static line of Berlin (de), Amsterdam (nl) or Madrid (es) with Piper into apps/mobile/public/voice-<lang>/<hash>.mp3 + manifest.json,
 // the way generate.mjs records the Japanese ones with VOICEVOX. The lines come from tools/voice/lines-<lang>.ts, the voices from
 // apps/mobile/src/voice/voices-<lang>.ts (a model, a pitch and a pace per character), the key from apps/mobile/src/voice/key.ts.
 // Incremental and resumable: existing files are kept.
-//   PIPER_PYTHON=<python with piper-tts> PIPER_MODELS=<dir with the .onnx models> node tools/voice/generate-piper.mjs <de|nl> [--dry] [--limit N]
+//   PIPER_PYTHON=<python with piper-tts> PIPER_MODELS=<dir with the .onnx models> node tools/voice/generate-piper.mjs <de|nl|es> [--dry] [--limit N]
+// A voice of a model with several speakers names its `speaker` (Madrid's Sharvard voices).
 import { createHash } from 'node:crypto';
 import { spawn, spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, renameSync, statSync, writeFileSync } from 'node:fs';
@@ -12,8 +13,8 @@ import { createServer } from 'vite';
 
 const ROOT = fileURLToPath(new URL('../../', import.meta.url));
 const args = process.argv.slice(2);
-const LANG = args.find((a) => a === 'de' || a === 'nl');
-if (!LANG) throw new Error('which language? node tools/voice/generate-piper.mjs <de|nl>');
+const LANG = args.find((a) => a === 'de' || a === 'nl' || a === 'es');
+if (!LANG) throw new Error('which language? node tools/voice/generate-piper.mjs <de|nl|es>');
 const OUT = `${ROOT}apps/mobile/public/voice-${LANG}/`;
 const WORK = process.env.PIPER_WORK ?? `${tmpdir()}/lw-voice-${LANG}/`;
 const dry = args.includes('--dry');
@@ -39,8 +40,8 @@ const vite = await createServer({
 const linesMod = await vite.ssrLoadModule(`/tools/voice/lines-${LANG}.ts`);
 const voicesMod = await vite.ssrLoadModule(`/apps/mobile/src/voice/voices-${LANG}.ts`);
 const { voiceEntryKey, voiceTextKey } = await vite.ssrLoadModule('/apps/mobile/src/voice/key.ts');
-const voiceLines = LANG === 'de' ? linesMod.voiceLinesDe : linesMod.voiceLinesNl;
-const VOICES = LANG === 'de' ? voicesMod.DE_VOICES : voicesMod.NL_VOICES;
+const voiceLines = { de: linesMod.voiceLinesDe, nl: linesMod.voiceLinesNl, es: linesMod.voiceLinesEs }[LANG];
+const VOICES = { de: voicesMod.DE_VOICES, nl: voicesMod.NL_VOICES, es: voicesMod.ES_VOICES }[LANG];
 await vite.close();
 
 // one job per (voice, text key); the voice's settings are part of the hash, so a new pitch or model records it again
@@ -50,7 +51,8 @@ for (const l of voiceLines()) {
   if (!voiceTextKey(l.text)) continue;
   const v = VOICES[l.voice];
   const key = voiceEntryKey(l.voice, l.text);
-  const hash = createHash('sha1').update(`${v.model}:${v.pitch}:${v.speed}:${key}`).digest('hex').slice(0, 12);
+  // the speaker is part of the hash only when there is one, so German and Dutch keep their files
+  const hash = createHash('sha1').update(`${v.model}${v.speaker !== undefined ? `#${v.speaker}` : ''}:${v.pitch}:${v.speed}:${key}`).digest('hex').slice(0, 12);
   if (!jobs.has(hash)) jobs.set(hash, { hash, voice: l.voice, say: l.say, ...v });
   if (!(key in entries)) entries[key] = hash;
 }
@@ -67,7 +69,7 @@ mkdirSync(OUT, { recursive: true });
 mkdirSync(WORK, { recursive: true });
 
 // 1. Piper: every line to a WAV, each model loaded once
-const batch = todo.map((j) => ({ model: j.model, text: j.say, speed: j.speed, wav: `${WORK}${j.hash}.wav` }));
+const batch = todo.map((j) => ({ model: j.model, text: j.say, speed: j.speed, wav: `${WORK}${j.hash}.wav`, ...(j.speaker !== undefined ? { speaker: j.speaker } : {}) }));
 writeFileSync(`${WORK}jobs.json`, JSON.stringify(batch));
 const py = spawnSync(PY, [`${ROOT}tools/voice/piper_batch.py`, MODELS, `${WORK}jobs.json`], { stdio: 'inherit' });
 if (py.status !== 0) throw new Error(`piper_batch exited ${py.status}`);
@@ -78,9 +80,10 @@ const toMp3 = (j) =>
   new Promise((resolve, reject) => {
     const wav = `${WORK}${j.hash}.wav`;
     const sr = rateOf(wav);
-    // 1 dB of headroom: Piper normalizes to full scale, and the pitch shift and the MP3 encoder would clip its peaks
+    // 1 dB of headroom and a peak limiter: Piper normalizes to full scale, and the pitch shift and the MP3 encoder would clip its peaks
+    // (Madrid's voices peaked at 0 dB on an exclamation with the headroom alone)
     const pitch = j.pitch === 1 ? '' : `asetrate=${Math.round(sr * j.pitch)},aresample=22050,atempo=${(1 / j.pitch).toFixed(4)},`;
-    const filter = `${pitch}volume=0.89`;
+    const filter = `${pitch}volume=0.89,alimiter=limit=0.7:level=disabled`;
     const ff = spawn('/usr/bin/ffmpeg', ['-v', 'error', '-y', '-i', wav, '-af', filter, '-ac', '1', '-ar', '22050', '-b:a', '32k', '-f', 'mp3', `${OUT}${j.hash}.mp3.tmp`]);
     ff.on('error', reject);
     ff.on('close', (code) => (code === 0 ? (renameSync(`${OUT}${j.hash}.mp3.tmp`, `${OUT}${j.hash}.mp3`), resolve()) : reject(new Error(`ffmpeg ${code}`))));

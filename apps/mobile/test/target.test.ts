@@ -205,12 +205,66 @@ describe('learning Dutch', () => {
     }
   });
 
-  it('keeps Tokyo’s lessons and Mini-theatre out of Amsterdam’s menu, and offers all three languages', async () => {
+  it('keeps Tokyo’s lessons and Mini-theatre out of Amsterdam’s menu, and offers all four languages', async () => {
     putSaved('lw.target', 'nl');
     const nl = await import('../src/game/worldSync');
     expect(nl.menuIds({ friends: true, phoneIcon: false })).toEqual({ play: ['quests', 'friends', 'wallet'], study: ['vocab', 'stats', 'settings'] });
     const t = await import('../src/target');
-    expect(t.TARGETS).toEqual(['ja', 'de', 'nl']);
-    expect(t.TARGET_NAMES).toEqual({ ja: '日本語', de: 'Deutsch', nl: 'Nederlands' });
+    expect(t.TARGETS).toEqual(['ja', 'de', 'nl', 'es']);
+    expect(t.TARGET_NAMES).toEqual({ ja: '日本語', de: 'Deutsch', nl: 'Nederlands', es: 'Español' });
+  });
+});
+
+describe('learning Spanish', () => {
+  it('reads Madrid’s registries, the Madrid pack and the Spanish engine, and saves under its own prefix', async () => {
+    putSaved('lw.target', 'es');
+    const t = await import('../src/target');
+    const { MADRID_PACK, MADRID_SIGNS, ES_LEXICON } = await import('@lw/content');
+    const { targetLanguage } = await import('@lw/engine');
+    const { PACK } = await import('../src/game/pack');
+    expect(t.TARGET).toBe('es');
+    expect(t.IS_SPANISH).toBe(true);
+    expect(t.IS_JAPANESE || t.IS_GERMAN || t.IS_DUTCH).toBe(false);
+    expect(t.LEXICON).toBe(ES_LEXICON);
+    expect(t.SIGNS).toBe(MADRID_SIGNS);
+    expect(t.STORE_PREFIX).toBe('lw.es.v1.');
+    expect(t.TARGET_LOCALE).toBe('es-ES');
+    expect(t.VOICE_BASE).toBe('voice-es/');
+    expect(t.TARGET_OWN_NAME).toBe('Español');
+    expect(t.scenarioById('mad_bar')).toBeDefined();
+    expect(t.scenarioById('ams_cafe')).toBeUndefined();
+    expect(t.CHARACTERS.map((c) => c.id)).toContain('lola');
+    expect(t.segmentFree('dos cafés, por favor').map((x) => x.s)).toEqual(['dos', 'cafés', ',', 'por', 'favor']);
+    expect(targetLanguage().id).toBe('es');
+    expect(PACK).toBe(MADRID_PACK);
+  });
+
+  it('speaks of Spanish and Madrid in the app’s own words, and writes amounts the Spanish way', async () => {
+    putSaved('lw.target', 'es');
+    const { translate } = await import('../src/i18n');
+    expect(translate('en', 'app.tagline')).toBe('Walk around Madrid. Talk to people. Learn Spanish by using it.');
+    expect(translate('en', 'audio.speaker.noVoice')).toBe('No Spanish voice installed');
+    expect(translate('ar', 'audio.speaker.noVoice')).toContain('إسباني');
+    expect(translate('en', 'quests.reward', { n: '3,000' })).toBe('Reward: 30,00 €');
+    expect(translate('en', 'ob.learn.es')).toBe('Spanish in Madrid');
+    expect(translate('en', 'ob.learn.nl')).toBe('Dutch in Amsterdam');
+  });
+
+  it('prices in conversations read the Spanish way; the notebook starts with Spanish greetings', async () => {
+    putSaved('lw.target', 'es');
+    const { yenVar } = await import('../src/game/convoHooks');
+    const v = yenVar(250);
+    expect(v.gloss?.en).toBe('€2.50');
+    expect(v.ja).toBe('2,50 €');
+    const { useStore } = await import('../src/store');
+    useStore.getState().completeOnboarding({ name: 'Sam', l1: 'en', level: 'A1', goal: 'travel', age: 'adults', topics: ['food', 'music', 'travel'], avatar: {} as never, createdAt: new Date().toISOString() });
+    expect(useStore.getState().vocab.map((v) => v.s)).toEqual(['¡Hola!', '¡Buenos días!', 'Por favor.', '¡Gracias!', '¡Hasta luego!']);
+    expect(saved('lw.v1.state')).toBeNull();
+  });
+
+  it('keeps Tokyo’s lessons and Mini-theatre out of Madrid’s menu', async () => {
+    putSaved('lw.target', 'es');
+    const es = await import('../src/game/worldSync');
+    expect(es.menuIds({ friends: true, phoneIcon: false })).toEqual({ play: ['quests', 'friends', 'wallet'], study: ['vocab', 'stats', 'settings'] });
   });
 });

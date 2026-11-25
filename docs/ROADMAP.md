@@ -379,16 +379,38 @@ game, a bigger city with better conversations, and the same game for German, Dut
   * Tests: core spanish (every number 0–3000 and every price read back), content madrid (every word in the dictionary, ¿ ¡, accents),
     engine madrid (every chip of the eight conversations with and without the game's hooks, cash only, EN and AR; a typed route through
     each shop with its charge; the friends; Spanish vs English; tú and usted).
+- **Spanish step 2: Madrid in the app** (done): Spanish is the fourth language to learn, and Madrid is playable from onboarding to the
+  end of Chapter 3.
+  * The Madrid game pack (`@lw/content` madrid/game/): euros at the Spanish minimum wage (start with 30,00 €; prices shown 4,30 € with
+    IVA included, 21 % and 10 %), 20 things on the menus of five shops (the bar and the panadería from Chapter 1, the churrería and the
+    Metro from Chapter 2, the mercado from Chapter 3), a gift to buy (a tin of olive oil at the fruit stall: 「¿Algo más? Tengo un aceite
+    de oliva buenísimo.」), three friends with their facts and perks, Chapters 1–3 (「Hola, Madrid」, 「Mi barrio」, 「Sábado de
+    mercado」) with Lola's, Carmen's and Lucía's beats, two dreams (a gift, the friends), five titles, ten culture cards (dos besos,
+    「¿Qué te pongo?」, tips, ordering at the barra, churros, the Metro, 「¿Quién es el último?」, football, tú and usted, Spanish
+    hours) and the daily goals. It passes the pack check at level 5.
+  * The app: Español in onboarding (Lola, Lucía and Rafa on the welcome), the target switch and Settings (its own saves, `lw.es.v1.`),
+    the notebook's first five, the Shift screen's Spanish table (「Son 4,30 €.」, 「Le devuelvo 0,70 €.」; aprendiz … mano derecha)
+    ready for a Madrid job.
+  * A Lavapiés street in 3D (`@lw/world` madrid.ts): five-storey buildings with balconies, shutters and cornices, Bar El Rincón, the
+    panadería, the churrería, the Metro's red diamond, the mercado; across the street Lucía's portal and the language exchange's
+    terraza; a plaza with a fountain, trees, benches and lamps where Javi waits. 17 Spanish signs (Calle del Ave María, Cerrado …).
+  * Recorded Spanish voices: 584 lines with Piper's two voices from Spain, davefx (a man, CC0: the narrator, Andrés, Rafa) and the
+    Sharvard corpus (a man and a woman, CC BY 3.0, credited in Settings: Lola, Carmen, Marisa, Lucía, Nadia, Javi and the customers),
+    each character set apart by pitch and pace; prices read in Spanish words. The voice tool now picks a speaker of a model with
+    several, and a limiter keeps every line under 0 dB. All 584 checked (pace, loudness, no clipping).
+  * 89 new words (331 in all).
+  * Tests: the pack at level 5 (every chapter step reachable, every word in the dictionary), the street (spawns, fronts, signs, the
+    plaza), the target (Spanish setup), the voice lines, and an e2e in the real UI (`tools/e2e/game/madrid.mjs`: onboarding in
+    Español, Lucía, the bar charging exactly 4,30 €, the panadería 1,50 €, Chapter 2 with Javi and the churrería 5,00 €, Settings back
+    to Japanese; EN and AR).
 
 ## Next
 
-1. **Spanish step 2: Madrid in the app**: the Madrid game pack (euro economy at the Spanish minimum wage, the catalog, the people,
-   Chapters 1–3 with beats, culture cards, titles, a dream and the daily goals), Spanish as the fourth learning language (the target
-   switch, onboarding and Settings), a Lavapiés street in 3D, and recorded Spanish voices (Piper's es_ES models).
-2. **Spanish steps 3–5**: regulars and small talk, the friends' chats, gifts and hang-outs, Chapters 4–6, a job.
-3. **Listen to the German and Dutch voices** and adjust a character's pitch or pace in `voices-de.ts` / `voices-nl.ts` where needed
-   (re-run `PIPER_PYTHON=… PIPER_MODELS=… node tools/voice/generate-piper.mjs <de|nl>`). Nathalie was trained on Flemish speech: if her
-   accent jars in Amsterdam, a Netherlands-Dutch woman's voice from Piper's MLS model (CC BY 4.0, needs a credit) can replace it.
+1. **Spanish steps 3–5**: regulars and small talk, the friends' chats, gifts and hang-outs, Chapters 4–6, a job (Rafa's churrería or
+   Lola's bar, with the Shift screen's Spanish table).
+2. **Listen to the voices** and adjust a character's pitch or pace in `voices-de.ts` / `voices-nl.ts` / `voices-es.ts` where needed
+   (re-run `PIPER_PYTHON=… PIPER_MODELS=… node tools/voice/generate-piper.mjs <de|nl|es>`). Nathalie was trained on Flemish speech: if
+   her accent jars in Amsterdam, a Netherlands-Dutch woman's voice from Piper's MLS model (CC BY 4.0, needs a credit) can replace it.
 
 ## Other languages (German in Berlin first)
 

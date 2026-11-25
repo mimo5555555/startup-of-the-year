@@ -6,6 +6,7 @@ export const en = {
   'app.tagline.ja': 'Walk around Tokyo. Talk to people. Learn Japanese by using it.',
   'app.tagline.de': 'Walk around Berlin. Talk to people. Learn German by using it.',
   'app.tagline.nl': 'Walk around Amsterdam. Talk to people. Learn Dutch by using it.',
+  'app.tagline.es': 'Walk around Madrid. Talk to people. Learn Spanish by using it.',
   'app.sample': 'Interactive sample',
 
   'common.next': 'Next',
@@ -31,6 +32,7 @@ export const en = {
   'ob.learn.ja': 'Japanese in Tokyo',
   'ob.learn.de': 'German in Berlin',
   'ob.learn.nl': 'Dutch in Amsterdam',
+  'ob.learn.es': 'Spanish in Madrid',
   'ob.learn.note': 'Each language keeps its own progress. You can switch later in Settings.',
   'ob.you.title': 'Who are you?',
   'ob.you.name': 'Your name',
@@ -230,6 +232,7 @@ export const ar: Record<keyof typeof en, string> = {
   'app.tagline.ja': 'تجوّل في طوكيو، وتحدّث مع الناس، وتعلّم اليابانية بالتحدّث بها.',
   'app.tagline.de': 'تجوّل في برلين، وتحدّث مع الناس، وتعلّم الألمانية بالتحدّث بها.',
   'app.tagline.nl': 'تجوّل في أمستردام، وتحدّث مع الناس، وتعلّم الهولندية بالتحدّث بها.',
+  'app.tagline.es': 'تجوّل في مدريد، وتحدّث مع الناس، وتعلّم الإسبانية بالتحدّث بها.',
   'app.sample': 'نسخة تجريبية تفاعلية',
 
   'common.next': 'التالي',
@@ -255,6 +258,7 @@ export const ar: Record<keyof typeof en, string> = {
   'ob.learn.ja': 'اليابانية في طوكيو',
   'ob.learn.de': 'الألمانية في برلين',
   'ob.learn.nl': 'الهولندية في أمستردام',
+  'ob.learn.es': 'الإسبانية في مدريد',
   'ob.learn.note': 'لكل لغة تقدّمها الخاص. يمكنك التبديل لاحقًا من الإعدادات.',
   'ob.you.title': 'من أنت؟',
   'ob.you.name': 'اسمك',

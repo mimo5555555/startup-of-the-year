@@ -10,6 +10,7 @@ import pkg from '../../package.json';
 import { VOICE_CREDITS } from '../voice/voices';
 import { DE_VOICE_CREDITS } from '../voice/voices-de';
 import { NL_VOICE_CREDITS } from '../voice/voices-nl';
+import { ES_VOICE_CREDITS } from '../voice/voices-es';
 import { tts } from '../services';
 import { GoenPurchases } from '../components/game/GoenPurchases';
 import { TARGET, TARGETS, TARGET_NAMES, chooseTarget, IS_JAPANESE } from '../target';
@@ -157,11 +158,11 @@ export function Settings() {
           <p dir="auto">{t('st.about1')}</p>
           <p dir="auto">{t('st.about2')}</p>
           <p dir="auto">{t('st.about3')}</p>
-          {/* the recorded voices' credits: VOICEVOX's for Japanese; Piper's open voices for German and Dutch, once their lines are recorded */}
+          {/* the recorded voices' credits: VOICEVOX's for Japanese; Piper's open voices for German, Dutch and Spanish, once their lines are recorded */}
           {(IS_JAPANESE || recorded) && (
             <p dir="auto" data-voice-credits>
               {t('st.voiceCredits', { names: '' })}
-              <bdi dir="ltr">{{ ja: VOICE_CREDITS, de: DE_VOICE_CREDITS, nl: NL_VOICE_CREDITS }[TARGET]}</bdi>
+              <bdi dir="ltr">{{ ja: VOICE_CREDITS, de: DE_VOICE_CREDITS, nl: NL_VOICE_CREDITS, es: ES_VOICE_CREDITS }[TARGET]}</bdi>
             </p>
           )}
           <p className="version" dir="ltr" onClick={tapVersion} style={{ minHeight: 44, display: 'flex', alignItems: 'center', opacity: 0.6, fontSize: 13 }}>

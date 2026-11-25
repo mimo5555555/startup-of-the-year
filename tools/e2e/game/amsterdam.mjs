@@ -74,7 +74,7 @@ await page.evaluate(() => localStorage.clear());
 await page.reload({ waitUntil: 'load' });
 await page.waitForSelector('.onb');
 await page.getByRole('button', { name: AR ? 'العربية' : 'English' }).first().click();
-assert.equal(await page.locator('[data-learn]').count(), 3, 'three languages to learn');
+assert.equal(await page.locator('[data-learn]').count(), 4, 'four languages to learn');
 await page.locator('[data-learn=nl]').click();
 assert.ok((await page.locator('[data-learn=nl]').innerText()).includes('Nederlands'), 'Dutch named in Dutch');
 assert.ok((await page.locator('.hero-sub').innerText()).includes(AR ? 'أمستردام' : 'Amsterdam'), 'the tagline follows the pick');
@@ -185,7 +185,7 @@ assert.equal(await page.evaluate(() => localStorage.getItem('lw.v1.state')), jaS
 assert.ok((await page.evaluate(() => localStorage.getItem('lw.nl.v1.state')))?.includes('"Sam"'), 'the Dutch profile is in the Dutch save');
 await page.evaluate(() => window.__lw.useStore.getState().go('settings'));
 await page.waitForSelector('[data-learn=ja]');
-assert.equal(await page.locator('[data-learn]').count(), 3);
+assert.equal(await page.locator('[data-learn]').count(), 4);
 await t.shot('settings');
 await Promise.all([page.waitForNavigation({ waitUntil: 'load' }), page.locator('[data-learn=ja]').click()]);
 assert.equal(await page.evaluate(() => localStorage.getItem('lw.target')), 'ja');
