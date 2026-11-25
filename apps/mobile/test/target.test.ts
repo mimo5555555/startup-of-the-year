@@ -267,4 +267,48 @@ describe('learning Spanish', () => {
     const es = await import('../src/game/worldSync');
     expect(es.menuIds({ friends: true, phoneIcon: false })).toEqual({ play: ['quests', 'friends', 'wallet'], study: ['vocab', 'stats', 'settings'] });
   });
+
+  it('a Madrid regular gets the regular’s flag and small talk Madrid has lines for, in every shop, any day of the year', async () => {
+    putSaved('lw.target', 'es');
+    const { regularFlags } = await import('../src/game/regulars');
+    const { MADRID_PACK, MADRID_TALK_TOPICS, MADRID_TALK_TOPICS_TU, MADRID_SHOP_TALK } = await import('@lw/content');
+    const { createGameState } = await import('@lw/game');
+    const base = createGameState(MADRID_PACK, Date.UTC(2030, 0, 1));
+    const shops = MADRID_PACK.scenarioMeta.filter((m) => m.kind === 'shop');
+    expect(shops.map((m) => m.id).sort()).toEqual(Object.keys(MADRID_SHOP_TALK).sort());
+    for (const meta of shops) {
+      expect(regularFlags(MADRID_PACK, base, meta)).toEqual({});
+      for (let plays = 1; plays <= 9; plays++) {
+        for (let day = 0; day < 365; day += 13) {
+          const state = { ...base, chapter: { ...base.chapter, n: 3 }, runs: { [meta.id]: { ...(base.runs[meta.id] ?? {}), count: plays } as never } };
+          const flags = regularFlags(MADRID_PACK, state, meta, Date.UTC(2030, 0, 1) + day * 86_400_000);
+          expect(flags.regular, `${meta.id} ${plays}`).toBe(true);
+          for (const f of Object.keys(flags).filter((k) => k.startsWith('talk_'))) {
+            expect(MADRID_TALK_TOPICS[f.slice(5)], `${meta.id} ${f}`).toBeDefined();
+            expect(MADRID_TALK_TOPICS_TU[f.slice(5)], `${meta.id} ${f}`).toBeDefined();
+          }
+        }
+      }
+    }
+  });
+
+  it('Madrid’s friends: a chat of the day at a Spanish topic, a callback naming the hobby in Spanish, presents named in Spanish', async () => {
+    putSaved('lw.target', 'es');
+    const { planFriendConvo, handOverOption, giftChoices, pickCallback } = await import('../src/game/friendsLogic');
+    const { MADRID_PACK, madridScenarioById } = await import('@lw/content');
+    const { createGameState, emptyFriend } = await import('@lw/game');
+    const st = createGameState(MADRID_PACK, Date.UTC(2030, 0, 1));
+    const sc = madridScenarioById('smalltalk_lucia')!;
+    const plan = planFriendConvo(MADRID_PACK, st, { scenarioId: 'smalltalk_lucia', characterId: 'lucia' }, { nodeIds: Object.keys(sc.nodes), interests: ['food'], rng: () => 0.3 })!;
+    expect(plan.kind).toBe('talk');
+    expect(plan.startNode && sc.nodes[plan.startNode]).toBeTruthy();
+    const f = { ...emptyFriend(0), ap: 9999, facts: { hobby: 'movies', favFood: 'paella' } };
+    const cb = pickCallback(f, 5, 3)!;
+    expect(Object.values(cb.vars)[0]?.ja).toMatch(/^(el cine|paella)$/);
+    expect(handOverOption(MADRID_PACK, 'panaderia:napolitana')?.ja).toBe('una napolitana');
+    expect(handOverOption(MADRID_PACK, 'churreria:cafe')?.ja).toBe('un café con leche');
+    expect(handOverOption(MADRID_PACK, 'mad_aceite')?.ja).toBe('una lata de aceite');
+    const owned = { ...st, owned: { ...st.owned, 'mad_aceite': { ...(st.owned['mad_aceite'] ?? {}), qty: 1 } } } as typeof st;
+    expect(giftChoices(MADRID_PACK, owned).map((c) => c.itemId)).toContain('mad_aceite');
+  });
 });

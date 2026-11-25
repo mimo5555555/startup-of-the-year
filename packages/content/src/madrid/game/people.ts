@@ -59,6 +59,15 @@ export const ES_FRIENDS: FriendDef[] = [
 
 const scenario = (id: string, scenarioId: string, en: string, ar: string, ch = 1): Interaction => ({ id, kind: 'scenario', scenarioId, label: { en, ar }, ch });
 const gift = (who: string): Interaction => ({ id: `${who}_gift`, kind: 'gift', label: { en: 'Give a gift', ar: 'قدّم هدية' }, ch: 3 });
+/** a chat on any day (`smalltalk_<who>`, social.ts), once the first meeting is done; listed first, so it is what Talk does from then on */
+const talk = (who: string, met: string, ch = 1): Interaction => ({
+  id: `${who}_talk`,
+  kind: 'scenario',
+  scenarioId: `smalltalk_${who}`,
+  label: { en: 'Small talk', ar: 'دردشة' },
+  ch,
+  gate: { k: 'scenario', id: met, complete: true },
+});
 
 /** characterId -> what you can do with them (the first open one is what Talk does) */
 export const ES_INTERACTIONS: Record<string, Interaction[]> = {
@@ -67,9 +76,9 @@ export const ES_INTERACTIONS: Record<string, Interaction[]> = {
   rafa: [scenario('rafa_shop', 'mad_churreria', 'Order churros', 'اطلب «تشوروس»', 2)],
   marisa: [scenario('marisa_shop', 'mad_metro', 'Buy a ticket', 'اشترِ تذكرة', 2)],
   andres: [scenario('andres_shop', 'mad_mercado', 'Buy fruit', 'اشترِ فاكهة', 3)],
-  lucia: [scenario('lucia_talk', 'mad_lucia', 'Talk', 'تحدّث'), gift('lucia')],
-  javi: [scenario('javi_talk', 'mad_javi', 'Talk', 'تحدّث', 2), gift('javi')],
-  nadia: [scenario('nadia_talk', 'mad_nadia', 'Talk', 'تحدّث', 3), gift('nadia')],
+  lucia: [talk('lucia', 'mad_lucia'), scenario('lucia_meet', 'mad_lucia', 'Our first chat', 'حديثنا الأول'), gift('lucia')],
+  javi: [talk('javi', 'mad_javi', 2), scenario('javi_meet', 'mad_javi', 'Our first chat', 'حديثنا الأول', 2), gift('javi')],
+  nadia: [talk('nadia', 'mad_nadia', 3), scenario('nadia_meet', 'mad_nadia', 'Our first chat', 'حديثنا الأول', 3), gift('nadia')],
 };
 
 const map = (shop: string, options: string[]): Record<string, string> => Object.fromEntries(options.map((o) => [o, `${shop}:${o}`]));
@@ -84,4 +93,13 @@ export const ES_SCENARIO_META: ScenarioMeta[] = [
   { id: 'mad_lucia', kind: 'talk', band: 'A1', register: 'casual', pay: 'none', real: true, place: 'mad_piso', friendId: 'lucia', culture: ['cc_dos_besos'] },
   { id: 'mad_javi', kind: 'talk', band: 'A1', register: 'casual', pay: 'none', real: true, place: 'mad_plaza', friendId: 'javi', culture: ['cc_futbol'] },
   { id: 'mad_nadia', kind: 'talk', band: 'A1', register: 'casual', pay: 'none', real: true, place: 'mad_intercambio', friendId: 'nadia', culture: ['cc_tu_usted'] },
+  // a friend's chat on any day and the hand-over of a present (social.ts): hearts, not euros
+  ...(
+    [
+      ['lucia', 'mad_piso'],
+      ['javi', 'mad_plaza'],
+      ['nadia', 'mad_intercambio'],
+    ] as const
+  ).map(([id, place]): ScenarioMeta => ({ id: `smalltalk_${id}`, kind: 'talk', band: 'A1', register: 'casual', pay: 'none', real: true, place, friendId: id })),
+  { id: 'give_gift', kind: 'friend', band: 'A1', register: 'casual', pay: 'none' },
 ];

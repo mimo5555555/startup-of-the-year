@@ -31,8 +31,12 @@ export function esMatchForms(text: string): { loose: string; folded: string } {
   return { loose, folded };
 }
 
-/** A key matches at the start of a word: 「un」 is in 「una」 but not in 「algún」 or 「ningún」. */
-export const esContains = (text: string, key: string): boolean => (' ' + text).includes(' ' + key);
+/**
+ * A key matches at the start of a word: 「naranja」 is in 「naranjas」, never in 「algún」 or 「ningún」. A key of one or two letters is a
+ * whole word (「no」 is not in 「noche」 or 「nos vemos」, 「sí」 not in 「siempre」, 「un」 not in 「una」, which is listed on its own).
+ */
+export const esContains = (text: string, key: string): boolean =>
+  key.length <= 2 ? ` ${text} `.includes(` ${key} `) : (' ' + text).includes(' ' + key);
 
 /** The fold the dictionary check uses: a typed 「cafe」 or 「espanol」 is the word café, español. */
 export const esFoldWord = (word: string): string => esMatchForms(word).folded;

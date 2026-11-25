@@ -1,8 +1,9 @@
 // Every static Spanish line the app can speak in Madrid, with the voice that speaks it (tools/voice/generate-piper.mjs es records them).
-// Built from the content's own data, the way lines-de.ts and lines-nl.ts build theirs: the street's conversations, the reactions, the story
-// beats, the friends' facts, the culture phrases, the notebook's starters and every dictionary word. A line with slot variables is recorded
-// once per option; a sentence with any other runtime variable ({name}, a price) is left to the device voice, its other sentences recorded.
-import { ES_LEXICON, ES_REACTIONS, ES_SHIFT_TALK, ES_SLOTS, MADRID_PACK, MADRID_SCENARIOS, customerVoice, resolveLine, type Line, type Scenario, type ShiftTalk, type Vars } from '@lw/content';
+// Built from the content's own data, the way lines-de.ts and lines-nl.ts build theirs: the street's conversations (with the regulars' small
+// talk, the friends' chats and the hand-over of a present in each friend's voice), the reactions, the story beats, the friends' facts, the
+// culture phrases, the notebook's starters and every dictionary word. A line with slot variables is recorded once per option; a sentence
+// with any other runtime variable ({name}, a price) is left to the device voice, its other sentences recorded.
+import { ES_GIVE_GIFT, ES_LEXICON, ES_REACTIONS, ES_SHIFT_TALK, ES_SLOTS, ES_SMALLTALK_FRIENDS, MADRID_PACK, MADRID_SCENARIOS, customerVoice, resolveLine, type Line, type Scenario, type ShiftTalk, type Vars } from '@lw/content';
 import type { GamePack } from '@lw/game';
 import { euroTextEs } from '@lw/core';
 import { NARRATOR } from '../../apps/mobile/src/voice/voices';
@@ -89,6 +90,8 @@ export function voiceLinesEs(): VoiceLineEs[] {
   out.length = 0;
   seen.clear();
   for (const s of MADRID_SCENARIOS) addScenario(s);
+  // the hand-over of a present is one conversation each friend speaks in their own voice
+  for (const f of ES_SMALLTALK_FRIENDS) addScenario({ ...ES_GIVE_GIFT, characterId: f });
   for (const b of Object.values(MADRID_PACK.beats)) for (const l of b.lines) addLine(ES_VOICES[l.who] ? l.who : NARRATOR, l.line);
   for (const f of MADRID_PACK.friends) for (const l of Object.values(f.factLines ?? {})) addLine(ES_VOICES[f.id] ? f.id : NARRATOR, l);
   for (const c of MADRID_PACK.culture) addLine(NARRATOR, c.phrase);

@@ -30,7 +30,8 @@ describe('the Madrid pack', () => {
     expect(MADRID_PACK).toMatchObject({ id: 'es', language: 'es', district: 'madrid', currency: { code: 'EUR', minorPerMajor: 100, symbolPlacement: 'suffix' } });
     expect(MADRID_PACK.release).toEqual({ lastChapter: 3, epilogue: 'b_ec3_close' });
     const others = new Set([...JP_PACK.scenarioMeta, ...BERLIN_PACK.scenarioMeta, ...AMSTERDAM_PACK.scenarioMeta].map((m) => m.id));
-    for (const m of MADRID_PACK.scenarioMeta) expect(others.has(m.id), m.id).toBe(false);
+    // give_gift is the one id every language shares: the app starts the hand-over by it
+    for (const m of MADRID_PACK.scenarioMeta) if (m.id !== 'give_gift') expect(others.has(m.id), m.id).toBe(false);
     expect(MADRID_PACK.scenarioMeta.map((m) => m.id).sort()).toEqual(MADRID_SCENARIOS.map((s) => s.id).sort());
   });
 

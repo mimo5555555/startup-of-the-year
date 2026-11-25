@@ -3,7 +3,7 @@
 // EN and AR; each shop has a typed route that charges the menu price; the friends take a name, a country and a hobby as they are said;
 // Spanish is told from English; tú in a polite setting gets a soft note with usted (never in the bar), usted with a friend a soft one.
 import { describe, expect, it } from 'vitest';
-import { MADRID_PRICES, MADRID_SCENARIOS, madridCharacterById, madridScenarioById, type L1, type Vars } from '@lw/content';
+import { MADRID_PRICES, MADRID_SCENARIOS, MADRID_SHOP_TALK, MADRID_TALK_TOPICS, MADRID_TALK_TOPICS_TU, madridCharacterById, madridScenarioById, type L1, type Vars } from '@lw/content';
 import { euroTextEs } from '@lw/core';
 import { ConversationSession, ES, classifyInput, evaluateSession, isSpanish, targetLanguage, type SessionGameHooks, type SessionOptions, type SubmitResult } from '../src';
 
@@ -81,13 +81,14 @@ function walk(id: string, l1: L1, mk: () => Partial<SessionOptions>) {
 }
 
 const SHOPS = ['mad_bar', 'mad_panaderia', 'mad_mercado', 'mad_churreria', 'mad_metro'];
+const MEETS = ['mad_lucia', 'mad_javi', 'mad_nadia'];
 
 describe('the Madrid street: every chip is understood', () => {
-  it('has the five shops and the three friends, and Japanese stays the default language', () => {
-    expect(MADRID_SCENARIOS.map((s) => s.id)).toEqual([...SHOPS, 'mad_lucia', 'mad_javi', 'mad_nadia']);
+  it('has the five shops and the three friends (their chats and the gift after, madrid-friends.test.ts), and Japanese stays the default language', () => {
+    expect(MADRID_SCENARIOS.map((s) => s.id)).toEqual([...SHOPS, ...MEETS, 'smalltalk_lucia', 'smalltalk_javi', 'smalltalk_nadia', 'give_gift']);
     expect(targetLanguage().id).toBe('ja');
   });
-  for (const sc of MADRID_SCENARIOS) {
+  for (const sc of MADRID_SCENARIOS.filter((x) => SHOPS.includes(x.id) || MEETS.includes(x.id))) {
     const shop = SHOPS.includes(sc.id);
     const modes: Array<[string, () => Partial<SessionOptions>]> = shop
       ? [
@@ -246,5 +247,78 @@ describe('Spanish or not, tú and usted', () => {
     const g = open('mad_churreria');
     expect(say(g, '¡Muchas gracias!').character.line.written).toBe('De nada.');
     expect(say(g, 'Más despacio, por favor.').character.line.written).toBe('Claro. Hablo más despacio.');
+  });
+});
+
+describe('regulars and small talk (Spanish step 3)', () => {
+  const first = (s: ConversationSession) => s.turns[0]!.line.written;
+  const TU = ['mad_bar', 'mad_churreria'];
+  it('every shop has a regular’s greeting and small talk; the friends have none', () => {
+    expect(Object.keys(MADRID_SHOP_TALK).sort()).toEqual([...SHOPS].sort());
+  });
+  for (const [id, shop] of Object.entries(MADRID_SHOP_TALK)) {
+    const topics = TU.includes(id) ? MADRID_TALK_TOPICS_TU : MADRID_TALK_TOPICS;
+    it(`${id}: a regular is greeted as one`, () => {
+      expect(first(open(id, 'en', { flags: { regular: true } }))).toBe(shop.regular.ja);
+      // a first visit: the plain opening
+      const sc = madridScenarioById(id)!;
+      expect(first(open(id))).toBe(sc.nodes[sc.start]!.say.at(-1)!.line.ja);
+    });
+    for (const [topic, tp] of Object.entries(topics)) {
+      it(`${id}, ${topic}: the remark, yes and no in chips, back to the shop`, () => {
+        const s = open(id, topic === 'winter' ? 'ar' : 'en', { flags: { regular: true, [`talk_${topic}`]: true } });
+        expect(first(s)).toBe(`${shop.hello.ja} ${tp.remark.ja}`);
+        expect(s.suggestions().slice(0, 2).map((c) => c.written)).toEqual([tp.yes.ja, tp.no.ja]);
+        const yes = s.pickSuggestion(0);
+        expect(yes.learner.intentId).toBe(`talk_yes_${topic}`);
+        expect(yes.character.line.written).toBe(`${tp.yesReply.ja} ${shop.ask.ja}`);
+        expect(s.nodeId).toBe(madridScenarioById(id)!.start);
+        expect(s.suggestions().map((c) => c.written)).not.toContain(tp.yes.ja);
+        const own = s.pickSuggestion(0);
+        expect(own.learner.matched, `${id}: the shop's own first chip after the small talk`).toBe(true);
+        expect(own.character.kind).not.toBe('fallback');
+
+        const no = open(id, 'en', { flags: { [`talk_${topic}`]: true } }).pickSuggestion(1);
+        expect(no.learner.intentId).toBe(`talk_no_${topic}`);
+        expect(no.character.line.written).toBe(`${tp.noReply.ja} ${shop.ask.ja}`);
+      });
+    }
+  }
+
+  it('the bar and the churrería ask with tú, the others with usted', () => {
+    expect(first(open('mad_bar', 'en', { flags: { talk_summer: true } }))).toBe('¡Buenos días! ¡Qué calor hace hoy! ¿Te gusta el verano?');
+    expect(first(open('mad_churreria', 'en', { flags: { talk_weekend_before: true } }))).toBe('¡Buenas! ¡Ya casi es fin de semana! ¿Tienes planes?');
+    expect(first(open('mad_panaderia', 'en', { flags: { talk_summer: true } }))).toBe('Buenos días. ¡Qué calor hace hoy! ¿Le gusta el verano?');
+    expect(first(open('mad_metro', 'en', { flags: { talk_weekend_now: true } }))).toBe('Buenos días. ¡Por fin es fin de semana! ¿Hoy descansa?');
+    const s = open('mad_mercado', 'en', { flags: { talk_weekend_before: true } });
+    expect(s.pickSuggestion(0).character.line.written).toBe('¡Qué bien! ¡Que lo pase bien! Bueno, ¿qué le pongo?');
+  });
+
+  it('answers in your own words, and an order is still an order while the small talk is on', () => {
+    const said = (topic: string, text: string, id = 'mad_bar') => say(open(id, 'en', { flags: { [`talk_${topic}`]: true } }), text).learner.intentId;
+    expect(said('winter', 'No, tengo mucho frío.')).toBe('talk_no_winter');
+    expect(said('winter', 'Sí, me gusta mucho el invierno.')).toBe('talk_yes_winter');
+    expect(said('spring', 'No me gusta mucho, la verdad.')).toBe('talk_no_spring');
+    expect(said('spring', '¡Sí, claro!')).toBe('talk_yes_spring');
+    expect(said('summer', 'No, hace demasiado calor.')).toBe('talk_no_summer');
+    expect(said('weekend_before', 'No, no tengo planes.')).toBe('talk_no_weekend_before');
+    // 「noche」 and 「nos」 are not 「no」
+    expect(said('weekend_before', 'Sí, esta noche salgo con unos amigos.')).toBe('talk_yes_weekend_before');
+    expect(said('weekend_now', 'No, hoy tengo que trabajar.')).toBe('talk_no_weekend_now');
+    expect(said('weekend_now', 'Sí, hoy descanso.')).toBe('talk_yes_weekend_now');
+    expect(said('weekend_after', '¡Genial, muy bien!')).toBe('talk_yes_weekend_after');
+    expect(said('weekend_after', 'Regular, la verdad.')).toBe('talk_no_weekend_after');
+    expect(said('weekend_after', 'No muy bien.')).toBe('talk_no_weekend_after');
+    // an order while the small talk is on: the shop's own intent
+    expect(said('summer', 'Un café con leche, por favor.')).toBe('order');
+    expect(said('autumn', 'Un kilo de naranjas, por favor.', 'mad_mercado')).toBe('pick_weighed');
+  });
+
+  it('the walk of every chip still holds for a regular with small talk on', () => {
+    for (const id of SHOPS)
+      for (const topic of ['winter', 'weekend_after']) {
+        const { problems } = walk(id, 'en', () => ({ flags: { regular: true, [`talk_${topic}`]: true } }));
+        expect(problems, `${id} ${topic}`).toEqual([]);
+      }
   });
 });

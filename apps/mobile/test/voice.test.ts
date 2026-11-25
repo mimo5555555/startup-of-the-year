@@ -416,6 +416,16 @@ describe('Spanish voice lines (Madrid)', () => {
     expect(has('narrator', '¿Quién es el último?')).toBe(true);
     expect(has('narrator', 'churros')).toBe(true);
     expect(has('narrator', '¡Hasta luego!')).toBe(true);
+    // Spanish step 3: the regulars' greetings and small talk in each shopkeeper's voice (tú at the bar, usted at the panadería)
+    expect(has('lola', '¡Hola! ¡Otra vez por aquí! ¿Qué te pongo hoy?')).toBe(true);
+    expect(has('lola', '¡Buenos días! ¡Qué calor hace hoy! ¿Te gusta el verano?')).toBe(true);
+    expect(has('carmen', 'Buenos días. ¡Qué calor hace hoy! ¿Le gusta el verano?')).toBe(true);
+    expect(has('andres', '¡Qué bien! ¡Que lo pase bien! Bueno, ¿qué le pongo?')).toBe(true);
+    // the friends' chats, and the hand-over of a present in each friend's own voice
+    expect(has('javi', '¿Tocas algún instrumento?')).toBe(true);
+    expect(has('nadia', '¡Qué rico! A mí me encanta el cuscús de mi madre.')).toBe(true);
+    for (const f of ['lucia', 'javi', 'nadia']) expect(has(f, '¿En serio? ¡Qué ilusión! ¡Muchísimas gracias!'), f).toBe(true);
+    expect(has('narrator', 'Me encanta la paella.')).toBe(true);
   });
 
   it('reads prices the way Madrid says them', () => {

@@ -15,10 +15,22 @@ describe('Spanish matching forms', () => {
   });
 
   it('a key matches from the start of a word only', () => {
-    expect(esContains('una cana por fabor', 'un')).toBe(true);
+    expect(esContains('una cana por fabor', 'una')).toBe(true);
+    expect(esContains('dos naranjas', 'naranja')).toBe(true);
     expect(esContains('algun dia', 'un')).toBe(false);
     expect(esContains('ningun problema', 'un')).toBe(false);
     expect(esContains('un cafe con leche', 'cafe con leche')).toBe(true);
+  });
+
+  it('a key of one or two letters is a whole word (no is not in noche, si not in siempre)', () => {
+    expect(esContains('no gracias', 'no')).toBe(true);
+    expect(esContains('pues no', 'no')).toBe(true);
+    expect(esContains('si esta noche salgo', 'no')).toBe(false);
+    expect(esContains('nos vemos', 'no')).toBe(false);
+    expect(esContains('siempre', 'si')).toBe(false);
+    expect(esContains('si claro', 'si')).toBe(true);
+    expect(esContains('una cana', 'un')).toBe(false);
+    expect(esContains('un cafe', 'un')).toBe(true);
   });
 });
 

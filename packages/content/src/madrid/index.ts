@@ -4,10 +4,14 @@ export { ES_LEXICON, ES_WORDS } from './lexicon';
 export { ES_SLOTS } from './slots';
 export { ANDRES, CARMEN, LOLA, MADRID_PRICES, MAD_BAR, MAD_CHURRERIA, MAD_MERCADO, MAD_METRO, MAD_PANADERIA, MARISA, RAFA } from './shops';
 export { ES_REACTIONS, JAVI, JAVI_MEET, LUCIA, LUCIA_MEET, NADIA, NADIA_MEET } from './friends';
+export { MADRID_SHOP_TALK, MADRID_TALK_TOPICS, MADRID_TALK_TOPICS_TU, withMadridTalk } from './smalltalk';
+export { ES_GIVE_GIFT, ES_SMALLTALK, ES_SMALLTALK_CALLBACKS, ES_SMALLTALK_FRIENDS, ES_TOPICS } from './social';
 
 import type { Character, Scenario, SignDef } from '../types';
 import { ANDRES, CARMEN, LOLA, MAD_BAR, MAD_CHURRERIA, MAD_MERCADO, MAD_METRO, MAD_PANADERIA, MARISA, RAFA } from './shops';
 import { JAVI, JAVI_MEET, LUCIA, LUCIA_MEET, NADIA, NADIA_MEET } from './friends';
+import { withMadridTalk } from './smalltalk';
+import { ES_GIVE_GIFT, ES_SMALLTALK } from './social';
 
 /** things on the Madrid street to tap and read (the world's pick id -> the dictionary word), like Tokyo's signs */
 export const MADRID_SIGNS: SignDef[] = [
@@ -30,8 +34,16 @@ export const MADRID_SIGNS: SignDef[] = [
   { id: 'papelera', lex: 'papelera' },
 ];
 
-/** the street's shops, then the friends' first meetings */
-export const MADRID_SCENARIOS: Scenario[] = [MAD_BAR, MAD_PANADERIA, MAD_MERCADO, MAD_CHURRERIA, MAD_METRO, LUCIA_MEET, JAVI_MEET, NADIA_MEET];
+/** the street's shops (with their regulars' greetings and small talk, `smalltalk.ts`), the friends' first meetings, then their chats and
+ * the hand-over of a present (`social.ts`) */
+export const MADRID_SCENARIOS: Scenario[] = [
+  ...[MAD_BAR, MAD_PANADERIA, MAD_MERCADO, MAD_CHURRERIA, MAD_METRO].map(withMadridTalk),
+  LUCIA_MEET,
+  JAVI_MEET,
+  NADIA_MEET,
+  ...ES_SMALLTALK,
+  ES_GIVE_GIFT,
+];
 export const MADRID_CHARACTERS: Character[] = [LOLA, CARMEN, ANDRES, RAFA, MARISA, LUCIA, JAVI, NADIA];
 export const madridScenarioById = (id: string): Scenario | undefined => MADRID_SCENARIOS.find((s) => s.id === id);
 export const madridCharacterById = (id: string): Character | undefined => MADRID_CHARACTERS.find((c) => c.id === id);

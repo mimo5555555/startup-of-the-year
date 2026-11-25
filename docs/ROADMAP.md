@@ -404,10 +404,35 @@ game, a bigger city with better conversations, and the same game for German, Dut
     Español, Lucía, the bar charging exactly 4,30 €, the panadería 1,50 €, Chapter 2 with Javi and the churrería 5,00 €, Settings back
     to Japanese; EN and AR).
 
+- **Spanish step 3: Madrid's regulars, small talk and friends** (done): the shopkeepers know you and the friends have something to say
+  on any day.
+  * Regulars and small talk (`@lw/content` madrid/smalltalk.ts, on the shared `withShopTalk` and the flags the app already sets): from
+    the second visit Lola greets a regular (「¡Hola! ¡Otra vez por aquí! ¿Qué te pongo hoy?」), Carmen (「¡Qué alegría verle otra vez!」),
+    Andrés, Rafa and Marisa too; on some visits they talk about the season or the weekend, answered with a chip or in your own words,
+    then back to the shop's question. Each shop keeps its register: Lola and Rafa ask with tú (「¿Te gusta el verano?」, 「¿Tienes
+    planes?」), Carmen, Andrés and Marisa with usted (「¿Le gusta el verano?」, 「¡Que lo pase bien!」). June is the start of Madrid's
+    heat, summer is 「muy fuerte」.
+  * The friends' chats and a present (madrid/social.ts, on the shared `buildSmalltalk` / `buildGiveGift`): Lucía, Javi and Nadia have a
+    chat of the day once you have met them (Small talk on the Interaction sheet: the weather, the weekend, food, music, travel, your
+    Spanish, sport, films, and one topic of their own: Seville for Lucía, an instrument for Javi, an Arabic word for Nadia). They quote a
+    remembered hobby (「¿Todavía te gusta el cine?」), favourite food (「¿Has comido paella esta semana?」) or your dream, and reveal their
+    facts after their reaction. Gift (from Chapter 3) now opens a hand-over in Spanish (「¡Tengo una lata de aceite para ti!」): Madrid
+    offered it in step 2 without one. Everything the street sells can be named as a present; the hobbies read with their articles
+    (la música, el deporte, el cine).
+  * Spanish matching: a key of one or two letters is a whole word, so 「no」 is never heard in 「esta noche」 or 「nos vemos」, nor 「sí」 in
+    「siempre」.
+  * 104 new words (435 in all); 434 more Spanish lines recorded (1,018 in all, all checked): the regulars' small talk in each
+    shopkeeper's voice, the friends' chats, the hand-over in each friend's voice.
+  * Tests: every shop and topic through the engine (tú and usted, chips and own words, an order still an order, the walk of every chip
+    for a regular), every chat topic of every friend from where the app enters it (EN and AR), the callbacks and remembered facts, the
+    hand-over (by item, by food, bare; a zumo de naranja is not oranges), the app's flags on any day of the year, the gift sheet, the
+    voice lines, and the e2e (`tools/e2e/game/madrid.mjs`: small talk and a regular's return at Lola's, Lucía's chat, Andrés's olive oil
+    at the mercado given to Lucía; EN and AR).
+
 ## Next
 
-1. **Spanish steps 3–5**: regulars and small talk, the friends' chats, gifts and hang-outs, Chapters 4–6, a job (Rafa's churrería or
-   Lola's bar, with the Shift screen's Spanish table).
+1. **Spanish steps 4–5**: hang-outs at three hearts, new places and Chapters 4–6 (as Amsterdam's step 4), then a job (Rafa's churrería
+   or Lola's bar, with the Shift screen's Spanish table).
 2. **Listen to the voices** and adjust a character's pitch or pace in `voices-de.ts` / `voices-nl.ts` / `voices-es.ts` where needed
    (re-run `PIPER_PYTHON=… PIPER_MODELS=… node tools/voice/generate-piper.mjs <de|nl|es>`). Nathalie was trained on Flemish speech: if
    her accent jars in Amsterdam, a Netherlands-Dutch woman's voice from Piper's MLS model (CC BY 4.0, needs a credit) can replace it.

@@ -35,7 +35,8 @@ describe('Madrid content', () => {
     expect(r.tokens.filter((t) => t.punct).map((t) => t.s)).toEqual(['¡', '!', '¿', '?']);
     expect(plainText(r.tokens)).toBe('¡Hola! ¿Cómo te llamas?');
     const bar = MADRID_SCENARIOS.find((s) => s.id === 'mad_bar')!;
-    expect(resolveLine(bar.nodes.start!.say[0]!.line, ES_LEXICON).written).toBe('¡Buenos días! ¿Qué te pongo?');
+    // the plain opening is the last of the start's lines (a regular's greeting and the small talk come first, on their flags)
+    expect(resolveLine(bar.nodes.start!.say.at(-1)!.line, ES_LEXICON).written).toBe('¡Buenos días! ¿Qué te pongo?');
   });
 
   it('accents tell words apart; letter case does not', () => {
